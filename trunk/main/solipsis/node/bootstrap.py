@@ -44,7 +44,7 @@ class Bootstrap(object):
                 node.position = Position(random.random() * 2**128, random.random() * 2**128, 0)
                 state_machine = StateMachine(reactor, params, node)
                 node_connector = NodeConnector(reactor, params, state_machine)
-                remote_control = not self.params.bot and RemoteControl(reactor, params, state_machine) or None
+                remote_control = RemoteControl(reactor, params, state_machine)
                 self.pool.append(PoolItem(state_machine, node_connector, remote_control))
             if self.params.as_seed:
                 self.bootup_entities = entities
@@ -56,7 +56,7 @@ class Bootstrap(object):
             node.position = Position(self.params.pos_x, self.params.pos_y, 0)
             state_machine = StateMachine(reactor, params, node)
             node_connector = NodeConnector(reactor, params, state_machine)
-            remote_control = not self.params.bot and RemoteControl(self.reactor, self.params, state_machine) or None
+            remote_control = RemoteControl(self.reactor, self.params, state_machine)
             if self.params.as_seed:
                 self.bootup_entities = self._ParseSeedsFile("conf/seed.met")
             else:
@@ -68,6 +68,8 @@ class Bootstrap(object):
     def Run(self):
         for i, p in enumerate(self.pool):
             # Open Solipsis main port
+            sender = p.node_connector.SendMessage
+            p.state_machine.Init(sender, p.remote_control, self.bootup_entities)
             try:
                 p.node_connector.Start(i)
             except Exception, e:
@@ -76,8 +78,6 @@ class Bootstrap(object):
             self.reactor.addSystemEventTrigger('during', 'shutdown', p.node_connector.Stop)
 
             # Setup the initial state
-            sender = p.node_connector.SendMessage
-            p.state_machine.Init(sender, self.bootup_entities)
             if self.params.as_seed:
                 p.state_machine.ImmediatelyConnect()
             else:

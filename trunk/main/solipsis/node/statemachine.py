@@ -36,7 +36,7 @@ class StateMachine(object):
     connecting_period = 4.0
     early_connecting_period = 3.0
     gc_check_period = 4.0
-    population_check_period = 6.0
+    population_check_period = 5.0
 
     # Various timeouts
     gc_trials = 3
@@ -82,7 +82,7 @@ class StateMachine(object):
         self.min_neighbours = int(round((1.0 - self.neighbour_tolerance) * self.expected_neighbours))
         self.max_neighbours = int(round((1.0 + self.neighbour_tolerance) * self.expected_neighbours))
         # Max number of connections (total)
-        self.max_connections = int(self.max_neighbours * self.peer_neighbour_ratio)
+        self.max_connections = int(self.expected_neighbours * self.peer_neighbour_ratio)
 
         self.caller = DelayedCaller(self.reactor)
         self.peer_sender = None
@@ -95,10 +95,6 @@ class StateMachine(object):
         self.sent_messages = {}
 
         self.Reset()
-
-#     def __del__(self):
-#         print "state machine finalized"
-#         self.Reset()
 
     def Reset(self):
         self.state = None
@@ -118,11 +114,12 @@ class StateMachine(object):
 
         self.topology.Reset(origin=self.node.position.getCoords())
 
-    def Init(self, sender, bootup_addresses):
+    def Init(self, peer_sender, event_sender, bootup_addresses):
         """
         Initialize the state machine. This is mandatory.
         """
-        self.peer_sender = sender
+        self.peer_sender = peer_sender
+        self.event_sender = event_sender
         self.bootup_addresses = bootup_addresses
 
     def Close(self):
@@ -280,14 +277,6 @@ class StateMachine(object):
 
     def state_Idle(self):
         print "idle"
-        def _jump():
-            x = random.random() * self.world_size
-            y = random.random() * self.world_size
-            self.node.position = Position(x, y, 0)
-            print "jump to %f, %f" % (x, y)
-            self._Jump()
-
-#         self.caller.CallLater(3.0 * random.random(), _jump)
 
         def _check_gc():
             # Periodically check global connectivity
@@ -647,49 +636,6 @@ class StateMachine(object):
             # Otherwise, do a full-fledged teleport
             self._Jump()
 
-#     def control_MOVE(self, event):
-#         """ MOVE control event. Move the node to a new position.
-#         event : Request = MOVE, args = {'Position'}
-#         """
-#
-#         # Change position
-#         newPosition = event.getArg(protocol.ARG_POSITION)
-#         self.node.setPosition(newPosition)
-#         manager = self.node.getPeersManager()
-#         if manager.hasGlobalConnectivity():
-#             # We still have the global connectivity,
-#             # so we can simply notify peers of the position change
-#             self.sendUpdates()
-#
-#         else:
-#             # We cannot keep our global connectivity,
-#             # so we do the JUMP algorithm to get the knowledge
-#             # of our new neighbourhood
-#             self.jump()
-#
-#     def control_KILL(self, event):
-#         self.logger.info("Received kill message")
-#         self.node.exit()
-#
-#     def control_ABORT(self, event):
-#         self.node.alive = False
-#         print "\nFatal error: " + event.getArg('Message') + "\nAborting"
-#         self.node.dispatch(event)
-#
-#     def control_GETNODEINFO(self, event):
-#         factory = EventFactory.getInstance(ControlEvent.TYPE)
-#         info = factory.createNODEINFO()
-#         self.node.dispatch(info)
-#
-#     def control_SET(self, event):
-#         field = event.getArg('Name')
-#         value = event.getArg('Value')
-#         if field == 'Pseudo':
-#             self.node.setPseudo(value)
-#             self.sendUpdates()
-#         else:
-#             import exceptions
-#             raise NotImplementedError()
 
     #
     # Private methods: connection management
@@ -709,6 +655,9 @@ class StateMachine(object):
         def msg_send_timeout():
             self._SendToPeer(peer, self._PeerMessage('HEARTBEAT'))
 
+        # Notify remote control
+        self.event_sender.event_NewPeer(peer)
+
         # Setup heartbeat handling callbacks
         caller = DelayedCaller(self.reactor)
         # Heuristic (a la BGP)
@@ -717,7 +666,7 @@ class StateMachine(object):
         caller.CallPeriodicallyWithId('msg_send_timeout', keepalive, msg_send_timeout)
         self.peer_timeouts[peer.id_] = caller
 
-        # TODO: notify navigator that we gained a new peer
+        self._CheckNumberOfPeers(check_ar=False)
 
     def _RemovePeer(self, id_):
         """
@@ -725,8 +674,8 @@ class StateMachine(object):
         """
         del self.peer_timeouts[id_]
         self.topology.RemovePeer(id_)
-
-        # TODO: notify navigator that we lost connection with a peer
+        # Notify remote control
+        self.event_sender.event_LostPeer(id_)
 
     def _AcceptPeer(self, peer):
         """
@@ -885,13 +834,13 @@ class StateMachine(object):
         self.node.awareness_radius = ar
         self._SendUpdates()
 
-    def _CheckNumberOfPeers(self):
+    def _CheckNumberOfPeers(self, check_ar=True):
         """
         Check the current number of peers and optionally launch
         various actions so that it stays within the desired bounds.
         """
         topology = self.topology
-        ar = self.node.awareness_radius
+        new_ar = ar = self.node.awareness_radius
         nb_peers = topology.GetNumberOfPeers()
         neighbours = topology.GetPeersWithinDistance(ar)
         nb_neighbours = len(neighbours)
@@ -899,31 +848,28 @@ class StateMachine(object):
             # This case is handled by the global connectivity check
             return
 
-        # 1. Not enough neighbours in our awareness radius
-        if nb_neighbours < self.min_neighbours:
-            if nb_peers >= self.min_neighbours:
-                # +1% to avoid boundary/imprecision issues
+        if check_ar:
+            # 1. Not enough neighbours in our awareness radius
+            if nb_neighbours < self.min_neighbours:
+                if nb_peers >= self.min_neighbours:
+                    # +1% to avoid boundary/imprecision issues
+                    new_ar = topology.GetEnclosingDistance(self.min_neighbours) * 1.01
+                else:
+                    # We assume areal density is roughly constant
+                    d = topology.GetEnclosingDistance(nb_peers)
+                    new_ar = max(d, ar) * math.sqrt(float(self.min_neighbours) / nb_peers)
+                new_ar = min(new_ar, self.world_size)
+            # 2. Too many neighbours in our awareness radius
+            elif nb_neighbours > self.max_neighbours:
                 new_ar = topology.GetEnclosingDistance(self.min_neighbours) * 1.01
-            else:
-                # We assume areal density is roughly constant
-                d = topology.GetEnclosingDistance(nb_peers)
-                new_ar = max(d, ar) * math.sqrt(float(self.min_neighbours) / nb_peers)
-            new_ar = min(new_ar, self.world_size)
-            if new_ar != ar:
-                self._UpdateAwarenessRadius(new_ar)
-        # 2. Too many neighbours in our awareness radius
-        elif nb_neighbours > self.max_neighbours:
-            new_ar = topology.GetEnclosingDistance(self.min_neighbours) * 1.01
-            # Sometimes several peers are exactly at the same distance, so the AR doesn't change...
-            if new_ar != ar:
-                self._UpdateAwarenessRadius(new_ar)
         # 3. Too many connected peers outside of our awareness radius
-        elif nb_peers > self.max_connections:
-            peers = self.topology.GetWorstPeers(self.max_connections - self.max_neighbours, ar)
+        if nb_peers > self.max_connections:
+            peers = self.topology.GetWorstPeers(nb_peers - self.max_neighbours, new_ar)
             for p in peers:
                 self._CloseConnection(p)
-        else:
-            return
+        # Notify peers of our new awareness radius
+        if new_ar != ar:
+            self._UpdateAwarenessRadius(new_ar)
 #         print "ar=%6f, peers=%d, neighbours=%d (min=%d, max=%d)" % (ar, nb_peers, nb_neighbours, self.min_neighbours, self.max_neighbours)
 
 

@@ -3,6 +3,7 @@
 import threading
 import twisted.web.xmlrpc as xmlrpc
 
+from solipsis.util import marshal
 from proxy import UIProxy
 
 
@@ -10,47 +11,47 @@ class NotificationHandler(object):
     def __init__(self, reactor, ui):
         super(NotificationHandler, self).__init__()
 
-        self.parsers = {
-            'position': self._ParsePosition,
-        }
+#         self.parsers = {
+#             'position': self._ParsePosition,
+#         }
         self.reactor = reactor
         self.ui = ui
 
-    def Receive(self, request, properties):
+    def Receive(self, request, payload):
         try:
             attr = getattr(self, request)
         except:
-            print "Unhandled notification '%s'" % request
+            print "Unrecognized notification '%s'" % request
         else:
-            self._ParseProperties(properties)
-            attr(properties)
+            attr(payload)
 
     #
     # Notification handlers
     #
-    def NEW(self, properties):
-        print "NEW", properties['id'], properties['position']
-        self.ui.AddObject(properties['id'], None, position=properties['position'])
+    def NEW(self, struct):
+        peer_info = marshal.PeerInfo(struct)
+        print "NEW", peer_info.id_
+        self.ui.AddObject(peer_info.id_, None, position=peer_info.position)
 
-    def DEAD(self, properties):
-        print "DEAD", properties['id']
-        self.ui.RemoveObject(properties['id'])
+    def LOST(self, peer_id):
+        print "LOST", peer_id
+        self.ui.RemoveObject(peer_id)
 
 
     #
     # Private methods
     #
-    def _ParseProperties(self, properties):
-        for p, parser in self.parsers.items():
-            if p in properties:
-                try:
-                    properties[p] = parser(properties[p])
-                except:
-                    print "Wrong syntax for '%s' in notification: %s" % (p, properties[p])
-
-    def _ParsePosition(self, position):
-        x, y, z = position.split(",")
-        return (float(x), float(y), float(z))
+#     def _ParseProperties(self, properties):
+#         for p, parser in self.parsers.items():
+#             if p in properties:
+#                 try:
+#                     properties[p] = parser(properties[p])
+#                 except:
+#                     print "Wrong syntax for '%s' in notification: %s" % (p, properties[p])
+#
+#     def _ParsePosition(self, position):
+#         x, y, z = position.split(",")
+#         return (float(x), float(y), float(z))
 
 
 class XMLRPCConnector(object):
@@ -64,74 +65,68 @@ class XMLRPCConnector(object):
         self.reactor = reactor
         self.notification_receiver = notification_receiver
         self.xmlrpc_control = None
-        self.xmlrpc_notif = None
         self.connect_id = None
 
     def Connect(self, host, port):
+        """
+        Connect to the node.
+        """
         control_url = 'http://%s:%d/RPC2' % (host, port)
-        notif_url = 'http://%s:%d/RPC2' % (host, port + 1)
         xmlrpc_control = xmlrpc.Proxy(control_url)
 
-        def _connected(connect_id):
+        def _success(connect_id):
             self.xmlrpc_control = xmlrpc_control
             self.connect_id = connect_id
             print "connect_id:", connect_id
-        xmlrpc_control.callRemote('Connect').addCallback(_connected)
-
-#         self.xmlrpc_notif = xmlrpc.Proxy(notif_url)
-#         self._AskNotif()
+            self._AskEvents()
+        def _failure(error):
+            print "connection failure:", str(error)
+        xmlrpc_control.callRemote('Connect').addCallbacks(_success, _failure)
 
     def Disconnect(self):
-        self.CallControl('Disconnect')
+        """
+        Disconnect from the node.
+        """
+        self.Call('Disconnect')
         self.xmlrpc_control = None
-        self.xmlrpc_notif = None
         self.connect_id = None
 
-    def CallControl(self, method, *args):
+    def Connected(self):
+        """
+        Returns True if connected.
+        """
+        return self.xmlrpc_control is not None
+
+    def Call(self, method, *args):
+        """
+        Call a remote function on the node.
+        """
         if self.xmlrpc_control is not None:
             d = self.xmlrpc_control.callRemote(method, self.connect_id, *args)
-            d.addCallbacks(self.ControlResponse, self.ControlError)
+            _success = getattr(self, "success_" + method, self.success_default)
+            _failure = getattr(self, "failure_" + method, self.failure_default)
+            d.addCallbacks(_success, _failure)
 
     #
     # XML RPC callbacks
     #
-    def ControlResponse(self, reply):
-        """ Called on response to a control request. """
+    def success_default(self, reply):
+        pass
 
-    def NotifResponse(self, reply):
-        self._AskNotif()
-        try:
-            notifications = []
-            for value in reply:
-                request = value['request']
-                items = [(k, v) for (k, v) in value.items() if k != 'request']
-                notifications.append((request, items))
-        except AttributeError:
-            print "Bad notification:", str(reply)
-        else:
-            for (request, items) in notifications:
-                self.notification_receiver(request, dict(items))
+    def failure_default(self, error):
+        print "failure:", str(error)
 
-
-    def ControlError(self, failure):
-        print "Control error:", str(failure)
-        self.xmlrpc_control = None
-        self.xmlrpc_notif = None
-        raise failure
-
-    def NotifError(self, failure):
-        print "Notification error:", str(failure)
-        self.xmlrpc_control = None
-        self.xmlrpc_notif = None
-        raise failure
+    def success_GetEvents(self, reply):
+        for notif in reply:
+            t, request, payload = notif
+            self.notification_receiver(request, payload)
+        self._AskEvents()
 
     #
     # Private methods
     #
-    def _AskNotif(self):
-        if self.xmlrpc_notif is not None:
-            d = self.xmlrpc_notif.callRemote('Get')
-            d.addCallbacks(self.NotifResponse, self.NotifError)
+    def _AskEvents(self):
+        self.Call('GetEvents')
 
 
 class NetworkLoop(threading.Thread):
@@ -168,16 +163,15 @@ class NetworkLoop(threading.Thread):
 
     def ConnectToNode(self, *args, **kargs):
         self.node_connector.Connect(*args, **kargs)
-        self.node_connector.CallControl('Move', 500, 2000, 0)
+        self.node_connector.Call('Move', 500, 2000, 0)
 
     def DisconnectFromNode(self, *args, **kargs):
-#         self.node_connector.CallControl('Die')
         self.node_connector.Disconnect(*args, **kargs)
 
     def MoveTo(self, (x, y)):
         x = str(long(x))
         y = str(long(y))
-        self.node_connector.CallControl('Move', x, y, 0)
+        self.node_connector.Call('Move', x, y, 0)
 
     #
     # Private methods
