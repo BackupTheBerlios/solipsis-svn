@@ -16,27 +16,34 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: plugin.py:44 plugin.py:77
-msgid "Chat"
+#: plugin.py:55
+msgid "Profile"
 msgstr ""
 
-msgid "Users"
+#: plugin.py:62
+msgid "Manage personal information and share it with people"
 msgstr ""
 
-msgid "&Send"
+#: plugin.py:73
+msgid "Modify ..."
 msgstr ""
 
-msgid "&Close"
+#: plugin.py:74
+msgid "Add files ..."
 msgstr ""
 
-#: plugin.py:41
-msgid "Chat with all peers"
+#: plugin.py:75
+msgid "Delete files ..."
 msgstr ""
 
-#: plugin.py:47
-msgid "Talk with the people that are currently around you"
+#: plugin.py:76
+msgid "Search ..."
 msgstr ""
 
-#: gui.py:61
-msgid "Nickname"
+#: plugin.py:83
+msgid "Show info"
+msgstr ""
+
+#: plugin.py:84
+msgid "Request profile"
 msgstr ""
