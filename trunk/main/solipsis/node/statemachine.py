@@ -953,11 +953,11 @@ class StateMachine(object):
         self._CloseCurrentConnections(keep_peers=new_peers)
 
         # Cleanup
-        self.future_topology = None
-        self.future_position = None
+        #~ self.future_topology = None
+        #~ self.future_position = None
 
         # Don't forget to notify our controller(s)
-        print self.node.position.GetXY()
+        #~ print self.node.position.GetXY()
         self.event_sender.event_Jumped(self.node.position)
 
     def _Jump(self, position=None):

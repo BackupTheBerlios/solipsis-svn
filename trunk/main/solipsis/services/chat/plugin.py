@@ -46,10 +46,10 @@ class Plugin(ServicePlugin):
     def GetDescription(self):
         return _("Talk with the people that are currently around you")
 
-    def GetAction(self):
+    def GetActions(self):
         return [_(self.str_action)]
 
-    def GetPointToPointAction(self):
+    def GetPointToPointActions(self):
         return []
     
     def DescribeService(self, service):

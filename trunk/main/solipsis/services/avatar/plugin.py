@@ -44,11 +44,11 @@ class Plugin(ServicePlugin):
     def GetDescription(self):
         return _("Exchange avatars to customize your appearance")
 
-    def GetAction(self):
-        return ()
+    def GetActions(self):
+        return []
 
-    def GetPointToPointAction(self):
-        return ()
+    def GetPointToPointActions(self):
+        return []
     
     def DescribeService(self, service):
         service.address = "%s:%d" % (self.host, self.port)

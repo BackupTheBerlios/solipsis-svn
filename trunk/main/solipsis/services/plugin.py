@@ -61,16 +61,16 @@ class ServicePlugin(object):
         """
         raise NotImplementedError
 
-    def GetAction(self):
+    def GetActions(self):
         """
-        Returns a string advertising an action with all peers,
+        Returns an array of strings advertising possible actions with all peers,
         or None if no such action is allowed.
         """
         raise NotImplementedError
 
-    def GetPointToPointAction(self):
+    def GetPointToPointActions(self):
         """
-        Returns a string advertising a point-to-point action
+        Returns an array of strings advertising point-to-point actions
         with another peer, or None if point-to-point actions are not allowed.
         """
         raise NotImplementedError

@@ -67,11 +67,11 @@ class WxServiceCollector(ServiceCollector):
             plugin = self.plugins[service_id]
             if id_ is not None:
                 if self.peers[id_].GetService(service_id) is not None:
-                    titles = plugin.GetPointToPointAction()
+                    titles = plugin.GetPointToPointActions()
                 else:
-                    titles = ()
+                    titles = []
             else:
-                titles = plugin.GetAction()
+                titles = plugin.GetActions()
             i = 0
             for title in titles:
                 item_id = self.action_ids.GetId()
