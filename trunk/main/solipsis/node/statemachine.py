@@ -415,7 +415,10 @@ class StateMachine(object):
         # Instantiate the best peer
         peer = self._Peer(args)
         assert self.future_topology is not None, "BEST received but we have no future topology!"
-        distance = self.future_topology.RelativeDistance(peer.position.getCoords())
+        # The fudge factor helps avoid infinite loops
+        # (BEST->QUERYAROUND->NEAREST->FINDNEAREST->BEST->QUERYAROUND->...)
+        # due to precision loss
+        distance = 0.999 * self.future_topology.RelativeDistance(peer.position.getCoords())
 
         # Store the best peer
         if self.best_peer is not None:
