@@ -57,7 +57,6 @@ class ConfigData(ManagedData):
             proxy_host, proxy_port = discover_http_proxy()
             self.proxy_host = proxy_host or ""
             self.proxy_port = proxy_port or 0
-            #~ print "detected proxy (%s, %d)" % (self.proxy_host, self.proxy_port)
 
     def SetServices(self, services):
         self.services = list(services)

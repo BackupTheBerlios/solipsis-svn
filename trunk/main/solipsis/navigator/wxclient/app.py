@@ -374,6 +374,14 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
 
     def _CreateNode(self, evt):
         """ Called on "create node" event (menu -> File -> New node). """
+        dialog = wx.TextEntryDialog(self.main_window,
+            message=_("Please choose your nickname"),
+            caption=_("Nickname"),
+            defaultValue=self.config_data.pseudo
+            )
+        if dialog.ShowModal() != wx.ID_OK:
+            return
+        self.config_data.pseudo = unicode(dialog.GetValue())
         l = Launcher(port=self.config_data.solipsis_port)
         # First try to spawn the node
         if not l.Launch():
