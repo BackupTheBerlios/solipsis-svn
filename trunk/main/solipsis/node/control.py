@@ -19,24 +19,34 @@ class RemoteControl(object):
         self.state_machine = state_machine
         self.caller = DelayedCaller(self.reactor)
         self.connections = set()
-        self.notif_lists = {}
-        self.notif_count = 0
-
-        self.cnt = 0
-        def _fill():
-            self.cnt += 1
-            for l in self.notif_lists.itervalues():
-                l.append(self.cnt)
-        self.caller.CallPeriodically(0.5, _fill)
+#         self.notif_lists = {}
+#         self.notif_count = 0
+#
+#         self.cnt = 0
+#         def _fill():
+#             self.cnt += 1
+#             for l in self.notif_lists.itervalues():
+#                 l.append(self.cnt)
+#         self.caller.CallPeriodically(0.5, _fill)
 
 
     #
     # Remotely callable methods
     #
+    def remote_Connect(self):
+        connect_id = self._NewConnectId()
+        self.connections.add(connect_id)
+        return connect_id
+
+    def remote_Disconnect(self, connect_id):
+        self._CheckConnectId(connect_id)
+        self.connections.remove(connect_id)
+        return True
+
     def remote_Move(self, connect_id, x, y, z):
         self._CheckConnectId(connect_id)
         print "Move received", x, y, z
-        return 1
+        return True
 
     def remote_Die(self, connect_id):
         self._CheckConnectId(connect_id)
@@ -52,7 +62,7 @@ class RemoteControl(object):
 
         self.caller.CallLaterWithId(notif_id, 3.0, _get)
         self.notif_lists[notif_id] = []
-        return d
+        return True
 
 
     #
@@ -62,7 +72,7 @@ class RemoteControl(object):
         if connect_id not in self.connections:
             raise UnauthorizedRequest()
 
-    def _NewConnectionId(self):
+    def _NewConnectId(self):
         nbytes = 20
         r = random.getrandbits(nbytes * 8)
         s = ''
