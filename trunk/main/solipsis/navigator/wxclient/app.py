@@ -345,6 +345,16 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         if self.progress_dialog is not None:
             self.progress_dialog.Destroy()
             self.progress_dialog = None
+    
+    def _SetWaiting(self, waiting):
+        """
+        Set "waiting" state of the interface.
+        """
+        if waiting:
+            cursor = wx.StockCursor(wx.CURSOR_ARROWWAIT)
+        else:
+            cursor = wx.StockCursor(wx.CURSOR_DEFAULT)
+        self.viewport_panel.SetCursor(cursor)
 
 
     #===-----------------------------------------------------------------===#
@@ -529,17 +539,17 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     def SetStatus(self, status):
         """ Change connection status. """
         if status == 'READY':
-            self.viewport_panel.SetCursor(wx.StockCursor(wx.CURSOR_DEFAULT))
+            self._SetWaiting(False)
             self.viewport.Enable()
             self.Redraw()
             self.statusbar.SetText(_("Connected"))
         elif status == 'BUSY':
-            self.viewport_panel.SetCursor(wx.StockCursor(wx.CURSOR_ARROWWAIT))
+            self._SetWaiting(True)
             self.viewport.Enable()
             self.Redraw()
             self.statusbar.SetText(_("Searching peers"))
         elif status == 'UNAVAILABLE':
-            self.viewport_panel.SetCursor(wx.StockCursor(wx.CURSOR_DEFAULT))
+            self._SetWaiting(False)
             self.viewport.Disable()
             self.Redraw()
             self.statusbar.SetText(_("Not connected"))
@@ -548,6 +558,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """ We managed to connect to the node. """
         # We must call the node proxy from the Twisted thread!
         self._DestroyProgress()
+        self._SetWaiting(False)
         self.node_proxy = TwistedProxy(node_proxy, self.reactor)
         self.node_proxy.SetNodeInfo(self.config_data.GetNode().ToStruct())
         self.statusbar.SetText(_("Connected"))
@@ -569,7 +580,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             wx.FutureCall(1000, self._TryConnect)
         else:
             self._DestroyProgress()
-            self.viewport_panel.SetCursor(wx.StockCursor(wx.CURSOR_DEFAULT))
+            self._SetWaiting(False)
             self.node_proxy = None
             self.statusbar.SetText(_("Not connected"))
             msg = _("Connection to the node has failed. \nPlease the check the node is running, then retry.")
@@ -579,6 +590,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     def NodeKillSucceeded(self):
         """ We managed to kill the (remote/local) node. """
         self.node_proxy = None
+        self._SetWaiting(False)
         self.viewport.Disable()
         self.Redraw()
         self.statusbar.SetText(_("Not connected"))
@@ -586,6 +598,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     def NodeKillFailed(self):
         """ The node refused to kill itself. """
         self.node_proxy = None
+        self._SetWaiting(False)
         self.viewport.Disable()
         msg = _("You cannot kill this node.")
         dialog = wx.MessageDialog(None, msg, caption=_("Kill refused"), style=wx.OK | wx.ICON_ERROR)
