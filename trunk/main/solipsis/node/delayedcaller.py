@@ -80,6 +80,8 @@ class DelayedCaller(object):
         """
         Remove a call.
         """
+        if id_ not in self.calls:
+            return
         try:
             self.calls[id_].cancel()
         except Exception, e:

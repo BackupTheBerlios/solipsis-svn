@@ -50,6 +50,7 @@ class RemoteControl(object):
 
     min_notif_delay = 0.050
     max_notif_delay = 4.0
+    connection_timeout = 10.0
 
     def __init__(self, reactor, params, state_machine):
         self.reactor = reactor
@@ -70,8 +71,7 @@ class RemoteControl(object):
         """
         Connect to the node. Returns a connect ID.
         """
-        connect_id = self._NewConnectId()
-        self.connections[connect_id] = Connection(self.reactor)
+        connect_id = self._CreateConnection()
         return connect_id
 
     def remote_Disconnect(self, connect_id):
@@ -79,30 +79,24 @@ class RemoteControl(object):
         Disconnect from the node. Invalidates the connect ID.
         """
         self._CheckConnectId(connect_id)
-        if connect_id in self.pending_notifs:
-            self._SendNotifs(connect_id, force=True)
-        self.connections[connect_id].Reset()
-        del self.connections[connect_id]
+        self._CloseConnection(connect_id)
         return True
 
     def remote_Quit(self, connect_id):
         """
-        Kills the node and quits.
+        Kills the node and quits the main program.
         Allowed only if the process hosts a single node.
         """
         self._CheckConnectId(connect_id)
         if self.params.pool:
             return False
-        if connect_id in self.pending_notifs:
-            self._SendNotifs(connect_id, force=True)
-        self.connections[connect_id].Reset()
-        del self.connections[connect_id]
+        self._CloseConnection(connect_id)
 
         # We cannot call self.reactor.stop synchronously,
         # since we must first return the method result over the network.
-        def _close():
+        def _shutdown():
             self.reactor.stop()
-        self.reactor.callLater(1.0, _close)
+        self.reactor.callLater(1.0, _shutdown)
         return True
 
     def remote_GetEvents(self, connect_id):
@@ -157,7 +151,6 @@ class RemoteControl(object):
         x = float(x)
         y = float(y)
         z = float(z)
-        #~ print "Move received", x, y, z
         self.state_machine.MoveTo((x, y, z))
         return True
 
@@ -201,27 +194,39 @@ class RemoteControl(object):
     #
     # Private methods
     #
-    def _AddNotif(self, request, payload):
+    def _CreateConnection(self):
         """
-        Add a notification.
+        Creates a connection to a controller.
         """
-        t = time.time()
-        for c in self.connections.itervalues():
-            c.notifs.append((t, request, payload))
-        # Send notifications
-        for connect_id in self.pending_notifs.keys():
-            self._SendNotifs(connect_id)
+        connect_id = self._NewConnectId()
+        self.connections[connect_id] = Connection(self.reactor)
+        def _timeout():
+            print "RemoteControl: connection timeout", connect_id
+            self._CloseConnection(connect_id)
+        self.caller.CallLaterWithId('timeout_' + connect_id, self.connection_timeout, _timeout)
+        return connect_id
+
+    def _CloseConnection(self, connect_id):
+        """
+        Closes the connection to a controller.
+        """
+        self.caller.CancelCall('timeout_' + connect_id)
+        if connect_id in self.pending_notifs:
+            self._SendNotifs(connect_id, force=True)
+        self.connections[connect_id].Reset()
+        del self.connections[connect_id]
 
     def _CheckConnectId(self, connect_id):
         """
-        Check whether the connect_id is a valid one.
+        Checks whether the connect_id is a valid one.
         """
         if connect_id not in self.connections:
             raise UnauthorizedRequest()
+        self.caller.RescheduleCall('timeout_' + connect_id)
 
     def _NewConnectId(self):
         """
-        Create a new connection ID.
+        Creates a new connection ID.
         """
         nbytes = 20
         try:
@@ -235,9 +240,20 @@ class RemoteControl(object):
             r >>= 8
         return sha.new(s).hexdigest()
 
+    def _AddNotif(self, request, payload):
+        """
+        Adds a notification to all event queues.
+        """
+        t = time.time()
+        for c in self.connections.itervalues():
+            c.notifs.append((t, request, payload))
+        # Send notifications
+        for connect_id in self.pending_notifs.keys():
+            self._SendNotifs(connect_id)
+
     def _SendNotifs(self, connect_id, force=False):
         """
-        Send all pending notifications to a peer.
+        Sends all pending notifications to a peer.
         """
         c = self.connections[connect_id]
         if force or len(c.notifs):
