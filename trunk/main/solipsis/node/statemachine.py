@@ -1,4 +1,6 @@
+
 import logging
+import math
 
 from solipsis.util.geometry import Geometry
 from solipsis.util.exception import *
@@ -17,7 +19,8 @@ except:
 
 
 class StateMachine(object):
-    timeout = 2
+    teleportation_flood = 3
+    world_size = 2**128
 
     # These are all the message types accepted from other peers.
     # Some of them will only be accepted in certain states.
@@ -40,16 +43,22 @@ class StateMachine(object):
         'UPDATE':       [],
     }
 
-    def __init__(self, reactor, node, logger=None):
+    def __init__(self, reactor, params, node, logger=None):
         """
         Initialize the state machine.
         """
         self.reactor = reactor
         self.node = node
-        self.peers = self.node.peersManager
         self.topology = Topology()
         self.logger = logger or logging.getLogger("root")
         self.parser = protocol.Parser()
+
+        # Expected number of neighbours (in awareness radius)
+        self.expected_neighbours = params.expected_neighbours
+        self.min_neighbours = self.expected_neighbours
+        self.max_neighbours = round(1.2 * self.expected_neighbours)
+        # Max number of connections (total)
+        self.max_connections = 2 * self.expected_neighbours
 
         self.peer_dispatch_cache = {}
         self.state_dispatch = {}
@@ -143,9 +152,555 @@ class StateMachine(object):
             except AttributeError:
                 pass
             else:
-                manager = self.peers
+                pass
+                #manager = self.peers
                 #manager.heartbeat(id_)
 
+
+    #
+    # Methods called when a new state is entered
+    #
+    def state_NotConnected(self):
+        print "not connected"
+
+    def state_Locating(self):
+        print "locating"
+
+    def state_Scanning(self):
+        print "scanning"
+
+    def state_Connecting(self):
+        print "connecting"
+
+        def check_gc():
+            # Periodically check global connectivity
+            gc2 = self.topology.HasGlobalConnectivity()
+            if gc1 ^ gc2:
+                self.logger.error("Manager and topology disagree on global connectivity (%d, %d)" % (gc1, gc2))
+            elif gc2:
+                self.SetState(states.Idle())
+        self._CallPeriodically(1, check_gc)
+
+    def state_Idle(self):
+        print "idle"
+        # TODO: add periodic handler for increasing / decreasing the number of peers
+
+        def count(i=[0]):
+            i[0] += 1
+            if i[0] % 50 == 0:
+                print i[0]
+        def check_gc():
+            # Periodically check global connectivity
+            if not self.topology.HasGlobalConnectivity():
+                self.SetState(states.LostGlobalConnectivity())
+        self._CallPeriodically(2, check_gc)
+        #self._CallPeriodically(0, count)
+
+    def state_LostGlobalConnectivity(self):
+        print "lost global connectivity"
+
+        def check_gc():
+            # Periodically check global connectivity
+            if self.topology.getNumberOfPeers() == 0:
+                # TODO: implement this (we need some initial peer addresses...)
+                self.logger.info("All peers lost, relaunching JUMP algorithm")
+                return
+
+            pair = self.topology.getBadGlobalConnectivityPeers()
+            if not pair:
+                self.SetState(states.Idle())
+            else:
+                # Send search message to each entity
+                message1 = self._PeerMessage('SEARCH')
+                message1.args.clockwise = False
+                message2 = self._PeerMessage('SEARCH')
+                message2.args.clockwise = True
+                self._SendToPeer(pair[0], message1)
+                self._SendToPeer(pair[1], message2)
+
+        check_gc()
+        self._CallPeriodically(2, check_gc)
+
+
+    #
+    # Methods called when a message is received from a peer
+    #
+    def peer_HELLO(self, args):
+        """
+        A new peer is contacting us.
+        """
+        peer = self._Peer(args)
+
+        # We have now too many peers and this is the worst one
+        if not self._AcceptPeer(peer):
+            # Refuse connection
+            self._SendToPeer(peer, self._PeerMessage('CLOSE'))
+        else:
+            # Check if we have not already connected to this peer
+            if self.topology.HasPeer(peer.id_):
+                self.topology.RemovePeer(peer.id_)
+                self.logger.info("HELLO from '%s', but we are already connected" % peer.id_)
+            if self._SayConnect(peer):
+                self._AddPeer(peer)
+
+    def peer_CONNECT(self, args):
+        """
+        A peer accepts our connection proposal.
+        """
+        # TODO: check that we sent a HELLO message to this peer
+        peer = self._Peer(args)
+
+        if not self.topology.HasPeer(peer.id_):
+            self._AddPeer(peer)
+            # TODO: exchange service info and other stuff
+            # TODO: notify
+
+        else:
+            self.logger.info("reception of CONNECT but we are already connected to '%s'" % peer.id_)
+
+    def peer_CLOSE(self, args):
+        """
+        A peer closes or refuses a connection.
+        """
+        id_ = args.id_
+        if not self.topology.HasPeer(id_):
+            self.logger.info('CLOSE from %s, but we are not connected' % id_)
+            return
+
+        self._RemovePeer(id_)
+
+    def peer_NEAREST(self, args):
+        """
+        A peer answers us a NEAREST message.
+        """
+        id_ = args.remote_id
+        # Loop detection
+        if id_ in self.nearest_peers:
+            self.logger.warning("Already encountered peer '%s' in FINDNEAREST algorithm: %s"
+                    % (str(id_), ", ".join(["'" + str(i) + "'" for i in self.nearest_peers])))
+            return
+        # Check we do not already have a better candidate
+        if self.best_peer is not None:
+            if id_ == self.best_peer.id_:
+                self.logger.info("NEAREST received, but proposed is already our best")
+                return
+            elif (self.topology.RelativeDistance(self.best_peer.position.getCoords()) <=
+                self.topology.RelativeDistance(self.args.remote_position.getCoords())):
+                self.logger.info("NEAREST received, but proposed peer is farther than our current best")
+                return
+
+        self.nearest_peers.add(id_)
+        address = args.remote_address
+        self._SendToAddress(address, self._PeerMessage('FINDNEAREST'))
+        # We could come here from the Scanning procedure,
+        # if a neighbour finds someone closer to us than our current BEST
+        if self.InState(states.Scanning):
+            self.SetState(states.Locating())
+
+    def peer_BEST(self, args):
+        """
+        A peer answers us a BEST message.
+        """
+        # Instantiate the best peer
+        peer = self._Peer(args)
+
+        # Send a queryaround message
+        message = self._PeerMessage('QUERYAROUND')
+        message.args.best_id = peer.id_
+        message.args.best_distance = Geometry.distance(self.node.position, peer.position)
+        self._SendToPeer(peer, message)
+
+        # Store the best peer and launch the scanning procedure
+        self.best_peer = peer
+        self.nearest_peers.clear()
+        self.future_topology = Topology()
+        self.future_topology.SetOrigin(self.node.position.getCoords())
+        self.future_topology.AddPeer(peer)
+        self.SetState(states.Scanning())
+
+    def peer_FINDNEAREST(self, args):
+        """
+        A peer sends us a FINDNEAREST query.
+        """
+        id_ = args.id_
+        target = args.position.getCoords()
+        address = args.address
+        (nearest, nearest_distance) = self.topology.GetClosestPeer(target, id_)
+
+        # Check whether I am closer to the target than nearestPeer
+        if self.topology.RelativeDistance(target) < nearest_distance:
+            message = self._PeerMessage('BEST')
+        # I'm closer : send a best message
+        else:
+            message = self._PeerMessage('NEAREST', remote_peer=nearest)
+
+        # Send our answer
+        self._SendToAddress(address, message)
+
+    def peer_DETECT(self, args):
+        """
+        A peer signals another peer moving towards us.
+        """
+        peer = self._RemotePeer(args)
+        id_ = peer.id_
+
+        # Sanity check 1: don't connect with ourselves
+        if id_ == self.node.id_:
+            return
+        # Sanity check 2: don't connect with someone too far from us
+        distance = self.topology.RelativeDistance(peer.position.getCoords())
+        if distance > self.node.awareness_radius:
+            return
+
+        # We are only interested by entities that are not yet in our peer list
+        if not self.topology.HasPeer(id_):
+            # Check we don't have too many peers, or have worse peers than this one
+            if self._AcceptPeer(peer):
+                # Connect to this peer
+                self._SayHello(args.address)
+
+    def peer_AROUND(self, args):
+        """
+        A peer replies to us with an AROUND message.
+        """
+        peer = self._RemotePeer(args)
+        assert self.future_topology is not None, "Processing an AROUND message but we have no future topology!"
+
+        # Check whether we came back to our BEST peer
+        already_best = (peer.id_ == self.best_peer.id_)
+        if not already_best:
+            if not self.future_topology.HasPeer(peer.id_):
+                self.future_topology.AddPeer(peer)
+            else:
+                self.logger.info("The AROUND peer is already in the future topology, ignoring")
+                return
+
+        best_pos = self.best_peer.position.getCoords()
+        best_distance = self.future_topology.RelativeDistance(best_pos)
+
+        if self.future_topology.HasGlobalConnectivity():
+            # Our awareness radius is the distance between us and our closest
+            # neighbour, because we are "sure" to know all the entities between us
+            # and the best.
+            self.node.awareness_radius = best_distance
+            self._SwitchTopologies()
+            self.SetState(states.Connecting())
+
+        elif already_best:
+            # TODO: handle this case (hmmm...)
+            self.logger.warning("We came back to our BEST but there is no global connectivity: we have a problem!")
+
+        else:
+            # Send this peer a queryaround message
+            message = self._PeerMessage('QUERYAROUND')
+            message.args.best_id = self.best_peer.id_
+            message.args.best_distance = best_distance
+            self._SendToPeer(peer, message)
+
+    def peer_QUERYAROUND(self, args):
+        """
+        A peer sent us a QUERYAROUND message.
+        """
+        peer_id = args.id_
+        best_id = args.best_id
+        best_distance = args.best_distance
+        target = args.position.getCoords()
+        (nearest, nearest_distance) = self.topology.GetClosestPeer(target, best_id)
+
+        # Either:
+        # 1. We have a peer closer to the target than the given Best-Distance
+        if nearest_distance < best_distance:
+            self.SendToAddress(args.address, self._PeerMessage('NEAREST', remote_peer=nearest))
+
+        # 2. Or we find the closest peer around the target position and in the right half-plane
+        else:
+            # Search for a peer around target position
+            around = self.topology.GetPeerAround(target, source_id)
+            if around is not None:
+                self.SendToAddress(args.address, self._PeerMessage('AROUND', remote_peer=around))
+            else:
+                self.logger.info('QUERYAROUND received, but no peer around position: %s' % str(target))
+
+    def peer_HEARTBEAT(self, args):
+        """
+        A peer reminds us it is alive.
+        """
+        # TODO: properly manage HEARTBEAT intervals and retries...
+
+    def peer_UPDATE(self, args):
+        """
+        A peer notifies us it UPDATEs its characteristics.
+        """
+        peer = self._Peer(args)
+        topology = self.topology
+
+        if not topology.HasPeer(peer.id_):
+            self.logger.info('UPDATE from %s, but we are not connected' % peer.id_)
+            return
+
+        # Save old peer value
+        old = topology.GetPeer(peer.id_)
+
+        # Update peer
+        manager.updatePeer(peer)
+
+        # TODO: Notify the controller that a peer has changed
+#         ctlFact = EventFactory.getInstance(ControlEvent.TYPE)
+#         upd = ctlFact.createUPDATE(peer)
+#         self.node.dispatch(upd)
+
+        old_pos = old.position.getCoords()
+        new_pos = peer.position.getCoords()
+        our_pos = self.node.position
+
+        old_ar = old.awareness_radius
+        new_ar = peer.awareness_radius
+
+        # Peer position or awareness radius changed
+        if new_pos != old_pos or new_ar != old_ar:
+            # Verify entities that could be interested by the change
+            for entity in topology.EnumeratePeers():
+                if entity.id_ == peer.id_:
+                    continue
+                its_pos = entity.position.getCoords()
+                its_ar = entity.awareness_radius
+
+                our_dist = topology.RelativeDistance(its_pos)
+                their_dist = topology.Distance(its_pos, new_pos)
+                their_old_dist = topology.Distance(its_pos, old_pos)
+
+                # Detection 1: the peer has entered an entity's awareness radius,
+                # or it has become closer to the entity than us
+                if their_dist <= its_ar < their_old_dist \
+                    or their_dist <= our_dist < their_old_dist:
+                    # The moving peer is signalled to the fixed entity
+                    self._SendToPeer(entity, self._PeerMessage('DETECT', remote_peer=peer))
+
+                # Detection 2: the entity has become part of the moving peer's awareness radius
+                if old_ar < their_old_dist and new_ar >= their_dist:
+                    # The entity is signalled to the moving peer
+                    self._SendToPeer(peer, self._PeerMessage('DETECT', remote_peer=entity))
+
+
+    def peer_FOUND(self, args):
+        """
+        A peer replies to us with a FOUND message.
+        """
+        peer = self._RemotePeer(args)
+        id_ = peer.id_
+
+        # Verify that new entity is neither self neither an already known entity.
+        if id_ == self.node.id_:
+            self.logger.warning("FOUND message pointing to ourselves received")
+        elif not self.topology.HasPeer(id_):
+            self._SayHello(peer.address)
+
+
+    def peer_SEARCH(self, args):
+        """
+        A peer sends SEARCH queries around itself to restore its global connectivity.
+        """
+        id_ = args.id_
+        clockwise = args.clockwise > 0
+
+        try:
+            peer = self.topology.GetPeer(id_)
+        except UnknownIdError:
+            self.logger.warning("Error, reception of SEARCH message from unknown peer '%s'" % str(id_))
+            return
+
+        around = self.topology.GetPeerAround(peer.position.getCoords(), id_, clockwise)
+
+        # Send message if an entity has been found
+        if around is not None:
+            self._SendToPeer(peer, self._PeerMessage('FOUND', remote_peer=around))
+
+    #
+    # Control events
+    # TODO: rewrite
+    #
+    def control_MOVE(self, event):
+        """ MOVE control event. Move the node to a new position.
+        event : Request = MOVE, args = {'Position'}
+        """
+
+        # Change position
+        newPosition = event.getArg(protocol.ARG_POSITION)
+        self.node.setPosition(newPosition)
+        manager = self.node.getPeersManager()
+        if manager.hasGlobalConnectivity():
+            # We still have the global connectivity,
+            # so we can simply notify peers of the position change
+            self.sendUpdates()
+
+        else:
+            # We cannot keep our global connectivity,
+            # so we do the JUMP algorithm to get the knowledge
+            # of our new neighbourhood
+            self.jump()
+
+    def control_KILL(self, event):
+        self.logger.info("Received kill message")
+        self.node.exit()
+
+    def control_ABORT(self, event):
+        self.node.alive = False
+        print "\nFatal error: " + event.getArg('Message') + "\nAborting"
+        self.node.dispatch(event)
+
+    def control_GETNODEINFO(self, event):
+        factory = EventFactory.getInstance(ControlEvent.TYPE)
+        info = factory.createNODEINFO()
+        self.node.dispatch(info)
+
+    def control_SET(self, event):
+        field = event.getArg('Name')
+        value = event.getArg('Value')
+        if field == 'Pseudo':
+            self.node.setPseudo(value)
+            self.sendUpdates()
+        else:
+            import exceptions
+            raise NotImplementedError()
+
+    #
+    # Private methods
+    #
+    def _AddPeer(self, peer):
+        """
+        Add a peer and send the necessary notification messages.
+        """
+        self.topology.AddPeer(peer)
+
+        # TODO: notify navigator that we gained a new peer
+#         factory = EventFactory.getInstance(ControlEvent.TYPE)
+#         newPeerEvent = factory.createNEW(peer)
+#         self.node.dispatch(newPeerEvent)
+#         if type(self) == Idle:
+#             if manager.hasTooManyPeers():
+#                 self.node.setState(TooManyPeers())
+
+    def _RemovePeer(self, id_):
+        """
+        Remove a peer and send the necessary notification messages.
+        """
+        self.topology.RemovePeer(id_)
+
+        # TODO: notify navigator that we lost connection with a peer
+#         factory = EventFactory.getInstance(ControlEvent.TYPE)
+#         dead = factory.createDEAD(id_)
+#         self.node.dispatch(dead)
+
+    def _AcceptPeer(self, peer):
+        """
+        True if peer is accepted as a potential neighbour.
+        """
+        if self.topology.GetNumberOfPeers() < self.max_connections:
+            return True
+        return not self.topology.IsWorstPeer(peer)
+
+    def _CloseCurrentConnections(self, keep_ids=None):
+        for p in self.topology.EnumeratePeers():
+            if keep_ids is None or p.id_ not in keep_ids:
+                self._SendToPeer(p, self._PeerMessage('CLOSE'))
+                self._RemovePeer(p.id_)
+
+    def _CloseConnection(self, peer):
+        self._SendToPeer(peer, self._PeerMessage('CLOSE'))
+        self._RemovePeer(peer.id_)
+
+    def _SwitchTopologies(self):
+        new_peers = self.future_topology.PeersSet()
+        old_peers = self.topology.PeersSet()
+
+        # Close our current connections, except with peers that
+        # are in our future topology.
+        self._CloseCurrentConnections(new_peers)
+
+        # Try to connect with future peers
+        for p in self.future_topology.EnumeratePeers():
+            if p not in old_peers:
+                self._SayHello(p.address)
+
+        self.future_topology = None
+        self.best_peer = None
+
+    def _Jump(self, topology=None):
+        """
+        Jump to the node's current position. This triggers
+        the recursive teleportation algorithm.
+        The topology argument allows to pass some start values
+        for peer addresses.
+        """
+        # If nothing asked, prefer future topology over current one
+        if topology is None:
+            topology = self.future_topology or self.topology
+        peers = topology.GetNearestPeers(self.teleportation_flood)
+        message = self._PeerMessage('FINDNEAREST')
+        for peer in peers:
+            self._SendToPeer(peer, message)
+
+        # Disconnect from our current peers
+        self._CloseCurrentConnections()
+
+        # Go to the tracking state
+        self.node.setState(Locating())
+
+    def _SayHello(self, address):
+        # TODO: manage repeted connection failures and
+        # optionally cancel request (returning False)
+        self._SendToAddress(address, self._PeerMessage('HELLO'))
+        return True
+
+    def _SayConnect(self, peer):
+        # TODO: manage repeted connection failures and
+        # optionally cancel request (sending CLOSE and
+        # returning False)
+        self._SendToPeer(peer, self._PeerMessage('CONNECT'))
+        return True
+
+    def _UpdateAwarenessRadius(self, ar):
+        self.node.awareness_radius = ar
+        self._SendUpdates()
+
+    def _SendUpdates(self):
+        """
+        Send updates to all peers.
+        Called when some of our properties have changed (position, etc.).
+        """
+        message = self._PeerMessage('UPDATE')
+        for peer in self.topology.EnumeratePeers():
+            self._SendToPeer(peer, message)
+
+    def _CheckNumberOfPeers(self):
+        """
+        Check the current number of peers and optionally launch
+        various actions so that it stays within the desired bounds.
+        """
+        topology = self.topology
+        ar = self.node_awareness_radius
+        nb_peers = topology.GetNumberOfPeers()
+        neighbours = topology.GetPeersWithinDistance(ar)
+        nb_neighbours = len(neighbours)
+        if nb_neighbours < 3:
+            # This case is handled by the global connectivity check
+            return
+        if nb_neighbours < self.min_neighbours:
+            # We assume areal density is roughly constant.
+            self._UpdateAwarenessRadius(ar * math.sqrt(float(self.min_neighbours) / nb_neighbours))
+        elif nb_neighbours > self.max_neighbours:
+            # We "cut" the awareness radius so that we don't have too many
+            # neighbours inside.
+            self._UpdateAwarenessRadius(topology.GetEnclosingDistance(self.min_neighbours))
+        elif nb_peers > self.max_connections:
+            # We disconnect from all spurious peers outside of the awareness radius
+            peers = self.GetWorstPeers(self.max_connections - self.max_neighbours, ar)
+            for p in self.peer:
+                self._CloseConnection(p)
+
+    #
+    # Private methods: timers, protocol and stuff
+    #
     def _CancelDelayedCalls(self):
         """
         Cancel all pending delayed calls.
@@ -215,19 +770,6 @@ class StateMachine(object):
             position = args.remote_position,
             pseudo = args.remote_pseudo)
 
-    def _SayHello(self, address):
-        # TODO: manage repeted connection failures and
-        # optionally cancel request (returning False)
-        self._SendToAddress(address, self._PeerMessage('HELLO'))
-        return True
-
-    def _SayConnect(self, peer):
-        # TODO: manage repeted connection failures and
-        # optionally cancel request (sending CLOSE and
-        # returning False)
-        self._SendToPeer(peer, self._PeerMessage('CONNECT'))
-        return True
-
     def _PeerMessage(self, request, entity=None, remote_entity=None):
         if entity is None:
             entity = self.node
@@ -269,505 +811,4 @@ class StateMachine(object):
         data = self.parser.BuildMessage(message)
         self._SendToAddress(peer.address, message)
 
-    #
-    # Methods called when a new state is entered
-    #
-    def state_NotConnected(self):
-        print "not connected"
-
-    def state_Locating(self):
-        print "locating"
-
-    def state_Scanning(self):
-        print "scanning"
-
-    def state_Connecting(self):
-        print "connecting"
-
-        def check_gc():
-            # Periodically check global connectivity
-            manager = self.peers
-            gc1 = manager.hasGlobalConnectivity()
-            gc2 = self.topology.HasGlobalConnectivity()
-            if gc1 ^ gc2:
-                self.logger.error("Manager and topology disagree on global connectivity (%d, %d)" % (gc1, gc2))
-            elif gc2:
-                self.SetState(states.Idle())
-        self._CallPeriodically(1, check_gc)
-
-    def state_Idle(self):
-        print "idle"
-        # TODO: add periodic handler for increasing / decreasing the number of peers
-
-        def count(i=[0]):
-            i[0] += 1
-            if i[0] % 50 == 0:
-                print i[0]
-        def check_gc():
-            # Periodically check global connectivity
-            manager = self.peers
-            gc1 = manager.hasGlobalConnectivity()
-            gc2 = self.topology.HasGlobalConnectivity()
-            if gc1 ^ gc2:
-                self.logger.error("Manager and topology disagree on global connectivity (%d, %d)" % (gc1, gc2))
-            elif not gc2:
-                self.SetState(states.LostGlobalConnectivity())
-        self._CallPeriodically(2, check_gc)
-        #self._CallPeriodically(0, count)
-
-    def state_LostGlobalConnectivity(self):
-        print "lost global connectivity"
-
-        def check_gc():
-            # Periodically check global connectivity
-            manager = self.peers
-#             if manager.getNumberOfPeers() == 0:
-            if self.topology.getNumberOfPeers():
-                # TODO: implement this
-                self.logger.info("All peers lost, relaunching JUMP algorithm")
-                return
-
-            pair1 = manager.getBadGlobalConnectivityPeers()
-            pair1.reverse()
-            pair2 = self.topology.getBadGlobalConnectivityPeers()
-            if pair1 != pair2:
-                self.logger.error("Manager and topology disagree on global connectivity peers (%s, %s) <-> (%s, %s)"
-                    % (pair1[0].id_, pair1[1].id_, pair2[0].id_, pair2[1].id_))
-            elif not pair2:
-                self.SetState(states.Idle())
-            else:
-                # Send search message to each entity
-                message1 = self._PeerMessage('SEARCH')
-                message1.clockwise = False
-                message2 = self._PeerMessage('SEARCH')
-                message2.clockwise = True
-                self._SendToPeer(pair2[0], message1)
-                self._SendToPeer(pair2[1], message2)
-
-        check_gc()
-        self._CallPeriodically(2, check_gc)
-
-
-    #
-    # Methods called when a message is received from a peer
-    #
-    def peer_HELLO(self, args):
-        """
-        A new peer is contacting us.
-        """
-        peer = self._Peer(args)
-        manager = self.peers
-
-        # We have now too many peers and this is the worst one
-        if not manager.isPeerAccepted(peer):
-            # refuse connection
-            self._SendToPeer(peer, self._PeerMessage('CLOSE'))
-        else:
-            # check if we have not already connected to this peer
-            if self.topology.HasPeer(peer.id_):
-                manager.removePeer(peer.id_)
-                self.topology.RemovePeer(peer.id_)
-                self.logger.info("HELLO from '%s', but we are already connected" % peer.id_)
-            if self._SayConnect(peer):
-                self._AddPeer(peer)
-
-    def peer_CONNECT(self, args):
-        """
-        A peer accepts our connection proposal.
-        """
-        # TODO: check that we sent a HELLO message to this peer
-        peer = self._Peer(args)
-        manager = self.peers
-
-        if not self.topology.HasPeer(peer.id_):
-            self._AddPeer(peer)
-            # TODO: exchange service info and other stuff
-            # TODO: notify
-
-        else:
-            self.logger.info("reception of CONNECT but we are already connected to '%s'" % peer.id_)
-
-    def peer_CLOSE(self, args):
-        """
-        A peer closes or refuses a connection.
-        """
-        id_ = args.id_
-        manager = self.peers
-        if not self.topology.HasPeer(id_):
-            self.logger.info('CLOSE from %s, but we are not connected' % id_)
-            return
-
-        self._RemovePeer(self.topology.GetPeer(id_))
-
-    def peer_NEAREST(self, args):
-        """
-        A peer answers us a NEAREST message.
-        """
-        id_ = args.remote_id
-        # Loop detection
-        if id_ in self.nearest_peers:
-            self.logger.warning("Already encountered peer '%s' in FINDNEAREST algorithm: %s"
-                    % (str(id_), ", ".join(["'" + str(i) + "'" for i in self.nearest_peers])))
-            return
-        # Check we do not already have a better candidate
-        if self.best_peer is not None:
-            if id_ == self.best_peer.id_:
-                self.logger.info("NEAREST received, but proposed is already our best")
-                return
-            elif (Geometry.distance(self.node.position, self.best_peer.position) <=
-                Geometry.distance(self.node.position, args.remote_position)):
-                self.logger.info("NEAREST received, but proposed peer is farther than our current best")
-                return
-
-        self.nearest_peers.add(id_)
-        address = args.remote_address
-        self._SendToAddress(address, self._PeerMessage('FINDNEAREST'))
-        # We could come here from the Scanning procedure,
-        # if a neighbour finds someone closer to us than our current BEST
-        if self.InState(states.Scanning):
-            self.SetState(states.Locating())
-
-    def peer_BEST(self, args):
-        """
-        A peer answers us a BEST message.
-        """
-        # Instantiate the best peer
-        peer = self._Peer(args)
-
-        # Send a queryaround message
-        message = self._PeerMessage('QUERYAROUND')
-        message.args.best_id = peer.id_
-        message.args.best_distance = Geometry.distance(self.node.position, peer.position)
-        self._SendToPeer(peer, message)
-
-        # Store the best peer and launch the scanning procedure
-        self.best_peer = peer
-        self.nearest_peers.clear()
-        self.future_topology = Topology()
-        self.future_topology.SetOrigin(self.node.position.getCoords())
-        self.future_topology.AddPeer(peer)
-#         self.scanned_neighbours = [peer]
-        self.SetState(states.Scanning())
-
-    def peer_FINDNEAREST(self, args):
-        """
-        A peer sends us a FINDNEAREST query.
-        """
-        id_ = args.id_
-        target = args.position.getCoords()
-        address = args.address
-        (nearest, nearest_distance) = self.topology.GetClosestPeer(target, id_)
-
-        # Check whether I am closer to the target than nearestPeer
-        if self.topology.RelativeDistance(target) < nearest_distance:
-            message = self._PeerMessage('BEST')
-        # I'm closer : send a best message
-        else:
-            message = self._PeerMessage('NEAREST', remote_peer=nearest)
-
-        # Send our answer
-        self._SendToAddress(address, message)
-
-    def peer_DETECT(self, args):
-        """
-        A peer signals another peer moving towards us.
-        """
-        peer = self._RemotePeer(args)
-        id_ = peer.id_
-        manager = self.peers
-
-        # Sanity check 1: don't connect with ourselves
-        if id_ == self.node.id_:
-            return
-        # Sanity check 2: don't connect with someone too far from us
-        distance = self.topology.RelativeDistance(peer.position.getCoords())
-        if distance > self.node.awareness_radius:
-            return
-
-        # We are only interested by entities that are not yet in our peer list
-        if not self.topology.HasPeer(id_):
-            # Check we don't have too many peers, or have worse peers than this one
-            if manager.isPeerAccepted(peer):
-                # Connect to this peer
-                self._SayHello(args.address)
-
-    def peer_AROUND(self, args):
-        """
-        A peer replies to us with an AROUND message.
-        """
-        peer = self._RemotePeer(args)
-        assert self.future_topology is not None, "Processing an AROUND message but we have no future topology!"
-
-        # Check whether we came back to our BEST peer
-        already_best = (peer.id_ == self.best_peer.id_)
-        if not already_best:
-            if not self.future_topology.HasPeer(peer.id_):
-                self.future_topology.AddPeer(peer)
-            else:
-                self.logger.info("The AROUND peer is already in the future topology, ignoring")
-                return
-
-        best_pos = self.best_peer.position.getCoords()
-        best_distance = self.future_topology.RelativeDistance(best_pos)
-
-        if self.future_topology.HasGlobalConnectivity():
-            # Our awareness radius is the distance between us and our closest
-            # neighbour, because we are sure to know all the entities between us
-            # and the best.
-            self.node.awareness_radius = best_distance
-            self._SwitchTopologies()
-            self.SetState(states.Connecting())
-            return
-
-        elif already_best:
-            # TODO: handle this case (hmmm...)
-            self.logger.warning("We came back to our BEST but there is no global connectivity: we have a problem!")
-
-        # Send this peer a queryaround message
-        message = self._PeerMessage('QUERYAROUND')
-        message.args.best_id = self.best_peer.id_
-        message.args.best_distance = best_distance
-        self._SendToPeer(peer, message)
-
-    def peer_QUERYAROUND(self, args):
-        """
-        A peer sent us a QUERYAROUND message.
-        """
-        peer_id = args.id_
-        best_id = args.best_id
-        best_distance = args.best_distance
-        manager = self.peers
-        target = args.position.getCoords()
-        (nearest, nearest_distance) = self.topology.GetClosestPeer(target, best_id)
-
-        # Either:
-        # 1. We have a peer closer to the target than the given Best-Distance
-        if nearest_distance < best_distance:
-            self.SendToAddress(args.address, self._PeerMessage('NEAREST', remote_peer=nearest))
-
-        # 2. Or we find the closest peer around the target position and in the right half-plane
-        else:
-            # Search for a peer around target position
-            around = self.topology.GetPeerAround(target, source_id)
-            if around is not None:
-                self.SendToAddress(args.address, self._PeerMessage('AROUND', remote_peer=around))
-            else:
-                self.logger.info('QUERYAROUND received, but no peer around position: %s' % str(target))
-
-    def peer_HEARTBEAT(self, args):
-        """
-        A peer reminds us it is alive.
-        """
-        # TODO: properly manage HEARTBEAT intervals and retries...
-        manager = self.peers
-        manager.heartbeat(args.id_)
-
-    def peer_UPDATE(self, args):
-        """
-        A peer notifies us it UPDATEs its characteristics.
-        """
-        peer = self._Peer(args)
-
-        manager = self.peers
-        if not manager.hasPeer(peer.id_):
-            self.logger.info('UPDATE from %s, but we are not connected' % peer.id_)
-            return
-
-        # Save old peer value
-        old = manager.getPeer(peer.id_)
-
-        # Update peer
-        manager.updatePeer(peer)
-
-        # TODO: Notify the controller that a peer has changed
-#         ctlFact = EventFactory.getInstance(ControlEvent.TYPE)
-#         upd = ctlFact.createUPDATE(peer)
-#         self.node.dispatch(upd)
-
-        old_pos = old.position
-        new_pos = peer.position
-        our_pos = self.node.position
-
-        old_ar = old.awareness_radius
-        new_ar = peer.awareness_radius
-
-        # Peer position or awareness radius changed
-        if new_pos != old_pos or new_ar != old_ar:
-            # Verify entities that could be interested by the change
-            for entity in manager.enumeratePeers():
-                if entity.id_ == peer.id_:
-                    continue
-                its_ar = entity.awareness_radius
-
-                our_dist = Geometry.distance(our_pos, entity.position)
-                their_dist = Geometry.distance(entity.position, new_pos)
-                their_old_dist = Geometry.distance(entity.position, old_pos)
-
-                # Detection 1: the peer has entered an entity's awareness radius,
-                # or it has become closer to the entity than us
-                if their_dist <= its_ar < their_old_dist \
-                    or their_dist <= our_dist < their_old_dist:
-                    # The moving peer is signalled to the fixed entity
-                    self._SendToPeer(entity, self._PeerMessage('DETECT', remote_peer=peer))
-
-                # Detection 2: the entity has become part of the moving peer's awareness radius
-                if old_ar < their_old_dist and new_ar >= their_dist:
-                    # The entity is signalled to the moving peer
-                    self._SendToPeer(peer, self._PeerMessage('DETECT', remote_peer=entity))
-
-
-    def peer_FOUND(self, args):
-        """
-        A peer replies to us with a FOUND message.
-        """
-        peer = self._RemotePeer(args)
-        id_ = peer.id_
-        manager = self.peers
-
-        # Verify that new entity is neither self neither an already known entity.
-        if id_ == self.node.id_:
-            self.logger.warning("FOUND message pointing to ourselves received")
-        elif not manager.hasPeer(id_):
-            self._SayHello(peer.address)
-
-
-    def peer_SEARCH(self, args):
-        """
-        A peer sends SEARCH queries around itself to restore its global connectivity.
-        """
-        id_ = args.id_
-        clockwise = args.clockwise > 0
-        manager = self.peers
-
-        try:
-            peer = manager.getPeer(id_)
-        except UnknownIdError:
-            self.logger.warning("Error, reception of SEARCH message from unknown peer '%s'" % str(id_))
-            return
-
-        around = manager.getPeerAround(peer.position, id_, clockwise)
-
-        # Send message if an entity has been found
-        if around is not None:
-            self._SendToPeer(peer, self._PeerMessage('FOUND', remote_peer=around))
-
-    #
-    # Control events
-    # TODO: rewrite
-    #
-    def control_MOVE(self, event):
-        """ MOVE control event. Move the node to a new position.
-        event : Request = MOVE, args = {'Position'}
-        """
-
-        # Change position
-        newPosition = event.getArg(protocol.ARG_POSITION)
-        self.node.setPosition(newPosition)
-        manager = self.node.getPeersManager()
-        if manager.hasGlobalConnectivity():
-            # We still have the global connectivity,
-            # so we can simply notify peers of the position change
-            self.sendUpdates()
-
-        else:
-            # We cannot keep our global connectivity,
-            # so we do the JUMP algorithm to get the knowledge
-            # of our new neighbourhood
-            self.jump()
-
-    def control_KILL(self, event):
-        self.logger.info("Received kill message")
-        self.node.exit()
-
-    def control_ABORT(self, event):
-        self.node.alive = False
-        print "\nFatal error: " + event.getArg('Message') + "\nAborting"
-        self.node.dispatch(event)
-
-    def control_GETNODEINFO(self, event):
-        factory = EventFactory.getInstance(ControlEvent.TYPE)
-        info = factory.createNODEINFO()
-        self.node.dispatch(info)
-
-    def control_SET(self, event):
-        field = event.getArg('Name')
-        value = event.getArg('Value')
-        if field == 'Pseudo':
-            self.node.setPseudo(value)
-            self.sendUpdates()
-        else:
-            import exceptions
-            raise NotImplementedError()
-
-    #
-    # Private methods
-    #
-    def _AddPeer(self, peer):
-        """
-        Add a peer and send the necessary notification messages.
-        """
-        manager = self.peers
-        manager.addPeer(peer)
-        self.topology.AddPeer(peer)
-
-        # TODO: notify navigator that we gained a new peer
-#         factory = EventFactory.getInstance(ControlEvent.TYPE)
-#         newPeerEvent = factory.createNEW(peer)
-#         self.node.dispatch(newPeerEvent)
-#         if type(self) == Idle:
-#             if manager.hasTooManyPeers():
-#                 self.node.setState(TooManyPeers())
-
-    def _RemovePeer(self, peer):
-        """
-        Remove a peer and send the necessary notification messages.
-        """
-        manager = self.peers
-        manager.removePeer(peer.id_)
-        self.topology.RemovePeer(peer.id_)
-
-        # TODO: notify navigator that we lost connection with a peer
-#         factory = EventFactory.getInstance(ControlEvent.TYPE)
-#         dead = factory.createDEAD(id_)
-#         self.node.dispatch(dead)
-
-    def _SwitchTopologies(self):
-        # Try to connect with future peers
-        for p in self.future_topology.EnumeratePeers():
-            self._SayHello(p.address)
-
-        self.topology = Topology()
-        self.topology.SetOrigin(self.node.position.getCoords())
-        self.future_topology = None
-        self.best_peer = None
-
-    #
-    # Old stuff
-    # TODO: remove
-    #
-
-    def updateAwarenessRadius(self):
-        """ compute our new awareness radius and notify peers of this update"""
-        manager = self.node.getPeersManager()
-        ar = manager.computeAwarenessRadius()
-        self.node.setAwarenessRadius(ar)
-        self.sendUpdates()
-
-    def jump(self):
-        """ Jump to the node's current position. This involves
-        the recursive teleportation algorithm. """
-        manager = self.node.getPeersManager()
-        peer = manager.getRandomPeer()
-        self.sendFindNearest(peer.getAddress())
-
-        # Disconnect from our current peers
-        peerFct = EventFactory.getInstance(PeerEvent.TYPE)
-        for peer in manager.enumeratePeers():
-            evt = peerFct.createCLOSE()
-            evt.setRecipientAddress(peer.getAddress())
-            self.node.dispatch(evt)
-            self.removePeer(peer)
-
-        # Go to the tracking state
-        self.node.setState(Locating())
 

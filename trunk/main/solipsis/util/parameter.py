@@ -87,7 +87,7 @@ class Parameters(object):
             #
             # Geometry startup values
             #
-            self.world_size = long(eval(self.config.get("general", "world_size")))
+            params['world_size'] = long(eval(self.config.get("general", "world_size")))
             if self.config.has_option("general", "position_x"):
                 params['pos_x'] = long(self.config.get("general", "position_x"))
             else:

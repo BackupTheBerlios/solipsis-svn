@@ -18,7 +18,7 @@ class Bootstrap(object):
         self.reactor = reactor
         self.params = params
         self.node = Node(reactor, params)
-        self.state_machine = StateMachine(reactor, self.node)
+        self.state_machine = StateMachine(reactor, params, self.node)
         self.node_connector = NodeConnector(reactor, params, self.state_machine)
 
         self.bootup_entities = self._ParseEntitiesFile(self.params.entities_file)
