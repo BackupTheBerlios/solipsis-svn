@@ -24,7 +24,7 @@ UIProxyEvent, EVT_PROXY = wx.lib.newevent.NewEvent()
 
 class TwistedProxy(object):
     """ This is a Twisted proxy. Delegate method calls to this object and
-    they will be executed from the Twisted event loop in its own thread. """
+    they will be executed by the Twisted event loop in its own thread. """
 
     def __init__(self, realobj, reactor):
         self._target = realobj
@@ -33,7 +33,7 @@ class TwistedProxy(object):
 
     def __getattr__(self, name):
         print "proxying daemon __getattr__"
-        attr = self._target.__getattribute__(name)
+        attr = getattr(self._target, name)
         call = self.reactor.callFromThread
         if callable(attr):
             # This is the real proxy method we generate on-the-fly

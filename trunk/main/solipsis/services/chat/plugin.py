@@ -18,14 +18,15 @@
 # </copyright>
 
 from solipsis.util.wxutils import _
+from solipsis.services.plugin import ServicePlugin
 
 
 class Plugin(ServicePlugin):
-    def __init__(self, service_api):
-        self.service_api = service_api
-    
+    def GetAction(self):
+        return _("Chat with people")
+
     def GetTitle(self):
-        return _("Discussions")
+        return _("Discussion")
 
     def GetDescription(self):
         return _("Talk with the people around you")
