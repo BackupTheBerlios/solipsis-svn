@@ -275,6 +275,7 @@ class Message(object):
 
             # Build argument value from its registered constructor
             if not parse_only:
+                #args[ATTRIBUTE_NAMES] = ARGS_CONSTRUCTOR[name](value)
                 args[name] = ARGS_CONSTRUCTOR[name](value)
 
             # Log optional arguments
