@@ -38,6 +38,10 @@ def usage():
 def main():
     if len(sys.argv) != 2:
         usage()
+    try:
+        os.nice(10)
+    except AttributeError:
+        pass
     nb_nodes = int(sys.argv[1])
     i = 0
     port = first_port

@@ -53,22 +53,28 @@ def main():
 
     if (params.detach):
         # Create background process for daemon-like operation
-        import os, signal
-        # Ignore SIGHUP so as not to kill the child when the parent leaves
-        signal.signal(signal.SIGHUP, signal.SIG_IGN)
+        import os
+        try:
+            os.fork, os.setsid, os.umask
+        except AttributeError:
+            print "cannot launch into background, ignoring"
+        else:
+            # Ignore SIGHUP so as not to kill the child when the parent leaves
+            import signal
+            signal.signal(signal.SIGHUP, signal.SIG_IGN)
 
-        # Fork and kill the parent process
-        if (os.fork()):
-            os._exit(0)
+            # Fork and kill the parent process
+            if (os.fork()):
+                os._exit(0)
 
-        # The child detaches itself from the console
-        os.setsid()
-        #os.chdir("/")
-        os.umask(0)
+            # The child detaches itself from the console
+            os.setsid()
+            #os.chdir("/")
+            os.umask(0)
 
-        # Fork and kill the parent proces
-        if (os.fork()):
-            os._exit(0)
+            # Fork and kill the parent proces
+            if (os.fork()):
+                os._exit(0)
 
     # Create node and enter main loop
     try:

@@ -92,7 +92,6 @@ class Viewport(object):
             resized = True
             self.draw_buffer = wx.EmptyBitmap(width, height)
             self._SetFutureRatio()
-            print "resized %d*%d" % (width, height)
 
         cpu_timer = AutoTimer()
         draw_timer = AutoTimer()
@@ -132,7 +131,7 @@ class Viewport(object):
         indices = self._Indices()
         positions = self._ConvertPositions(indices)
         cpu_time += cpu_timer.Read()[0]
-        nb_blits += len(indices)
+        nb_objects = len(indices)
         # First we traverse the radix list in Z order
         for z_order, d in self.radix_list:
             # Then we select the drawables for each painter at the same Z
@@ -155,7 +154,7 @@ class Viewport(object):
         c = 0.5
         self.fps = (1.0 - c) * self.fps + c / max(tick, 0.001)
         cpu_ratio = cpu_time / max(tick, 0.001) * 100
-        dc.DrawTextPoint("FPS: %.2f, blits: %d, geometry CPU: %.1f%%" % (self.fps, nb_blits, cpu_ratio), (10,10))
+        dc.DrawTextPoint("FPS: %.2f, objects: %d, geometry CPU: %.1f%%" % (self.fps, nb_objects, cpu_ratio), (10,10))
         dc.EndDrawing()
         self.redraws += 1
         (tick, elapsed) = draw_timer.Read()
