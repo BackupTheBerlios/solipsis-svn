@@ -38,7 +38,7 @@
           <orient>wxHORIZONTAL</orient>
           <object class="sizeritem">
             <object class="wxTextCtrl" name="chat_edit">
-              <style></style>
+              <style>wxTE_PROCESS_ENTER</style>
               <focused>1</focused>
             </object>
             <option>1</option>

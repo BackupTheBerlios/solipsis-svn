@@ -54,7 +54,7 @@ class ChatWindow(wx.EvtHandler, XRCLoader, UIProxyReceiver):
         
         id_ = wx.NewId()
         self.chat_view = wx.TextCtrl(parent=self.chat_panel, id=id_, 
-            style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_RICH | wx.TE_PROCESS_ENTER)
+            style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_RICH)
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.chat_view, flag=wx.EXPAND, proportion=1)
         self.chat_panel.SetSizer(sizer)
