@@ -33,16 +33,17 @@ class MemSizer:
             self.seen[k] = self.rlen_module(sys.modules[k])
 
     def get_sizes(self):
-        result = []
-        for k in self.seen.keys():
-            result.append("%s: %d" % (k, self.seen[k]))
+        # Sort by descending number of objects
+        result = [(-v, k) for (k, v) in self.seen.iteritems()]
         result.sort()
-        return result
+        s = ["%s: %d" % (k, -v) for (v, k) in result]
+        return s
 
     def get_deltas(self):
         result = []
-        for k in self.seen.keys():
-            delta = self.seen[k]-self.oldseen.get(k, 0)
+        _getold = self.oldseen.get
+        for k, v in self.seen.iteritems():
+            delta = v - _getold(k, 0)
             if delta != 0:
                 result.append("%s: %d" % (k, delta))
         result.sort()

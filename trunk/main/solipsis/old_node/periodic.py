@@ -56,6 +56,8 @@ class Memdump(PeriodicExecutor):
 
     def OnMemdump(self):
         self.sizer.sizeall()
-        print "\n... Memdiff ...\n"
+#         print "\n... Memstat ...\n"
+#         print "\n".join(self.sizer.get_sizes()) + "\n"
+        print "... Memdiff ..."
         print "\n".join(self.sizer.get_deltas()) + "\n"
 
