@@ -28,6 +28,7 @@ class StateMachine(object):
 
     # It is safer not to set this greater than 1
     teleportation_flood = 1
+    neighbour_tolerance = 0.25
     peer_neighbour_ratio = 2.0
 
     # Various retry delays
@@ -78,10 +79,10 @@ class StateMachine(object):
 
         # Expected number of neighbours (in awareness radius)
         self.expected_neighbours = params.expected_neighbours
-        self.min_neighbours = self.expected_neighbours
-        self.max_neighbours = round(1.4 * self.expected_neighbours)
+        self.min_neighbours = int(round((1.0 - self.neighbour_tolerance) * self.expected_neighbours))
+        self.max_neighbours = int(round((1.0 + self.neighbour_tolerance) * self.expected_neighbours))
         # Max number of connections (total)
-        self.max_connections = self.max_neighbours * self.peer_neighbour_ratio
+        self.max_connections = int(self.max_neighbours * self.peer_neighbour_ratio)
 
         self.caller = DelayedCaller(self.reactor)
         self.peer_sender = None
@@ -124,7 +125,15 @@ class StateMachine(object):
         self.peer_sender = sender
         self.bootup_addresses = bootup_addresses
 
+    def Close(self):
+        """
+        Close all connections and finalize stuff.
+        """
+        self._CloseCurrentConnections()
+        self.Reset()
+
     def ImmediatelyConnect(self):
+        self._CloseCurrentConnections()
         self.Reset()
         message = self._PeerMessage('HELLO')
         for address in self.bootup_addresses:
@@ -132,6 +141,7 @@ class StateMachine(object):
         self.SetState(states.EarlyConnecting())
 
     def TryConnect(self):
+        self._CloseCurrentConnections()
         self.Reset()
         if len(self.bootup_addresses) > self.teleportation_flood:
             addresses = random.sample(self.bootup_addresses, self.teleportation_flood)
@@ -359,7 +369,7 @@ class StateMachine(object):
             elif self._SayConnect(peer):
                 # If it's a new peer, add it and notify it of neighbours
                 self._AddPeer(peer)
-                self._SendDetects(peer)
+#                 self._SendDetects(peer)
 
     def peer_CONNECT(self, args):
         """
@@ -946,10 +956,14 @@ class StateMachine(object):
         return message
 
     def _SendToAddress(self, address, message):
-        if self.peer_sender is not None:
-            self.peer_sender(message=message, address=address)
-        else:
-            self.logger.warning("Attempting to send message but sender method is not initialized")
+        if self.peer_sender is None:
+            self.logger.error("Attempting to send message but sender method is not initialized")
+            return
+        self.peer_sender(message=message, address=address)
+        try:
+            self.sent_messages[message.request] += 1
+        except KeyError:
+            self.sent_messages[message.request] = 1
 
     def _SendToPeer(self, peer, message):
         if peer.id_ == self.node.id_:
@@ -957,8 +971,4 @@ class StateMachine(object):
             return
         data = self.parser.BuildMessage(message)
         self._SendToAddress(peer.address, message)
-        try:
-            self.sent_messages[message.request] += 1
-        except KeyError:
-            self.sent_messages[message.request] = 1
 

@@ -43,8 +43,8 @@ def main():
                           help="configuration file")
         parser.add_option("-P", "--profile", action="store_true", dest="profile", default=False,
                           help="profile execution to node.prof")
-        parser.add_option("-M", "--memdebug", action="store_true", dest="memdebug", default=False,
-                          help="display periodic memory occupation statistics")
+#         parser.add_option("-M", "--memdebug", action="store_true", dest="memdebug", default=False,
+#                           help="display periodic memory occupation statistics")
         parser.add_option("", "--pool", type="int", dest="pool", default=0,
                           help="pool of nodes")
         parser.add_option("", "--seed", action="store_true", dest="as_seed", default=False,
@@ -74,13 +74,18 @@ def main():
         global profile_run
         profile_run = lambda: run_loop(params)
         if (params.profile):
-            import profile
-            profile.run(__name__ + ".profile_run()", "node.prof")
+            # See profiler documentation:
+            import hotshot
+            profile = hotshot.Profile("node.prof")
+            profile.run(__name__ + ".profile_run()")
+            profile.close()
+#             import profile
+#             profile.run(__name__ + ".profile_run()", "node.prof")
         else:
             # See Psyco documentation: http://psyco.sourceforge.net/psycoguide/module-psyco.html
-#             import psyco
+            import psyco
 #             psyco.full()
-#             psyco.profile(watermark=0.005, time=120)
+            psyco.profile(watermark=0.005, time=120)
             profile_run()
 
     except:

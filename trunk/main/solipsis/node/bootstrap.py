@@ -69,10 +69,18 @@ class Bootstrap(object):
             else:
                 state_machine.TryConnect()
 
+            # Register shutdown callbacks
+            self.reactor.addSystemEventTrigger('before', 'shutdown', state_machine.Close)
+            self.reactor.addSystemEventTrigger('after', 'shutdown', state_machine.DumpStats)
+
         # Enter event loop
-        self.reactor.run()
-        for _, _, state_machine in self.pool:
-            state_machine.DumpStats()
+        try:
+            self.reactor.run()
+        except Exception, e:
+            print str(e)
+#         for _, _, state_machine in self.pool:
+#             state_machine.Close()
+#             state_machine.DumpStats()
 
     #
     # Private methods
