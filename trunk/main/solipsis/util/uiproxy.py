@@ -20,7 +20,6 @@
 import wx
 import wx.lib.newevent
 
-#~ UIProxyEvent, EVT_PROXY = wx.lib.newevent.NewEvent()
 
 class TwistedProxy(object):
     """ This is a Twisted proxy. Delegate method calls to this object and
@@ -58,34 +57,45 @@ class UIProxy(object):
     custom proxy events). """
 
     def __init__(self, realobj):
-        if not isinstance(realobj, wx.EvtHandler):
-            raise TypeError(`type(realobj)` + " is not a subclass of wxEvtHandler")
+        #~ if not isinstance(realobj, wx.EvtHandler):
+            #~ raise TypeError(`type(realobj)` + " is not a subclass of wxEvtHandler")
         self._target = realobj
-        self._methods = {}
 
     def __getattr__(self, name):
         attr = getattr(self._target, name)
-        ProxyEvent = self._target._ProxyEvent
         if callable(attr):
             def fun(*args, **kargs):
-                evt = ProxyEvent(method = lambda: attr(*args, **kargs))
-                wx.PostEvent(self._target, evt)
+                if self._target._proxy_enabled:
+                    wx.CallAfter(attr, *args, **kargs)
+                else:
+                    print "UIProxy disabled, event discarded"
             setattr(self, name, fun)
             return fun
         raise AttributeError("can only proxy object methods")
 
+    #~ def __getattr__(self, name):
+        #~ attr = getattr(self._target, name)
+        #~ ProxyEvent = self._target._ProxyEvent
+        #~ if callable(attr):
+            #~ def fun(*args, **kargs):
+                #~ evt = ProxyEvent(method = lambda: attr(*args, **kargs))
+                #~ wx.PostEvent(self._target, evt)
+            #~ setattr(self, name, fun)
+            #~ return fun
+        #~ raise AttributeError("can only proxy object methods")
+
 
 class UIProxyReceiver(object):
     def __init__(self):
-        self._ProxyEvent, EVT_PROXY = wx.lib.newevent.NewEvent()
-        self._enabled = True
-        self.Bind(EVT_PROXY, self._DoProxyEvent)
+        #~ self._ProxyEvent, EVT_PROXY = wx.lib.newevent.NewEvent()
+        self._proxy_enabled = True
+        #~ self.Bind(EVT_PROXY, self._DoProxyEvent)
 
-    def _DoProxyEvent(self, event):
-        if self._enabled:
-            event.method()
-        else:
-            print "UIProxy disabled, event discarded"
+    #~ def _DoProxyEvent(self, event):
+        #~ if self._enabled:
+            #~ event.method()
+        #~ else:
+            #~ print "UIProxy disabled, event discarded"
     
     def DisableProxy(self):
-        self._enabled = False
+        self._proxy_enabled = False
