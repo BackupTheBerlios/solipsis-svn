@@ -237,6 +237,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     def _Disconnect(self, evt):
         """ Called on "disconnect" event (menu -> File -> Disconnect). """
         self.network.DisconnectFromNode()
+        self.viewport.Disable()
 
     def _Preferences(self, evt):
         """ Called on "preferences" event (menu -> File -> Preferences). """
@@ -327,4 +328,18 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     def ResetWorld(self, *args, **kargs):
         """ Reset the viewport. """
         self.world.Reset(*args, **kargs)
+
+    def SetStatus(self, status):
+        """ Change connection status. """
+        if status == 'READY':
+            self.viewport_panel.SetCursor(wx.StockCursor(wx.CURSOR_DEFAULT))
+            self.viewport.Enable()
+            self.Redraw()
+        elif status == 'BUSY':
+            self.viewport_panel.SetCursor(wx.StockCursor(wx.CURSOR_ARROWWAIT))
+            self.viewport.Enable()
+            self.Redraw()
+        elif status == 'UNAVAILABLE':
+            self.viewport.Disable()
+
 

@@ -46,20 +46,6 @@ class RemoteControl(object):
         # (connect_id -> Deferred) dictionnary
         self.pending_notifs = {}
 
-#         self.cnt = 0
-#         def _fill():
-#             self.cnt += 1
-#             self._AddNotif('PING', self.cnt)
-#         self.caller.CallPeriodically(1.0, _fill)
-#
-#         connect_id = self.remote_Connect()
-#         def _test_notif(f):
-#             print "asked notif"
-#             defer.maybeDeferred(self.remote_GetEvents, connect_id).addCallback(f)
-#         def _test_result(notif):
-#             print "\n".join([str(n) for n in notif])
-#             self.caller.CallLater(random.random() * 2.5, _test_notif, _test_result)
-#         self.caller.CallLater(2.0, _test_notif, _test_result)
 
     #
     # Remotely callable methods
@@ -127,6 +113,13 @@ class RemoteControl(object):
         node_info.FromPeer(node)
         return node_info
 
+    def remote_GetStatus(self, connect_id):
+        """
+        Get current connection status.
+        """
+        self._CheckConnectId(connect_id)
+        return self.state_machine.GetStatus()
+
     def remote_Move(self, connect_id, x, y, z):
         """
         Move to another position in the world.
@@ -149,6 +142,9 @@ class RemoteControl(object):
 
     def event_LostPeer(self, peer_id):
         self._AddNotif("LOST", peer_id)
+
+    def event_StatusChanged(self, status):
+        self._AddNotif("STATUS", status)
 
 
     #

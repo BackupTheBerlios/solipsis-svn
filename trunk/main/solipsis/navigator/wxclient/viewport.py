@@ -49,6 +49,9 @@ class Viewport(object):
         self._SetCenter((0,0))
         self._SetAngle(0.0)
 
+        self.dim_dc = None
+        self.disabled = True
+
         self.Reset()
 
     def Reset(self):
@@ -149,6 +152,12 @@ class Viewport(object):
                 if len(l) > 0:
                     self.painters[painter].Paint(dc, l, p)
 
+        # If the viewport is disabled, we dim it
+        if self.disabled:
+            dim_dc = self._HalfTransparentDC(width, height)
+#             dc.DrawBitmapPoint(dim_dc, (0, 0), useMask=True)
+            dc.BlitPointSize((0,0), (width, height), dim_dc, (0,0), useMask=True)
+
         # End drawing
         (tick, elapsed) = self.fps_timer.Read()
         c = 0.5
@@ -166,7 +175,7 @@ class Viewport(object):
         """
         Returns True if the viewport needs redrawing, False otherwise.
         """
-        return not self.Empty() and self.need_further_redraw
+        return not self.Empty() and not self.disabled and self.need_further_redraw
 
     def AddObject(self, name, obj, position):
         """
@@ -342,17 +351,23 @@ class Viewport(object):
     def Empty(self):
         return len(self.obj_list) == 0
 
+    def Disable(self):
+        self.disabled = True
+
+    def Enable(self):
+        self.disabled = False
+
     #
     # Private methods: window ops
     #
 
     def _ViewportGeometryChanged(self):
-        if not self.Empty():
+        if not self.Empty() and not self.disabled:
             self._SetFutureRatio()
             self._AskRedraw()
 
     def _ObjectsGeometryChanged(self):
-        if not self.Empty():
+        if not self.Empty() and not self.disabled:
             self._SetFutureRatio()
             self._AskRedraw()
 
@@ -390,10 +405,52 @@ class Viewport(object):
         background_dc.BlitPointSize((0,0), (width, height), mem_dc, (dx, dy))
         self.background = background_dc
 
+    def _HalfTransparentDC(self, width, height):
+        """
+        Returns a half transparent DC suitable for dimming the viewport.
+        Unfortunately drawing/blitting this is very slow under Linux/GTK2.
+        """
+        if self.dim_dc is not None:
+            w, h = self.dim_dc.GetSize()
+            if w >= width and h >= height:
+                return self.dim_dc
+            else:
+                # Avoid too many recalculations
+                width = int(width * 1.5)
+                height = int(height * 1.5)
+        print "Rebuilding dim DC %d*%d..." % (width, height)
+        opaque = wx.BLACK
+        transparent = wx.RED
+        # Create bitmap & enable transparency
+        bmp = wx.EmptyBitmap(width, height)
+        dc = wx.MemoryDC()
+        dc.SelectObject(bmp)
+        # Start with single tile
+        w, h = 3, 3
+        dc.BeginDrawing()
+        dc.SetPen(wx.Pen(transparent))
+        dc.DrawPointList([(x, y) for x in range(w) for y in range(h)])
+        dc.SetPen(wx.Pen(opaque))
+        dc.DrawPointList([(x, y) for (x, y) in zip(range(w), range(h))])
+        # Tile all DC
+        while w < width:
+            dc.BlitPointSize((w, 0), (w, h), dc, (0, 0))
+            w *= 2
+        while h < height:
+            dc.BlitPointSize((0, h), (width, h), dc, (0, 0))
+            h *= 2
+        dc.EndDrawing()
+        bmp.SetMaskColour(transparent)
+        self.dim_dc = dc
+        return self.dim_dc
+
     def _UpdateAnimations(self):
         """ Update all animations in the viewport. """
 
-        dirty = self._Glide()
+        if not self.disabled:
+            dirty = self._Glide()
+        else:
+            dirty = False
         self.need_further_redraw = dirty
         self.draw_destination = dirty
 

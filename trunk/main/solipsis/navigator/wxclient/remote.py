@@ -28,6 +28,7 @@ class RemoteConnector(object):
             self.connect_id = connect_id
             print "connect_id:", connect_id
             self.Call('GetNodeInfo')
+            self.Call('GetStatus')
             self.Call('GetAllPeers')
             self._AskEvents()
         def _failure(error):
@@ -100,6 +101,13 @@ class RemoteConnector(object):
         print "NODE", node_info.id_
         self.ui.UpdateNode(node_info)
 
+    def success_GetStatus(self, reply):
+        """
+        Trigger visual feedback of the connection status.
+        """
+        print "STATUS", reply
+        self.ui.SetStatus(reply)
+
     #
     # Notification handlers
     #
@@ -113,6 +121,10 @@ class RemoteConnector(object):
         print "LOST", peer_id
         self.ui.RemovePeer(peer_id)
         self.ui.AskRedraw()
+
+    def event_STATUS(self, status):
+        print "STATUS", status
+        self.ui.SetStatus(status)
 
     #
     # Private methods

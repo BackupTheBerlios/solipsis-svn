@@ -162,9 +162,10 @@ class StateMachine(object):
                     d[request] = getattr(self, 'peer_' + request)
             self.peer_dispatch = d
             self.peer_dispatch_cache[_class] = d
-        # Call state initialization function
         if _class != old_state.__class__:
+            # Discard old timers
             self.caller.Reset()
+            # Call state initialization function
             try:
                 func = self.state_dispatch[_class]
             except:
@@ -172,6 +173,8 @@ class StateMachine(object):
                 self.state_dispatch[_class] = func
             if func is not None:
                 func()
+            # Notify controller(s)
+            self.event_sender.event_StatusChanged(self.GetStatus())
 
     def InState(self, state_class):
         """
@@ -270,15 +273,16 @@ class StateMachine(object):
                 self.best_peer = None
                 self.best_distance = 0.0
                 self.SetState(states.Idle())
-            else:
-                # Resend a HELLO message to all future peers
-                print "(still connecting)"
-                peers = self.topology.PeersSet()
-                for p in self.future_topology.EnumeratePeers():
-                    if p not in peers:
-                        self._SayHello(p.address)
+        def _retry():
+            # Resend a HELLO message to all future peers
+            print "(still connecting)"
+            peers = self.topology.PeersSet()
+            for p in self.future_topology.EnumeratePeers():
+                if p not in peers:
+                    self._SayHello(p.address)
 
-        self.caller.CallPeriodically(self.connecting_period, _check)
+        self.caller.CallPeriodically(1.0, _check)
+        self.caller.CallPeriodically(self.connecting_period, _retry)
         self.caller.CallLater(self.connecting_period * self.connecting_trials, _restart)
 
     def state_Idle(self):
@@ -610,6 +614,17 @@ class StateMachine(object):
         Returns a list of all peers.
         """
         return self.topology.EnumeratePeers()
+
+    def GetStatus(self):
+        """
+        Returns the connection status : READY, BUSY or UNAVAILABLE
+        """
+        if self.InState(states.Idle):
+            return 'READY'
+        elif self.InState(states.NotConnected):
+            return 'UNAVAILABLE'
+        else:
+            return 'BUSY'
 
     def ImmediatelyConnect(self):
         """
