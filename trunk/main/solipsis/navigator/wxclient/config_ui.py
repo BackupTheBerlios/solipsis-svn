@@ -24,7 +24,40 @@ from wx.xrc import XRCCTRL, XRCID
 from solipsis.util.wxutils import _
 
 
+class ConfigData(ManagedData):
+    """
+    This class holds all configuration values that are settable from
+    the user interface.
+    """
+    def __init__(self, host=None, port=None, pseudo=None):
+        ManagedData.__init__(self)
+        self.pseudo = pseudo or u"guest human"
+        self.host = host or "localhost"
+        self.port = port or 8550
+        self.always_try_without_proxy = True
+        self.proxymode_auto = True
+        self.proxymode_manual = False
+        self.proxy_mode = ""
+        self.proxy_pac_url = ""
+        self.proxy_host = ""
+        self.proxy_port = 0
+        self.proxy_autodetect_done = False
+
+    def Autocomplete(self):
+        self.proxy_mode = self.proxymode_auto and "auto" or (
+            self.proxymode_manual and "manual" or "none")
+        if self.proxy_mode == "auto":
+            from solipsis.util.httpproxy import discover_http_proxy
+            proxy_host, proxy_port = discover_http_proxy()
+            self.proxy_host = proxy_host or ""
+            self.proxy_port = proxy_port or 0
+            #~ print "detected proxy (%s, %d)" % (self.proxy_host, self.proxy_port)
+
+
 class ConfigUI(object):
+    """
+    This class handles the UI side of the configuration mechanism.
+    """
     def __init__(self, config_data, prefs_dialog):
         self.config_data = config_data
         self.prefs_dialog = prefs_dialog

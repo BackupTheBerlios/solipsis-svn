@@ -31,33 +31,7 @@ from validators import *
 from viewport import Viewport
 from world import World
 from network import NetworkLoop
-from config_ui import ConfigUI
-
-
-class ConfigData(ManagedData):
-    def __init__(self, host=None, port=None, pseudo=None):
-        ManagedData.__init__(self)
-        self.pseudo = pseudo or u"guest human"
-        self.host = host or "localhost"
-        self.port = port or 8550
-        self.always_try_without_proxy = True
-        self.proxymode_auto = True
-        self.proxymode_manual = False
-        self.proxy_mode = ""
-        self.proxy_pac_url = ""
-        self.proxy_host = ""
-        self.proxy_port = 0
-        self.proxy_autodetect_done = False
-
-    def Autocomplete(self):
-        self.proxy_mode = self.proxymode_auto and "auto" or (
-            self.proxymode_manual and "manual" or "none")
-        if self.proxy_mode == "auto":
-            from solipsis.util.httpproxy import discover_http_proxy
-            proxy_host, proxy_port = discover_http_proxy()
-            self.proxy_host = proxy_host or ""
-            self.proxy_port = proxy_port or 0
-            #~ print "detected proxy (%s, %d)" % (self.proxy_host, self.proxy_port)
+from config import ConfigUI, ConfigData
 
 
 class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
@@ -471,14 +445,13 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
 
     def NodeConnectionSucceeded(self, node_proxy):
         """ We managed to connect to the node. """
+        # We must call the node proxy from the Twisted thread!
         self.node_proxy = TwistedProxy(node_proxy, self.reactor)
 
     def NodeConnectionFailed(self, error):
         """ Failed connecting to the node. """
         self.node_proxy = None
         msg = _("Connection to the node has failed. \nPlease the check the node is running, then retry.")
-        #~ msg += "\n\n" + _("For information, here is the error message:")
-        #~ msg += "\n" + str(error)
         dialog = wx.MessageDialog(None, msg, caption=_("Connection error"), style=wx.OK | wx.ICON_ERROR)
         dialog.ShowModal()
 
