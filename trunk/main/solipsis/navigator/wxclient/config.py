@@ -21,7 +21,9 @@
 import wx
 from wx.xrc import XRCCTRL, XRCID
 
-from solipsis.util.wxutils import _
+from solipsis.util.entity import Entity
+from solipsis.util.address import Address
+from solipsis.util.wxutils import _, ManagedData
 
 
 class ConfigData(ManagedData):
@@ -31,7 +33,7 @@ class ConfigData(ManagedData):
     """
     def __init__(self, host=None, port=None, pseudo=None):
         ManagedData.__init__(self)
-        self.pseudo = pseudo or u"guest human"
+        self.pseudo = pseudo or u"guest"
         self.host = host or "localhost"
         self.port = port or 8550
         self.always_try_without_proxy = True
@@ -52,6 +54,16 @@ class ConfigData(ManagedData):
             self.proxy_host = proxy_host or ""
             self.proxy_port = proxy_port or 0
             #~ print "detected proxy (%s, %d)" % (self.proxy_host, self.proxy_port)
+
+    def GetNode(self):
+        node = Entity()
+        node.pseudo = self.pseudo
+        lang_code = wx.Locale.GetLanguageInfo(wx.Locale.GetSystemLanguage()).CanonicalName
+        if lang_code:
+            node.languages = [ str(lang_code.split('_')[0]) ]
+        # Dummy value to avoid None-marshaling
+        node.address = Address()
+        return node
 
 
 class ConfigUI(object):

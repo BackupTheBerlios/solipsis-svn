@@ -703,15 +703,14 @@ class StateMachine(object):
     #
     # Control events
     #
-    def ChangeMeta(self, node_info):
+    def ChangeMeta(self, new_node):
         """
         Change our meta-information.
         """
-        self.node.pseudo = self.node_info.pseudo
-        self.node.languages = self.node_info.languages
-        # TODO: update services too
-        peers = self.topology.GetAllPeers()
-        for peer in peers:
+        #~ self.node.pseudo = self.node_info.pseudo
+        #~ self.node.languages = self.node_info.languages
+        self.node.UpdateMeta(new_node.pseudo, new_node.languages, new_node.services)
+        for peer in self.GetAllPeers():
             self._SendMeta(peer)
 
     def GetAllPeers(self):

@@ -166,7 +166,7 @@ class RemoteControl(object):
         Change node information (only for metadata, the rest is ignored).
         """
         self._CheckConnectId(connect_id)
-        node = Entity.ToStruct(node_info)
+        node = Entity.FromStruct(node_info)
         self.state_machine.ChangeMeta(node)
         return True
 

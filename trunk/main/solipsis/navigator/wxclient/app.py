@@ -60,7 +60,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         Import and initialize the Twisted event loop.
         Note: Twisted will run in a separate thread from the GUI.
         """
-
         from twisted.internet import reactor
         from twisted.python import threadable
         threadable.init(1)
@@ -70,7 +69,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """
         Initialize some basic wxWidgets stuff, including localization.
         """
-
         import locale as system_locale
         wx.InitAllImageHandlers()
         self.locale = wx.Locale()
@@ -447,6 +445,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """ We managed to connect to the node. """
         # We must call the node proxy from the Twisted thread!
         self.node_proxy = TwistedProxy(node_proxy, self.reactor)
+        self.node_proxy.SetNodeInfo(self.config_data.GetNode().ToStruct())
 
     def NodeConnectionFailed(self, error):
         """ Failed connecting to the node. """
