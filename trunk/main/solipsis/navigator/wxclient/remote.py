@@ -13,6 +13,7 @@ def discover_proxy():
     """
 
     host_port = None
+    host = port = None
 
     # Un*x et al.
     if 'http_proxy' in os.environ:
@@ -50,8 +51,19 @@ def discover_proxy():
             print str(e)
             pass
 
-    # Split host and port
-    if host_port is not None:
+    # Gnome
+    try:
+        import gconf
+        client = gconf.client_get_default()
+    except:
+        pass
+    else:
+        if client.get_bool('/system/http_proxy/use_http_proxy'):
+            host = client.get_string('/system/http_proxy/host')
+            port = client.get_int('/system/http_proxy/port')
+
+    # Split host and port if necessary
+    if host_port and not host:
         t = host_port.split(':')
         host = t[0].strip()
         if host:
@@ -59,9 +71,8 @@ def discover_proxy():
                 port = int(t[1])
             except:
                 port = 80
-            return host, port
 
-    return None, None
+    return host, port
 
 
 class ProxiedXMLRPC:
@@ -234,4 +245,3 @@ class RemoteConnector(object):
     #
     def _AskEvents(self):
         self.Call('GetEvents')
-
