@@ -280,7 +280,7 @@ class Parser(object):
         # Parse request line
         m = self.request_syntax.match(lines[0])
         if m is None:
-            raise EventParsingError("Invalid request syntax: " + lines[0])
+            raise EventParsingError("Invalid request syntax: " + repr(lines[0]))
 
         # Request is first word of the first line (e.g. NEAREST, or BEST ...)
         request = m.group(1).upper()
