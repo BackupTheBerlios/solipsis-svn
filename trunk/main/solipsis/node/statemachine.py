@@ -75,8 +75,9 @@ class StateMachine(object):
     local_hold_time = 1200
     remote_hold_time = 30
     
-    # Dampening delays
+    # Various delays
     hello_dampening = 3.0
+    meta_change_delay = 0.5
 
     # Time during which we request to send detects on a HELLO
     # after having moved
@@ -153,6 +154,7 @@ class StateMachine(object):
 
         # Delayed calls
         self.peer_timeouts = {}
+        self.peer_updates = {}
         self.caller.Reset()
         
         # For each address, this is the timestamp of the last HELLO attempt
@@ -707,9 +709,10 @@ class StateMachine(object):
         """
         Change our meta-information.
         """
-        #~ self.node.pseudo = self.node_info.pseudo
-        #~ self.node.languages = self.node_info.languages
-        self.node.UpdateMeta(new_node.pseudo, new_node.languages, new_node.services)
+        self.node.UpdateMeta(
+            new_node.pseudo,
+            new_node.languages,
+            new_node.services.values())
         for peer in self.GetAllPeers():
             self._SendMeta(peer)
 
@@ -811,6 +814,7 @@ class StateMachine(object):
         caller.CallPeriodicallyWithId('msg_receive_timeout', peer.hold_time, msg_receive_timeout)
         caller.CallPeriodicallyWithId('msg_send_timeout', keepalive, msg_send_timeout)
         self.peer_timeouts[peer.id_] = caller
+        self.peer_updates[peer.id_] = DelayedCaller(self.reactor)
 
         self._CheckNumberOfPeers(check_ar=False)
 
@@ -818,7 +822,10 @@ class StateMachine(object):
         """
         Remove a peer and send the necessary notification messages.
         """
+        self.peer_timeouts[id_].Reset()
+        self.peer_updates[id_].Reset()
         del self.peer_timeouts[id_]
+        del self.peer_updates[id_]
         self.topology.RemovePeer(id_)
         # Notify remote control
         self.event_sender.event_LostPeer(id_)
@@ -1001,6 +1008,17 @@ class StateMachine(object):
         if new_ar != ar:
             self._UpdateAwarenessRadius(new_ar)
 
+    def _NotifyPeerMeta(self, peer_id):
+        """
+        Notify peer metadata changes to the remote control.
+        """
+        def _notify():
+            if self.topology.HasPeer(peer_id):
+                peer = self.topology.GetPeer(peer_id)
+                self.event_sender.event_ChangedPeer(peer)
+        self.peer_updates[peer_id].Reset()
+        self.peer_updates[peer_id].CallLater(self.meta_change_delay, _notify)
+
     def _UpdatePeerMeta(self, peer, args):
         """
         Update a peer's metadata from the incoming message's arguments.
@@ -1009,7 +1027,7 @@ class StateMachine(object):
             languages=args.accept_languages, 
             services=args.accept_services)
         # Notify remote control
-        self.event_sender.event_ChangedPeer(peer)
+        self._NotifyPeerMeta(peer.id_)
 
     def _UpdatePeerService(self, peer, args):
         """
@@ -1017,7 +1035,7 @@ class StateMachine(object):
         """
         peer.UpdateServiceInfo(args.service_id, address=args.service_address)
         # Notify remote control
-        #~ self.event_sender.event_ChangedPeer(peer)
+        self._NotifyPeerMeta(peer.id_)
 
     #
     # Protocol helpers

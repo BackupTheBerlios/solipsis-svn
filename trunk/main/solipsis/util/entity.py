@@ -124,7 +124,7 @@ class Entity(Marshallable):
         """
         Get a list of the entity's services.
         """
-        return self.services.values()
+        return [s for s in self.services.itervalues() if s.known]
 
     def GetLanguages(self):
         """
@@ -141,7 +141,7 @@ class Entity(Marshallable):
 
     def UpdateMeta(self, pseudo=None, languages=None, services=None):
         """
-        Update metadata.
+        Update metadata from a pseudo, a list of languages and a list of services.
         """
         if pseudo is not None:
             self.pseudo = pseudo

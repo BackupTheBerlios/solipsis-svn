@@ -21,7 +21,7 @@
 import wx
 from wx.xrc import XRCCTRL, XRCID
 
-from solipsis.util.entity import Entity
+from solipsis.util.entity import Entity, Service
 from solipsis.util.address import Address
 from solipsis.util.wxutils import _, ManagedData
 
@@ -63,6 +63,9 @@ class ConfigData(ManagedData):
             node.languages = [ str(lang_code.split('_')[0]) ]
         # Dummy value to avoid None-marshaling
         node.address = Address()
+        # Test data
+        node.AddService(Service('chat', address='127.0.0.1:5555'))
+        node.AddService(Service('video', address='127.0.0.1:6543'))
         return node
 
 

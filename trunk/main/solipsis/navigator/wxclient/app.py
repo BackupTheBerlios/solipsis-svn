@@ -223,7 +223,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         
         # 4. Other tasks are launched after the window is drawn
         self.services = ServiceCollector(self.params, self, self.reactor)
-        wx.FutureCall(1000, self.InitServices)
+        wx.FutureCall(100, self.InitServices)
         
         return True
 
@@ -412,7 +412,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
                 if peer is not None:
                     menu.Append(wx.NewId(), _('Peer "%s"') % peer.pseudo)
                 menu.AppendSeparator()
-            l = self.services.GetPopupMenuItems()
+            l = self.services.GetPopupMenuItems(menu)
             if len(l) > 0:
                 for item in l:
                     menu.AppendItem(item)
@@ -438,18 +438,21 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     def AddPeer(self, *args, **kargs):
         """ Add an object to the viewport. """
         self.world.AddPeer(*args, **kargs)
+        self.services.AddPeer(*args, **kargs)
 
     def RemovePeer(self, *args, **kargs):
         """ Remove an object from the viewport. """
         self.world.RemovePeer(*args, **kargs)
-
-    def UpdateNode(self, *args, **kargs):
-        """ Update node information. """
-        self.world.UpdateNode(*args, **kargs)
+        self.services.RemovePeer(*args, **kargs)
 
     def UpdatePeer(self, *args, **kargs):
         """ Update an object. """
         self.world.UpdatePeer(*args, **kargs)
+        self.services.UpdatePeer(*args, **kargs)
+
+    def UpdateNode(self, *args, **kargs):
+        """ Update node information. """
+        self.world.UpdateNode(*args, **kargs)
 
     def ResetWorld(self, *args, **kargs):
         """ Reset the viewport. """

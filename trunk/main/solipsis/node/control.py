@@ -157,7 +157,7 @@ class RemoteControl(object):
         x = float(x)
         y = float(y)
         z = float(z)
-#         print "Move received", x, y, z
+        #~ print "Move received", x, y, z
         self.state_machine.MoveTo((x, y, z))
         return True
 

@@ -37,7 +37,6 @@ class Protocol(DatagramProtocol):
 
     def datagramReceived(self, data, (from_host, from_port)):
         print "received %r from %s:%d" % (data, from_host, from_port)
-        self.SendMessage(data, (from_host, from_port))
 
 
 class NetworkLauncher(object):
@@ -63,5 +62,5 @@ class NetworkLauncher(object):
         self.protocol = None
 
     def SendMessage(self, data):
-        assert self.protocol is not None, "Tried to send message but protocol is None"
+        assert self.protocol is not None, "Tried to send message but protocol is disabled"
         self.protocol.SendMessage(data)

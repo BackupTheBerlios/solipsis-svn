@@ -271,6 +271,7 @@ class Viewport(object):
         if painter not in d:
             d[painter] = {}
         d[painter][id_] = item
+        self._ObjectsGeometryChanged()
         return id_
     
     def RemoveDrawable(self, obj_name, id_):
@@ -282,6 +283,7 @@ class Viewport(object):
         item = self.obj_drawables[index][id_]
         self._RemoveDrawableItem(item)
         del self.obj_drawables[index][id_]
+        self._ObjectsGeometryChanged()
 
     def RemoveObject(self, name):
         """

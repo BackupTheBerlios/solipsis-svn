@@ -21,6 +21,11 @@ import os
 import os.path
 import wx
 
+try:
+    set
+except:
+    from sets import Set as set
+
 from solipsis.util.uiproxy import UIProxy
 from solipsis.util.wxutils import _, GetCharset, IdPool
 
@@ -61,6 +66,7 @@ class ServiceCollector(object):
 
     def Reset(self):
         self.plugins = {}
+        self.peers = {}
         self.action_ids = IdPool()
 
     def ReadServices(self):
@@ -92,7 +98,7 @@ class ServiceCollector(object):
         plugin.Init()
         plugin.Enable()
 
-    def GetPopupMenuItems(self):
+    def GetPopupMenuItems(self, menu):
         """
         Get specific service items for the UI pop-up menu.
         """
@@ -103,21 +109,81 @@ class ServiceCollector(object):
             title = plugin.GetAction()
             if title is not None:
                 item_id = self.action_ids.GetId()
-                item = wx.MenuItem(None, item_id, title.encode(self.charset))
+                item = wx.MenuItem(menu, item_id, title.encode(self.charset))
                 def _clicked(evt):
                     plugin.DoAction()
                 wx.EVT_MENU(self.wxApp, item_id, _clicked)
                 l.append(item)
         return l
 
-    def NewPeer(self, peer):
-        pass
+    def AddPeer(self, peer):
+        """
+        Called when a peer has appeared.
+        """
+        peer_id = peer.id_
+        self.peers[peer_id] = peer
+        # Notify the new peer to interested plugins
+        services = peer.GetServices()
+        for service in services:
+            try:
+                plugin = self.plugins[service.id_]
+            except KeyError:
+                pass
+            else:
+                plugin.NewPeer(peer, service)
 
-    def ChangedPeer(self, peer):
-        pass
-    
-    def LostPeer(self, peer_id):
-        pass
+    def UpdatePeer(self, peer):
+        """
+        Called when a peer has changed.
+        """
+        peer_id = peer.id_
+        old_peer = self.peers[peer_id]
+        self.peers[peer_id] = peer
+        # Compare the peer's old services to its new ones...
+        new_ids = set([_service.id_ for _service in peer.GetServices()])
+        old_ids = set([_service.id_ for _service in old_peer.GetServices()])
+        # Notify removed services
+        for service_id in old_ids - new_ids:
+            try:
+                plugin = self.plugins[service_id]
+            except KeyError:
+                pass
+            else:
+                plugin.LostPeer(peer_id)
+        # Notify added services
+        for service_id in new_ids - old_ids:
+            try:
+                plugin = self.plugins[service_id]
+            except KeyError:
+                pass
+            else:
+                plugin.NewPeer(peer, peer.GetService(service_id))
+        # Notify updated services
+        for service_id in new_ids & old_ids:
+            try:
+                plugin = self.plugins[service_id]
+            except KeyError:
+                pass
+            else:
+                plugin.ChangedPeer(peer, peer.GetService(service_id))
+
+    def RemovePeer(self, peer_id):
+        """
+        Called when a peer has disappeared.
+        """
+        try:
+            peer = self.peers.pop(peer_id)
+        except KeyError:
+            return
+        # Notify the removed peer to interested plugins
+        services = peer.GetServices()
+        for service in services:
+            try:
+                plugin = self.plugins[service.id_]
+            except KeyError:
+                pass
+            else:
+                plugin.LostPeer(peer_id)
 
     #
     # API callable from service plugins
