@@ -18,7 +18,7 @@
               <orient>wxVERTICAL</orient>
               <object class="sizeritem">
                 <object class="wxListCtrl" name="chat_users">
-                  <style>wxLC_REPORT</style>
+                  <style>wxLC_REPORT|wxLC_NO_HEADER</style>
                 </object>
                 <option>1</option>
                 <flag>wxEXPAND|wxGROW</flag>
