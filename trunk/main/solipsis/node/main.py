@@ -77,7 +77,7 @@ def main():
         else:
             # See Psyco documentation: http://psyco.sourceforge.net/psycoguide/module-psyco.html
 #             import psyco
-#             psyco.profile(watermark=0.01, time=120)
+#             psyco.profile(watermark=0.005, time=120)
             profile_run()
 
     except:

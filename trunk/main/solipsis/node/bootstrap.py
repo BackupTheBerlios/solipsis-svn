@@ -30,17 +30,22 @@ class Bootstrap(object):
             self.node.position = self.dummy_position
 
     def Run(self):
+        # Open Solipsis main port
         try:
             self.reactor.listenUDP(self.params.port, self.node_connector)
         except Exception, e:
             print str(e)
             sys.exit(1)
+
+        # Setup the initial state
         if self.params.as_seed:
             self.state_machine.ImmediatelyConnect(sender=self.node_connector.SendMessage,
                                                     addresses=self.bootup_entities)
         else:
             self.state_machine.BootupWithEntities(sender=self.node_connector.SendMessage,
                                                     addresses=self.bootup_entities)
+
+        # Enter event loop
         self.reactor.run()
 
     #

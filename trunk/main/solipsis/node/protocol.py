@@ -207,8 +207,6 @@ class Parser(object):
         """
         Strip unnecessary parameters from message.
         """
-#         print message.request
-#         print REQUESTS[message.request]
         required_args = set([ATTRIBUTE_NAMES[arg_id] for arg_id in REQUESTS[message.request]])
         args = message.args
         for k in set(args.__dict__) - required_args:

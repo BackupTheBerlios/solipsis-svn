@@ -47,7 +47,7 @@ class Peer(Entity):
         super(Peer, self).__init__(*args, **kargs)
 
         # TODO: initialize this from protocol message
-        self.hold_time = 60
+        self.hold_time = 45
 
         # Time of latest messages received/sent
         self.last_received_message = 0

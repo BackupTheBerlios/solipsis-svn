@@ -34,6 +34,7 @@ class Topology(object):
             self.half_world_size = self.world_size / 2.0
         self.normalize = (lambda x, lim=self.world_size // 2: (x + lim) % (lim + lim) - lim)
         self.max_angle = math.pi
+        self.origin = None
 
         self.Reset()
 
@@ -49,7 +50,8 @@ class Topology(object):
         # Ordered list of (angle, peer id) tuples
         self.distance_peers = []
 
-        self.origin = origin
+        if origin is not None:
+            self.origin = origin
 
     def SetOrigin(self, (x, y)):
         """
@@ -289,7 +291,7 @@ class Topology(object):
         closest_distance, closest_id = min(l)
         return closest_id and (self.peers[closest_id], closest_distance) or None
 
-    def GetPeerAround(self, target, emitter_id, clockwise=True, max_angle=None):
+    def GetPeerAround(self, target, exclude_id, clockwise=True, max_angle=None):
         """
         Return the peer that is the closest to a target position
         in the given angle from the origin.
@@ -314,7 +316,7 @@ class Topology(object):
         closest_distance = 0.0
 
         for id_, (x, y) in self.relative_positions.iteritems():
-            if id_ == emitter_id:
+            if id_ == exclude_id:
                 continue
             # x, y = vector(origin -> peer), so:
             # xv, yv = vector(peer -> target)
