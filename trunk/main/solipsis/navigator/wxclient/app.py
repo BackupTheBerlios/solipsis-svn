@@ -678,6 +678,8 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     # Actions from the services
     #
     def SetServiceMenu(self, service_id, title, menu):
+        """allow a service to change the title of its entry in the
+        main menu bar"""
         val = (title, service_id)
         pos = bisect.bisect_right(self.service_menus, val)
         if pos == len(self.service_menus) or self.service_menus[pos][1] != service_id:
