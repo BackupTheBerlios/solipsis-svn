@@ -30,7 +30,7 @@ class Controller(object):
     walker.Controller is a special controller that periodically moves the
     node in the world by a random amount.
     """
-    update_period = 10.0
+    update_period = 60.0
     decide_period_avg = 60.0
 
     def __init__(self, reactor, params, remote_control):
