@@ -213,4 +213,44 @@ class XMLRPCControlChannel(object):
         Return OK """
         factory = EventFactory.getInstance(ControlEvent.TYPE)
         controlEvent = factory.createDISCONNECT
-   
+        self.incoming.put(controlEvent)
+
+        return self.ok
+
+    def isAlive(self):
+        """ Reply to ping sent by the navigator. """
+        return self.ok
+
+    def kill(self):
+        """ Kill the node and stop connection betwwen navigator and node
+        """
+        # send a KILL order to the node
+        factory = EventFactory.getInstance(ControlEvent.TYPE)
+        kill = factory.createKILL()
+        self.incoming.put(kill)
+
+        # stop this connector
+        self.connector.stop()
+
+        return self.ok
+
+    def move(self, x, y, z):
+        """ Reception of a move order
+        x,y,z : target coordinates. These parameters are passed as string
+        to avoid int overflow problems
+        """
+        assert( z == 0)
+        pos = Position(long(x), long(y), long(z))
+        factory = EventFactory.getInstance(ControlEvent.TYPE)
+        move = factory.createMOVE(pos)
+        self.incoming.put(move)
+        return self.ok
+
+    def set(self, name, value):
+        """ Reception of a SET order. Modification of a characteristic of the
+        node. E.g. the pseudo set('Pseudo', 'john')"""
+        factory = EventFactory.getInstance(ControlEvent.TYPE)
+        set = factory.createSET(name, value)
+        self.incoming.put(set)
+        return self.ok
+

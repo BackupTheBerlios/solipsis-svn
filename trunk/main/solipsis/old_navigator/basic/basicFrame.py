@@ -179,4 +179,22 @@ class wxMainFrame(wx.Frame):
               name='navig_window', parent=self, pos=wx.Point(0, 0),
               size=wx.Size(1014, 46), style=0)
 
-        top = Image
+        top = ImageManager.getBitmap(ImageManager.IMG_TOP_BANNER)
+        self.bannerBitmap = wx.StaticBitmap(bitmap=top,
+                                           id=wxID_WXMAINFRAMETOPBANNERBITMAP,
+                                           name='topBannerBitmap',
+                                           parent=self.navig_window,
+                                           pos=wx.Point(0, 0), size=wx.Size(1014, 46),
+                                           style=0)
+
+        # logo window
+
+
+        # 2D view window
+        self.two_d_window = wx.Window(id=wxID_WXMAINFRAMETWO_D_WINDOW,
+              name='two_d_window', parent=self, pos=wx.Point(0, 46),
+              size=wx.Size(719, 676), style=0)
+
+        # application window
+        self.appli_window = wx.Notebook(id=wxID_WXMAINFRAMEAPPLI_WINDOW,
+                                     name='appli_window', par

@@ -192,4 +192,31 @@ class entityDialog(wx.Dialog):
         return 1
 
     def OnSelectNode(self, event):
-        """ store the node selected by the us
+        """ store the node selected by the user"""
+
+        self.nodeIndice = self.nodesListBox.GetSelection()
+
+    def OnNewLocalNodeButton(self, event):
+        """ create a new local node in the list """
+
+        dlg = newLocalNodeDialog(self)
+        if dlg.ShowModal() == wx.ID_OK:
+            pseudo = dlg.pseudoTextCtrl.GetValue()
+            if pseudo == "":
+                displayError(self, "Can't create the node : your node pseudo is empty !")
+            else:
+                self.controller.createNode(pseudo)                
+
+    def OnNodeCreationFailure(self, reason):
+        """ The node wasn't created"""
+        displayError(self, 'Error, node not created: ' + reason)
+
+    def OnNodeCreationSuccess(self):
+        """ Success : node created"""
+        self.initNodesList()
+
+
+    def OnNewDistantNodeButton(self, event):
+        """ create a new distant node in the list """
+
+    

@@ -220,4 +220,29 @@ class Node(Entity):
                 request = event.getRequest()
 
                 try:
-                    fun = self.state.__geta
+                    fun = self.state.__getattribute__(request)
+                except:
+                    self.logger.debug("unknown request "+ request)
+                else:
+                    try:
+                        fun(event)
+                    except:
+                        exception_type, value, tb = sys.exc_info()
+                        self.logger.debug(exception_type)
+                        self.logger.debug(value)
+                        stack_trace = traceback.format_tb(tb)
+                        self.logger.debug(stack_trace)
+                        del tb
+                        del value
+                        sys.exc_clear()
+
+        except Exception, e:
+            print e
+
+        self.logger.debug("end of main loop")
+        try:
+            self.exit()
+        except:
+            pass
+
+

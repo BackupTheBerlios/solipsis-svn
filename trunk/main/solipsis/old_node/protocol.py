@@ -209,4 +209,38 @@ class Message(object):
             # The syntax is correct => add this arg to the arg list
             if args.has_key(argName):
                 raise EventParsingError("Duplicate value for arg '%s'" % argName)
-            args[argName] =  ARGS_CONSTRUCTOR
+            args[argName] =  ARGS_CONSTRUCTOR[argName](argVal)
+
+        # Check that all required fields have been encountered
+        for argName in argList:
+            if not args.has_key(argName):
+                raise EventParsingError("Missing argument '%s' in message '%s'" % (argName, request))
+
+        # Everything's ok
+        self.request = request
+        self.args = args
+        self.data = data
+        return True
+
+
+def checkMessage(data):
+    message = Message()
+    try:
+        message.fromData(data)
+        return True
+    except:
+        raise
+        return False
+
+
+if __name__ == '__main__':
+    data = ("HEARTBEAT SOLIPSIS/1.0\r\n" +
+            "Id: 192.168.0.1\r\n" +
+            "Position: 455464, 78785425, 0\r\n" +
+            "\r\n")
+    message = Message()
+    print message.fromData(data)
+    print message.toData()
+    print message.fromData(message.toData())
+
+

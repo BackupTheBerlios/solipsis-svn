@@ -222,4 +222,83 @@ class Notification:
                  serviceId = '',serviceDesc = '' ,serviceAddress = ''):
         """ Create a Notification"""
         if event is not None:
-            self.setFro
+            self.setFromEvent(event)
+        else:
+            self.request = request
+            self.id = id
+            self.position = position
+            self.pseudo = pseudo
+            self.orientation = orientation
+            self.calibre = calibre
+            self.address = address
+            self.awarenessRadius = awarenessRadius
+            self.serviceId = serviceId
+            self.serviceDesc = serviceDesc
+            self.serviceAddress = serviceAddress
+
+    def setFromEntity(self, entity):
+        """ Fill-in this Notification using an Entity object"""
+        self.id = entity.getId()
+        self.pseudo = entity.getPseudo()
+        self.orientation = entity.getOrientation()
+        self.calibre = entity.getCalibre()
+        self.awarenessRadius= str(entity.getAwarenessRadius())
+        self.position = entity.getPosition().toString()
+        self.address = entity.getAddress.toString()
+
+    def setFromService(self, service):
+        """ Fill-in this Notification using a Service object"""
+        self.serviceId = service.getId()
+        self.serviceDesc = service.getDescription()
+        self.serviceAddress = service.getAddress().toString()
+
+    def setFromEvent(self, event):
+        self.request = event.getRequest()
+        for (k,v) in event.enumerateArgs():
+            # convert fields names to their equivalent
+            # e.g. Awareness-Radius --> awarnessRadius
+            fieldList = k.lower().split('-')
+            field = fieldList[0]
+            if len(fieldList) > 1:
+                field = field + string.join(map(string.capitalize, fieldList[1:]))
+            if field == 'position' or field == 'address' or \
+                   field == 'serviceAddress' or field == 'awarenessRadius':
+                self.__dict__[field] = str(v)
+            else:
+                self.__dict__[field] = v
+
+    def createEvent(self):
+        """ Create the Event object corresponding to this Notification"""
+        evt = Event(self.request)
+        for (k,v) in self.__dict__.items():
+            if k <> 'request':
+                pattern = re.compile(r'^([a-z]+)([A-Z][a-z]+)*')
+                match = pattern.match(k)
+                list = []
+                for part in match.groups():
+                    if part is not None:
+                        list.append(string.capitalize(part))
+                #list = map(string.capitalize, match.groups())
+                name = list[0]
+                value = v
+                if len(list) > 1:
+                    name = '-'.join(list)
+                if name == 'Position':
+                    value = Position()
+                    value.setValueFromString(v)
+                elif name == 'Address' or name == 'Service-Address':
+                    value = Address()
+                    value.setValueFromString(v)
+                elif name == 'Awareness-Radius':
+                    value = long(v)
+
+                evt.addArg(name,value)
+
+        return evt
+
+
+    def __str__(self):
+        buff = ""
+        for (k,v) in self.__dict__.items():
+            buff += '%s -> %s\n' %(k, v)
+        return buff

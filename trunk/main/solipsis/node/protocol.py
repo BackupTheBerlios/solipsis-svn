@@ -30,10 +30,11 @@ from solipsis.util.exception import *
 from solipsis.util.geometry import Position
 from solipsis.util.address import Address
 from solipsis.util.bidict import bidict
+from entity import Service
 
 VERSION = 1.0
 BANNER = "SOLIPSIS/" + `VERSION`
-
+CHARSET = "utf-8"
 
 #
 # This is a list of allowed arguments in the Solipsis protocol.
@@ -107,6 +108,7 @@ def _init_table(table_name, table, aliases=_aliases, transform=(lambda x: x)):
 # This is mandatory.
 #
 _syntax_table = {
+    ARG_ACCEPT_SERVICES  : '[-_/\w\d]+(;d=\w+)?(\s*,\s*[-_/\w\d]+(;d=\w+)?)',
     ARG_ADDRESS          : '\s*.*:\d+\s*',
     ARG_AWARENESS_RADIUS : '\d+',
     ARG_CLOCKWISE        : '[-+]1',
@@ -124,18 +126,41 @@ _init_table('ARGS_SYNTAX', _syntax_table, transform=(lambda x: re.compile('^' + 
 # Constructor function for each argument
 # This is mandatory.
 #
+
+def _accept_services_from_string(s):
+    services = []
+    for l in s.split(','):
+        t = l.strip().split(';')
+        id_ = t[0]
+        if len(t) > 1 and t[1].startswith('d='):
+            type = t[1][2:]
+        else:
+            type = 'bidir'
+        services.append(Service(id_, type))
+
+def _accept_services_to_string(services):
+    s = []
+    for service in services:
+        if service.type == 'bidir':
+            s.append("%s" % service.id_)
+        else:
+            s.append("%s;d=%s" % (service.id_, service.type))
+    return ", ".join(s)
+
 _from_string = {
+    ARG_ACCEPT_SERVICES: _accept_services_from_string,
     ARG_ADDRESS: (lambda s: Address(strAddress=s)),
     ARG_AWARENESS_RADIUS: float,
     ARG_BEST_DISTANCE: float,
     ARG_CLOCKWISE: (lambda x: int(x) > 0),
     ARG_ID: intern,
     ARG_POSITION: (lambda s: Position(strPosition=s)),
-    ARG_PSEUDO: str,
+    ARG_PSEUDO: (lambda s: unicode(s.decode(CHARSET))),
     ARG_SEND_DETECTS: (lambda s: s=='now'),
 }
 
 _to_string = {
+    ARG_ACCEPT_SERVICES: _accept_services_to_string,
     ARG_ADDRESS: str,
     # TODO: change all coord and distance types to float
     ARG_AWARENESS_RADIUS: (lambda x: str(long(x))),
@@ -143,7 +168,7 @@ _to_string = {
     ARG_CLOCKWISE: (lambda x: x and "+1" or "-1"),
     ARG_ID: str,
     ARG_POSITION: str,
-    ARG_PSEUDO: str,
+    ARG_PSEUDO: (lambda u: u.encode(CHARSET)),
     ARG_SEND_DETECTS: (lambda x: x and "now" or "later"),
 }
 
@@ -170,9 +195,9 @@ REMOTE_ARGS = [
 
 REQUESTS = {
     'CLOSE'      : [ ARG_ID ],
-    'CONNECT'    : NODE_ARGS + [ ARG_PSEUDO ],
+    'CONNECT'    : NODE_ARGS,
     'HEARTBEAT'  : [ ARG_ID ],
-    'HELLO'      : NODE_ARGS + [ ARG_PSEUDO, ARG_SEND_DETECTS ],
+    'HELLO'      : NODE_ARGS + [ ARG_SEND_DETECTS ],
 
     'AROUND'     : REMOTE_ARGS,
     'BEST'       : NODE_ARGS,
@@ -255,4 +280,83 @@ class Parser(object):
             raise EventParsingError("Invalid request syntax: " + lines[0])
 
         # Request is first word of the first line (e.g. NEAREST, or BEST ...)
-        reques
+        request = m.group(1).upper()
+        # Extract protocol version
+        version = float(m.group(2))
+
+        # Basic sanity check
+        if version > VERSION:
+            raise EventParsingError("Unexpected protocol version: %s" % str(version))
+        elif version < VERSION:
+            self.logger.info("Received message from older protocol version: %s" % str(version))
+        if not request in REQUESTS:
+            raise EventParsingError("Unknown request: " + request)
+
+        # Get args for this request
+        mandatory_args = REQUESTS[request]
+        missing_args = dict.fromkeys(mandatory_args)
+        args = {}
+
+        # Now let's parse each parameter line in turn
+        for line in lines[1:]:
+            # Get arg name and arg value
+            t = line.split(':', 1)
+            if len(t) != 2:
+                raise EventParsingError("Invalid message syntax:\r\n" + data)
+            name = t[0].strip()
+            value = t[1].strip()
+
+            # Each arg has its own syntax-checking regex
+            # (e.g. for a calibre we expect a 3-digit number)
+            try:
+                arg_id = PROTOCOL_STRINGS.get_reverse(name)
+                arg_syntax = ARGS_SYNTAX[arg_id]
+            except KeyError:
+                raise EventParsingError("Unknown arg '%s'" % (name))
+            if not arg_syntax.match(value):
+                raise EventParsingError("Invalid arg syntax for '%s': '%s'" % (name, value))
+
+            # The syntax is correct => add this arg to the arg list
+            if arg_id in args:
+                raise EventParsingError("Duplicate value for arg '%s'" % name)
+
+            # Build argument value from its registered constructor
+            if not parse_only:
+                args[arg_id] = ARGS_FROM_STRING[arg_id](value)
+
+            # Log optional arguments
+            if arg_id in missing_args:
+                del missing_args[arg_id]
+            else:
+                self.logger.debug("Optional argument '%s' in message '%s'" % (name, request))
+
+        # Check that all required fields have been encountered
+        if missing_args:
+            raise EventParsingError("Missing arguments (%s) in message '%s'"
+                    % (",".join([PROTOCOL_STRINGS[arg] for arg in missing_args]), request))
+
+        # Everything's ok
+        if not parse_only:
+            message = Message()
+            message.request = request
+            for arg_id, value in args.iteritems():
+                setattr(message.args, ATTRIBUTE_NAMES[arg_id], value)
+            return message
+        else:
+            return True
+
+
+if __name__ == '__main__':
+    data = ("HEARTBEAT SOLIPSIS/1.0\r\n" +
+            "Id: 192.168.0.1\r\n" +
+            "Position: 455464, 78785425, 0\r\n" +
+            "Clockwise: -1" +
+            "\r\n")
+    parser = Parser()
+    message = parser.ParseMessage(data)
+    print message.request
+    print message.args.__dict__
+    data = parser.BuildMessage(message)
+    print data
+    message = parser.ParseMessage(data)
+    print message.args.__dict__

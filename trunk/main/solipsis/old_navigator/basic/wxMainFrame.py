@@ -175,4 +175,22 @@ class wxMainFrame(wxFrame):
               size=wxSize(295, 76), style=0)
 
         logo = ImageManager.getSolipsisLogoWxBitmap()
-        self.logoBitmap = wxStati
+        self.logoBitmap = wxStaticBitmap(bitmap=logo,
+                                         id=wxID_WXMAINFRAMELOGOBITMAP,
+                                         name='logoBitmap', parent=self.logo_window,
+                                         pos=wxPoint(0, 0), size=wxSize(295, 76),
+                                         style=0)
+
+        # 2D view window
+        self.two_d_window = wxWindow(id=wxID_WXMAINFRAMETWO_D_WINDOW,
+              name='two_d_window', parent=self, pos=wxPoint(0, 46),
+              size=wxSize(719, 676), style=0)
+
+        # application window
+        self.appli_window = wxWindow(id=wxID_WXMAINFRAMEAPPLI_WINDOW,
+                                     name='appli_window', parent=self,
+                                     pos=wxPoint(719, 122), size=wxSize(295, 600),
+                                     style=0)
+
+
+        self.transferButton = wxBitm

@@ -271,4 +271,172 @@ class Topology(object):
     # Methods depending on a "target" position
     #
 
-    def GetPeersInCircle(self, position, ra
+    def GetPeersInCircle(self, position, radius):
+        """
+        Returns the peers in a circle.
+        """
+        xc, yc = self.origin
+        xt = self.normalize(position[0] - xc)
+        yt = self.normalize(position[1] - yc)
+        _distances = self.distance_peers
+
+        # Heuristic to reduce calculations if possible
+        distance = math.sqrt(xt**2 + yt**2)
+        first = bisect.bisect_left(_distances, (distance - radius, None))
+        last = bisect.bisect_right(_distances, (distance + radius, None))
+
+        _p = self.relative_positions
+        r2 = radius ** 2
+        result = []
+        for id_, (x, y) in [(id_, _p[id_]) for (d, id_) in _distances[first:last]]:
+            if r2 >= (x - xt) ** 2 + (y - yt) ** 2:
+                result.append(self.peers[id_])
+        return result
+
+    def GetClosestPeer(self, target, exclude_id=None):
+        """
+        Selects the peer that is the closest to a target position.
+        Returns (peer, distance) tuple.
+        """
+        xc, yc = self.origin
+        xt, yt = target
+        _norm = self.normalize
+        l = [(_norm(x + xc - xt) ** 2 + _norm(y + yc - yt) ** 2, id_)
+                for (id_, (x, y)) in self.relative_positions.iteritems()
+                if id_ != exclude_id]
+        if len(l) > 0:
+            sq_dist, closest_id = min(l)
+            return self.peers[closest_id], math.sqrt(sq_dist)
+        else:
+            return None, None
+
+    def GetPeerAround(self, target, exclude_id, clockwise=True, max_angle=None):
+        """
+        Return the peer that is the closest to a target position
+        in the given angle from the origin.
+        """
+        sgn = clockwise and -1.0 or 1.0
+        # We work in relative positions to the origin, which simplifies
+        # calculations a bit since the origin is part of the vector product.
+        xc, yc = self.origin
+        _norm = self.normalize
+        # xt, yt = vector(origin -> target)
+        xt = _norm(target[0] - xc)
+        yt = _norm(target[1] - yc)
+        # dt = distance(origin, target)
+        dt = math.sqrt(xt ** 2 + yt ** 2)
+        if dt == 0.0:
+            self.logger.warning("Asked for a peer around our own position")
+        if max_angle is None:
+            max_angle = self.max_angle
+        # Minimum accepted cosine for angle between (origin -> target) and (peer -> target)
+        min_cos = math.cos(max_angle)
+        closest_id = None
+        closest_distance = 0.0
+
+        for id_, (x, y) in self.relative_positions.iteritems():
+            if id_ == exclude_id:
+                continue
+            # x, y = vector(origin -> peer), so:
+            # xv, yv = vector(peer -> target)
+            xv, yv = _norm(xt - x), _norm(yt - y)
+            # Discard peers that are in the wrong half-plane
+            if (xt * yv - xv * yt) * sgn <= 0.0:
+                continue
+            # dv = distance(peer, target)
+            dv = math.sqrt(xv ** 2 + yv **2)
+            # The dot product helps us calculate the cosine,
+            # which is monotonous between 0 and PI
+            dot_product = xt * yt + xv * yv
+            # Check whether the angle is lower than max_angle
+            if dot_product >= dv * dt * min_cos:
+                if closest_id is None or dv < closest_distance:
+                    closest_id = id_
+                    closest_distance = dv
+
+        return closest_id and self.peers[closest_id] or None
+
+
+    #
+    # Private methods
+    #
+    def _InsertPeer(self, p):
+        assert self.origin is not None, "topology origin is not set"
+        xc, yc = self.origin
+        id_ = p.id_
+
+        # Relative position
+        x, y = p.position.getCoords()
+        x = self.normalize(x - xc)
+        y = self.normalize(y - yc)
+
+        # Distance
+        d = math.sqrt(x**2 + y**2) * (1.0 + self.epsilon)
+        if d == 0.0:
+            self.logger.warning("Null distance for peer '%s', cannot insert" % str(id_))
+            return False
+
+        # Angle relatively to the [Ox) oriented axis
+        # The result is between 0 and 2*PI
+        if abs(x) > abs(y):
+            angle = math.acos(x / d)
+            if y < 0.0:
+                angle = 2.0 * math.pi - angle
+        else:
+            angle = math.asin(y / d)
+            if x < 0.0:
+                angle = math.pi - angle
+        angle %= 2.0 * math.pi
+
+        self.relative_positions[id_] = (x, y)
+        self.distances[id_] = d
+        self.angles[id_] = angle
+        bisect.insort(self.distance_peers, (d, id_))
+        bisect.insort(self.angle_peers, (angle, id_))
+        return True
+
+    def _ExtractPeer(self, id_):
+        d = self.distances.pop(id_)
+        angle = self.angles.pop(id_)
+        self.distance_peers.remove((d, id_))
+        self.angle_peers.remove((angle, id_))
+        del self.relative_positions[id_]
+
+    def _Recalculate(self):
+        """
+        Recalculate topology information. This function
+        is called when the origin has changed.
+        """
+        self.relative_positions = {}
+        self.distances = {}
+        self.angles = {}
+        self.angle_peers = []
+        self.distance_peers = []
+        for p in self.peers.values():
+            self._InsertPeer(p)
+
+    def _NecessaryPeers(self, max_angle=None):
+        """
+        Returns id's of peers that are necessary for our global connectivity.
+        """
+        if len(self.peers) < 3:
+            return self.peers.keys()
+        if max_angle is None:
+            max_angle = self.max_angle
+        _angles = self.angle_peers
+        pi2 = 2.0 * math.pi
+
+        result = set()
+        prev_angle, _ = _angles[-2]
+        angle, id_ = _angles[-1]
+        # For each peer, we check the angle between the predecessor and
+        # the successor. If the angle is greater than the desired max angle,
+        # then this peer is necessary.
+        for next_angle, next_id in _angles:
+            if (next_angle - prev_angle) % pi2 >= max_angle:
+                result.add(id_)
+            prev_angle = angle
+            angle, id_ = next_angle, next_id
+
+        return result
+
