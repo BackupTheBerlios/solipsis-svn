@@ -2,17 +2,39 @@
 <resource>
   <object class="wxFrame" name="chat_window">
     <title>Chat</title>
+    <centered>1</centered>
     <style>wxDEFAULT_FRAME_STYLE|wxSYSTEM_MENU|wxRESIZE_BORDER|wxRESIZE_BOX|wxMINIMIZE_BOX|wxMAXIMIZE_BOX|wxTAB_TRAVERSAL</style>
     <object class="wxBoxSizer">
       <orient>wxVERTICAL</orient>
       <object class="sizeritem">
-        <object class="wxTextCtrl" name="chat_view">
-          <style>wxTE_MULTILINE|wxTE_READONLY</style>
+        <object class="wxSplitterWindow">
+          <object class="wxTextCtrl" name="chat_view">
+            <size>200,80</size>
+            <style>wxTE_MULTILINE|wxTE_READONLY</style>
+          </object>
+          <orientation>vertical</orientation>
+          <minsize>0</minsize>
+          <style>wxSP_3D|wxSP_3DSASH|wxSP_3DBORDER|wxSP_BORDER|wxSP_LIVE_UPDATE</style>
+          <object class="wxPanel">
+            <style></style>
+            <object class="wxStaticBoxSizer">
+              <label>Users</label>
+              <orient>wxHORIZONTAL</orient>
+              <object class="sizeritem">
+                <object class="wxListCtrl" name="chat_users">
+                  <style>wxRAISED_BORDER|wxSTATIC_BORDER</style>
+                </object>
+                <option>1</option>
+                <flag>wxEXPAND|wxGROW</flag>
+              </object>
+            </object>
+            <exstyle></exstyle>
+          </object>
         </object>
         <option>1</option>
         <flag>wxALL|wxEXPAND|wxGROW</flag>
         <border>5</border>
-        <minsize>300,120</minsize>
+        <minsize>300,100</minsize>
       </object>
       <object class="sizeritem">
         <object class="wxBoxSizer">
@@ -25,6 +47,7 @@
             <option>1</option>
             <flag>wxRIGHT|wxEXPAND|wxGROW</flag>
             <border>5</border>
+            <minsize></minsize>
           </object>
           <object class="sizeritem">
             <object class="wxButton" name="chat_send">
@@ -37,6 +60,7 @@
         </object>
         <flag>wxALL|wxEXPAND|wxGROW</flag>
         <border>5</border>
+        <minsize>300</minsize>
       </object>
       <object class="sizeritem">
         <object class="wxButton" name="chat_close">

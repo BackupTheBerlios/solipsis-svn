@@ -47,10 +47,9 @@ class MemSizer(object):
         self.oldseen = self.seen
         self.seen = {}
         self.seenids = {}
-        for k in sys.modules.keys():
-            if k.startswith('wx'):
-                continue
-            #~ print k
+        for k in sys.modules.iterkeys():
+            #~ if k.startswith('wx'):
+                #~ continue
             self.seen[k] = self.rlen_module(sys.modules[k])
 
     def get_sizes(self):
@@ -91,8 +90,8 @@ class MemSizer(object):
                     #print "MemSizer: unknown type %s" % str(type(obj))
                     total = 1
                 except:
-                    print obj
-                    raise
+                    print "cannot memsize '%s'" % str(obj)
+                    #~ raise
             self.seenids[id(obj)] = total
             return total
 
@@ -131,7 +130,6 @@ class MemSizer(object):
             _seenids[id(seq)] = 0
             total = 0
             for v in seq:
-                #if id(v) not in _seenids and not isinstance(v, _modtype):
                 if not isinstance(v, _modtype):
                     total += _rlen(v)
             _seenids[id(seq)] = total

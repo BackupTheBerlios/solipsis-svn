@@ -54,7 +54,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.node_proxy = None
         if self.params.memdebug:
             self.memsizer = MemSizer()
-            gc.set_debug(gc.DEBUG_LEAK)
+            #~ gc.set_debug(gc.DEBUG_LEAK)
         else:
             self.memsizer = None
 
@@ -254,6 +254,8 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
                     self.redraw_pending = False
                     self.Redraw()
                 wx.FutureCall(t, _redraw)
+                #~ wx.FutureCall(t, self.Redraw)
+                #~ wx.CallAfter(self.Redraw)
                 return True
         return False
 
@@ -308,6 +310,8 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         return False
     
     def _MemDebug(self):
+        import gc
+        gc.collect()
         self.memsizer.sizeall()
         print "\n... memdump ...\n"
         items = self.memsizer.get_deltas()

@@ -113,7 +113,8 @@ class Viewport(object):
         """
         Refresh the viewport.
         """
-
+        #~ self.last_redraw_duration = 0.001
+        #~ return
         # Spare machine time if the window is hidden or if there is something wrong
         try:
             if not self.window.IsShown() or self.window.IsBeingDeleted():
