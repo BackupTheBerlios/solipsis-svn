@@ -129,7 +129,7 @@ class Topology(object):
             p = self.peers[id_]
             return p
         except KeyError:
-            raise UnknownIdError(peerid)
+            raise UnknownIdError(id_)
 
     def GetNumberOfPeers(self):
         """
@@ -216,7 +216,9 @@ class Topology(object):
         # Find the farthest peer that can be removed
         for i in xrange(len(_distances) - 1, -1, -1):
             d, id_ = _distances[i]
-            if id_ not in excluded_peers and d >= min_distance:
+            if d < min_distance:
+                break
+            if id_ not in excluded_peers:
                 worst.append(self.peers[id_])
                 if len(worst) == n:
                     break
@@ -234,14 +236,16 @@ class Topology(object):
         Returns the peers within a given distance (in distance order).
         """
         last = bisect.bisect(self.distance_peers, (distance, None))
-        return [self.peers[id_] for (distance, id_) in self.distance_peers[:n]]
+        return [self.peers[id_] for (distance, id_) in self.distance_peers[:last]]
 
     def GetEnclosingDistance(self, n):
         """
         Get the best distance enclosing the N first peers and excluding the others.
         """
-        dist_in = self.distance_peers[n][0]
-        dist_out = self.distance_peers[n+1][0]
+        dist_in = self.distance_peers[n-1][0]
+        if n == len(self.distance_peers):
+            return dist_in
+        dist_out = self.distance_peers[n][0]
         return math.sqrt(dist_in * dist_out)
 
     #
@@ -258,7 +262,7 @@ class Topology(object):
         xt, yt = target
         _norm = self.normalize
         l = [(_norm(x + xc - xt) ** 2 + _norm(y + yc - yt) ** 2, id_)
-                for id_, (x, y) in self.relative_positions.iteritems()
+                for (id_, (x, y)) in self.relative_positions.iteritems()
                 if id_ != exclude_id]
         closest_distance, closest_id = min(l)
         return closest_id and (self.peers[closest_id], closest_distance) or None
@@ -287,8 +291,8 @@ class Topology(object):
         closest_id = None
         closest_distance = 0.0
 
-        for id_, (x, y) in self.relative_positions:
-            if p.id_ == emitter_id:
+        for id_, (x, y) in self.relative_positions.iteritems():
+            if id_ == emitter_id:
                 continue
             # x, y = vector(origin -> peer), so:
             # xv, yv = vector(peer -> target)
@@ -333,12 +337,13 @@ class Topology(object):
         # The result is between 0 and 2*PI
         if abs(x) > abs(y):
             angle = math.acos(x / d)
-            if y < 0:
+            if y < 0.0:
                 angle = 2.0 * math.pi - angle
         else:
             angle = math.asin(y / d)
-            if x < 0:
+            if x < 0.0:
                 angle = math.pi - angle
+        angle %= 2.0 * math.pi
 
         self.relative_positions[id_] = (x, y)
         self.distances[id_] = d

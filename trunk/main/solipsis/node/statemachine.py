@@ -174,10 +174,7 @@ class StateMachine(object):
 
         def check_gc():
             # Periodically check global connectivity
-            gc2 = self.topology.HasGlobalConnectivity()
-            if gc1 ^ gc2:
-                self.logger.error("Manager and topology disagree on global connectivity (%d, %d)" % (gc1, gc2))
-            elif gc2:
+            if self.topology.HasGlobalConnectivity():
                 self.SetState(states.Idle())
         self._CallPeriodically(1, check_gc)
 
@@ -193,7 +190,10 @@ class StateMachine(object):
             # Periodically check global connectivity
             if not self.topology.HasGlobalConnectivity():
                 self.SetState(states.LostGlobalConnectivity())
+
         self._CallPeriodically(2, check_gc)
+        self._CheckNumberOfPeers()
+        self._CallPeriodically(5, self._CheckNumberOfPeers)
         #self._CallPeriodically(0, count)
 
     def state_LostGlobalConnectivity(self):
@@ -201,12 +201,12 @@ class StateMachine(object):
 
         def check_gc():
             # Periodically check global connectivity
-            if self.topology.getNumberOfPeers() == 0:
+            if self.topology.GetNumberOfPeers() == 0:
                 # TODO: implement this (we need some initial peer addresses...)
                 self.logger.info("All peers lost, relaunching JUMP algorithm")
                 return
 
-            pair = self.topology.getBadGlobalConnectivityPeers()
+            pair = self.topology.GetBadGlobalConnectivityPeers()
             if not pair:
                 self.SetState(states.Idle())
             else:
@@ -285,7 +285,7 @@ class StateMachine(object):
                 self.logger.info("NEAREST received, but proposed is already our best")
                 return
             elif (self.topology.RelativeDistance(self.best_peer.position.getCoords()) <=
-                self.topology.RelativeDistance(self.args.remote_position.getCoords())):
+                self.topology.RelativeDistance(args.remote_position.getCoords())):
                 self.logger.info("NEAREST received, but proposed peer is farther than our current best")
                 return
 
@@ -357,7 +357,7 @@ class StateMachine(object):
             # Check we don't have too many peers, or have worse peers than this one
             if self._AcceptPeer(peer):
                 # Connect to this peer
-                self._SayHello(args.address)
+                self._SayHello(peer.address)
 
     def peer_AROUND(self, args):
         """
@@ -442,7 +442,7 @@ class StateMachine(object):
         old = topology.GetPeer(peer.id_)
 
         # Update peer
-        manager.updatePeer(peer)
+        topology.UpdatePeer(peer)
 
         # TODO: Notify the controller that a peer has changed
 #         ctlFact = EventFactory.getInstance(ControlEvent.TYPE)
@@ -678,24 +678,33 @@ class StateMachine(object):
         various actions so that it stays within the desired bounds.
         """
         topology = self.topology
-        ar = self.node_awareness_radius
+        ar = self.node.awareness_radius
         nb_peers = topology.GetNumberOfPeers()
         neighbours = topology.GetPeersWithinDistance(ar)
         nb_neighbours = len(neighbours)
-        if nb_neighbours < 3:
+        print ar, nb_peers, nb_neighbours, self.min_neighbours
+        if nb_peers < 3:
             # This case is handled by the global connectivity check
             return
+
+        # Not enough neighbours in our awareness radius
         if nb_neighbours < self.min_neighbours:
-            # We assume areal density is roughly constant.
-            self._UpdateAwarenessRadius(ar * math.sqrt(float(self.min_neighbours) / nb_neighbours))
+            if nb_peers >= self.min_neighbours:
+                new_ar = topology.GetEnclosingDistance(self.min_neighbours)
+            else:
+                # We assume areal density is roughly constant
+                d = topology.GetEnclosingDistance(nb_peers)
+                new_ar = d * math.sqrt(float(self.min_neighbours) / nb_peers)
+            new_ar = min(new_ar, self.world_size)
+            if new_ar != ar:
+                self._UpdateAwarenessRadius(new_ar)
+        # Too many neighbours in our awareness radius
         elif nb_neighbours > self.max_neighbours:
-            # We "cut" the awareness radius so that we don't have too many
-            # neighbours inside.
             self._UpdateAwarenessRadius(topology.GetEnclosingDistance(self.min_neighbours))
+        # Too many connected peers outside of our awareness radius
         elif nb_peers > self.max_connections:
-            # We disconnect from all spurious peers outside of the awareness radius
             peers = self.GetWorstPeers(self.max_connections - self.max_neighbours, ar)
-            for p in self.peer:
+            for p in peers:
                 self._CloseConnection(p)
 
     #
@@ -770,23 +779,23 @@ class StateMachine(object):
             position = args.remote_position,
             pseudo = args.remote_pseudo)
 
-    def _PeerMessage(self, request, entity=None, remote_entity=None):
-        if entity is None:
-            entity = self.node
+    def _PeerMessage(self, request, peer=None, remote_peer=None):
+        if peer is None:
+            peer = self.node
         message = protocol.Message(request)
         # Build message args from involved entities
         # This could be smarter...
         a = message.args
-        e = entity
-        a.address = e.address
-        a.awareness_radius = e.awareness_radius
-        a.calibre = e.calibre
-        a.id_ = e.id_
-        a.orientation = e.orientation
-        a.position = e.position
-        a.pseudo = e.pseudo
-        if remote_entity:
-            r = remote_entity
+        p = peer
+        a.address = p.address
+        a.awareness_radius = p.awareness_radius
+        a.calibre = p.calibre
+        a.id_ = p.id_
+        a.orientation = p.orientation
+        a.position = p.position
+        a.pseudo = p.pseudo
+        if remote_peer:
+            r = remote_peer
             a.remote_address = r.address
             a.remote_awareness_radius = r.awareness_radius
             a.remote_calibre = r.calibre
