@@ -101,6 +101,17 @@ class World(object):
         except KeyError:
             return None
 
+    def GetItemPseudo(self, id_):
+        """
+        Returns the pseudo corresponding to a specific item.
+        """
+        peer = self.GetPeer(id_)
+        # TODO: properly handle the case when the hovered peer
+        # has been removed from the viewport.
+        if peer is not None:
+            return peer.pseudo.encode(self.charset)
+        return ""    
+
     def _CreatePeerLabel(self, item):
         peer = item.peer
         d = drawable.Text(peer.pseudo.encode(GetCharset()))

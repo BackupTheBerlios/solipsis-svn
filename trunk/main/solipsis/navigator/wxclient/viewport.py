@@ -373,7 +373,7 @@ class Viewport(object):
             # if nothing has changed.
             index, (x1, y1, x2, y2) = self.hovered_area
             if x1 <= px and y1 <= py and x2 >= px and y2 >= py:
-                return
+                return (None, None)
         # Normal path: check all sensitive areas
         areas = [(index, (x1, y1, x2, y2)) for index, (x1, y1, x2, y2) in self.sensitive_areas
             if x1 <= px and y1 <= py and x2 >= px and y2 >= py]
@@ -387,8 +387,10 @@ class Viewport(object):
         if changed:
             if self.hovered_area is not None:
                 self.window.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
+                return (changed, self.obj_name[areas[0][0]])
             else:
                 self.window.SetCursor(wx.StockCursor(wx.CURSOR_DEFAULT))
+        return (changed, "")
 
     def PendingRedraw(self):
         r = self.redraw_pending

@@ -33,6 +33,7 @@ from solipsis.util.memdebug import MemSizer
 from validators import *
 from viewport import Viewport
 from world import World
+from statusbar import StatusBar
 from network import NetworkLoop
 from config import ConfigUI, ConfigData
 
@@ -116,7 +117,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
 
         # Putting objects together
         self.main_window.SetMenuBar(self.main_menubar)
-
+        self.statusbar = StatusBar(self.main_window, _("Not connected"))
         #self.test_panel = XRCCTRL(self.not_implemented_dialog, "test_panel")
         #b = wx.Button(self.test_panel, label=_("Close"))
 
@@ -332,9 +333,10 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             self.node_proxy = None
             self.viewport.Disable()
             self.Redraw()
+            self.statusbar.SetText(_("Not connected"))
 
     def _Kill(self, evt):
-        """ Called on "connect" event (menu -> File -> Connect). """
+        """ Called on "kill" event (menu -> File -> Kill). """
         if self._CheckNodeProxy():
             self.network.KillNode()
 
@@ -387,6 +389,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             self.config_data.Autocomplete()
             self.network.ConnectToNode(self.config_data)
             self.viewport.Reset()
+            self.statusbar.SetText(_("Connecting"))
 
 
     #===-----------------------------------------------------------------===#
@@ -406,11 +409,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         if self._CheckNodeProxy(False):
             id_ = self.viewport.HoveredItem()
             if id_ is not None:
-                peer = self.world.GetPeer(id_)
-                # TODO: properly handle the case when the hovered peer
-                # has been removed from the viewport.
-                if peer is not None:
-                    menu.Append(wx.NewId(), _('Peer "%s"') % peer.pseudo)
+                menu.Append(wx.NewId(), _('Peer "%s"') % self.world.GetItemPseudo(id_))
                 menu.AppendSeparator()
             l = self.services.GetPopupMenuItems(menu)
             if len(l) > 0:
@@ -428,7 +427,11 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """ Called on mouse movement. """
         if self._CheckNodeProxy(False):
             x, y = evt.GetPositionTuple()
-            self.viewport.Hover((x, y))
+            changed, id_ = self.viewport.Hover((x, y))
+            if changed and id_:
+                self.statusbar.SetTemp(self.world.GetItemPseudo(id_))
+            elif changed and not id_:
+                self.statusbar.Reset()
         evt.Skip()
 
 
@@ -464,24 +467,29 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             self.viewport_panel.SetCursor(wx.StockCursor(wx.CURSOR_DEFAULT))
             self.viewport.Enable()
             self.Redraw()
+            self.statusbar.SetText(_("Connected"))
         elif status == 'BUSY':
             self.viewport_panel.SetCursor(wx.StockCursor(wx.CURSOR_ARROWWAIT))
             self.viewport.Enable()
             self.Redraw()
+            self.statusbar.SetText(_("Searching peers"))
         elif status == 'UNAVAILABLE':
             self.viewport_panel.SetCursor(wx.StockCursor(wx.CURSOR_DEFAULT))
             self.viewport.Disable()
             self.Redraw()
+            self.statusbar.SetText(_("Not connected"))
 
     def NodeConnectionSucceeded(self, node_proxy):
         """ We managed to connect to the node. """
         # We must call the node proxy from the Twisted thread!
         self.node_proxy = TwistedProxy(node_proxy, self.reactor)
         self.node_proxy.SetNodeInfo(self.config_data.GetNode().ToStruct())
+        self.statusbar.SetText(_("Connected"))
 
     def NodeConnectionFailed(self, error):
         """ Failed connecting to the node. """
         self.node_proxy = None
+        self.statusbar.SetText(_("Not connected"))
         msg = _("Connection to the node has failed. \nPlease the check the node is running, then retry.")
         dialog = wx.MessageDialog(None, msg, caption=_("Connection error"), style=wx.OK | wx.ICON_ERROR)
         dialog.ShowModal()
@@ -491,6 +499,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.node_proxy = None
         self.viewport.Disable()
         self.Redraw()
+        self.statusbar.SetText(_("Not connected"))
 
     def NodeKillFailed(self):
         """ The node refused to kill itself. """
