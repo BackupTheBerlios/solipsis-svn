@@ -227,7 +227,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         wx.EVT_CHAR(self.viewport_panel, self._KeyPressViewport)
 
         # Let's go...
-        # 0. Load last saved config
+        # 1. Load last saved config
         try:
             f = file(self.config_file, "rb")
             self.config_data.Load(f)
@@ -236,11 +236,11 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
                 print "Config file '%s' broken, erasing"
                 os.remove(self.config_file)
 
-        # 1. Show UI on screen
+        # 2. Show UI on screen
         self.main_window.Show()
         self.SetTopWindow(self.main_window)
 
-        # 2. Launch main GUI loop
+        # 3. Launch main GUI loop
         if os.name == 'posix' and wx.Platform == '__WXGTK__':
             self.x11 = True
         else:
@@ -249,7 +249,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         if self.memsizer:
             self._MemDebug()
         
-        # 3. Other tasks are launched after the window is drawn
+        # 4. Other tasks are launched after the window is drawn
         wx.CallAfter(self.InitTwisted)
         wx.CallAfter(self.InitNetwork)
         wx.CallAfter(self.InitServices)
