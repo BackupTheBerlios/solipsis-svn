@@ -392,6 +392,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     def _Disconnect(self, evt):
         """ Called on "disconnect" event (menu -> File -> Disconnect). """
         self._DestroyProgress()
+        self._SetWaiting(False)
         if self._CheckNodeProxy():
             self.network.DisconnectFromNode()
             self.node_proxy = None
