@@ -8,7 +8,33 @@ class AbstractView:
     def __init__(self, document, name="abstract"):
         self.document = document
         self.name = name
+        self.import_document(document)
 
+    def import_document(self, document):
+        """update view with document"""
+        # personal tab
+        self.update_title()
+        self.update_firstname()
+        self.update_lastname()
+        self.update_pseudo()
+        self.update_photo()
+        self.update_email()
+        self.update_birthday()
+        self.update_language()
+        self.update_address()
+        self.update_postcode()
+        self.update_city()
+        self.update_country()
+        self.update_description()
+        # custom tab
+        self.update_hobbies()
+        self.update_custom_attributes()
+        # FILE TAB
+        self.update_repository()
+        self.update_files()
+        # OTHERS TAB
+        self.update_peers()
+        
     # PERSONAL TAB
     def update_title(self):
         """display title in view"""
@@ -81,10 +107,6 @@ class AbstractView:
         raise NotImplementedError
 
     # OTHERS TAB
-    def update_peer_preview(self, value):
-        """peer_preview"""
-        raise NotImplementedError
-
     def update_peers(self):
         """peer"""
         raise NotImplementedError
@@ -167,11 +189,7 @@ class PrintView(AbstractView):
         """file"""
         print self.document.get_files()
         
-    # OTHERS TAB
-    def update_peer_preview(self, value):
-        """peer_preview"""
-        print self.document.get_peers()[value]
-        
+    # OTHERS TAB        
     def update_peers(self):
         """peer"""
         print self.document.get_peers()

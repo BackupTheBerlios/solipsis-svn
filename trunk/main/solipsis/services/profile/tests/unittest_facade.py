@@ -69,7 +69,7 @@ class FacadeTest(unittest.TestCase):
     def test_change_birthday(self):
         """sets new value for birthday"""
         self.facade.change_birthday(u'12/01/2005')
-        self.assertEquals("2005-01-12 00:00:00.00\n", sys.stdout.getvalue())
+        self.assertEquals("12/01/2005\n", sys.stdout.getvalue())
         self.assertEquals("", sys.stderr.getvalue())
 
     def test_change_language(self):

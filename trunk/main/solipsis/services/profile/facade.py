@@ -30,6 +30,8 @@ class Facade:
 
     def add_document(self, doc):
         """add  a view object to facade"""
+        if len(self.documents)>0:
+            doc.import_document(self.documents[0])
         self.documents.append(doc)
         
     def _try_change(self, value, setter, updater):
