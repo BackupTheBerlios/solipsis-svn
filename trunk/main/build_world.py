@@ -54,9 +54,4 @@ def main():
 
 
 if __name__ == '__main__':
-    if os.environ.has_key('PYTHONPATH'):
-        os.environ['PYTHONPATH'] = os.environ['PYTHONPATH'] + ':.'
-    else:
-        os.environ['PYTHONPATH'] = '.'
-
     main()
