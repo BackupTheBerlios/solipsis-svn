@@ -20,13 +20,16 @@
 import os
 import os.path
 
+from solipsis.util.exception import BadInstall
+
 
 class Launcher(object):
     """
     This class spawns a local node instance that will connect to other nodes.
     """
 
-    launcher_name = 'twistednode.py'
+    # This is a list of possible file names for the node launcher
+    launcher_alternatives = ['twistednode.py', 'twistednode.exe']
 
     def __init__(self, port, custom_args=None):
         self.port = port
@@ -34,6 +37,14 @@ class Launcher(object):
             self.custom_args = list(custom_args)
         else:
             self.custom_args = []
+        # Find the proper executable in the current dir
+        for f in self.launcher_alternatives:
+            if os.path.isfile(f):
+                self.launcher_name = f
+                break
+        else:
+            raise BadInstall("could not find any of ('%s') in the main directory"
+                % "', '".join(self.launcher_alternatives))
     
     def Launch(self):
         prog_name = os.path.normcase('.' + os.sep + self.launcher_name)
@@ -43,6 +54,7 @@ class Launcher(object):
         args += self.custom_args
         cmdline = " ".join(args)
         print "Executing '%s'..." % cmdline
+
         # Here we use subprocess for portability, but in case it doesn't exist
         # (Python < 2.4) we fall back on os.spawnv which does not allow direct
         # execution of .py files under Windows.
