@@ -31,7 +31,6 @@ class StateMachine(object):
     gc_check_period = 2.0
     connection_check_period = 1.0
     population_check_period = 4.0
-    heartbeat_period = 10.0
 
     # These are all the message types accepted from other peers.
     # Some of them will only be accepted in certain states.
@@ -77,6 +76,10 @@ class StateMachine(object):
 
         self.Reset()
 
+    def __del__(self):
+        print "state machine finalized"
+        self.Reset()
+
     def Reset(self):
         self.state = None
         self.sender = None
@@ -85,13 +88,16 @@ class StateMachine(object):
         # Id's of the peers encountered during a FINDNEAREST chain
         self.nearest_peers = set()
         # Peers discovered during a QUERYAROUND chain
-        #self.scanned_neighbours = []
         self.future_topology = None
         # BEST peer discovered at the end of a FINDNEAREST chain
         self.best_peer = None
 
-        self.topology.SetOrigin(self.node.position.getCoords())
+        # Delayed calls
+        # TODO: check they are properly garbage collected
+        self.peer_timeouts = {}
         self.caller.Reset()
+
+        self.topology.SetOrigin(self.node.position.getCoords())
 
     def ConnectWithEntities(self, sender, addresses):
         self.Reset()
@@ -163,7 +169,8 @@ class StateMachine(object):
             except AttributeError:
                 pass
             else:
-                pass
+                if id_ in self.peer_timeouts:
+                    self.peer_timeouts[id_].RescheduleCall('msg_receive_timeout')
 
 
     #
@@ -192,7 +199,11 @@ class StateMachine(object):
 
     def state_Idle(self):
         print "idle"
-        # TODO: add periodic handler for increasing / decreasing the number of peers
+
+#         def _reset():
+#             print "reset!!!"
+#             self.Reset()
+#         self.caller.CallLater(5, _reset)
 
         def check_gc():
             # Periodically check global connectivity
@@ -584,6 +595,21 @@ class StateMachine(object):
         """
         self.topology.AddPeer(peer)
 
+        def msg_receive_timeout():
+            print "closing connection with '%s'" % str(peer.id_)
+            self._CloseConnection(peer)
+        def msg_send_timeout():
+            print "sending heartbeat to '%s'" % str(peer.id_)
+            self._SendToPeer(peer, self._PeerMessage('HEARTBEAT'))
+
+        # Setup heartbeat handling callbacks
+        caller = DelayedCaller(self.reactor)
+        # Heuristic (a la BGP)
+        keepalive = peer.hold_time / 4.0
+        caller.CallPeriodicallyWithId('msg_receive_timeout', peer.hold_time, msg_receive_timeout)
+        caller.CallPeriodicallyWithId('msg_send_timeout', keepalive, msg_send_timeout)
+        self.peer_timeouts[peer.id_] = caller
+
         # TODO: notify navigator that we gained a new peer
 #         factory = EventFactory.getInstance(ControlEvent.TYPE)
 #         newPeerEvent = factory.createNEW(peer)
@@ -596,6 +622,7 @@ class StateMachine(object):
         """
         Remove a peer and send the necessary notification messages.
         """
+        del self.peer_timeouts[id_]
         self.topology.RemovePeer(id_)
 
         # TODO: notify navigator that we lost connection with a peer
@@ -794,5 +821,7 @@ class StateMachine(object):
             return
         data = self.parser.BuildMessage(message)
         self._SendToAddress(peer.address, message)
+        if peer.id_ in self.peer_timeouts:
+            self.peer_timeouts[peer.id_].RescheduleCall('msg_send_timeout')
 
 
