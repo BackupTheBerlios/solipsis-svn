@@ -36,9 +36,12 @@ class World(UIProxyReceiver):
     """
 
     class Item(object):
+        """
+        An item points to a peer and contains information about how to draw it.
+        """
         def __init__(self, peer):
             self.peer = peer
-            # drawable ids in viewport
+            # Drawable ids in viewport
             self.label_id = None
             self.avatar_id = None
     
@@ -47,6 +50,10 @@ class World(UIProxyReceiver):
         Constructor.
         """
         UIProxyReceiver.__init__(self)
+        # Solipsis ID of the node
+        self.node_id = None
+        self.node_item = None
+        # Charset used for display
         self.charset = GetCharset()
         self.viewport = viewport
         self.repository = images.ImageRepository()
@@ -58,8 +65,9 @@ class World(UIProxyReceiver):
         """
         Reset the world (removing all peers).
         """
-        self.node_id = None
+        # Dictionnary of peer ID -> world item
         self.items = {}
+        # Cache of all encountered peers (useful for labels, avatars, etc.)
         self.item_cache = {}
         self.viewport.Reset()
 

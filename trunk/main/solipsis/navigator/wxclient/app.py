@@ -591,6 +591,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
 
     def UpdateNode(self, *args, **kargs):
         """ Update node information. """
+        self.services.SetNode(*args, **kargs)
         self.world.UpdateNode(*args, **kargs)
     
     def UpdateNodePosition(self, *args, **kargs):

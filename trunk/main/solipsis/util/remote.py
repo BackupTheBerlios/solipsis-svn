@@ -113,6 +113,7 @@ class RemoteConnector(object):
         Transmit node information to the viewport.
         """
         node = Entity.FromStruct(reply)
+        print "update node '%s" % node.id_
         self.ui.UpdateNode(node)
 
     def success_GetStatus(self, reply):
