@@ -70,16 +70,16 @@ class Entity(object):
         self.id_ = id_
 
         self.services = {}
-        self.AddService('chat')
-        self.AddService('video')
-        self.AddService('browse', 'in')
-        self.AddService('share', 'out')
+        self.AddService(Service('chat'))
+        self.AddService(Service('video'))
+        self.AddService(Service('browse', 'in'))
+        self.AddService(Service('share', 'out'))
 
     def AddService(self, service):
         """
         Add a new service to this entity.
         """
-        d[service.id_] = service
+        self.services[service.id_] = service
 
     def RemoveService(self, service_id):
         """
