@@ -27,6 +27,7 @@ from solipsis.util.geometry import Position
 
 class Service(object):
     def __init__(self, id_, type='bidir'):
+        assert type in ('in', 'out', 'bidir'), "Wrong service type"
         self.id_ = id_
         self.type = type
 
@@ -49,7 +50,7 @@ class Entity(object):
     ])
 
     def __init__(self, id_="", position=Position(), orientation=0, awareness_radius=0,
-                 calibre=0, pseudo='', address=None):
+                 calibre=0, pseudo=u'', address=None):
         """
         Create a new Entity and keep information about it.
         """
@@ -69,6 +70,10 @@ class Entity(object):
         self.id_ = id_
 
         self.services = {}
+        self.AddService('chat')
+        self.AddService('video')
+        self.AddService('browse', 'in')
+        self.AddService('share', 'out')
 
     def AddService(self, service):
         """
@@ -82,7 +87,13 @@ class Entity(object):
         """
         if service_id in self.services:
             del(self.services[service_id])
-        
+
+    def GetServices(self):
+        """
+        Get a list of the entity's services.
+        """
+        return self.services.values()
+
     def UpdateServices(self, services):
         """
         Update the entity's services with the new service list.
