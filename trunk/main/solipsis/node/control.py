@@ -30,6 +30,7 @@ from twisted.internet import defer
 from solipsis.util.exception import *
 from solipsis.util.entity import Entity, Service, ServiceData
 from solipsis.util.address import Address
+from solipsis.util.utils import CreateSecureId
 from delayedcaller import DelayedCaller
 
 
@@ -244,17 +245,7 @@ class RemoteControl(object):
         """
         Creates a new connection ID.
         """
-        nbytes = 20
-        try:
-            r = random.getrandbits(nbytes * 8)
-        except AttributeError:
-            # Alternate method for Python < 2.4
-            r = random.randrange(2 ** (nbytes * 8))
-        s = ''
-        for i in xrange(nbytes):
-            s += chr(r & 0xFF)
-            r >>= 8
-        return sha.new(s).hexdigest()
+        return CreateSecureId()
 
     def _AddNotif(self, request, payload):
         """

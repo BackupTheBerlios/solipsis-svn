@@ -22,7 +22,7 @@ import random
 from solipsis.util.position import Position
 from solipsis.util.address import Address
 from solipsis.util.exception import *
-
+from solipsis.util.utils import CreateSecureId
 from solipsis.util.entity import Entity, Service
 
 
@@ -95,7 +95,7 @@ class Node(Entity):
         #~ self.AddService(Service('share', 'out'))
 
     def CreateId(self):
-        # TODO: reasonable ID generation and attribution
-        id_ = "%s:%d_%d" % (self.params.host, self.params.port, Node.count)
+        # TODO: reasonable/persistent ID generation and attribution ?
+        id_ = "%d_%d_%s" % (self.params.port, Node.count, CreateSecureId())
         Node.count += 1
         return id_
