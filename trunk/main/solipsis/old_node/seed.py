@@ -64,7 +64,7 @@ class StartingState(state.State):
             self.node.setAwarenessRadius(ar)
             self.node.setExpectedPeers(nbPeers)
             self.node.startPeriodicTasks()
-            self.sendUpdate()
+            self.sendUpdates()
             self.node.setState(state.Idle())
         else:
             self.logger.debug('Not connected to all seeds: %d/%d', nbPeers,
