@@ -41,10 +41,6 @@ class Locating(State):
 
     This means the node is expecting a BEST message from its latest peer.
     """
-
-    # maximum number of times we will try to connect
-    MAX_CONNECTIONS_ATTEMPTS = 5
-
     expected_peer_messages = ['NEAREST', 'BEST', 'HEARTBEAT']
     expected_control_messages = ['MOVE', 'KILL', 'SET']
 

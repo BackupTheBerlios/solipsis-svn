@@ -32,7 +32,7 @@ class Topology(object):
             self.half_world_size = self.world_size // 2
         else:
             self.half_world_size = self.world_size / 2.0
-        self.normalize = (lambda x, lim=self.world_size // 2: (x + lim) % (lim + lim) - lim)
+        self.normalize = (lambda x, lim=self.half_world_size: (x + lim) % (lim + lim) - lim)
         self.max_angle = math.pi
         self.origin = None
 
@@ -361,12 +361,7 @@ class Topology(object):
         # Angle relatively to the [Ox) oriented axis
         # The result is between 0 and 2*PI
         if abs(x) > abs(y):
-            try:
-                angle = math.acos(x / d)
-            except:
-                print "acos x=%f, d=%f, x/d=%f" %(x, d, x/d)
-                raise
-
+            angle = math.acos(x / d)
             if y < 0.0:
                 angle = 2.0 * math.pi - angle
         else:

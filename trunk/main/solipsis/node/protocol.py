@@ -266,13 +266,17 @@ class Parser(object):
 
         # Now let's parse each parameter line in turn
         for line in lines[1:]:
-            m = self.argument_syntax.match(line)
-            if m is None:
-                raise EventParsingError("Invalid message syntax:\r\n" + data)
-
             # Get arg name and arg value
-            name = m.group(1)
-            value = m.group(2)
+#             m = self.argument_syntax.match(line)
+#             if m is None:
+#                 raise EventParsingError("Invalid message syntax:\r\n" + data)
+#             name = m.group(1)
+#             value = m.group(2)
+            t = line.split(':', 1)
+            if len(t) != 2:
+                raise EventParsingError("Invalid message syntax:\r\n" + data)
+            name = t[0].strip()
+            value = t[1].strip()
 
             # Each arg has its own syntax-checking regex
             # (e.g. for a calibre we expect a 3-digit number)
