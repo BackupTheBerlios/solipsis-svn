@@ -90,8 +90,8 @@ def main():
             #profile.run(__name__ + ".profile_run()", "node.prof")
         else:
             # See Psyco documentation: http://psyco.sourceforge.net/psycoguide/module-psyco.html
-            import psyco
-            psyco.profile(time=120)
+#             import psyco
+#             psyco.profile(time=120)
             profile_run()
     except Exception, e:
         raise
