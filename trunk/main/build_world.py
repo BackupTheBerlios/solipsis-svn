@@ -6,7 +6,7 @@ import time
 pool_size = 20
 first_port = 5001
 seed_delay = 5.0
-delay = 6.0
+delay = 7.0
 
 
 def create_nodes(n, port, custom_args):

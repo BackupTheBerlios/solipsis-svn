@@ -334,7 +334,7 @@ class Topology(object):
             # which is monotonous between 0 and PI
             dot_product = xt * yt + xv * yv
             # Check whether the angle is lower than max_angle
-            if dot_product > dv * dt * min_cos:
+            if dot_product >= dv * dt * min_cos:
                 if closest_id is None or dv < closest_distance:
                     closest_id = id_
                     closest_distance = dv
