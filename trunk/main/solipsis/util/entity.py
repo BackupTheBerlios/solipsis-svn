@@ -55,7 +55,7 @@ class ServiceData(Marshallable):
         'service_id':
             ("", str),
         'data':
-            (u"", unicode),
+            (u"", lambda s: s),
     }
     
     def __init__(self, peer_id="", service_id="", data=u""):

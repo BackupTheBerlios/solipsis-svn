@@ -85,10 +85,10 @@ class Plugin(ServicePlugin):
     
     def SendMessage(self, text):
         # This method is called in UI context (i.e. wx Thread)
-        self.network.SendMessage(text)
-        #~ data = text
-        #~ for peer_id in self.hosts.keys():
-            #~ self.service_api.SendData(peer_id, data)
+        #~ self.network.SendMessage(text)
+        data = text
+        for peer_id in self.hosts.keys():
+            self.service_api.SendData(peer_id, data)
 
     def NewPeer(self, peer, service):
         #~ print "chat: NEW %s (%s)" % (peer.id_, service.address)

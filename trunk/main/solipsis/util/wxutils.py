@@ -144,13 +144,13 @@ class Validator(wx.PyValidator):
     def TransferFromWindow(self):
         if self.list_ref:
             self.list_ref[0] = self._ReprToData(self.GetWindow().GetValue())
-            print "->", self.list_ref[0]
+            #~ print "->", self.list_ref[0]
         return True
 
     def TransferToWindow(self):
         if self.list_ref:
             self.GetWindow().SetValue(self._DataToRepr(self.list_ref[0]))
-            print "<-", self.list_ref[0]
+            #~ print "<-", self.list_ref[0]
         return True
 
     def Validate(self, window):

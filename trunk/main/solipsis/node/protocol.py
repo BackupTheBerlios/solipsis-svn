@@ -292,7 +292,11 @@ class Parser(object):
         for k, v in args.iteritems():
             arg_id = ATTRIBUTE_NAMES.get_reverse(k)
             if arg_id == ARG_PAYLOAD:
-                payload = v
+                if isinstance(v, unicode):
+                    # Dirty since we don't decode when receiving the message
+                    payload = v.encode(CHARSET)
+                else:
+                    payload = v
             else:
                 lines.append('%s: %s' % (PROTOCOL_STRINGS[arg_id], ARGS_TO_STRING[arg_id](v)))
         # 3. End of message (double CR-LF)
