@@ -112,7 +112,7 @@ class RemoteConnector(object):
         assert isinstance(reply, list), "Bad reply to GetAllPeers()"
         for struct_ in reply:
             peer = Entity.FromStruct(struct_)
-            print "PEER", peer.id_
+            #~ print "PEER", peer.id_
             self.ui.AddPeer(peer)
         self.ui.Redraw()
 
@@ -121,7 +121,7 @@ class RemoteConnector(object):
         Transmit node information to the viewport.
         """
         node = Entity.FromStruct(reply)
-        print "NODE", node.id_
+        #~ print "NODE", node.id_
         self.ui.UpdateNode(node)
 
     def success_GetStatus(self, reply):
@@ -136,18 +136,18 @@ class RemoteConnector(object):
     #
     def event_CHANGED(self, struct_):
         peer = Entity.FromStruct(struct_)
-        print "CHANGED", peer.id_
+        #~ print "CHANGED", peer.id_
         self.ui.UpdatePeer(peer)
         self.ui.AskRedraw()
 
     def event_NEW(self, struct_):
         peer = Entity.FromStruct(struct_)
-        print "NEW", peer.id_
+        #~ print "NEW", peer.id_
         self.ui.AddPeer(peer)
         self.ui.AskRedraw()
 
     def event_LOST(self, peer_id):
-        print "LOST", peer_id
+        #~ print "LOST", peer_id
         self.ui.RemovePeer(peer_id)
         self.ui.AskRedraw()
 

@@ -341,7 +341,6 @@ class Viewport(object):
         cx, cy = self.center
         x = float(position[0]) - w / 2
         y = h / 2 - float(position[1])
-        print x, y
         cs = math.cos(-self.angle)
         sn = math.sin(-self.angle)
         fx = self.normalize((x * cs - y * sn) / self.ratio) + cx
