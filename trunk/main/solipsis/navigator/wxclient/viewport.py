@@ -202,15 +202,16 @@ class Viewport(object):
             dc.BlitPointSize((0,0), (width, height), dim_dc, (0,0), useMask=True)
 
         # End drawing
-        (tick, elapsed) = self.fps_timer.Read()
-        c = 0.5
-        self.fps = (1.0 - c) * self.fps + c / max(tick, 0.001)
-        cpu_ratio = cpu_time / max(tick, 0.001) * 100
-        #~ dc.DrawTextPoint("FPS: %.2f, objects: %d, geometry CPU: %.1f%%" % (self.fps, nb_objects, cpu_ratio), (10,10))
-        cx, cy = self.center
-        cx = (float(cx) / self.world_size) % 1.0
-        cy = (float(cy) / self.world_size) % 1.0
-        dc.DrawTextPoint("Position: %.5f, %.5f" % (cx, cy), (10, 10))
+        if not self.disabled:
+            (tick, elapsed) = self.fps_timer.Read()
+            c = 0.5
+            self.fps = (1.0 - c) * self.fps + c / max(tick, 0.001)
+            cpu_ratio = cpu_time / max(tick, 0.001) * 100
+            #~ dc.DrawTextPoint("FPS: %.2f, objects: %d, geometry CPU: %.1f%%" % (self.fps, nb_objects, cpu_ratio), (10,10))
+            cx, cy = self.center
+            cx = (float(cx) / self.world_size) % 1.0
+            cy = (float(cy) / self.world_size) % 1.0
+            dc.DrawTextPoint("Position: %.5f, %.5f" % (cx, cy), (10, 10))
         dc.EndDrawing()
         self.redraws += 1
         (tick, elapsed) = draw_timer.Read()

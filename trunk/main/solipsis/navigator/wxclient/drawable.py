@@ -61,10 +61,10 @@ class Image(object):
     A drawable image.
     """
     painter = ImagePainter
-    repository = images.ImageRepository()
 
-    def __init__(self, image_id):
-        self.bitmap = self.repository.GetBitmap(image_id)
+    def __init__(self, bitmap):
+        assert isinstance(bitmap, wx.Bitmap)
+        self.bitmap = bitmap
         self.width, self.height = self.bitmap.GetSize()
 
 class Text(object):

@@ -19,6 +19,8 @@
 
 import wx
 
+from PIL import Image, ImageDraw
+
 from solipsis.util.wxutils import GetCharset
 import drawable
 import images
@@ -30,16 +32,47 @@ class World(object):
     It receives events from the remote connector and communicates
     with the viewport to display the world on screen.
     """
+
+    repository = images.ImageRepository()
+    avatar_size = 40
+
     class Item(object):
         def __init__(self, peer):
             self.peer = peer
             self.label_id = None
             self.avatar_id = None
+            self.original_avatar = None
+            self.processed_avatar = None
     
     def __init__(self, viewport):
         self.charset = GetCharset()
         self.viewport = viewport
         self.Reset()
+
+        f = 'avatars/dauphin.jpg'
+        source = Image.open(f)
+        s = self.avatar_size
+        # Resize to desired target size
+        resized = source.resize((s, s), Image.BICUBIC)
+        # Build mask to shape the avatar inside a circle
+        transparent = (0,255,0,0)
+        opaque = (255,0,0,255)
+        background = (0,0,255,0)
+        mask = Image.new('RGBA', (s, s), transparent)
+        draw = ImageDraw.Draw(mask)
+        draw.ellipse((0, 0, s - 1, s - 1), outline=opaque, fill=opaque)
+        # Build the final result
+        target = Image.new('RGBA', (s, s), background)
+        target.paste(resized, None, mask)
+        #~ target.show()
+        # Convert to wxBitmap
+        r, g, b, alpha = target.split()
+        rgb_data = Image.merge('RGB', (r, g, b))
+        image = wx.EmptyImage(s, s)
+        print len(rgb_data.tostring()), len(alpha.tostring())
+        image.SetData(rgb_data.tostring())
+        image.SetAlphaData(alpha.tostring())
+        self.avatar_bitmap = wx.BitmapFromImage(image)
 
     def Reset(self):
         self.items = {}
@@ -114,11 +147,12 @@ class World(object):
 
     def _CreatePeerLabel(self, item):
         peer = item.peer
-        #~ d = drawable.Text(peer.pseudo.encode(self.charset))
         d = drawable.Text(peer.pseudo)
         item.label_id = self.viewport.AddDrawable(peer.id_, d, (0, 20), 1)
 
     def _CreatePeerAvatar(self, item):
         peer = item.peer
-        d = drawable.Image(images.IMG_AVATAR)
+        bitmap = self.repository.GetBitmap(images.IMG_AVATAR)
+        #~ d = drawable.Image(bitmap)
+        d = drawable.Image(self.avatar_bitmap)
         item.avatar_id = self.viewport.AddDrawable(peer.id_, d, (0, 0), 0)
