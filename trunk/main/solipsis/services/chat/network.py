@@ -34,6 +34,7 @@ class Protocol(DatagramProtocol):
         for to_host, to_port in self.hosts:
             if exclude_addr is not None and (to_host, to_port) != exclude_addr:
                 continue
+            print to_host, to_port
             self.transport.write(data, (to_host, to_port))
 
     def datagramReceived(self, data, (from_host, from_port)):
@@ -66,6 +67,5 @@ class NetworkLauncher(object):
         self.protocol.SendMessage(data)
 
     def SetHosts(self, hosts):
-        # For test purposes, chat with ourselves ;)
-        hosts.append((self.listening.getHost().host, self.port))
+        #~ hosts.append((self.listening.getHost().host, self.port))
         self.protocol.SetHosts(hosts)

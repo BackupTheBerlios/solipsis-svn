@@ -32,6 +32,9 @@ from gui import ChatWindow
 class Plugin(ServicePlugin):
     def Init(self):
         self.reactor = self.service_api.GetReactor()
+        # TODO: smartly discover our own address IP
+        # (this is where duplicated code starts to appear...)
+        self.host = socket.gethostbyname(socket.gethostname())
         self.port = random.randrange(7000, 7100)
         self.hosts = {}
 
@@ -48,11 +51,11 @@ class Plugin(ServicePlugin):
         return None
     
     def DescribeService(self, service):
-        # TODO: smartly discover our own address IP
-        # (this is where duplicated code starts to appear...)
-        host = socket.gethostbyname(socket.gethostname())
-        service.address = "%s:%d" % (host, self.port)
+        service.address = "%s:%d" % (self.host, self.port)
 
+    #
+    # Here comes the real action
+    #
     def Enable(self):
         window = ChatWindow(self, self.service_api.GetDirectory())
         self.ui = UIProxy(window)
@@ -69,7 +72,7 @@ class Plugin(ServicePlugin):
         self.ui = None
 
     def DoAction(self):
-        self.SendMessage(u"Need some wood?")
+        self.ui.Show()
     
     def GotMessage(self, text, (host, port)):
         # This method is called in network context (i.e. Twisted thread)
@@ -87,7 +90,7 @@ class Plugin(ServicePlugin):
             pass
         else:
             self.hosts[peer.id_] = host, port
-            self.network.SetHosts(self.hosts.values())
+            self._SetHosts()
 
     def ChangedPeer(self, peer, service):
         #~ print "chat: CHANGED %s" % peer.id_
@@ -96,16 +99,22 @@ class Plugin(ServicePlugin):
         except ValueError:
             if peer.id_ in self.hosts:
                 del self.hosts[peer.id_]
-                self.network.SetHosts(self.hosts.values())
+                self._SetHosts()
         else:
             self.hosts[peer.id_] = host, port
-            self.network.SetHosts(self.hosts.values())
+            self._SetHosts()
 
     def LostPeer(self, peer_id):
         #~ print "chat: LOST %s" % peer_id
         if peer_id in self.hosts:
             del self.hosts[peer_id]
-            self.network.SetHosts(self.hosts.values())
+            self._SetHosts()
+
+    def _SetHosts(self):
+        # For test purposes, chat with ourselves ;)
+        hosts = self.hosts.values()
+        hosts.append((self.host, self.port))
+        self.network.SetHosts(hosts)
 
     def _ParseAddress(self, address):
         try:
@@ -120,5 +129,5 @@ class Plugin(ServicePlugin):
                 raise ValueError
             return host, port
         except ValueError:
-            print "Wrong chat address '%s'" % address
+            #~ print "Wrong chat address '%s'" % address
             raise

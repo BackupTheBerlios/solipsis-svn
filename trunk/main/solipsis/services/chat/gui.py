@@ -77,8 +77,7 @@ class ChatWindow(wx.EvtHandler, XRCLoader, UIProxyReceiver):
         """
         self.chat_window.Show()
         self.chat_window.Raise()
-        self.chat_window.Focus()
-        self.chat_edit.Focus()
+        self.chat_edit.SetFocus()
 
     def _Close(self, evt):
         """
