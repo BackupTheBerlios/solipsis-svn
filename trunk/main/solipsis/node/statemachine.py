@@ -98,7 +98,15 @@ class StateMachine(object):
 
         self.topology.SetOrigin(self.node.position.getCoords())
 
-    def ConnectWithEntities(self, sender, addresses):
+    def ImmediatelyConnect(self, sender, addresses):
+        self.Reset()
+        self.sender = sender
+
+        for address in addresses:
+            self._SayHello(address)
+        self.SetState(states.EarlyConnecting())
+
+    def BootupWithEntities(self, sender, addresses):
         self.Reset()
         self.sender = sender
 
@@ -184,6 +192,18 @@ class StateMachine(object):
     def state_Scanning(self):
         print "scanning"
 
+    def state_EarlyConnecting(self):
+        print "early connecting"
+
+        def connecting():
+            print "(still connecting)"
+        def check_gc():
+            # Periodically check global connectivity
+            if self.topology.HasGlobalConnectivity():
+                self.SetState(states.Idle())
+        self.caller.CallPeriodically(self.connection_check_period, check_gc)
+        self.caller.CallPeriodically(1.0, connecting)
+
     def state_Connecting(self):
         print "connecting"
 
@@ -198,11 +218,6 @@ class StateMachine(object):
 
     def state_Idle(self):
         print "idle"
-
-#         def _reset():
-#             print "reset!!!"
-#             self.Reset()
-#         self.caller.CallLater(5, _reset)
 
         def check_gc():
             # Periodically check global connectivity
@@ -272,7 +287,6 @@ class StateMachine(object):
             self._AddPeer(peer)
             self._SendDetects(peer)
             # TODO: exchange service info and other stuff
-            # TODO: notify
 
         else:
             self.logger.info("reception of CONNECT but we are already connected to '%s'" % peer.id_)
@@ -333,7 +347,6 @@ class StateMachine(object):
         # Send a queryaround message
         message = self._PeerMessage('QUERYAROUND')
         message.args.best_id = peer.id_
-        #message.args.best_distance = Geometry.distance(self.node.position, peer.position)
         message.args.best_distance = self.future_topology.RelativeDistance(peer.position.getCoords())
         self._SendToPeer(peer, message)
 
@@ -433,14 +446,14 @@ class StateMachine(object):
         # Either:
         # 1. We have a peer closer to the target than the given Best-Distance
         if nearest_distance < best_distance:
-            self.SendToAddress(args.address, self._PeerMessage('NEAREST', remote_peer=nearest))
+            self._SendToAddress(args.address, self._PeerMessage('NEAREST', remote_peer=nearest))
 
         # 2. Or we find the closest peer around the target position and in the right half-plane
         else:
             # Search for a peer around target position
-            around = self.topology.GetPeerAround(target, source_id)
+            around = self.topology.GetPeerAround(target, peer_id)
             if around is not None:
-                self.SendToAddress(args.address, self._PeerMessage('AROUND', remote_peer=around))
+                self._SendToAddress(args.address, self._PeerMessage('AROUND', remote_peer=around))
             else:
                 self.logger.info('QUERYAROUND received, but no peer around position: %s' % str(target))
 
@@ -596,10 +609,9 @@ class StateMachine(object):
         self.topology.AddPeer(peer)
 
         def msg_receive_timeout():
-            print "closing connection with '%s'" % str(peer.id_)
+            print "timeout (%s) => closing connection with '%s'" % (str(self.node.id_), str(peer.id_))
             self._CloseConnection(peer)
         def msg_send_timeout():
-            print "sending heartbeat to '%s'" % str(peer.id_)
             self._SendToPeer(peer, self._PeerMessage('HEARTBEAT'))
 
         # Setup heartbeat handling callbacks
@@ -728,7 +740,6 @@ class StateMachine(object):
         nb_peers = topology.GetNumberOfPeers()
         neighbours = topology.GetPeersWithinDistance(ar)
         nb_neighbours = len(neighbours)
-        print "ar=%6f, peers=%d, neighbours=%d (min=%d, max=%d)" % (ar, nb_peers, nb_neighbours, self.min_neighbours, self.max_neighbours)
         if nb_peers < 3:
             # This case is handled by the global connectivity check
             return
@@ -753,6 +764,9 @@ class StateMachine(object):
             peers = self.GetWorstPeers(self.max_connections - self.max_neighbours, ar)
             for p in peers:
                 self._CloseConnection(p)
+        else:
+            return
+        print "ar=%6f, peers=%d, neighbours=%d (min=%d, max=%d)" % (ar, nb_peers, nb_neighbours, self.min_neighbours, self.max_neighbours)
 
     #
     # Private methods: protocol helpers
@@ -823,7 +837,6 @@ class StateMachine(object):
             return
         data = self.parser.BuildMessage(message)
         self._SendToAddress(peer.address, message)
-        if peer.id_ in self.peer_timeouts:
-            self.peer_timeouts[peer.id_].RescheduleCall('msg_send_timeout')
-
+#         if peer.id_ in self.peer_timeouts:
+#             self.peer_timeouts[peer.id_].RescheduleCall('msg_send_timeout')
 

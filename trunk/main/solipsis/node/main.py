@@ -19,7 +19,7 @@ def run_loop(params):
 def main():
     try:
         config_file = "conf/solipsis.conf"
-        usage = "usage: %prog [-db] [-p <port>] [-x ... -y ...] [-e ...] [-c <port>] [-n <port>] [firstpeer:port]"
+        usage = "usage: %prog [-dbPM] [-p <port>] [-x ... -y ...] [-e ...] [-c <port>] [-n <port>]"
         parser = OptionParser(usage)
 #         parser.add_option("-h", "--help", action="help",
 #                             help="display help message")
@@ -39,12 +39,14 @@ def main():
                             help="control port for navigator")
         parser.add_option("-n", "--notification_port", type="int", dest="notif_port",
                             help="notification port for navigator")
-        parser.add_option("-f", "--file", dest="config_file", default=config_file,
+        parser.add_option("-f", "--conf", dest="config_file", default=config_file,
                           help="configuration file")
         parser.add_option("-P", "--profile", action="store_true", dest="profile", default=False,
                           help="profile execution to node.prof")
         parser.add_option("-M", "--memdebug", action="store_true", dest="memdebug", default=False,
                           help="display periodic memory occupation statistics")
+        parser.add_option("", "--seed", action="store_true", dest="as_seed", default=False,
+                          help="launch node as seed")
         params = Parameters(parser, config_file=config_file)
 
         if (params.detach):
@@ -74,8 +76,8 @@ def main():
             profile.run(__name__ + ".profile_run()", "node.prof")
         else:
             # See Psyco documentation: http://psyco.sourceforge.net/psycoguide/module-psyco.html
-            #import psyco
-            #psyco.profile(watermark=0.005, halflife=10, time=120)
+#             import psyco
+#             psyco.profile(watermark=0.01, time=120)
             profile_run()
 
     except:

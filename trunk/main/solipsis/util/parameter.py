@@ -22,7 +22,8 @@ class Parameters(object):
             self.configFileName = self.options.config_file
         except:
             pass
-        self.load()
+        if self.configFileName:
+            self.load()
 
     def __getattr__(self, name):
         """ Parameters are accessed as attributes for convenience. """
@@ -43,13 +44,6 @@ class Parameters(object):
             self.config = ConfigParser.ConfigParser(self.defaults)
             self.config.read(self.configFileName)
             params = {}
-
-            #
-            # Logging options
-            # (note: only the root logger is used at the moment)
-            #
-            logging.config.fileConfig(self.configFileName, self.defaults)
-            self.logger = logging.getLogger('root')
 
             #
             # Network options
@@ -127,21 +121,27 @@ class Parameters(object):
                                                          "display_avatars")
             params['entities_file'] = self.config.get("general", "entities_file")
 
-        except:
+        except Exception, e:
             sys.stderr.write("\nError while reading configuration file %s:\n" % self.configFileName)
-            raise
+            sys.stderr.write(str(e))
+            sys.exit(1)
 
         #
         # Overload configuration values with values specified on the command line
         #
-        if len(self.args) == 1:
-            params['first_peer'] = self.args[0]
-        else:
-            params['first_peer'] = None
         params_override = dict([(k, v) for (k, v) in self.options.__dict__.items() if v is not None])
         params.update(params_override)
+
+        #
+        # Logging configuration
+        # (note: only the root logger is used at the moment)
+        #
+        logging.config.fileConfig(self.configFileName, defaults={'logid': params['port']})
+        self.logger = logging.getLogger('root')
+
         self.logger.info("Parameters initialized with: %s" % str(params))
         return params
+
 
     def setOption(self, section, option, value):
         """ Set the given option"""
