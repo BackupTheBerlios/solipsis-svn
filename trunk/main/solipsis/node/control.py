@@ -148,6 +148,15 @@ class RemoteControl(object):
         self.state_machine.MoveTo((x, y, z))
         return True
 
+    def remote_SetNodeInfo(self, connect_id, node_info):
+        """
+        Change node information (only for metadata, the rest is ignored).
+        """
+        self._CheckConnectId(connect_id)
+        node_info = marshal.PeerInfo(node_info)
+        self.state_machine.ChangeMeta(node_info)
+        return True
+
     #
     # Events
     #

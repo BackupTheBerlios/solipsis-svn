@@ -33,7 +33,6 @@ class NetworkLoop(threading.Thread):
         """
         Builds a network loop from a Twisted reactor and a Wx event handler.
         """
-
         super(NetworkLoop, self).__init__()
         self.repeat_hello = True
         self.repeat_count = 0
@@ -44,12 +43,10 @@ class NetworkLoop(threading.Thread):
         self.remote_connector = RemoteConnector(self.reactor, self.ui)
 
     def run(self):
-        # Dummy demo stuff
-        #self._AnimCircle(init=True)
-
-        # Run reactor
+        """
+        Run the reactor loop.
+        """
         self.reactor.run(installSignalHandlers=0)
-
 
     #
     # Actions from the UI thread
@@ -60,24 +57,7 @@ class NetworkLoop(threading.Thread):
     def DisconnectFromNode(self, *args, **kargs):
         self.remote_connector.Disconnect(*args, **kargs)
 
-    def MoveTo(self, (x, y)):
-        x = str(long(x))
-        y = str(long(y))
-        self.remote_connector.Call('Move', x, y, 0)
-
-    #
-    # Private methods
-    #
-    def _AnimCircle(self, init=False):
-        import math
-        r = 0.5
-        self.x = r * math.cos(self.angle)
-        self.y = r * math.sin(self.angle)
-        self.angle += 0.01
-        if init:
-            class C(object): pass
-            self.ui.AddObject("toto", C(), (self.x, self.y))
-        else:
-            self.ui.MoveObject("toto", (self.x, self.y))
-        self.reactor.callLater(0.05, self._AnimCircle)
-
+    #~ def MoveTo(self, (x, y)):
+        #~ x = str(long(x))
+        #~ y = str(long(y))
+        #~ self.remote_connector.Call('Move', x, y, 0)

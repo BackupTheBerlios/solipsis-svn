@@ -34,8 +34,8 @@ from network import NetworkLoop
 
 class ConnectionData(ManagedData):
     def __init__(self, host=None, port=None, pseudo=None):
-        super(ConnectionData, self).__init__()
-        self.pseudo = pseudo or u"Rick Dangerous"
+        ManagedData.__init__(self)
+        self.pseudo = pseudo or u"guest human"
         self.host = host or "localhost"
         self.port = port or 8550
 
@@ -50,6 +50,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.alive = True
         self.redraw_pending = False
         self.connection_data = ConnectionData()
+        self.node_proxy = None
 
         # Caution : wx.App.__init__ automatically calls OnInit(),
         # thus all data must be initialized before
@@ -183,16 +184,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         return True
 
 
-    def _NotImplemented(self, evt=None):
-        """
-        Displays a dialog warning that a function is not implemented.
-        """
-
-        #self.not_implemented_dialog.ShowModal()
-        msg = _("This function is not yet implemented.\nSorry! Please come back later...")
-        dialog = wx.MessageDialog(None, _(msg), caption=_("Not implemented"), style=wx.OK | wx.ICON_EXCLAMATION)
-        dialog.ShowModal()
-
     def Redraw(self):
         """
         Redraw the world view.
@@ -244,6 +235,31 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """
         self.Redraw()
 
+    #
+    # Helpers
+    #
+    def _NotImplemented(self, evt=None):
+        """
+        Displays a dialog warning that a function is not implemented.
+        """
+        #self.not_implemented_dialog.ShowModal()
+        msg = _("This function is not yet implemented.\nSorry! Please come back later...")
+        dialog = wx.MessageDialog(None, msg, caption=_("Not implemented"), style=wx.OK | wx.ICON_EXCLAMATION)
+        dialog.ShowModal()
+
+    def _CheckNodeProxy(self, display_error=True):
+        """
+        Checks if we are connected to a node, if not, displays a message box.
+        Returns True if we are connected, False otherwise.
+        """
+        if self.node_proxy is not None:
+            return True
+        if display_error:
+            msg = _("This action is only possible when connected.")
+            dialog = wx.MessageDialog(None, msg, caption=_("Not connected"), style=wx.OK | wx.ICON_ERROR)
+            dialog.ShowModal()
+        return False
+
     #===-----------------------------------------------------------------===#
     # Event handlers for the main window
     # (in alphabetical order)
@@ -258,8 +274,10 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
 
     def _Disconnect(self, evt):
         """ Called on "disconnect" event (menu -> File -> Disconnect). """
+        self.node_proxy = None
         self.network.DisconnectFromNode()
         self.viewport.Disable()
+        self.Redraw()
 
     def _Preferences(self, evt):
         """ Called on "preferences" event (menu -> File -> Preferences). """
@@ -323,9 +341,10 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     #
     def _LeftClickViewport(self, evt):
         """ Called on left click event. """
-        x, y = self.viewport.MoveToPixels(evt.GetPositionTuple())
-        self.network.MoveTo((x, y))
-        evt.Skip()
+        if self._CheckNodeProxy(False):
+            x, y = self.viewport.MoveToPixels(evt.GetPositionTuple())
+            self.node_proxy.Move(str(long(x)), str(long(y)), str(0))
+            evt.Skip()
 
 
     #===-----------------------------------------------------------------===#
@@ -363,3 +382,17 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             self.Redraw()
         elif status == 'UNAVAILABLE':
             self.viewport.Disable()
+            
+    def NodeConnectionSucceeded(self, node_proxy):
+        """ We managed to connect to the node. """
+        self.node_proxy = node_proxy
+        #~ self.network.
+
+    def NodeConnectionFailed(self, error):
+        """ Failed connecting to the node. """
+        self.node_proxy = None
+        msg = _("Connection to the node has failed. \nPlease the check the node is running, then retry.")
+        msg += "\n\n" + _("For information, here is the error message:")
+        msg += "\n" + str(error)
+        dialog = wx.MessageDialog(None, msg, caption=_("Connection error"), style=wx.OK | wx.ICON_ERROR)
+        dialog.ShowModal()

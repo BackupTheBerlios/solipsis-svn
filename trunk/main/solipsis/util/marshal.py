@@ -89,6 +89,8 @@ class PeerInfo(Marshallable):
             ((0.0, 0.0, 0.0), lambda p: map(float, p)),
         'services':
             ([], lambda l: [ServiceInfo(s) for s in l]),
+        'languages':
+            ([], list),
     }
 
     def FromPeer(self, peer):

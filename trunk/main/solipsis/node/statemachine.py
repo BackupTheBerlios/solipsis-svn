@@ -26,6 +26,7 @@ import time
 from solipsis.util.exception import *
 from solipsis.util.geometry import Position
 from peer import Peer
+from entity import Service
 import protocol
 import states
 from topology import Topology
@@ -340,9 +341,7 @@ class StateMachine(object):
         def _check_gc():
             # Periodically check global connectivity
             if self.topology.GetNumberOfPeers() == 0:
-                # TODO: implement this (we need some initial peer addresses...)
-                self.logger.info("All peers lost, relaunching JUMP algorithm")
-                return
+                self._Jump()
 
             pair = self.topology.GetBadGlobalConnectivityPeers()
             if not pair:
@@ -399,7 +398,6 @@ class StateMachine(object):
 
         if not topology.HasPeer(peer.id_):
             self._AddPeer(peer)
-            # TODO: exchange service info and other stuff
         else:
             self.logger.info("reception of CONNECT but we are already connected to '%s'" % peer.id_)
         self._QueryMeta(peer)
@@ -448,7 +446,6 @@ class StateMachine(object):
             self._UpdatePeerService(peer, args)
             # Find our own service and send info about it
             service = self.node.GetService(service_id)
-            #~ print "'%s':" % service_id, service
             if service is not None:
                 self._SendService(peer, service, 'SERVICEINFO')
 
@@ -690,6 +687,17 @@ class StateMachine(object):
     #
     # Control events
     #
+    def ChangeMeta(self, node_info):
+        """
+        Change our meta-information.
+        """
+        self.node.pseudo = self.node_info.pseudo
+        self.node.languages = self.node_info.languages
+        # TODO: update services too
+        peers = self.topology.GetAllPeers()
+        for peer in peers:
+            self._SendMeta(peer)
+
     def GetAllPeers(self):
         """
         Returns a list of all peers.
