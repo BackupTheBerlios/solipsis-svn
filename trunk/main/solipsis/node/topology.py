@@ -188,7 +188,8 @@ class Topology(object):
         id_ = peer.id_
         foreign_peer = id_ not in self.peers
         if foreign_peer:
-            self._InsertPeer(peer)
+            if not self._InsertPeer(peer):
+                return True
 
         excluded_peers = self._NecessaryPeers()
         _distances = self.distance_peers

@@ -606,7 +606,9 @@ class StateMachine(object):
         """
         Add a peer and send the necessary notification messages.
         """
-        self.topology.AddPeer(peer)
+        if not self.topology.AddPeer(peer):
+            print "topology refused peer '%s'" % peer.id_
+            return
 
         def msg_receive_timeout():
             print "timeout (%s) => closing connection with '%s'" % (str(self.node.id_), str(peer.id_))
@@ -758,10 +760,13 @@ class StateMachine(object):
                 self._UpdateAwarenessRadius(new_ar)
         # 2. Too many neighbours in our awareness radius
         elif nb_neighbours > self.max_neighbours:
-            self._UpdateAwarenessRadius(topology.GetEnclosingDistance(self.min_neighbours) * 1.01)
+            new_ar = topology.GetEnclosingDistance(self.min_neighbours) * 1.01
+            # Sometimes several peers are exactly at the same distance, so the AR doesn't change...
+            if new_ar != ar:
+                self._UpdateAwarenessRadius(new_ar)
         # 3. Too many connected peers outside of our awareness radius
         elif nb_peers > self.max_connections:
-            peers = self.GetWorstPeers(self.max_connections - self.max_neighbours, ar)
+            peers = self.topology.GetWorstPeers(self.max_connections - self.max_neighbours, ar)
             for p in peers:
                 self._CloseConnection(p)
         else:
