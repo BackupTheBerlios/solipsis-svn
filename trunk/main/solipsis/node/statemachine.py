@@ -768,7 +768,7 @@ class StateMachine(object):
         # TODO: manage repeted connection failures and
         # optionally cancel request (returning False)
         msg = self._PeerMessage('HELLO')
-        msg.args.pseudo = self.node.pseudo
+        #~ msg.args.pseudo = self.node.pseudo
         msg.args.send_detects = send_detects
         self._SendToAddress(address, msg)
         return True
@@ -781,7 +781,7 @@ class StateMachine(object):
         # optionally cancel request (sending CLOSE and
         # returning False)
         msg = self._PeerMessage('CONNECT')
-        msg.args.pseudo = self.node.pseudo
+        #~ msg.args.pseudo = self.node.pseudo
         self._SendToPeer(peer, msg)
         return True
 

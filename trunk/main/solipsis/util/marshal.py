@@ -32,7 +32,7 @@ class PeerInfo:
         'id_':
             ("", str),
         'pseudo':
-            (u"", str),
+            (u"", unicode),
         'address':
             ("", lambda a: Address(strAddress=a)),
         'awareness_radius':

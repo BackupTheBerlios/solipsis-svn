@@ -56,8 +56,9 @@ class RemoteConnector(object):
         """
         Disconnect from the node.
         """
-        self.proxy.Disconnect()
-        self.proxy = None
+        if self.proxy is not None:
+            self.proxy.Disconnect()
+            self.proxy = None
 
     def Connected(self):
         """
