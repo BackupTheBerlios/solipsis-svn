@@ -50,7 +50,7 @@ class Scanning(State):
     State Scanning: The node has found its place in the world. It is asking its
     first neighbours to discover other neighbours around its target positions.
     """
-    expected_peer_messages = ['NEAREST', 'BEST', 'AROUND', 'HEARTBEAT']
+    expected_peer_messages = ['NEAREST', 'BEST', 'AROUND', 'HEARTBEAT', 'FINDNEAREST']
     expected_control_messages = ['MOVE', 'KILL', 'SET']
 
 

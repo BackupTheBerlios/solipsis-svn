@@ -28,23 +28,23 @@ class StateMachine(object):
 
     # It is safer not to set this greater than 1
     teleportation_flood = 1
-    neighbour_tolerance = 0.25
+    neighbour_tolerance = 0.3
     peer_neighbour_ratio = 2.0
 
     # Various retry delays
-    scanning_period = 1.0
-    connecting_period = 1.0
-    early_connecting_period = 4.0
-    gc_check_period = 3.0
-    population_check_period = 5.0
+    scanning_period = 4.0
+    connecting_period = 4.0
+    early_connecting_period = 3.0
+    gc_check_period = 4.0
+    population_check_period = 6.0
 
     # Various timeouts
     gc_trials = 3
-    locating_timeout = 3.0
+    locating_timeout = 5.0
     early_connecting_trials = 3
     locating_trials = 3
     scanning_trials = 3
-    connecting_trials = 4
+    connecting_trials = 3
 
     # These are all the message types accepted from other peers.
     # Some of them will only be accepted in certain states.
@@ -57,7 +57,7 @@ class StateMachine(object):
         'CONNECT':      [],
         'CLOSE':        [],
         'DETECT':       [],
-        'FINDNEAREST':  [states.Connecting, states.Idle],
+        'FINDNEAREST':  [states.Scanning, states.Connecting, states.Idle, states.LostGlobalConnectivity],
         'FOUND':        [],
         'HEARTBEAT':    [],
         'HELLO':        [],
@@ -463,11 +463,12 @@ class StateMachine(object):
         """
         A peer sends us a FINDNEAREST query.
         """
-#         print "-> FINDNEAREST"
         id_ = args.id_
         target = args.position.getCoords()
         address = args.address
         (nearest, nearest_distance) = self.topology.GetClosestPeer(target, id_)
+        if nearest is None:
+            return
 
         # Check whether I am closer to the target than nearestPeer
         our_distance = self.topology.RelativeDistance(target)
@@ -552,6 +553,8 @@ class StateMachine(object):
         best_distance = args.best_distance
         target = args.position.getCoords()
         (nearest, nearest_distance) = self.topology.GetClosestPeer(target, peer_id)
+        if nearest is None:
+            return
 
         # Either:
         # 1. We have a peer closer to the target than the given Best
@@ -971,4 +974,12 @@ class StateMachine(object):
             return
         data = self.parser.BuildMessage(message)
         self._SendToAddress(peer.address, message)
+        # Heartbeat handling
+        try:
+            id_ = message.args.id_
+        except AttributeError:
+            pass
+        else:
+            if id_ in self.peer_timeouts:
+                self.peer_timeouts[id_].RescheduleCall('msg_send_timeout')
 

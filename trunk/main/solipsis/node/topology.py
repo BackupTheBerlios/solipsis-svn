@@ -289,8 +289,11 @@ class Topology(object):
         l = [(_norm(x + xc - xt) ** 2 + _norm(y + yc - yt) ** 2, id_)
                 for (id_, (x, y)) in self.relative_positions.iteritems()
                 if id_ != exclude_id]
-        sq_dist, closest_id = min(l)
-        return closest_id and (self.peers[closest_id], math.sqrt(sq_dist)) or None
+        if len(l) > 0:
+            sq_dist, closest_id = min(l)
+            return self.peers[closest_id], math.sqrt(sq_dist)
+        else:
+            return None, None
 
     def GetPeerAround(self, target, exclude_id, clockwise=True, max_angle=None):
         """
