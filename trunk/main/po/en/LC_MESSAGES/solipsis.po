@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-01-18 18:41+0100\n"
+"POT-Creation-Date: 2005-01-19 12:26+0100\n"
 "PO-Revision-Date: 2004-11-19 13:03+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,7 +19,7 @@ msgstr ""
 msgid "&Cancel"
 msgstr "&Cancel"
 
-#: entrée standard:54
+#: entrée standard:51
 msgid "&Close"
 msgstr ""
 
@@ -40,7 +40,7 @@ msgstr "&Disconnect"
 msgid "&Kill node"
 msgstr ""
 
-#: entrée standard:12 standard:18 standard:22 standard:35 standard:45
+#: entrée standard:12 standard:18 standard:22 standard:35
 msgid "&OK"
 msgstr "&OK"
 
@@ -53,7 +53,7 @@ msgstr "&OK"
 msgid "About"
 msgstr "About"
 
-#: solipsis/navigator/wxclient/app.py:422
+#: solipsis/navigator/wxclient/app.py:381
 #, fuzzy
 msgid "About Solipsis"
 msgstr "Connect to Solipsis"
@@ -62,37 +62,37 @@ msgstr "Connect to Solipsis"
 msgid "About..."
 msgstr "About..."
 
-#: entrée standard:49
+#: entrée standard:46
 msgid "Automatic proxy detection"
 msgstr ""
 
 #: solipsis/services/chat/plugin.py:32
-msgid "Chat with people"
+msgid "Chat with all peers"
 msgstr ""
 
 #: entrée standard:13 standard:36
 msgid "Connect to Solipsis"
 msgstr "Connect to Solipsis"
 
-#: solipsis/navigator/wxclient/app.py:421
+#: solipsis/navigator/wxclient/app.py:380
 #, fuzzy
 msgid "Connect to node"
 msgstr "Connect to Solipsis"
 
-#: solipsis/navigator/wxclient/app.py:482
+#: solipsis/navigator/wxclient/app.py:441
 msgid "Connection error"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:479
+#: solipsis/navigator/wxclient/app.py:440
 msgid ""
 "Connection to the node has failed. \n"
 "Please the check the node is running, then retry."
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:419
+#: solipsis/navigator/wxclient/app.py:378
 #, fuzzy
-msgid "Disconnect from node"
-msgstr "Connect to Solipsis"
+msgid "Disconnect"
+msgstr "&Disconnect"
 
 #: solipsis/services/chat/plugin.py:26
 msgid "Discussion"
@@ -114,22 +114,22 @@ msgstr "File"
 msgid "Help"
 msgstr "Help"
 
-#: entrée standard:16 standard:39 standard:51
+#: entrée standard:16 standard:39 standard:48
 msgid "Host: "
 msgstr "Host: "
 
-#: entrée standard:48
+#: entrée standard:45
 msgid ""
 "If you want to connect to a remote node\n"
 "instead of running a node on this computer,\n"
 "you might have to adjust the HTTP proxy settings."
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:496
+#: solipsis/navigator/wxclient/app.py:455
 msgid "Kill refused"
 msgstr ""
 
-#: entrée standard:50
+#: entrée standard:47
 msgid "Manual configuration"
 msgstr ""
 
@@ -141,7 +141,7 @@ msgstr "Name or pseudo"
 msgid "Navigator"
 msgstr "Navigator"
 
-#: entrée standard:53
+#: entrée standard:50
 msgid "No proxy"
 msgstr ""
 
@@ -149,15 +149,15 @@ msgstr ""
 msgid "Node address"
 msgstr "Node address"
 
-#: solipsis/navigator/wxclient/app.py:308
+#: solipsis/navigator/wxclient/app.py:275
 msgid "Not connected"
 msgstr ""
 
-#: entrée standard:20 standard:43 solipsis/navigator/wxclient/app.py:296
+#: entrée standard:20 solipsis/navigator/wxclient/app.py:263
 msgid "Not implemented"
 msgstr "Not implemented"
 
-#: solipsis/navigator/wxclient/app.py:417
+#: solipsis/navigator/wxclient/app.py:376
 #, python-format
 msgid "Peer \"%s\""
 msgstr ""
@@ -178,15 +178,15 @@ msgstr "Please fill this form correctly"
 msgid "Port number must be between 1 and 65535"
 msgstr "Port number must be between 1 and 65535"
 
-#: entrée standard:17 standard:40 standard:52
+#: entrée standard:17 standard:40 standard:49
 msgid "Port: "
 msgstr "Port: "
 
-#: entrée standard:7 standard:30 standard:46
+#: entrée standard:7 standard:30 standard:43
 msgid "Preferences"
 msgstr "Preferences"
 
-#: entrée standard:47
+#: entrée standard:44
 msgid "Proxy"
 msgstr ""
 
@@ -194,7 +194,20 @@ msgstr ""
 msgid "Quit"
 msgstr "Quit"
 
-#: entrée standard:11 standard:34
+#: entrée standard:34
+#, fuzzy
+msgid ""
+"Solipsis Navigator 0.1\n"
+"\n"
+"Licensed under the GNU LGPL.\n"
+"(c) France Telecom R&&D"
+msgstr ""
+"Solipsis Navigator 0.1\n"
+"\n"
+"Licensed under the GNU LGPL.\n"
+"(c) France Telecom R&&D\n"
+
+#: entrée standard:11
 msgid ""
 "Solipsis Navigator 0.1\n"
 "\n"
@@ -207,16 +220,16 @@ msgstr ""
 "(c) France Telecom R&&D\n"
 
 #: solipsis/services/chat/plugin.py:29
-msgid "Talk with the people around you"
+msgid "Talk with the people that are currently around you"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:307
+#: solipsis/navigator/wxclient/app.py:274
 msgid ""
 "This action cannot be performed, \n"
 "because you are not connected to a node."
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:295
+#: solipsis/navigator/wxclient/app.py:262
 msgid ""
 "This function is not yet implemented.\n"
 "Sorry! Please come back later..."
@@ -224,7 +237,7 @@ msgstr ""
 "This function is not yet implemented.\n"
 "Sorry! Please come back later..."
 
-#: entrée standard:21 standard:44
+#: entrée standard:21
 msgid ""
 "This function is not yet implemented.\n"
 "Sorry! please come back later...\n"
@@ -232,6 +245,10 @@ msgstr ""
 "This function is not yet implemented.\n"
 "Sorry! please come back later...\n"
 
-#: solipsis/navigator/wxclient/app.py:495
+#: solipsis/navigator/wxclient/app.py:454
 msgid "You cannot kill this node."
 msgstr ""
+
+#, fuzzy
+#~ msgid "Disconnect from node"
+#~ msgstr "Connect to Solipsis"

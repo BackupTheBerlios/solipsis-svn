@@ -90,7 +90,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.dialogs = [
             "about_dialog",
             "connect_dialog",
-            "not_implemented_dialog",
             "prefs_dialog",
         ]
         self.windows = ["main_window"]
@@ -172,10 +171,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         wx.EVT_CLOSE(self.connect_dialog, self._CloseConnect)
         wx.EVT_BUTTON(self, XRCID("connect_cancel"), self._CloseConnect)
         wx.EVT_BUTTON(self, XRCID("connect_ok"), self._ConnectOk)
-
-        # UI events in not implemented dialog
-        wx.EVT_CLOSE(self.not_implemented_dialog, self._CloseNotImplemented)
-        wx.EVT_BUTTON(self, XRCID("not_implemented_ok"), self._CloseNotImplemented)
 
         # UI events in world viewport
         wx.EVT_IDLE(self.viewport_panel, self.OnIdle)
@@ -339,14 +334,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     def _CloseAbout(self, evt):
         """ Called on close "about dialog" event (Ok button, window close box). """
         self.about_dialog.Hide()
-
-
-    #===-----------------------------------------------------------------===#
-    # Event handlers for the "not implemented" dialog
-    #
-    def _CloseNotImplemented(self, evt):
-        """ Called on close "not implemented dialog" event (Ok button, window close box). """
-        self.not_implemented_dialog.Hide()
 
 
     #===-----------------------------------------------------------------===#

@@ -62,8 +62,7 @@
               <label>Solipsis Navigator 0.1
 
 Licensed under the GNU LGPL.
-(c) France Telecom R&amp;&amp;D
-</label>
+(c) France Telecom R&amp;&amp;D</label>
               <style>wxALIGN_CENTRE</style>
             </object>
             <flag>wxALIGN_CENTRE</flag>
@@ -72,6 +71,9 @@ Licensed under the GNU LGPL.
             <size>20,20</size>
           </object>
         </object>
+      </object>
+      <object class="spacer">
+        <size>20,20</size>
       </object>
       <object class="sizeritem">
         <object class="wxButton" name="about_ok">
@@ -191,60 +193,6 @@ Licensed under the GNU LGPL.
     </object>
     <style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxRESIZE_BOX</style>
     <exstyle></exstyle>
-  </object>
-  <object class="wxDialog" name="not_implemented_dialog">
-    <title>Not implemented</title>
-    <centered>1</centered>
-    <object class="wxBoxSizer">
-      <orient>wxHORIZONTAL</orient>
-      <object class="spacer">
-        <size>20,20</size>
-      </object>
-      <object class="sizeritem">
-        <object class="wxBoxSizer">
-          <orient>wxVERTICAL</orient>
-          <object class="spacer">
-            <size>20,20</size>
-          </object>
-          <object class="sizeritem">
-            <object class="wxBoxSizer">
-              <orient>wxHORIZONTAL</orient>
-              <object class="sizeritem">
-                <object class="wxStaticBitmap">
-                  <bitmap stock_id="wxART_ERROR"></bitmap>
-                </object>
-              </object>
-              <object class="spacer">
-                <size>20,20</size>
-              </object>
-              <object class="sizeritem">
-                <object class="wxStaticText">
-                  <label>This function is not yet implemented.
-Sorry! please come back later...
-</label>
-                </object>
-                <flag>wxALIGN_CENTRE</flag>
-              </object>
-            </object>
-          </object>
-          <object class="sizeritem">
-            <object class="wxButton" name="not_implemented_ok">
-              <label>&amp;OK</label>
-              <default>1</default>
-              <style></style>
-            </object>
-            <flag>wxALIGN_CENTRE</flag>
-          </object>
-          <object class="spacer">
-            <size>20,20</size>
-          </object>
-        </object>
-        <ratio>1</ratio>
-      </object>
-      <object class="spacer">
-        <size>20,20</size>
-      </object>
-    </object>
   </object>
   <object class="wxDialog" name="prefs_dialog">
     <title>Preferences</title>
