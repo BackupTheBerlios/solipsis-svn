@@ -110,7 +110,7 @@ def main():
             import profile
             profile.run(__name__ + ".profile_run()", "node.prof")
         else:
-            import psyco
+            #import psyco
             #psyco.profile()
             profile_run()
 

@@ -104,8 +104,8 @@ def main():
         # Create node and enter main loop
         try:
             # See Psyco documentation: http://psyco.sourceforge.net/psycoguide/module-psyco.html
-            import psyco
-            psyco.profile(watermark=0.01, halflife=10, time=600)
+            #import psyco
+            #psyco.profile(watermark=0.01, halflife=10, time=600)
             myNode = Seed(params)
             myNode.mainLoop()
         except Exception, e:

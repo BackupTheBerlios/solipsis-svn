@@ -598,7 +598,7 @@ class StateMachine(object):
         if new_pos != old_pos or new_ar != old_ar:
             # Verify entities that could be interested by the change
             for entity in manager.enumeratePeers():
-                if entity.id_ == id_:
+                if entity.id_ == peer.id_:
                     continue
                 its_ar = entity.awareness_radius
 

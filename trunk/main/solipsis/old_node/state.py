@@ -815,7 +815,7 @@ class NoGlobalConnectivity(State):
 
     def CONNECT(self, event):
         self.timer.cancel()
-        super(Connecting, self).CONNECT(event)
+        super(NoGlobalConnectivity, self).CONNECT(event)
         mng = self.node.getPeersManager()
 
         # check whether we now have our global connectivity
@@ -827,7 +827,7 @@ class NoGlobalConnectivity(State):
 
     def HELLO(self, event):
         self.timer.cancel()
-        super(Connecting, self).HELLO(event)
+        super(NoGlobalConnectivity, self).HELLO(event)
         mng = self.node.getPeersManager()
 
         # check whether we now have our global connectivity
@@ -892,7 +892,7 @@ class NotEnoughPeersAndNoGlobalConnectivity(State):
         self.logger.debug('NotEnoughPeersAndNoGlobalConnectivity')
 
     def CONNECT(self, event):
-        super(Connecting, self).CONNECT(event)
+        super(NotEnoughPeersAndNoGlobalConnectivity, self).CONNECT(event)
         mng = self.node.getPeersManager()
 
         # we have now reached our number of expected neighbours
@@ -914,7 +914,7 @@ class NotEnoughPeersAndNoGlobalConnectivity(State):
                 self.node.setState(NotEnoughPeers())
 
     def HELLO(self, event):
-        super(Connecting, self).HELLO(event)
+        super(NotEnoughPeersAndNoGlobalConnectivity, self).HELLO(event)
         mng = self.node.getPeersManager()
 
         # we have now reached our number of expected neighbours
