@@ -243,17 +243,19 @@ class StateMachine(object):
         self._SendToAddress(address, message)
 
     def peer_DETECT(self, args):
-        """ Notification that a peer is moving towards us"""
-        peer = event.createRemotePeer()
-        id_ = peer.getId()
-        manager = self.node.getPeersManager()
+        """
+        A peer signals another peer moving towards us.
+        """
+        peer = self._RemotePeer(args)
+        id_ = peer.id_
+        manager = self.peers
+
         # Sanity check 1: don't connect with ourselves
-        if id_ == self.node.getId():
+        if id_ == self.node.id_:
             return
         # Sanity check 2: don't connect with someone too far from us
-        dist = Geometry.distance(self.node.getPosition(), peer.getPosition())
-        ar = self.node.getAwarenessRadius()
-        if dist > ar:
+        dist = Geometry.distance(self.node.position, peer.position)
+        if dist > self.node.awareness_radius:
             return
 
         # we are only interested by entities that are not yet in our peer list
@@ -261,17 +263,13 @@ class StateMachine(object):
             # Check we don't have too many peers, or have worse peers than this one
             if manager.isPeerAccepted(peer):
                 # Connect to this peer
-                factory = EventFactory.getInstance(PeerEvent.TYPE)
-                hello = factory.createHELLO()
-                hello.setRecipientAddress(peer.getAddress())
-                self.node.dispatch(hello)
+                self._SendToAddress(args.address, self._PeerMessage('HELLO'))
 
     def peer_AROUND(self, args):
-        """ A peer sent us an AROUND message """
-        # cancel timer since we got our response
-        self.timer.cancel()
-
-        peer = event.createRemotePeer()
+        """
+        A peer replies to us with an AROUND message.
+        """
+        peer = self._RemotePeer(args)
         # current number of neighbours
         nbNeighbours = len(self.neighbours)
         # last neighbour found
