@@ -67,6 +67,6 @@
       <growablecols>0</growablecols>
       <growablerows>0</growablerows>
     </object>
-    <style>wxDEFAULT_DIALOG_STYLE|wxSYSTEM_MENU|wxRESIZE_BORDER|wxRESIZE_BOX</style>
+    <style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxRESIZE_BOX</style>
   </object>
 </resource>
