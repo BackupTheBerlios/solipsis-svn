@@ -55,7 +55,7 @@ class ConfigDialog(wx.EvtHandler, XRCLoader, UIProxyReceiver):
             defaultDir=os.path.realpath(self.avatar_dir),
             defaultFile=os.path.basename(self.filename),
             wildcard=file_spec,
-            style=wx.OPEN | wx.FILE_MUST_EXIST
+            style=wx.OPEN | wx.FILE_MUST_EXIST | wx.CHANGE_DIR
             )
         # Loop while the user tries to choose a file and the file is not acceptable
         while dialog.ShowModal() == wx.ID_OK:

@@ -20,6 +20,7 @@
 import wx
 
 from solipsis.util.wxutils import GetCharset
+from solipsis.util.uiproxy import UIProxy, UIProxyReceiver
 import drawable
 import images
 
@@ -27,7 +28,7 @@ import images
 from solipsis.services.avatar.repository import AvatarRepository
 
 
-class World(object):
+class World(UIProxyReceiver):
     """
     This class represents the navigator's view of the world.
     It receives events from the remote connector and communicates
@@ -45,16 +46,19 @@ class World(object):
         """
         Constructor.
         """
+        UIProxyReceiver.__init__(self)
         self.charset = GetCharset()
         self.viewport = viewport
         self.repository = images.ImageRepository()
         self.avatars = AvatarRepository()
+        self.avatars.AskNotify(UIProxy(self).UpdateAvatar)
         self.Reset()
 
     def Reset(self):
         """
         Reset the world (removing all peers).
         """
+        self.node_id = None
         self.items = {}
         self.item_cache = {}
         self.viewport.Reset()
@@ -88,6 +92,7 @@ class World(object):
         """
         Called when the node's characteristics are updated.
         """
+        self.node_id = node.id_
         x, y, z = node.position.GetXYZ()
         self.viewport.JumpTo((x, y))
 
@@ -117,6 +122,19 @@ class World(object):
         if peer.pseudo != old.pseudo:
             self.viewport.RemoveDrawable(id_, item.label_id)
             self._CreatePeerLabel(item)
+
+    def UpdateAvatar(self, peer_id):
+        """
+        Called when a peer's avatar has changed.
+        """
+        try:
+            item = self.items[peer_id]
+        except KeyError:
+            return
+        if item.avatar_id:
+            self.viewport.RemoveDrawable(peer_id, item.avatar_id)
+            item.avatar_id = None
+        self._CreatePeerAvatar(item)
 
     def GetPeer(self, peer_id):
         """
@@ -157,10 +175,13 @@ class World(object):
         peer_id = item.peer.id_
         # Try to get an existing bitmap for the peer
         bitmap = self.avatars.GetProcessedAvatarBitmap(peer_id)
-        # Test code: choose random avatar if no other is available
         if bitmap is None:
-            hash_ = self.avatars.GetRandomAvatarHash()
-            self.avatars.BindHashToPeer(hash_, peer_id)
-            bitmap = self.avatars.GetProcessedAvatarBitmap(peer_id)
+            if 0:
+                # Test code: choose random avatar if no other is available
+                hash_ = self.avatars.GetRandomAvatarHash()
+                self.avatars.BindHashToPeer(hash_, peer_id)
+                bitmap = self.avatars.GetProcessedAvatarBitmap(peer_id)
+            else:
+                bitmap = self.repository.GetBitmap(images.IMG_AVATAR_GREY)
         d = drawable.Image(bitmap)
         item.avatar_id = self.viewport.AddDrawable(peer_id, d, (0, 0), 0)

@@ -19,8 +19,7 @@
 
 import os
 
-from twisted.web import resource, server, static
-
+from twisted.web import resource, server, static, client
 
 
 class NetworkLauncher(object):
@@ -29,8 +28,10 @@ class NetworkLauncher(object):
     which sends the avatar file when called on the correct URL.
     
     To test, configure the avatar and then do:
-    curl -x "" -I http://localhost:7780/avatar
+    curl -x "" -I http://localhost:77xx/avatar
     """
+    
+    default_url_path = "avatar"
 
     def __init__(self, reactor, plugin, port):
         self.reactor = reactor
@@ -61,7 +62,18 @@ class NetworkLauncher(object):
         Sets which file will be sent by the HTTP server.
         """
         path = os.path.realpath(os.path.normcase(filename))
-        print filename, path
         resource = static.File(path)
         resource.isLeaf = 1
-        self.root_resource.putChild('avatar', resource)
+        self.root_resource.putChild(self.default_url_path, resource)
+
+    def GetPeerFile(self, host, port, callback=None, errback=None):
+        """
+        Gets the avatar file served by a peer.
+        Calls the callback when finished, or the errback if failed.
+        """
+        url = "http://%s:%d/%s" % (host, port, self.default_url_path)
+        d = client.getPage(url)
+        if callback:
+            d.addCallback(callback)
+        if errback:
+            d.addErrback(errback)

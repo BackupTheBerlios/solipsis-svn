@@ -34,13 +34,13 @@ class _AvatarRepository(object):
     and caches processed versions of the avatars (wx.Bitmaps)
     """
 
-    # Size of processed avatars
-    processed_avatar_size = 32
-    
     def __init__(self):
         """
         Create avatar repository.
         """
+        # Size of processed avatars
+        self.processed_avatar_size = 40
+    
         # peer ID -> avatar hash
         self.peer_avatar_hashes = {}
 
@@ -50,9 +50,19 @@ class _AvatarRepository(object):
         self.original_avatar_cache = {}
         # hash -> wx.Bitmap
         self.processed_avatar_cache = {}
+        
+        # Callables for avatar change notification
+        self.event_sinks = []
 
         self.default_avatars = None
-    
+
+    def AskNotify(self, callback):
+        """
+        Ask to be notified when an peer's avatar is changed.
+        The callback will be notified with the peer_id.
+        """
+        self.event_sinks.append(callback)
+
     def GetRandomAvatarHash(self):
         """
         Get a random avatar hash from the default avatar list.
@@ -76,8 +86,8 @@ class _AvatarRepository(object):
             except KeyError:
                 pass
             return False
-        self._CalculateAvatar(hash_)
         self.peer_avatar_hashes[peer_id] = hash_
+        self._Notify(peer_id)
         return True
 
     def BindAvatarToPeer(self, data, peer_id):
@@ -91,8 +101,8 @@ class _AvatarRepository(object):
             pil = self.pil_avatar_cache[hash_]
         except KeyError:
             self._AddAvatar(data, hash_)
-        self._CalculateAvatar(hash_)
         self.peer_avatar_hashes[peer_id] = hash_
+        self._Notify(peer_id)
         return hash_
     
     def GetAvatarBitmap(self, peer_id):
@@ -103,6 +113,7 @@ class _AvatarRepository(object):
             hash_ = self.peer_avatar_hashes[peer_id]
         except KeyError:
             return None
+        self._CalculateAvatar(hash_)
         return self.original_avatar_cache[hash_]
 
     def GetProcessedAvatarBitmap(self, peer_id):
@@ -113,12 +124,20 @@ class _AvatarRepository(object):
             hash_ = self.peer_avatar_hashes[peer_id]
         except KeyError:
             return None
+        self._CalculateAvatar(hash_)
         return self.processed_avatar_cache[hash_]
 
 
     #
     # Private functions
     #
+    def _Notify(self, peer_id):
+        """
+        Notify all event sinks that an avatar has been updated.
+        """
+        for sink in self.event_sinks:
+            sink(peer_id)
+
     def _AddAvatar(self, data, hash_=None):
         """
         Adds the avatar data to the internal cache and returns its hash.
@@ -137,14 +156,12 @@ class _AvatarRepository(object):
             original = self.original_avatar_cache[hash_]
         except KeyError:
             pil = self.pil_avatar_cache[hash_]
-            #~ print "** image convert 1 (%s)" % hash_
             original = self._BitmapFromPIL(pil)
             self.original_avatar_cache[hash_] = original
         try:
             processed = self.processed_avatar_cache[hash_]
         except KeyError:
             pil = self.pil_avatar_cache[hash_]
-            #~ print "** image convert 2 (%s)" % hash_
             pil2 = self._ProcessAvatar(pil)
             processed = self._BitmapFromPIL(pil2)
             self.processed_avatar_cache[hash_] = processed
@@ -154,7 +171,6 @@ class _AvatarRepository(object):
         Converts raw image data (as JPEG, PNG, etc.) to PIL image.
         Returns None if conversion failed.
         """
-        #~ print "** image parse"
         sio = StringIO()
         sio.write(data)
         sio.seek(0)
@@ -234,7 +250,6 @@ class _AvatarRepository(object):
                 data = f.read()
                 f.close()
                 hash_ = self._AddAvatar(data)
-                #~ print hash_
                 self.default_avatars.append(hash_)
 
 

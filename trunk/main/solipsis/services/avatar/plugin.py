@@ -137,7 +137,13 @@ class Plugin(ServicePlugin):
         """
         Called when another peer sent its avatar hash.
         """
-        print "peer %s peer_id has avatar '%s'" % (peer_id, hash_)
+        if not self.avatars.BindHashToPeer(hash_, peer_id):
+            def _got_avatar(data):
+                self.avatars.BindAvatarToPeer(data, peer_id)
+            def _failed(error):
+                print "failed getting avatar from '%s': %s" % (peer_id, str(error))
+            host, port = self.hosts[peer_id]
+            self.network.GetPeerFile(host, port, _got_avatar, _failed)
 
     #
     # Private methods
