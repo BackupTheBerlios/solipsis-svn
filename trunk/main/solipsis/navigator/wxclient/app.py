@@ -343,7 +343,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """ Called on left click event. """
         if self._CheckNodeProxy(False):
             x, y = self.viewport.MoveToPixels(evt.GetPositionTuple())
-            print "nav:", (x, y)
             self.node_proxy.Move(str(long(x)), str(long(y)), str(0))
             evt.Skip()
 
