@@ -171,8 +171,8 @@ class World(object):
         #~ d = drawable.Image(item.processed_avatar)
         bitmap = self.avatars.GetProcessedAvatarBitmap(peer_id)
         if bitmap is None:
-            avatar = self.avatars.GetRandomAvatar()
-            self.avatars.BindAvatarToPeer(avatar, peer_id)
+            hash_ = self.avatars.GetRandomAvatarHash()
+            self.avatars.BindHashToPeer(hash_, peer_id)
             bitmap = self.avatars.GetProcessedAvatarBitmap(peer_id)
         d = drawable.Image(bitmap)
         item.avatar_id = self.viewport.AddDrawable(peer_id, d, (0, 0), 0)

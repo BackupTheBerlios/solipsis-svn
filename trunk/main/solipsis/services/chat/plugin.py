@@ -30,7 +30,6 @@ from gui import ChatWindow
 
 
 class Plugin(ServicePlugin):
-    str_action = "Chat with all peers"
 
     def Init(self):
         self.reactor = self.service_api.GetReactor()
@@ -39,6 +38,7 @@ class Plugin(ServicePlugin):
         self.host = socket.gethostbyname(socket.gethostname())
         self.port = random.randrange(7000, 7100)
         self.hosts = {}
+        self.str_action = _("Chat with all peers")
 
     def GetTitle(self):
         return _("Chat")
@@ -47,7 +47,7 @@ class Plugin(ServicePlugin):
         return _("Talk with the people that are currently around you")
 
     def GetActions(self):
-        return [_(self.str_action)]
+        return [self.str_action]
 
     def GetPointToPointActions(self):
         return []
@@ -82,8 +82,7 @@ class Plugin(ServicePlugin):
         self.ui.Destroy()
         self.ui = None
 
-#    def DoAction(self, evt=None):
-    def DoAction(self,it):
+    def DoAction(self, it):
         self.ui.Show()
     
     #~ def GotMessage(self, text, (host, port)):

@@ -25,8 +25,10 @@ from cStringIO import StringIO
 import wx
 from PIL import Image, ImageDraw
 
+from solipsis.util.singleton import Singleton
 
-class AvatarRepository(object):
+
+class _AvatarRepository(object):
     """
     This class stores avatars, binds them to an arbitrary number of peer IDs,
     and caches processed versions of the avatars (wx.Bitmaps)
@@ -49,20 +51,21 @@ class AvatarRepository(object):
         # hash -> wx.Bitmap
         self.processed_avatar_cache = {}
 
-        self.random_avatars = None
+        self.default_avatars = None
     
-    def GetRandomAvatar(self):
+    def GetRandomAvatarHash(self):
         """
-        Get a random avatar as a binary string of the file contents.
+        Get a random avatar hash from the default avatar list.
         """
-        data = self._GetRandomAvatarData()
-        return data
+        self._LoadDefaultAvatars()
+        return random.choice(self.default_avatars)
     
     def BindHashToPeer(self, hash_, peer_id):
         """
         Tries to add an avatar based on its hash value.
         Returns True if ok, False if the hash was not found.
         """
+        self._LoadDefaultAvatars()
         try:
             pil = self.pil_avatar_cache[hash_]
         except KeyError:
@@ -86,8 +89,7 @@ class AvatarRepository(object):
         try:
             pil = self.pil_avatar_cache[hash_]
         except KeyError:
-            pil = self._PILFromData(data)
-            self.pil_avatar_cache[hash_] = pil
+            self._AddAvatar(data, hash_)
         self._CalculateAvatar(hash_)
         self.peer_avatar_hashes[peer_id] = hash_
     
@@ -115,6 +117,15 @@ class AvatarRepository(object):
     #
     # Private functions
     #
+    def _AddAvatar(self, data, hash_=None):
+        """
+        Adds the avatar data to the internal cache and returns its hash.
+        """
+        if hash_ is None:
+            hash_ = self._HashAvatarData(data)
+        pil = self._PILFromData(data)
+        self.pil_avatar_cache[hash_] = pil
+        return hash_
 
     def _CalculateAvatar(self, hash_):
         """
@@ -198,11 +209,14 @@ class AvatarRepository(object):
         """
         return sha.new(data).hexdigest()
 
-    def _InitRandomAvatars(self):
+    def _LoadDefaultAvatars(self):
         """
-        Loads binary contents of random avatars.
+        Loads binary contents of default avatars.
         """
-        self.random_avatars = []
+        # If already loaded, do nothing
+        if self.default_avatars:
+            return
+        self.default_avatars = []
         avatar_dir = 'avatars'
         l = os.listdir(avatar_dir)
         for filename in l:
@@ -216,13 +230,11 @@ class AvatarRepository(object):
             except IOError, e:
                 print str(e)
             else:
-                self.random_avatars.append(f.read())
+                data = f.read()
                 f.close()
+                hash_ = self._AddAvatar(data)
+                print hash_
+                self.default_avatars.append(hash_)
 
-    def _GetRandomAvatarData(self):
-        """
-        Get a random avatar from the built-in list.
-        """
-        if self.random_avatars is None:
-            self._InitRandomAvatars()
-        return random.choice(self.random_avatars)
+
+AvatarRepository = Singleton(_AvatarRepository)

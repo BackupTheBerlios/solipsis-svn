@@ -33,7 +33,7 @@
       </object>
     </object>
     <object class="wxMenu" name="edit_menu">
-      <label>&amp;Edit</label>
+      <label>&amp;Actions</label>
       <object class="wxMenuItem" name="menu_jumpnear">
         <label>&amp;Jump near...</label>
         <bitmap stock_id="wxART_GO_FORWARD"></bitmap>
@@ -93,7 +93,7 @@ Licensed under the GNU LGPL.
       </object>
       <object class="sizeritem">
         <object class="wxButton" name="about_ok">
-          <label>&amp;OK</label>
+          <label>&amp;Close</label>
           <default>1</default>
         </object>
         <flag>wxALIGN_CENTRE</flag>

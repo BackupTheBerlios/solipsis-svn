@@ -112,16 +112,3 @@ class ConfigDialog(wx.EvtHandler, XRCLoader, UIProxyReceiver):
         #~ dc.DrawBitmap(b2, 130, 130, useMask=False)
         #~ dc.EndDrawing()
         #~ panel.Update()
-
-        # Test!
-        #~ b2 = wx.Bitmap('avatars/lion.jpg')
-        #~ dialog = wx.Dialog(None, 4555, "title")
-        #~ dialog.Show()
-        #~ panel = wx.Panel(dialog)
-        #~ dc = wx.ClientDC(panel)
-        #~ dc.BeginDrawing()
-        #~ dc.DrawText("toto", 5, 5)
-        #~ dc.DrawBitmap(bitmap, 30, 30, useMask=False)
-        #~ dc.DrawBitmap(b2, 130, 130, useMask=False)
-        #~ dc.EndDrawing()
-        #~ panel.Update()

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-03-17 17:48+0100\n"
+"POT-Creation-Date: 2005-03-18 14:48+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -37,7 +37,7 @@ msgstr ""
 msgid "Quit"
 msgstr ""
 
-msgid "&Edit"
+msgid "&Actions"
 msgstr ""
 
 msgid "&Jump near..."
@@ -68,7 +68,7 @@ msgid ""
 "(c) France Telecom R&&D"
 msgstr ""
 
-msgid "&OK"
+msgid "&Close"
 msgstr ""
 
 msgid "Connect to Solipsis"
@@ -125,9 +125,6 @@ msgid "No proxy"
 msgstr ""
 
 msgid "Manual configuration"
-msgstr ""
-
-msgid "&Close"
 msgstr ""
 
 #: solipsis/navigator/wxclient/validators.py:51

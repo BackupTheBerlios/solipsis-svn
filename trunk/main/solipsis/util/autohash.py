@@ -76,6 +76,10 @@ class Metametaclass(type):
         return type.__new__(cls, name, bases, dict_)
 
 class Autohash(type):
+    """
+    Metaclass that creates a hash function based on the
+    attributes passed on instantiation.
+    """
     __metaclass__ = Metametaclass
 
     def __init__(cls, hash_attributes):
