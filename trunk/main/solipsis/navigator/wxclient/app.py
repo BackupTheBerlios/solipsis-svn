@@ -23,12 +23,13 @@ import wx
 import wx.xrc
 from wx.xrc import XRCCTRL, XRCID
 
-from wxutils import _
-from wxutils import *        # '*' doesn't import '_'
+from solipsis.util.uiproxy import TwistedProxy, UIProxyReceiver
+from solipsis.util.wxutils import _
+from solipsis.util.wxutils import *        # '*' doesn't import '_'
+
 from validators import *
 from viewport import Viewport
 from world import World
-from solipsis.util.uiproxy import TwistedProxy, UIProxyReceiver
 from network import NetworkLoop
 
 
