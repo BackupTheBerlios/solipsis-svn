@@ -6,6 +6,13 @@ import bisect
 from solipsis.util.exception import *
 
 
+# class MockTopology(object):
+#     def __init__(self, topology, manager):
+#         self.topology = topology
+#         self.manager = manager
+#
+#     def addPeer(self, peer)
+
 class Topology(object):
     """
     Manage all the neighbours of a node.
@@ -13,12 +20,19 @@ class Topology(object):
 
     world_size = 2**128
 
-    def __init__(self, params):
+    def __init__(self):
         """
         Initialize topology object.
         """
         self.logger = logging.getLogger("root")
-        self.normalize = (lambda x, lim=float(self.world_size) / 2: (x + lim) % (lim + lim) - lim)
+        # Annoying precision warts that we should eliminate by changing
+        # all coordinates to float
+        if isinstance(self.world_size, long):
+            self.half_world_size = self.world_size // 2
+        else:
+            self.half_world_size = self.world_size / 2.0
+        self.normalize = (lambda x, lim=self.world_size // 2: (x + lim) % (lim + lim) - lim)
+        self.max_angle = math.pi
 
         self.Reset()
 
@@ -57,8 +71,9 @@ class Topology(object):
         id_ = p.id_
 
         # Relative position
-        x = self.normalize(p.position.getPosX() - xc)
-        y = self.normalize(p.position.getPosY() - yc)
+        x, y = p.position.getCoords()
+        x = self.normalize(x - xc)
+        y = self.normalize(y - yc)
 
         # Distance
         d = math.sqrt(x**2 + y**2)
@@ -67,11 +82,11 @@ class Topology(object):
             return False
 
         # Angle relatively to the [Ox) oriented axis
-        # The result is between -pi and +pi
+        # The result is between 0 and 2*PI
         if abs(x) > abs(y):
             angle = math.acos(x / d)
             if y < 0:
-                angle = -angle
+                angle = 2.0 * math.pi - angle
         else:
             angle = math.asin(y / d)
             if x < 0:
@@ -82,6 +97,9 @@ class Topology(object):
         self.angles[id_] = angle
         bisect.insort(self.distance_peers, (d, id_))
         bisect.insort(self.angle_peers, (angle, id_))
+        print self.distance_peers
+        print self.angle_peers
+        print
         return True
 
     def _ExtractPeer(self, id_):
@@ -100,9 +118,26 @@ class Topology(object):
         self.distances = {}
         self.angles = {}
         self.angle_peers = []
-        self.distance.peers = []
+        self.distance_peers = []
         for p in self.peers.values():
             self._InsertPeer(p)
+
+    def RelativeDistance(self, (x, y)):
+        """
+        Relative distance from the given (x, y) to the origin.
+        """
+        xc, yc = self.origin
+        x = self.normalize(x - xc)
+        y = self.normalize(y - yc)
+        return math.sqrt(x ** 2 + y ** 2)
+
+    def Distance(self, (xa, ya), (xb, yb)):
+        """
+        Relative distance between two points.
+        """
+        x = self.normalize(xa - xb)
+        y = self.normalize(ya - yb)
+        return math.sqrt(x ** 2 + y ** 2)
 
     def AddPeer(self, p):
         """
@@ -162,7 +197,7 @@ class Topology(object):
                 for id_, (x, y) in self.relative_positions.iteritems()
                 if id_ != exclude_id]
         closest_distance, closest_id = min(l)
-        return closest_id and self.peers[closest_id] or None
+        return closest_id and (self.peers[closest_id], closest_distance) or None
 
     def GetNumberOfPeers(self):
         """
@@ -183,7 +218,7 @@ class Topology(object):
         if len(self.peers) < 3:
             return self.peers.keys()
         if max_angle is None:
-            max_angle = math.pi
+            max_angle = self.max_angle
         _angles = self.angle_peers
         pi2 = 2.0 * math.pi
 
@@ -207,49 +242,94 @@ class Topology(object):
         """
         if len(self.peers) < 3:
             return False
+        return not self.GetBadGlobalConnectivityPeers()
+#         if max_angle is None:
+#             max_angle = self.max_angle
+#         _angles = self.angle_peers
+#         pi2 = 2.0 * math.pi
+#         prev_angle, id_ = _angles[-1]
+#         for angle, id_ in _angles:
+#             if (angle - prev_angle) % pi2 >= max_angle:
+#                 return False
+#             prev_angle = angle
+#         return True
+
+    def GetBadGlobalConnectivityPeers(self, max_angle=None):
+        """
+        Checks whether global connectivity is ensured.
+
+        Return a pair of entities not respecting property or None.
+        First entity should be used to search counter-clockwise and the second one clockwise.
+        """
+        n = len(self.peers)
+        if n == 0:
+            return []
+        if n == 1:
+            (peer,) = self.peers.values()
+            return [peer, peer]
+
         if max_angle is None:
-            max_angle = math.pi
+            max_angle = self.max_angle
+
         _angles = self.angle_peers
         pi2 = 2.0 * math.pi
-        prev_angle, id_ = _angles[-1]
+        prev_angle, prev_id = _angles[-1]
         for angle, id_ in _angles:
             if (angle - prev_angle) % pi2 >= max_angle:
-                return False
-            prev_angle = angle
-        return True
+                return [self.peers[prev_id], self.peers[id_]]
+            prev_angle, prev_id = angle, id_
+        return []
 
-
-    def getPeerAround(self, targetPosition, emitter_id, isClockWise=True):
-        """ Return the peer that is the closest to a target position and that
-        is in the right half plane.
-        targetPosition : target position which we are looking around
-        isClockWise : boolean indicating if we we searching in the right or the
-        left half-plane - optional
-        Return : a peer or None if there is no peer in the half plane
+    def GetPeerAround(self, target, emitter_id, clockwise=True, max_angle=None):
         """
-        found = False
-        around = None
-        distClosest = 0
-        nodePosition = self.node.position
-        for p in self.peers.values():
+        Return the peer that is the closest to a target position
+        in the given angle from the origin.
+        """
+        sgn = clockwise and -1.0 or 1.0
+        # We work in relative positions to the origin, which simplifies
+        # calculations a bit since the origin is part of the vector product.
+        xc, yc = self.origin
+        _norm = self.normalize
+        # xt, yt = vector(origin -> target)
+        xt = _norm(target[0] - xc)
+        yt = _norm(target[1] - yc)
+        # dt = distance(origin, target)
+        dt = math.sqrt(xt ** 2 + yt ** 2)
+        if dt == 0.0:
+            self.logger.warning("Asked for a peer around our own position")
+        if max_angle is None:
+            max_angle = self.max_angle
+        # Minimum accepted cosine for angle between (origin -> target) and (peer -> target)
+        min_cos = math.cos(max_angle)
+        closest_id = None
+        closest_distance = 0.0
+
+        for id_, (x, y) in self.relative_positions:
             if p.id_ == emitter_id:
                 continue
-            if Geometry.inHalfPlane(nodePosition, targetPosition,
-                                    p.position) == isClockWise:
-                # first entity in right half-plane
-                if not found:
-                    found = True
-                    around = p
-                    distClosest = Geometry.distance(targetPosition, p.position)
-                else:
-                    dist = Geometry.distance(targetPosition, p.position)
-                    # this peer is closer
-                    if dist < distClosest:
-                        around = p
-                        distClosest = dist
+            # x, y = vector(origin -> peer), so:
+            # xv, yv = vector(peer -> target)
+            xv, yv = _norm(xt - x), _norm(yt - y)
+            # Discard peers that are in the wrong half-plane
+            if (xt * yv - xv * yt) * sgn <= 0.0:
+                continue
+            # dv = distance(peer, target)
+            dv = math.sqrt(xv ** 2 + yv **2)
+            # The dot product helps us calculate the cosine,
+            # which is monotonous between 0 and PI
+            dot_product = xt * yt + xv * yv
+            # Check whether the angle is lower than max_angle
+            if dot_product > dv * dt * min_cos:
+                if closest_id is None or dv < closest_distance:
+                    closest_id = id_
+                    closest_distance = dv
 
-        return around
+        return closest_id and self.peers[closest_id] or None
 
+
+    #
+    # Obsolete ??
+    #
     def getMedianAwarenessRadius(self):
         """ Return the median value of the awareness radius of all our peers.
 
@@ -318,10 +398,6 @@ class Topology(object):
             if not Geometry.inHalfPlane(entPos, nodePos, nextEntPos):
                 return [ent, nextEnt]
         return []
-
-    def hasGlobalConnectivity(self):
-        """ Return True if Global connectivity rule is respected"""
-        return self.getNumberOfPeers() > 0 and self.getBadGlobalConnectivityPeers() == []
 
     def computeAwarenessRadius(self):
         """ Based on curent the repartition of our peers (number, position),

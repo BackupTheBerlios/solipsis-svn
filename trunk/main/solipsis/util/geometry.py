@@ -18,6 +18,9 @@ class Position(object):
             self.posY = long(posY)
             self.posZ = long(posZ)
 
+    def getCoords(self):
+        return (self.posX, self.posY)
+
     def getPosX(self):
         return self.posX
 

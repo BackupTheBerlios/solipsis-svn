@@ -125,8 +125,9 @@ _from_string = {
 
 _to_string = {
     ARG_ADDRESS: str,
-    ARG_AWARENESS_RADIUS: str,
-    ARG_BEST_DISTANCE: str,
+    # TODO: change all coord and distance types to float
+    ARG_AWARENESS_RADIUS: (lambda x: str(long(x))),
+    ARG_BEST_DISTANCE: (lambda x: str(long(x))),
     ARG_CALIBRE: str,
     ARG_CLOCKWISE: (lambda x: x and "+1" or "-1"),
     ARG_ID: str,

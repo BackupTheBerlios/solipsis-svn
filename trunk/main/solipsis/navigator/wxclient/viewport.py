@@ -9,10 +9,10 @@ from images import *
 
 
 def _optimize(obj):
-    try:
-        import psyco
-        psyco.bind(obj)
-    except:
+#     try:
+#         import psyco
+#         psyco.bind(obj)
+#     except:
         pass
 
 
@@ -511,8 +511,8 @@ _optimize(Viewport)
 #
 
 def __test():
-    import psyco
-    psyco.profile()
+#     import psyco
+#     psyco.profile()
 
     class W(object):
         def GetClientSizeTuple(self):

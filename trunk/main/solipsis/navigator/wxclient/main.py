@@ -18,12 +18,12 @@ def main():
                         help="configuration file" )
     params = Parameters(parser, config_file=config_file)
 
-    try:
-        import psyco
-#         psyco.profile()
-    except:
-        print "Psyco is not installed on your machine. \n"
-        print "If you want to speed up this program, consider installing Psyco (http://psyco.sourceforge.net/)."
+#     try:
+# #         import psyco
+# #         psyco.profile()
+#     except:
+#         print "Psyco is not installed on your machine. \n"
+#         print "If you want to speed up this program, consider installing Psyco (http://psyco.sourceforge.net/)."
 
     application = NavigatorApp(parameters=params)
     application.MainLoop()
