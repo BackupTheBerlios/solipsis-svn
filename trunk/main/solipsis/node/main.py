@@ -1,4 +1,5 @@
 
+import os
 import sys
 import logging
 import exceptions
@@ -8,8 +9,8 @@ from twisted.internet import reactor
 
 # Solipsis Packages
 from solipsis.util.parameter import Parameters
-from solipsis.twistednode.node import Node
 from bootstrap import Bootstrap
+
 
 def run_loop(params):
     bootstrap = Bootstrap(reactor, params)
@@ -88,7 +89,7 @@ def main():
             #psyco.profile(watermark=0.005, time=120)
             profile_run()
     except Exception, e:
-        print str(e)
+        raise
 
 
 if __name__ == '__main__':

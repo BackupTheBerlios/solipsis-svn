@@ -34,6 +34,18 @@ class NodeConnector(DatagramProtocol):
         else:
             self.state_machine.PeerMessageReceived(message.request, message.args)
 
+    def Start(self, pool_num=0):
+        """
+        Start listening to Solipsis messages.
+        """
+        self.listening = self.reactor.listenUDP(self.params.port + pool_num, self)
+
+    def Stop(self):
+        """
+        Stop listening.
+        """
+        self.listening.stopListening()
+
     def SendMessage(self, message, address):
         """
         Send a Solipsis message to an address.

@@ -4,12 +4,16 @@ import logging
 import re
 import random
 
+import twisted.web
+
 from solipsis.util.geometry import Position
 from solipsis.util.address import Address
 from node import Node
 from nodeconnector import NodeConnector
+from control import RemoteControl
 from statemachine import StateMachine
-import states
+
+import controller.xmlrpc
 
 
 class Bootstrap(object):
@@ -18,6 +22,12 @@ class Bootstrap(object):
 #     dummy_position = Position(123456789, 2000000000, 0)
 
     def __init__(self, reactor, params):
+        class PoolItem(object):
+            def __init__(self, state_machine, node_connector, remote_control):
+                self.state_machine = state_machine
+                self.node_connector = node_connector
+                self.remote_control = remote_control
+
         self.reactor = reactor
         self.params = params
         self.pool = []
@@ -34,7 +44,8 @@ class Bootstrap(object):
                 node.position = Position(random.random() * 2**128, random.random() * 2**128, 0)
                 state_machine = StateMachine(reactor, params, node)
                 node_connector = NodeConnector(reactor, params, state_machine)
-                self.pool.append((port, node_connector, state_machine))
+                remote_control = not self.params.bot and RemoteControl(reactor, params, state_machine) or None
+                self.pool.append(PoolItem(state_machine, node_connector, remote_control))
             if self.params.as_seed:
                 self.bootup_entities = entities
             else:
@@ -45,42 +56,47 @@ class Bootstrap(object):
             node.position = Position(self.params.pos_x, self.params.pos_y, 0)
             state_machine = StateMachine(reactor, params, node)
             node_connector = NodeConnector(reactor, params, state_machine)
+            remote_control = not self.params.bot and RemoteControl(self.reactor, self.params, state_machine) or None
             if self.params.as_seed:
                 self.bootup_entities = self._ParseSeedsFile("conf/seed.met")
             else:
                 self.bootup_entities = self._ParseEntitiesFile(self.params.entities_file)
                 node.position = self.dummy_position
-            self.pool.append((self.params.port, node_connector, state_machine))
+            self.pool.append(PoolItem(state_machine, node_connector, remote_control))
+
 
     def Run(self):
-        for port, node_connector, state_machine in self.pool:
+        for i, p in enumerate(self.pool):
             # Open Solipsis main port
             try:
-                self.reactor.listenUDP(port, node_connector)
+                p.node_connector.Start(i)
             except Exception, e:
                 print str(e)
                 sys.exit(1)
+            self.reactor.addSystemEventTrigger('during', 'shutdown', p.node_connector.Stop)
 
             # Setup the initial state
-            message_sender = node_connector.SendMessage
-            state_machine.Init(message_sender, self.bootup_entities)
+            sender = p.node_connector.SendMessage
+            p.state_machine.Init(sender, self.bootup_entities)
             if self.params.as_seed:
-                state_machine.ImmediatelyConnect()
+                p.state_machine.ImmediatelyConnect()
             else:
-                state_machine.TryConnect()
+                p.state_machine.TryConnect()
+            self.reactor.addSystemEventTrigger('before', 'shutdown', p.state_machine.Close)
+            self.reactor.addSystemEventTrigger('after', 'shutdown', p.state_machine.DumpStats)
 
-            # Register shutdown callbacks
-            self.reactor.addSystemEventTrigger('before', 'shutdown', state_machine.Close)
-            self.reactor.addSystemEventTrigger('after', 'shutdown', state_machine.DumpStats)
+            # Start remote controller
+            if not self.params.bot:
+                x = controller.xmlrpc.Controller(self.reactor, self.params, p.remote_control)
+                x.Start(i)
+                self.reactor.addSystemEventTrigger('before', 'shutdown', x.Stop)
 
         # Enter event loop
         try:
             self.reactor.run()
         except Exception, e:
             print str(e)
-#         for _, _, state_machine in self.pool:
-#             state_machine.Close()
-#             state_machine.DumpStats()
+
 
     #
     # Private methods

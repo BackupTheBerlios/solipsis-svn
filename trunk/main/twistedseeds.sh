@@ -1,3 +1,3 @@
 #!/bin/sh
 
-nice ./twistednode.sh -d --pool=14 --seed -f conf/seed.conf
+nice ./twistednode.sh -b -d --pool=14 --seed -f conf/seed.conf

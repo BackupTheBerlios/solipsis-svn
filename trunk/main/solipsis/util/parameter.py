@@ -48,9 +48,6 @@ class Parameters(object):
             #
             # Network options
             #
-            params['buffer_size'] = int(eval(self.config.get("network", "buffer_size")))
-            params['connection_timeout'] = int(eval(self.config.get("network",
-                                                          "connection_timeout")))
 
             # Solipsis-side network config
             if self.config.has_option("network", "host"):
@@ -81,7 +78,6 @@ class Parameters(object):
             #
             # Geometry startup values
             #
-            params['world_size'] = long(eval(self.config.get("general", "world_size")))
             if self.config.has_option("general", "position_x"):
                 params['pos_x'] = long(self.config.get("general", "position_x"))
             else:
@@ -92,9 +88,7 @@ class Parameters(object):
             else:
                 params['pos_y'] = long(random.random() * self.world_size)
 
-            params['awareness_radius'] = int(self.config.get("general", "awareness_radius"))
             params['calibre'] = int(self.config.get("general", "calibre"))
-            params['calibre_max'] = int(self.config.get("general", "calibre_max"))
             params['orientation'] = int(self.config.get("general", "orientation"))
             params['expected_neighbours'] = int(self.config.get("general", "expected_neighbours"))
 
@@ -109,12 +103,10 @@ class Parameters(object):
             #
             params['stat_infos'] = self.config.getboolean("general", "stat_infos")
             # navigator options
-            if self.config.has_option("navigator","pseudo"):
-                params['pseudo'] = self.config.get("navigator","pseudo")
+            if self.config.has_option("navigator", "pseudo"):
+                params['pseudo'] = self.config.get("navigator", "pseudo")
             else:
                 params['pseudo'] = "anonymous_"+ str(params['port'])
-            params['scale'] = self.config.get("navigator","scale")
-            params['zoom'] = self.config.get("navigator","zoom")
             params['display_pseudos'] = self.config.getboolean("navigator",
                                                          "display_pseudos")
             params['display_avatars'] = self.config.getboolean("navigator",

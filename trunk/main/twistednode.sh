@@ -1,14 +1,9 @@
 #!/usr/bin/python -Qnew
-import os
-import solipsis.twistednode.main
 
-# add current directory to the python search path
-# it is needed in case solipsis is not installed in the standard python
-# directory (e.g: /usr/lib/python2.3 in linux)
-if os.environ.has_key('PYTHONPATH'):
-    os.environ['PYTHONPATH'] = os.environ['PYTHONPATH'] + ':.'
-else:
-    os.environ['PYTHONPATH'] = '.'
+import os, sys
 
 if __name__ == '__main__':
-    solipsis.twistednode.main.main()
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)) + '/solipsis/twistednode')
+    #print sys.path
+    import main
+    main.main()

@@ -71,8 +71,8 @@ class XMLRPCConnector(object):
         control_url = 'http://%s:%d/RPC2' % (host, port)
         notif_url = 'http://%s:%d/RPC2' % (host, port + 1)
         self.xmlrpc_control = xmlrpc.Proxy(control_url)
-        self.xmlrpc_notif = xmlrpc.Proxy(notif_url)
-        self._AskNotif()
+#         self.xmlrpc_notif = xmlrpc.Proxy(notif_url)
+#         self._AskNotif()
 
     def Disconnect(self):
         self.xmlrpc_control = None
@@ -88,7 +88,8 @@ class XMLRPCConnector(object):
     # XML RPC callbacks
     #
     def ControlResponse(self, reply):
-        pass
+        """ Called on response to a control request. """
+        print reply
 
     def NotifResponse(self, reply):
         self._AskNotif()
@@ -122,7 +123,7 @@ class XMLRPCConnector(object):
     #
     def _AskNotif(self):
         if self.xmlrpc_notif is not None:
-            d = self.xmlrpc_notif.callRemote('get')
+            d = self.xmlrpc_notif.callRemote('Get')
             d.addCallbacks(self.NotifResponse, self.NotifError)
 
 
@@ -160,17 +161,17 @@ class NetworkLoop(threading.Thread):
 
     def ConnectToNode(self, *args, **kargs):
         self.node_connector.Connect(*args, **kargs)
-        self.node_connector.CallControl('move', 500, 2000, 0)
+        self.node_connector.CallControl('Move', 500, 2000, 0)
 
     def DisconnectFromNode(self, *args, **kargs):
-        self.node_connector.CallControl('kill')
+        self.node_connector.CallControl('Die')
         #self.node_connector.Disconnect(*args, **kargs)
 
     def MoveTo(self, (x, y)):
         x = str(long(x))
         y = str(long(y))
         print "move to:", x, y
-        self.node_connector.CallControl('move', x, y, 0)
+        self.node_connector.CallControl('Move', x, y, 0)
 
     #
     # Private methods

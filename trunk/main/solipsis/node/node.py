@@ -25,9 +25,8 @@ class Node(Entity):
         address = Address(params.host, params.port)
 
         # call parent class constructor
-        Entity.__init__(self, id_, position, params.orientation,
-                        params.awareness_radius, params.calibre, params.pseudo,
-                        address)
+        Entity.__init__(self, id_=id_, position=position, orientation=params.orientation,
+                        calibre=params.calibre, pseudo=params.pseudo, address=address)
 
         # maximum expected number of neighbours.
         self.expected_peers = params.expected_neighbours
