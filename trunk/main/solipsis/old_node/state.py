@@ -119,7 +119,7 @@ class State(object):
         self.removePeer(manager.getPeer(id_))
         # check what is our state
         if manager.hasTooFewPeers():
-            self.increaseAr()
+            self.updateAwarenessRadius()
 
             # we don't have enough peers but our Global Connectivity is OK
             if manager.hasGlobalConnectity():
@@ -183,7 +183,13 @@ class State(object):
         peer = event.createRemotePeer()
         id_ = peer.getId()
         manager = self.node.getPeersManager()
+        # Sanity check 1: don't connect with ourselves
         if id_ == self.node.getId():
+            return
+        # Sanity check 2: don't connect with someone too far from us
+        dist = Geometry.distance(self.node.getPosition(), peer.getPosition())
+        ar = self.node.getAwarenessRadius()
+        if dist > ar:
             return
 
         # we are only interested by entities that are not yet in our peer list
@@ -237,8 +243,7 @@ class State(object):
 
         manager = self.node.getPeersManager()
         if not manager.hasPeer(id_):
-            self.logger.debug('UPDATE from %s, but we are not connected',
-                peer.getId())
+            self.logger.debug('UPDATE from %s, but we are not connected' % peer.getId())
             return
 
         # save peer old value
@@ -288,7 +293,7 @@ class State(object):
                     detect.setRecipientAddress(ent.getAddress())
                     self.node.dispatch(detect)
 
-                elif theirDist < newAR and oldAR < theirOldDist:
+                elif oldAR < theirOldDist and newAR >= theirDist:
                     # The entity is notified to the moving peer
                     detect = peerFct.createDETECT(ent)
                     detect.setRecipientAddress(peer.getAddress())
@@ -296,16 +301,19 @@ class State(object):
 
         # peer awareness radius changed
         if not oldAR == newAR:
-            self.logger.debug('AR updated')
+            self.logger.debug('AR updated %d -> %d' % (oldAR, newAR))
             # verify entities that could be interested by the modified entity.
             for ent in manager.enumeratePeers():
                 if ent.getId() == id_:
                     continue
                 # get distance between ent and modified entity
-                theirDist = Geometry.distance(ent.getPosition(), newPosition)
-                theirOldDist = Geometry.distance(ent.getPosition(), oldPosition)
+                position = ent.getPosition()
+                theirDist = Geometry.distance(position, newPosition)
+                theirOldDist = Geometry.distance(position, oldPosition)
+                self.logger.debug('peer %s: position (%s), old dist %d, new dist %d' %
+                    (ent.getId(), str(position), theirDist, theirOldDist))
 
-                if oldAR < theirOldDist and newAR > theirDist:
+                if oldAR < theirOldDist and newAR >= theirDist:
                     # ent enter in Awareness Area of modified entity.
                     # DETECT message sent to modified entity.
                     detect = peerFct.createDETECT(ent)
@@ -378,41 +386,25 @@ class State(object):
     # Control events
     #
 
-    def JUMP(self, jumpEvent):
-        """
-        JUMP control event. Move this node to a target position.
-        jumpEvent : Request = JUMP, args = {'Position'}
-        """
-        newPosition = jumpEvent.getArg(protocol.ARG_POSITION)
-        self.node.setPosition(newPosition)
-
-        # send a findnearest message
-        manager = self.node.getPeersManager()
-        peer = manager.getRandomPeer()
-        self.sendFindNearest(peer.getAddress())
-
-        # disconnect from current peers
-        peerFct = EventFactory.getInstance(PeerEvent.TYPE)
-        for peer in manager.enumeratePeers():
-            evt = peerFct.createCLOSE()
-            evt.setRecipientAddress(peer.getAddress())
-            self.node.dispatch(evt)
-            self.removePeer(peer)
-
-        # go to the tracking state
-        self.node.setState(Locating())
-
     def MOVE(self, event):
-        """ MOVE control event. Move the node to a new position. This position
-        is close to our current position (which is the difference with the JUMP
-        method)
+        """ MOVE control event. Move the node to a new position.
         event : Request = MOVE, args = {'Position'}
         """
-        # change position
+
+        # Change position
         newPosition = event.getArg(protocol.ARG_POSITION)
         self.node.setPosition(newPosition)
-        # notify peers of this change
-        self.sendUpdates()
+        manager = self.node.getPeersManager()
+        if manager.hasGlobalConnectivity():
+            # We still have the global connectivity,
+            # so we can simply notify peers of the position change
+            self.sendUpdates()
+
+        else:
+            # We cannot keep our global connectivity,
+            # so we do the JUMP algorithm to get the knowledge
+            # of our new neighbourhood
+            self.jump()
 
     def KILL(self, event):
         self.logger.debug("Received kill message")
@@ -484,21 +476,27 @@ class State(object):
         manager = self.node.getPeersManager()
         factory = EventFactory.getInstance(PeerEvent.TYPE)
 
-        # send msg SEARCH.
-        pair = manager.getBadGlobalConnectivityPeers()
+        if manager.getNumberOfPeers() == 0:
+            self.logger.info("All peers lost, relaunching JUMP algorithm")
+            self.jump()
 
-        if pair:
-            # send message to each entity
-            searchClockWise = factory.createSEARCH(True)
-            searchCounterclockWise = factory.createSEARCH(False)
-            searchClockWise.setRecipientAddress(pair[0].getAddress())
-            searchCounterclockWise.setRecipientAddress(pair[1].getAddress())
-            self.node.dispatch(searchClockWise)
-            self.node.dispatch(searchCounterclockWise)
+        else:
+            # send msg SEARCH
+            pair = manager.getBadGlobalConnectivityPeers()
 
-    def increaseAr(self):
+            if pair:
+                # send message to each entity
+                searchClockWise = factory.createSEARCH(True)
+                searchCounterclockWise = factory.createSEARCH(False)
+                searchClockWise.setRecipientAddress(pair[0].getAddress())
+                searchCounterclockWise.setRecipientAddress(pair[1].getAddress())
+                self.node.dispatch(searchClockWise)
+                self.node.dispatch(searchCounterclockWise)
+
+    def updateAwarenessRadius(self):
         """ compute our new awareness radius and notify peers of this update"""
-        ar = self.node.getPeersManager().computeAwarenessRadius()
+        manager = self.node.getPeersManager()
+        ar = manager.computeAwarenessRadius()
         self.node.setAwarenessRadius(ar)
         self.sendUpdates()
 
@@ -514,6 +512,25 @@ class State(object):
         self.node.setState(NotConnected())
         self.node.dispatch(error)
 
+    def jump(self):
+        """ Jump to the node's current position. This involves
+        the recursive teleportation algorithm. """
+        manager = self.node.getPeersManager()
+        peer = manager.getRandomPeer()
+        self.sendFindNearest(peer.getAddress())
+
+        # Disconnect from our current peers
+        peerFct = EventFactory.getInstance(PeerEvent.TYPE)
+        for peer in manager.enumeratePeers():
+            evt = peerFct.createCLOSE()
+            evt.setRecipientAddress(peer.getAddress())
+            self.node.dispatch(evt)
+            self.removePeer(peer)
+
+        # Go to the tracking state
+        self.node.setState(Locating())
+
+
 class NotConnected(State):
     """ NOT CONNECTED: Initial state of the node.
 
@@ -525,7 +542,7 @@ class NotConnected(State):
     """
 
     def __init__(self):
-        self.expectedMessages = [ 'JUMP', 'KILL', 'SET']
+        self.expectedMessages = [ 'MOVE', 'KILL', 'SET']
 
     def activate(self):
         self.logger.debug('NotConnected(State)')
@@ -542,7 +559,7 @@ class Locating(State):
     MAX_CONNECTIONS_ATTEMPTS = 5
 
     def __init__(self):
-        self.expectedMessages = ['NEAREST', 'BEST', 'TIMER', 'KILL', 'JUMP', 'SET']
+        self.expectedMessages = ['NEAREST', 'BEST', 'TIMER', 'KILL', 'MOVE', 'SET']
         self.connectionAttempts = 0
         # timer object associated with the curent findnearest request - needed
         # to cancel the timer when we receive a response
@@ -610,7 +627,7 @@ class Scanning(State):
     """
 
     def __init__(self):
-        self.expectedMessages = ['AROUND', 'NEAREST', 'KILL', 'JUMP', 'SET']
+        self.expectedMessages = ['AROUND', 'NEAREST', 'KILL', 'MOVE', 'SET']
         self.best = None
         self.neighbours = []
         self.startTimer()
@@ -827,7 +844,7 @@ class NotEnoughPeers(State):
     def TIMER(self, event):
         """ Timeout : we still don't have enough peers"""
         self.startTimer()
-        self.increaseAr()
+        self.updateAwarenessRadius()
 
 
 
@@ -861,13 +878,13 @@ class NotEnoughPeersAndNoGlobalConnectivity(State):
             # but now our GC is OK : go to state NotEnoughPeers
             if mng.hasGlobalConnectity():
                 self.timer.cancel()
-                self.increaseAr()
+                self.updateAwarenessRadius()
                 self.node.setState(NotEnoughPeers())
 
     def TIMER(self, event):
         """ Timeout : we still don't have enough peers"""
         self.startTimer()
-        self.increaseAr()
+        self.updateAwarenessRadius()
         self.searchPeers()
 
 class TooManyPeers(State):
@@ -889,8 +906,6 @@ class TooManyPeers(State):
             self.node.dispatch(close)
             self.removePeer(peer)
 
-        self.node.setAwarenessRadius(manager.computeAwarenessRadius())
-        self.sendUpdates()
-
+        self.updateAwarenessRadius()
         self.node.setState(Idle())
 

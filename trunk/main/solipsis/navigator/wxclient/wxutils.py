@@ -15,7 +15,6 @@ def _(orig_string):
             print "Failed to get locale!"
         else:
             print locale.GetName()
-        #print float("5.0")*float("1.2")
     if locale is None:
         return orig_string
     return wx.GetTranslation(orig_string)
@@ -56,7 +55,6 @@ class ManagedData(object):
             self._dict[name][0] = value
         except:
             self._dict[name] = [value]
-        print "set", id(self._dict)
 
     def __getattr__(self, name):
         assert name != "_dict"

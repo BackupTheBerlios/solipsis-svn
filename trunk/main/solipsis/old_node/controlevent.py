@@ -106,16 +106,8 @@ class ControlEventFactory(EventFactory):
         evt.addArg('ServiceId', ServiceId)
         return evt
 
-    def createJUMP(self, position):
-        """ Jump to traget Position
-        position : a Position object
-        """
-        evt = ControlEvent('JUMP')
-        evt.addArg('Position', position)
-        return evt
-
     def createMOVE(self, position):
-        """ Jump to traget Position
+        """ Move to traget Position
         position : a Position object
         """
         evt = ControlEvent('MOVE')

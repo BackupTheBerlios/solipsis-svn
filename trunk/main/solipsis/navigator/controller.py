@@ -34,15 +34,6 @@ class Controller(object):
         """
         raise AbstractMethodError()
 
-    def jump(self, x, y, z):
-        """ Abstract method : this method must be implemented by a sub-class
-        Teleport the node to a target position. This method is used when we
-        want to go a distant position on the Solipsis world, whereas move
-        is used when we are moving around our current position.
-
-        """
-        raise AbstractMethodError()
-
     def move(self, position):
         """ Abstract method : this method must be implemented by a sub-class
         Move to a target position. The target position is a Position located
@@ -152,8 +143,8 @@ class XMLRPCController(Controller):
     def getNodeInfo(self):
         self.server.getNodeInfo()
 
-    def jump(self, x, y, z):
-        self.server.jump(x, y, z)
+    def move(self, x, y, z):
+        self.server.move(x, y, z)
 
 
 class NodeNotification(threading.Thread):

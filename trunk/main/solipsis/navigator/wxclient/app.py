@@ -25,7 +25,6 @@ class ConnectionData(ManagedData):
             self.host = host
         if port:
             self.port = port
-        print self.pseudo, self.host, self.port
 
 
 
@@ -36,7 +35,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
 
     def __init__(self, parameters, *args, **kargs):
         self.params = parameters
-        print self.params
         self.alive = True
         self.redraw_pending = False
         self.connection_data = ConnectionData(self.params.control_host, self.params.control_port, self.params.pseudo)
@@ -246,18 +244,15 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """ Called on quit event (menu -> File -> Quit, window close box). """
 
         self.alive = False
-        # Disable network event proxying: as of now, all network events
-        # will be discarded
+        # Disable event proxying: as of now, all UI -> network
+        # and network -> UI events will be discarded
         self.DisableProxy()
-        # Stop the reactor so that it stops sending events to us
-        # (this call may not be thread-safe...)
-        self.reactor.crash()
+        self.network.DisableProxy()
         # Process the last pending events
-        # (this could send events to the network thread so we don't want
-        # to kill it immediately)
-#         self.ProcessPendingEvents()
+        self.ProcessPendingEvents()
         # Now we are sure that no more events are pending, kill everything
-        #self.network_loop.join()
+        self.reactor.crash()
+        self.network_loop.join()
         for obj_name in self.dialogs + self.windows:
             try:
                 win = getattr(self, obj_name)
@@ -294,9 +289,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """ Called on connect submit event (Ok button). """
         if (self.connect_dialog.Validate()):
             self.connect_dialog.Hide()
-            print self.connection_data._dict
             self.network.ConnectToNode(self.connection_data.host, self.connection_data.port)
-            #self._NotImplemented()
 
 
     #===-----------------------------------------------------------------===#

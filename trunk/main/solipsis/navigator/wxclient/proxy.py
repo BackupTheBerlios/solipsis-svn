@@ -11,17 +11,25 @@ class TwistedProxy(object):
     def __init__(self, realobj, reactor):
         self._target = realobj
         self.reactor = reactor
+        self.enabled = True
 
     def __getattr__(self, name):
         print "proxying daemon __getattr__"
         attr = self._target.__getattribute__(name)
         call = self.reactor.callFromThread
         if callable(attr):
+            # This is the real proxy method we generate on-the-fly
             def fun(*args, **kargs):
-                call(attr, *args, **kargs)
-            self.__setattr__(name, fun)
+                if self.enabled:
+                    call(attr, *args, **kargs)
+                else:
+                    print "TwistedProxy disabled, event discarded"
+            setattr(self, name, fun)
             return fun
         raise AttributeError("can only proxy object methods")
+
+    def DisableProxy(self):
+        self.enabled = False
 
 
 class UIProxy(object):
@@ -45,7 +53,7 @@ class UIProxy(object):
             def fun(*args, **kargs):
                 evt = UIProxyEvent(method = lambda: attr(*args, **kargs))
                 wx.PostEvent(self._target, evt)
-            self.__setattr__(name, fun)
+            setattr(self, name, fun)
             return fun
         raise AttributeError("can only proxy object methods")
 
@@ -59,7 +67,7 @@ class UIProxyReceiver(object):
         if self.enabled:
             event.method()
         else:
-            print "Proxy disabled, event discarded"
+            print "UIProxy disabled, event discarded"
 
     def DisableProxy(self):
         self.enabled = False

@@ -210,18 +210,18 @@ class XMLRPCControlChannel(object):
 
         return self.ok
 
-    def jump(self, x, y, z):
-        """ Reception of a jump order
-        x,y,z : target coordinates. These parameters are passed as string
-        to avoid int overflow problems
-        """
-        assert (z == 0)
-        pos = Position(long(x), long(y), long(z))
-        factory = EventFactory.getInstance(ControlEvent.TYPE)
-        jump = factory.createJUMP(pos)
-        self.incoming.put(jump)
-        return self.ok
-
+#     def jump(self, x, y, z):
+#         """ Reception of a jump order
+#         x,y,z : target coordinates. These parameters are passed as string
+#         to avoid int overflow problems
+#         """
+#         assert (z == 0)
+#         pos = Position(long(x), long(y), long(z))
+#         factory = EventFactory.getInstance(ControlEvent.TYPE)
+#         jump = factory.createJUMP(pos)
+#         self.incoming.put(jump)
+#         return self.ok
+#
 
     def move(self, x, y, z):
         """ Reception of a move order
@@ -231,8 +231,8 @@ class XMLRPCControlChannel(object):
         assert( z == 0)
         pos = Position(long(x), long(y), long(z))
         factory = EventFactory.getInstance(ControlEvent.TYPE)
-        jump = factory.createMOVE(pos)
-        self.incoming.put(jump)
+        move = factory.createMOVE(pos)
+        self.incoming.put(move)
         return self.ok
 
     def set(self, name, value):

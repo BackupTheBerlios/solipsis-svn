@@ -1,5 +1,5 @@
 import math
-      
+
 class Position(object):
     """ Represents a Solipsis position. """
 
@@ -40,7 +40,7 @@ class Position(object):
         """ String representation of the position"""
         return str(self.posX) + " " + Position.SEPARATOR + " " + str(self.posY) \
                + " " + Position.SEPARATOR + " " + str(self.posZ)
-    
+
 
     def setValueFromString(self, strPosition):
         """ Set the new coordinates of this Position object.
@@ -53,7 +53,7 @@ class Position(object):
             if strPosY <> '':
                 self.posY = long(strPosY)
             if strPosZ <> '':
-                self.posZ = long(strPosZ)   
+                self.posZ = long(strPosZ)
 
     def __eq__(self, other):
         """ Equality operator, used to check if Postion1 == Position2"""
@@ -97,24 +97,26 @@ class Geometry(object):
         """
 
         result = Position(pos.getPosX(), pos.getPosY())
+        size = Geometry.SIZE
+        half_size = long(size / 2)
 
         #-----Step 1: x-axis
 
         if pos.getPosX() > ref.getPosX():
-            if pos.getPosX() - ref.getPosX() > Geometry.SIZE/2:
-                result.setPosX(pos.getPosX() - Geometry.SIZE)
+            if pos.getPosX() - ref.getPosX() > half_size:
+                result.setPosX(pos.getPosX() - size)
         else:
-            if ref.getPosX() - pos.getPosX() > Geometry.SIZE/2:
-                result.setPosX(pos.getPosX() + Geometry.SIZE)
+            if ref.getPosX() - pos.getPosX() > half_size:
+                result.setPosX(pos.getPosX() + size)
 
         #-----Step 2: y-axis
 
         if pos.getPosY() > ref.getPosY():
-            if pos.getPosY() - ref.getPosY() > Geometry.SIZE/2:
-                result.setPosY(pos.getPosY() - Geometry.SIZE)
+            if pos.getPosY() - ref.getPosY() > half_size:
+                result.setPosY(pos.getPosY() - size)
         else:
-            if ref.getPosY() - pos.getPosY() > Geometry.SIZE/2:
-                result.setPosY(pos.getPosY() + Geometry.SIZE)
+            if ref.getPosY() - pos.getPosY() > half_size:
+                result.setPosY(pos.getPosY() + size)
 
         return result
 
