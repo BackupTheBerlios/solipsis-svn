@@ -343,6 +343,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """ Called on left click event. """
         if self._CheckNodeProxy(False):
             x, y = self.viewport.MoveToPixels(evt.GetPositionTuple())
+            print "nav:", (x, y)
             self.node_proxy.Move(str(long(x)), str(long(y)), str(0))
             evt.Skip()
 
@@ -381,8 +382,10 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             self.viewport.Enable()
             self.Redraw()
         elif status == 'UNAVAILABLE':
+            self.viewport_panel.SetCursor(wx.StockCursor(wx.CURSOR_DEFAULT))
             self.viewport.Disable()
-            
+            self.Redraw()
+
     def NodeConnectionSucceeded(self, node_proxy):
         """ We managed to connect to the node. """
         self.node_proxy = node_proxy

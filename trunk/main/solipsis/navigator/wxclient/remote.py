@@ -19,7 +19,7 @@
 
 import os
 
-from solipsis.util import marshal
+from solipsis.util.entity import Entity
 from solipsis.util.nodeproxy import XMLRPCNode
 
 
@@ -83,19 +83,20 @@ class RemoteConnector(object):
         Transmit all peer information to the viewport.
         """
         self.ui.ResetWorld()
-        for struct in reply:
-            peer_info = marshal.PeerInfo(struct)
-            print "PEER", peer_info.id_
-            self.ui.AddPeer(peer_info)
+        assert isinstance(reply, list), "Bad reply to GetAllPeers()"
+        for struct_ in reply:
+            peer = Entity.FromStruct(struct_)
+            print "PEER", peer.id_
+            self.ui.AddPeer(peer)
         self.ui.Redraw()
 
     def success_GetNodeInfo(self, reply):
         """
         Transmit node information to the viewport.
         """
-        node_info = marshal.PeerInfo(reply)
-        print "NODE", node_info.id_
-        self.ui.UpdateNode(node_info)
+        node = Entity.FromStruct(reply)
+        print "NODE", node.id_
+        self.ui.UpdateNode(node)
 
     def success_GetStatus(self, reply):
         """
@@ -107,16 +108,16 @@ class RemoteConnector(object):
     #
     # Notification handlers
     #
-    def event_CHANGED(self, struct):
-        peer_info = marshal.PeerInfo(struct)
-        print "CHANGED", peer_info.id_
-        self.ui.UpdatePeer(peer_info)
+    def event_CHANGED(self, struct_):
+        peer = Entity.FromStruct(struct_)
+        print "CHANGED", peer.id_
+        self.ui.UpdatePeer(peer)
         self.ui.AskRedraw()
 
-    def event_NEW(self, struct):
-        peer_info = marshal.PeerInfo(struct)
-        print "NEW", peer_info.id_
-        self.ui.AddPeer(peer_info)
+    def event_NEW(self, struct_):
+        peer = Entity.FromStruct(struct_)
+        print "NEW", peer.id_
+        self.ui.AddPeer(peer)
         self.ui.AskRedraw()
 
     def event_LOST(self, peer_id):

@@ -645,7 +645,7 @@ class StateMachine(object):
             if around is not None:
                 self._SendToAddress(args.address, self._PeerMessage('AROUND', remote_peer=around))
             else:
-                self.logger.info('QUERYAROUND received, but no peer around position: %s' % target.ToString())
+                self.logger.info('QUERYAROUND received, but no peer around position: %s' % str(target))
 
     def peer_HEARTBEAT(self, args):
         """
@@ -762,6 +762,10 @@ class StateMachine(object):
         position = Position((x, y, z))
         self.node.position = position
         self.topology.SetOrigin((x, y))
+        # Important: this handles the case when the user continues moving
+        # while we are changing topologies
+        if self.future_topology is not None:
+            self.future_topology.SetOrigin((x, y))
         self.moved = True
 
         def _finish():

@@ -51,7 +51,7 @@ class World(object):
         item = self.Item(peer)
         id_ = peer.id_
         self.items[id_] = item
-        x, y, z = peer.position
+        x, y, z = peer.position.GetXYZ()
         self.viewport.AddObject(id_, None, position=(x, y))
         self._CreatePeerLabel(item)
         self._CreatePeerAvatar(item)
@@ -68,7 +68,7 @@ class World(object):
         """
         Called when the node's characteristics are updated.
         """
-        x, y, z = node.position
+        x, y, z = node.position.GetXYZ()
         self.viewport.JumpTo((x, y))
 
     def UpdatePeer(self, peer):
@@ -82,8 +82,10 @@ class World(object):
             return
         old = item.peer
         item.peer = peer
-        if peer.position != old.position:
-            x, y, z = peer.position
+        old_pos = peer.position.GetXYZ()
+        new_pos = peer.position.GetXYZ()
+        if new_pos != old_pos:
+            x, y, z = new_pos
             self.viewport.MoveObject(id_, position=(x, y))
         #~ print "%s => %s" % (old.pseudo, peer.pseudo)
         if peer.pseudo != old.pseudo:
