@@ -59,13 +59,12 @@ class StartingState(state.State):
         nbPeers = manager.getNumberOfPeers()
         # we have connected to all other seeds
         if nbPeers == nbSeeds -1 :
-            self.logger.debug('Entering Idle state')
             ar = manager.computeAwarenessRadius()
             self.node.setAwarenessRadius(ar)
-            self.node.setExpectedPeers(nbPeers)
+            #self.node.setExpectedPeers(nbPeers)
             self.node.startPeriodicTasks()
             self.sendUpdates()
-            self.node.setState(state.Idle())
+            self.node.setState(state.TooManyPeers())
         else:
             self.logger.debug('Not connected to all seeds: %d/%d', nbPeers,
                               nbSeeds -1)

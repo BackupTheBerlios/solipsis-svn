@@ -297,7 +297,8 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     #
     def _LeftClickViewport(self, evt):
         """ Called on left click event. """
-        self.viewport.MoveToPixels(evt.GetPositionTuple())
+        x, y = self.viewport.MoveToPixels(evt.GetPositionTuple())
+        self.network.MoveTo((x, y))
         evt.Skip()
 
 

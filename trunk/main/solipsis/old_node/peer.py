@@ -116,7 +116,9 @@ class PeersManager(object):
         self.setExpectedPeers(params.expected_neighbours)
 
         self.logger = logging.getLogger("root")
+        self.reset()
 
+    def reset(self):
         # hash table of peers indexed by ID
         self.peers     = {}
         # clountercloclwise ordered list of peers
@@ -195,6 +197,14 @@ class PeersManager(object):
         del self.peers[id_]
         self.ccwPeers.delete(p)
         self.distPeers.delete(p)
+
+    def recalculate(self):
+        """ Recalculate topology information. This functions must be
+        called when the node position has changed. """
+        peers = self.enumeratePeers()
+        self.reset()
+        for p in peers:
+            self.addPeer(p)
 
     def updatePeer(self, p):
         """ update information on a peer. """

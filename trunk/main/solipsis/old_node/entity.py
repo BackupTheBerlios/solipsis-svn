@@ -29,8 +29,6 @@ class Entity(object):
 
         # position
         self.position = position
-        # position of this entity in the coordinate system centered on the node
-        self.relativePosition = None
 
         # awareness radius, calibre, pseudo, orientation
         self.awarenessRadius = awarenessRadius
@@ -62,9 +60,6 @@ class Entity(object):
     def getPosition(self):
         return self.position
 
-    def getRelativePosition(self):
-        return self.relativePosition
-
     def getAwarenessRadius(self):
         return self.awarenessRadius
 
@@ -81,7 +76,7 @@ class Entity(object):
         self.orientation = value
 
     def setAwarenessRadius(self, value):
-        self.awarenessRadius = value
+        self.awarenessRadius = long(value)
 
     def setCalibre(self, value):
         self.calibre = value
@@ -93,11 +88,6 @@ class Entity(object):
         """ Set the new position of this entity
         pos : a Position object """
         self.position = pos
-
-    def setRelativePosition(self, pos):
-        """ Set the new position of this entity
-        pos : a Position object """
-        self.relativePosition = pos
 
     def setAddress(self, newAddress):
         """ newAddress : a Address object"""

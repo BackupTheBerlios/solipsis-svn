@@ -161,6 +161,11 @@ class NetworkLoop(threading.Thread):
         self.node_connector.CallControl('move', str(2**127+12), str(2**127+325), 0)
         #self.node_connector.Disconnect(*args, **kargs)
 
+    def MoveTo(self, (x, y)):
+        x = str(long(x))
+        y = str(long(y))
+        print "move to:", x, y
+        self.node_connector.CallControl('move', x, y, 0)
 
     #
     # Private methods

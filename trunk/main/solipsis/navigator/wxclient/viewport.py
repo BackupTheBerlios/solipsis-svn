@@ -221,9 +221,6 @@ class Viewport(object):
         sn = math.sin(-self.angle)
         fx = self.fmod((x * cs - y * sn) / self.ratio) + cx
         fy = self.fmod((y * cs + x * sn) / self.ratio) + cy
-#         fx = ((x * cs - y * sn) / self.ratio) + cx
-#         fy = ((y * cs + x * sn) / self.ratio) + cy
-        print x, y, "=", fx, fy
         self._SetFutureCenter((fx,fy))
 
         # Change orientation according to the destination we move towards
@@ -245,6 +242,13 @@ class Viewport(object):
             self._SetFutureAngle(self.angle + angle)
 
         self._ViewportGeometryChanged()
+        fx = self.fmod(fx)
+        fy = self.fmod(fy)
+        if fx < 0.0:
+            fx += self.world_size
+        if fy < 0.0:
+            fy += self.world_size
+        return (fx, fy)
 
     def PendingRedraw(self):
         r = self.redraw_pending
@@ -319,8 +323,11 @@ class Viewport(object):
             dc.SetPen(pen)
             r = self.destination_radius / dist
             dx, dy = (fx - cx) * r, (fy - cy) * r
-            dc.DrawLine(fx - dx, fy - dy, fx + dx, fy + dy)
-            dc.DrawLine(fx - dy, fy + dx, fx + dy, fy - dx)
+            try:
+                dc.DrawLine(fx - dx, fy - dy, fx + dx, fy + dy)
+                dc.DrawLine(fx - dy, fy + dx, fx + dy, fy - dx)
+            except:
+                pass
 
     def _Animate(self, dc):
         """ Draw all pending animations in the viewport. """

@@ -112,8 +112,7 @@ class State(object):
         id_ = event.getArg(protocol.ARG_ID)
         manager = self.node.getPeersManager()
         if not manager.hasPeer(id_):
-            self.logger.debug('CLOSE from %s, but we are not connected',
-                peer.getId())
+            self.logger.debug('CLOSE from %s, but we are not connected' % id_)
             return
 
         self.removePeer(manager.getPeer(id_))
@@ -122,7 +121,7 @@ class State(object):
             self.updateAwarenessRadius()
 
             # we don't have enough peers but our Global Connectivity is OK
-            if manager.hasGlobalConnectity():
+            if manager.hasGlobalConnectivity():
                 self.node.setState(NotEnoughPeers())
             # not enough peers + GC is NOK
             else:
@@ -131,7 +130,7 @@ class State(object):
         # we still have enough peers
         else:
             # but we don't have our GC
-            if not manager.hasGlobalConnectity():
+            if not manager.hasGlobalConnectivity():
                 self.searchPeers()
                 self.node.setState(NoGlobalConnectivity())
 
@@ -546,7 +545,7 @@ class NotConnected(State):
         self.expectedMessages = [ 'MOVE', 'KILL', 'SET']
 
     def activate(self):
-        self.logger.debug('NotConnected(State)')
+        pass
 
 
 class Locating(State):
@@ -567,7 +566,7 @@ class Locating(State):
         self.startTimer()
 
     def activate(self):
-        self.logger.debug('Locating')
+        pass
 
     def NEAREST(self, event):
         super(Locating, self).NEAREST(event)
@@ -737,7 +736,7 @@ class Connecting(State):
         self.startTimer()
 
     def activate(self):
-        self.logger.debug('State Connecting')
+        pass
 
     def CONNECT(self, event):
         super(Connecting, self).CONNECT(event)
@@ -787,7 +786,7 @@ class Idle(State):
                                  'QUERYAROUND', 'DELSERVICE']
 
     def activate(self):
-        self.logger.debug('State Idle')
+        pass
 
 
 class NoGlobalConnectivity(State):
@@ -798,7 +797,7 @@ class NoGlobalConnectivity(State):
         self.startTimer()
 
     def activate(self):
-        self.logger.debug('NoGlobalConnectivity')
+        pass
 
     def FOUND(self, event):
         """ an entity detected in an empty sector
@@ -831,10 +830,10 @@ class NotEnoughPeers(State):
         self.startTimer()
 
     def activate(self):
-        self.logger.debug('NotEnoughPeers')
+        pass
 
     def CONNECT(self, event):
-        super(Connecting, self).CONNECT(event)
+        super(NotEnoughPeers, self).CONNECT(event)
         mng = self.node.getPeersManager()
 
         # we have now reached our number of expected neighbours
@@ -868,7 +867,7 @@ class NotEnoughPeersAndNoGlobalConnectivity(State):
         if not mng.hasTooFewPeers():
             self.timer.cancel()
             # our GC is also OK go to Idle state
-            if mng.hasGlobalConnectity():
+            if mng.hasGlobalConnectivity():
                 self.node.setState(Idle())
             # GC is still NOK : go to NoGlobalConnectivity state
             else:
@@ -877,7 +876,7 @@ class NotEnoughPeersAndNoGlobalConnectivity(State):
         # we still don't have enough peers
         else:
             # but now our GC is OK : go to state NotEnoughPeers
-            if mng.hasGlobalConnectity():
+            if mng.hasGlobalConnectivity():
                 self.timer.cancel()
                 self.updateAwarenessRadius()
                 self.node.setState(NotEnoughPeers())

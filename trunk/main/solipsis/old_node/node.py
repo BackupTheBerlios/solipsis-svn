@@ -118,9 +118,14 @@ class Node(Entity):
     def setState(self, stateObject):
         """ Change the current state of the node."""
         self.state = stateObject
+        self.logger.debug("State " + type(stateObject).__name__)
         stateObject.setNode(self)
         stateObject.setLogger(self.logger)
         stateObject.activate()
+
+    def setPosition(self, position):
+        super(Node, self).setPosition(position)
+        self.peersManager.recalculate()
 
     def dispatch(self, event):
         """ Send an event.

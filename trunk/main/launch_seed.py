@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import os
+import os, sys
 from solipsis.util.parameter import Parameters
 from solipsis.node.seed import Seed
 
@@ -9,6 +9,7 @@ def createNode(port, x, y):
     args = ['./runseed.sh']
     args +=  ['-b', '-p', str(port)]
     args +=  ['-x', str(x), '-y', str(y), '-f', 'conf/seed.conf']
+    args += sys.argv[1:]
     print args
     nodePID = os.spawnvpe(os.P_NOWAIT, './runseed.sh', args, os.environ)
     os.system
