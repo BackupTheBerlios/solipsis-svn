@@ -218,7 +218,7 @@ def checkMessage(data):
 if __name__ == '__main__':
     data = ("HEARTBEAT SOLIPSIS/1.0\r\n" +
             "Id: 192.168.0.1\r\n" +
-            "Position: 455464 - 78785425\r\n" +
+            "Position: 455464, 78785425, 0\r\n" +
             "\r\n")
     message = Message()
     print message.fromData(data)
