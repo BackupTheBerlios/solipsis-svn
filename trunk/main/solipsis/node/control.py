@@ -13,6 +13,11 @@ from delayedcaller import DelayedCaller
 
 
 class RemoteControl(object):
+    """
+    The RemoteControl is the object normally used to control the node.
+    Its "remote_Foo" methods can be called by an XML-RPC listener, a
+    SOAP listener, a local behaviour automaton, or anything else.
+    """
     def __init__(self, reactor, params, state_machine):
         self.reactor = reactor
         self.params = params

@@ -2,6 +2,10 @@
 from twisted.web import xmlrpc, server
 
 class Controller(xmlrpc.XMLRPC):
+    """
+    This Controller acts as an XML RPC request receiver.
+    It forwards these requests to a RemoteControl object.
+    """
     method_prefix = 'xmlrpc_'
 
     def __init__(self, reactor, params, remote_control):
@@ -11,12 +15,19 @@ class Controller(xmlrpc.XMLRPC):
         self.remote_control = remote_control
 
     def Start(self, pool_num=0):
+        """
+        Start listening to XML-RPC requests.
+        """
         self.listening = self.reactor.listenTCP(self.params.control_port + pool_num, server.Site(self))
 
     def Stop(self):
+        """
+        Stop listening.
+        """
         self.listening.stopListening()
 
     def __getattr__(self, name):
+        # Dispatch an RPC to the real connector
         if name.startswith(self.method_prefix):
             realname = 'remote_' + name[len(self.method_prefix):]
             print "proxying %s" % realname
