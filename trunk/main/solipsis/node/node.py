@@ -10,6 +10,8 @@ from entity import Entity
 
 
 class Node(Entity):
+    count = 0
+
     def __init__(self, reactor, params):
         self.reactor = reactor
         self.params = params
@@ -43,7 +45,9 @@ class Node(Entity):
 
     def CreateId(self):
         # TODO: reasonable ID generation and attribution
-        return "%s:%d" % (self.params.host, self.params.port)
+        id_ = "%s:%d_%d" % (self.params.host, self.params.port, Node.count)
+        Node.count += 1
+        return id_
 
 #     def SetPosition(self, position):
 #         super(Node, self).setPosition(position)

@@ -26,7 +26,7 @@ class StateMachine(object):
     """
     world_size = 2**128
 
-    teleportation_flood = 5
+    teleportation_flood = 3
     peer_neighbour_ratio = 2.0
 
     scanning_period = 1.0
@@ -37,6 +37,7 @@ class StateMachine(object):
 
     gc_trials = 3
     locating_timeout = 3.0
+    early_connecting_trials = 3
     locating_trials = 3
     scanning_trials = 3
     connecting_trials = 4
@@ -75,9 +76,9 @@ class StateMachine(object):
         # Expected number of neighbours (in awareness radius)
         self.expected_neighbours = params.expected_neighbours
         self.min_neighbours = self.expected_neighbours
-        self.max_neighbours = round(1.2 * self.expected_neighbours)
+        self.max_neighbours = round(1.4 * self.expected_neighbours)
         # Max number of connections (total)
-        self.max_connections = 2 * self.expected_neighbours
+        self.max_connections = self.max_neighbours * self.peer_neighbour_ratio
 
         self.peer_dispatch_cache = {}
         self.state_dispatch = {}
@@ -86,9 +87,9 @@ class StateMachine(object):
 
         self.Reset()
 
-    def __del__(self):
-        print "state machine finalized"
-        self.Reset()
+#     def __del__(self):
+#         print "state machine finalized"
+#         self.Reset()
 
     def Reset(self):
         self.state = None
@@ -124,7 +125,10 @@ class StateMachine(object):
 
     def TryConnect(self):
         self.Reset()
-        addresses = random.sample(self.bootup_addresses, self.teleportation_flood)
+        if len(self.bootup_addresses) > self.teleportation_flood:
+            addresses = random.sample(self.bootup_addresses, self.teleportation_flood)
+        else:
+            addresses = self.bootup_addresses
         self._StartFindNearest(addresses)
 
     def SetState(self, state):
@@ -225,6 +229,10 @@ class StateMachine(object):
 
     def state_EarlyConnecting(self):
         print "early connecting"
+        def _restart():
+            self.SetState(states.NotConnected())
+            self.TryConnect()
+
         def _check_gc():
             # Periodically check global connectivity
             if self.topology.HasGlobalConnectivity():
@@ -233,6 +241,7 @@ class StateMachine(object):
                 print "(still connecting)"
 
         self.caller.CallPeriodically(self.early_connecting_period, _check_gc)
+        self.caller.CallPeriodically(self.early_connecting_period * self.early_connecting_trials, _check_gc)
 
     def state_Connecting(self):
         print "connecting"
@@ -404,6 +413,7 @@ class StateMachine(object):
                 self.logger.info("BEST received, but peer is farther than our current best")
                 return
 
+        print "-> %d hops until BEST" % len(self.nearest_peers)
         self.best_peer = peer
         self.best_distance = distance
         self.nearest_peers.clear()
@@ -423,13 +433,15 @@ class StateMachine(object):
         """
         A peer sends us a FINDNEAREST query.
         """
+#         print "-> FINDNEAREST"
         id_ = args.id_
         target = args.position.getCoords()
         address = args.address
         (nearest, nearest_distance) = self.topology.GetClosestPeer(target, id_)
 
         # Check whether I am closer to the target than nearestPeer
-        if self.topology.RelativeDistance(target) < nearest_distance:
+        our_distance = self.topology.RelativeDistance(target)
+        if our_distance < nearest_distance:
             message = self._PeerMessage('BEST')
         # I'm closer : send a best message
         else:

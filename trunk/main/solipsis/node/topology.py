@@ -278,7 +278,8 @@ class Topology(object):
 
     def GetClosestPeer(self, target, exclude_id=None):
         """
-        Returns the peer that is the closest to a target position.
+        Selects the peer that is the closest to a target position.
+        Returns (peer, distance) tuple.
         """
         closest_id = None
         closest_distance = 0.0
@@ -288,8 +289,8 @@ class Topology(object):
         l = [(_norm(x + xc - xt) ** 2 + _norm(y + yc - yt) ** 2, id_)
                 for (id_, (x, y)) in self.relative_positions.iteritems()
                 if id_ != exclude_id]
-        closest_distance, closest_id = min(l)
-        return closest_id and (self.peers[closest_id], closest_distance) or None
+        sq_dist, closest_id = min(l)
+        return closest_id and (self.peers[closest_id], math.sqrt(sq_dist)) or None
 
     def GetPeerAround(self, target, exclude_id, clockwise=True, max_angle=None):
         """

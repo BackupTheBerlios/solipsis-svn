@@ -45,6 +45,8 @@ def main():
                           help="profile execution to node.prof")
         parser.add_option("-M", "--memdebug", action="store_true", dest="memdebug", default=False,
                           help="display periodic memory occupation statistics")
+        parser.add_option("", "--pool", type="int", dest="pool", default=0,
+                          help="pool of nodes")
         parser.add_option("", "--seed", action="store_true", dest="as_seed", default=False,
                           help="launch node as seed")
         params = Parameters(parser, config_file=config_file)
@@ -77,6 +79,7 @@ def main():
         else:
             # See Psyco documentation: http://psyco.sourceforge.net/psycoguide/module-psyco.html
 #             import psyco
+#             psyco.full()
 #             psyco.profile(watermark=0.005, time=120)
             profile_run()
 

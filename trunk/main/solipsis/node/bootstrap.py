@@ -2,8 +2,10 @@
 import sys
 import logging
 import re
+import random
 
 from solipsis.util.geometry import Position
+from solipsis.util.address import Address
 from node import Node
 from nodeconnector import NodeConnector
 from statemachine import StateMachine
@@ -18,32 +20,54 @@ class Bootstrap(object):
     def __init__(self, reactor, params):
         self.reactor = reactor
         self.params = params
-        self.node = Node(reactor, params)
-        self.state_machine = StateMachine(reactor, params, self.node)
-        self.node_connector = NodeConnector(reactor, params, self.state_machine)
-        self.node.position = Position(self.params.pos_x, self.params.pos_y, 0)
+        self.pool = []
 
-        if self.params.as_seed:
-            self.bootup_entities = self._ParseSeedsFile("conf/seed.met")
+        if self.params.pool:
+            # Prepare a pool of nodes
+            entities = []
+            state_machines = []
+            for i in range(self.params.pool):
+                port = self.params.port + i
+                entities.append((self.params.host, port))
+                node = Node(reactor, params)
+                node.address = Address(self.params.host, port)
+                node.position = Position(random.random() * 2**128, random.random() * 2**128, 0)
+                state_machine = StateMachine(reactor, params, node)
+                node_connector = NodeConnector(reactor, params, state_machine)
+                self.pool.append((port, node_connector, state_machine))
+            if self.params.as_seed:
+                self.bootup_entities = entities
+            else:
+                self.bootup_entities = self._ParseEntitiesFile(self.params.entities_file)
         else:
-            self.bootup_entities = self._ParseEntitiesFile(self.params.entities_file)
-            self.node.position = self.dummy_position
+            # Prepare a single node
+            node = Node(reactor, params)
+            node.position = Position(self.params.pos_x, self.params.pos_y, 0)
+            state_machine = StateMachine(reactor, params, node)
+            node_connector = NodeConnector(reactor, params, state_machine)
+            if self.params.as_seed:
+                self.bootup_entities = self._ParseSeedsFile("conf/seed.met")
+            else:
+                self.bootup_entities = self._ParseEntitiesFile(self.params.entities_file)
+                node.position = self.dummy_position
+            self.pool.append((self.params.port, node_connector, state_machine))
 
     def Run(self):
-        # Open Solipsis main port
-        try:
-            self.reactor.listenUDP(self.params.port, self.node_connector)
-        except Exception, e:
-            print str(e)
-            sys.exit(1)
+        for port, node_connector, state_machine in self.pool:
+            # Open Solipsis main port
+            try:
+                self.reactor.listenUDP(port, node_connector)
+            except Exception, e:
+                print str(e)
+                sys.exit(1)
 
-        # Setup the initial state
-        message_sender = self.node_connector.SendMessage
-        self.state_machine.Init(message_sender, self.bootup_entities)
-        if self.params.as_seed:
-            self.state_machine.ImmediatelyConnect()
-        else:
-            self.state_machine.TryConnect()
+            # Setup the initial state
+            message_sender = node_connector.SendMessage
+            state_machine.Init(message_sender, self.bootup_entities)
+            if self.params.as_seed:
+                state_machine.ImmediatelyConnect()
+            else:
+                state_machine.TryConnect()
 
         # Enter event loop
         self.reactor.run()
