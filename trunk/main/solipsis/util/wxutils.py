@@ -72,7 +72,7 @@ class IdPool(object):
             self.ids.append(new_id)
         else:
             new_id = self.ids[self.cursor]
-            self.cursor += 1
+        self.cursor += 1
         return new_id
 
 
