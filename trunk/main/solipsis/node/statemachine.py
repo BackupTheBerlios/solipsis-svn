@@ -26,15 +26,18 @@ class StateMachine(object):
     """
     world_size = 2**128
 
-    teleportation_flood = 3
+    # It is safer not to set this greater than 1
+    teleportation_flood = 1
     peer_neighbour_ratio = 2.0
 
+    # Various retry delays
     scanning_period = 1.0
     connecting_period = 1.0
-    early_connecting_period = 5.0
-    gc_check_period = 2.0
-    population_check_period = 4.0
+    early_connecting_period = 4.0
+    gc_check_period = 3.0
+    population_check_period = 5.0
 
+    # Various timeouts
     gc_trials = 3
     locating_timeout = 3.0
     early_connecting_trials = 3
@@ -80,10 +83,15 @@ class StateMachine(object):
         # Max number of connections (total)
         self.max_connections = self.max_neighbours * self.peer_neighbour_ratio
 
-        self.peer_dispatch_cache = {}
-        self.state_dispatch = {}
         self.caller = DelayedCaller(self.reactor)
         self.peer_sender = None
+        # Dispatch tables
+        self.peer_dispatch_cache = {}
+        self.state_dispatch = {}
+
+        # Statistics
+        self.received_messages = {}
+        self.sent_messages = {}
 
         self.Reset()
 
@@ -187,13 +195,25 @@ class StateMachine(object):
         else:
             func(args)
             try:
+                self.received_messages[request] += 1
+            except KeyError:
+                self.received_messages[request] = 1
+            # Heartbeat handling
+            try:
                 id_ = args.id_
             except AttributeError:
                 pass
             else:
-                # Heartbeat handling
                 if id_ in self.peer_timeouts:
                     self.peer_timeouts[id_].RescheduleCall('msg_receive_timeout')
+
+    def DumpStats(self):
+        requests = self.sent_messages.keys()
+        requests.extend([k for k in self.received_messages.keys() if k not in requests])
+        requests.sort()
+        print "\n... Message statistics ..."
+        for r in requests:
+            print "%s: %d sent, %d received" % (r, self.sent_messages.get(r, 0), self.received_messages.get(r, 0))
 
 
     #
@@ -937,4 +957,8 @@ class StateMachine(object):
             return
         data = self.parser.BuildMessage(message)
         self._SendToAddress(peer.address, message)
+        try:
+            self.sent_messages[message.request] += 1
+        except KeyError:
+            self.sent_messages[message.request] = 1
 

@@ -1,3 +1,3 @@
 #!/bin/sh
 
-./twistednode.sh --pool 10 -p $1
+nice ./twistednode.sh --pool 10 -p $1

@@ -71,6 +71,8 @@ class Bootstrap(object):
 
         # Enter event loop
         self.reactor.run()
+        for _, _, state_machine in self.pool:
+            state_machine.DumpStats()
 
     #
     # Private methods
