@@ -47,6 +47,10 @@ class Parameters(object):
         'pseudo': ('pseudo', unicode, u""),
     }
 
+    services_section = {
+        'directory': ('services_dir', os.path.normcase, None),
+    }
+
     def __init__(self, option_parser, config_file="", defaults=None):
         """
         Parameters(options, additional_defaults_values)
@@ -114,6 +118,7 @@ class Parameters(object):
 
         self.LoadSection("solipsis", self.solipsis_section)
         self.LoadSection("navigator", self.navigator_section)
+        self.LoadSection("services", self.services_section)
 
         #
         # Logging configuration

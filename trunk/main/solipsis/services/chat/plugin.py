@@ -17,13 +17,15 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
 
+import wx
+
 from solipsis.util.wxutils import _
 from solipsis.services.plugin import ServicePlugin
 
 
 class Plugin(ServicePlugin):
     def GetTitle(self):
-        return _("Discussion")
+        return _("Chat")
 
     def GetDescription(self):
         return _("Talk with the people that are currently around you")
@@ -33,6 +35,13 @@ class Plugin(ServicePlugin):
 
     def GetPointToPointAction(self):
         return None
+
+    def Enable(self):
+        menu = wx.Menu()
+        self.service_api.SetMenu('Chat', menu)
+
+    def Disable(self):
+        pass
 
     def NewPeer(self, peer):
         print "chat: NEW %s" % peer.id_

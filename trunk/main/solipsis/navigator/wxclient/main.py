@@ -34,7 +34,7 @@ def main():
                         help="dump memory occupation statistics")
     params = Parameters(parser, config_file=config_file)
 
-    application = NavigatorApp(redirect=False, parameters=params)
+    application = NavigatorApp(redirect=False, params=params)
     application.MainLoop()
     sys.exit(0)
 

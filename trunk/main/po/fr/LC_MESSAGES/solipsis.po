@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Solipsis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-01-19 12:26+0100\n"
+"POT-Creation-Date: 2005-01-20 11:56+0100\n"
 "PO-Revision-Date: 2005-01-19 12:26+0100\n"
 "Last-Translator: Antoine Pitrou <antoine@pitrou.net>\n"
 "Language-Team: Solipsis translators <antoine@pitrou.net>\n"
@@ -52,7 +52,7 @@ msgstr "&Valider"
 msgid "About"
 msgstr "À propos"
 
-#: solipsis/navigator/wxclient/app.py:381
+#: solipsis/navigator/wxclient/app.py:400
 msgid "About Solipsis"
 msgstr "À propos de Solipsis"
 
@@ -64,6 +64,10 @@ msgstr "À propos..."
 msgid "Automatic proxy detection"
 msgstr "Détection automatique"
 
+#: solipsis/services/chat/plugin.py:26
+msgid "Chat"
+msgstr ""
+
 #: solipsis/services/chat/plugin.py:32
 msgid "Chat with all peers"
 msgstr ""
@@ -72,15 +76,15 @@ msgstr ""
 msgid "Connect to Solipsis"
 msgstr "Connexion à Solipsis"
 
-#: solipsis/navigator/wxclient/app.py:380
+#: solipsis/navigator/wxclient/app.py:399
 msgid "Connect to node"
 msgstr "Se connecter à un nœud"
 
-#: solipsis/navigator/wxclient/app.py:441
+#: solipsis/navigator/wxclient/app.py:460
 msgid "Connection error"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:440
+#: solipsis/navigator/wxclient/app.py:459
 msgid ""
 "Connection to the node has failed. \n"
 "Please the check the node is running, then retry."
@@ -89,13 +93,9 @@ msgstr ""
 "Veuillez vérifiez que le nœud est lancé \n"
 "et réessayez de vous connecter."
 
-#: solipsis/navigator/wxclient/app.py:378
+#: solipsis/navigator/wxclient/app.py:397
 msgid "Disconnect"
 msgstr "Se déconnecter"
-
-#: solipsis/services/chat/plugin.py:26
-msgid "Discussion"
-msgstr ""
 
 #: entr�e standard:6 standard:29
 msgid "Edit"
@@ -127,7 +127,7 @@ msgstr ""
 "autre machine, il vous sera peut-être nécessaire\n"
 "de changer les réglages du proxy HTTP."
 
-#: solipsis/navigator/wxclient/app.py:455
+#: solipsis/navigator/wxclient/app.py:474
 msgid "Kill refused"
 msgstr ""
 
@@ -151,15 +151,15 @@ msgstr "Aucun serveur proxy"
 msgid "Node address"
 msgstr "Adresse du noeud"
 
-#: solipsis/navigator/wxclient/app.py:275
+#: solipsis/navigator/wxclient/app.py:285
 msgid "Not connected"
 msgstr "Déconnecté"
 
-#: entr�e standard:20 solipsis/navigator/wxclient/app.py:263
+#: entr�e standard:20 solipsis/navigator/wxclient/app.py:273
 msgid "Not implemented"
 msgstr "Non disponible"
 
-#: solipsis/navigator/wxclient/app.py:376
+#: solipsis/navigator/wxclient/app.py:395
 #, python-format
 msgid "Peer \"%s\""
 msgstr "Nœud \"%s\""
@@ -226,7 +226,7 @@ msgstr ""
 msgid "Talk with the people that are currently around you"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:274
+#: solipsis/navigator/wxclient/app.py:284
 msgid ""
 "This action cannot be performed, \n"
 "because you are not connected to a node."
@@ -234,7 +234,7 @@ msgstr ""
 "Cette action n'est pas disponible \n"
 "car vous n'êtes pas connecté."
 
-#: solipsis/navigator/wxclient/app.py:262
+#: solipsis/navigator/wxclient/app.py:272
 msgid ""
 "This function is not yet implemented.\n"
 "Sorry! Please come back later..."
@@ -246,7 +246,11 @@ msgid ""
 "Sorry! please come back later...\n"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:454
+#: solipsis/node/bootstrap.py:43
+msgid "Toto"
+msgstr ""
+
+#: solipsis/navigator/wxclient/app.py:473
 msgid "You cannot kill this node."
 msgstr "Vous ne pouvez pas tuer ce nœud."
 

@@ -22,6 +22,7 @@ import gc
 import sys
 import wx
 import wx.xrc
+import bisect
 from wx.xrc import XRCCTRL, XRCID
 
 from solipsis.util.uiproxy import TwistedProxy, UIProxyReceiver
@@ -35,14 +36,16 @@ from world import World
 from network import NetworkLoop
 from config import ConfigUI, ConfigData
 
+from solipsis.services.collector import ServiceCollector
+
 
 class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     """
     Main application class. Derived from wxPython "wx.App".
     """
 
-    def __init__(self, parameters, *args, **kargs):
-        self.params = parameters
+    def __init__(self, params, *args, **kargs):
+        self.params = params
         self.alive = True
         self.redraw_pending = False
         self.config_data = ConfigData()
@@ -52,10 +55,12 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             gc.set_debug(gc.DEBUG_LEAK)
         else:
             self.memsizer = None
-        
+
         self.dialogs = None
         self.windows = None
         self.menubars = None
+        
+        self.services = ServiceCollector(params, self)
 
         # Caution : wx.App.__init__ automatically calls OnInit(),
         # thus all data must be initialized before
@@ -147,6 +152,16 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             validator = validator_class(data_obj.Ref(data_attr))
             XRCCTRL(window, control_name).SetValidator(validator)
 
+    def InitServices(self):
+        """
+        Initialize all services.
+        """
+        # We will insert service menus just before the last menu,
+        # which is the "Help" menu
+        self.service_menus = []
+        self.service_menu_pos = self.main_menubar.GetMenuCount() - 1
+        self.services.ReadServices()
+
 
     def OnInit(self):
         """
@@ -207,6 +222,10 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         
         if self.memsizer:
             self._MemDebug()
+        
+        # 4. Other tasks are launched after the window is drawn
+        wx.FutureCall(1000, self.InitServices)
+        
         return True
 
 
@@ -473,3 +492,16 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         msg = _("You cannot kill this node.")
         dialog = wx.MessageDialog(None, msg, caption=_("Kill refused"), style=wx.OK | wx.ICON_ERROR)
         dialog.ShowModal()
+
+    #===-----------------------------------------------------------------===#
+    # Actions from the network thread(s)
+    #
+    def SetServiceMenu(self, service_id, title, menu):
+        val = (title, service_id)
+        pos = bisect.bisect_right(self.service_menus, val)
+        if pos == len(self.service_menus) or self.service_menus[pos][1] != service_id:
+            self.main_menubar.Insert(pos + self.service_menu_pos, menu, title)
+            self.service_menus.insert(pos, val)
+        else:
+            self.main_menubar.Replace(pos + self.service_menu_pos, menu, title)
+            self.service_menus[pos] = val
