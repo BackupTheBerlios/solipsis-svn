@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
-import os, sys
+import os
+import os.path
+import sys
 import time
 
 pool_size = 20
@@ -10,19 +12,24 @@ delay = 7.0
 
 
 def create_nodes(n, port, custom_args):
-    prog_name = '.' + os.sep + 'twistednode.sh'
+    prog_name = os.path.normcase('.' + os.sep + 'twistednode.py')
     args = [prog_name]
     args +=  ['-b', '-d', '-p', str(port)]
     args +=  ['-f', 'conf/seed.conf', '--pool', str(n)]
     args += custom_args
     cmdline = " ".join(args)
     print cmdline
+    # Here we use subprocess for portability, but in case it doesn't exist
+    # (Python < 2.4) we fall back on os.spawnv which does not allow direct
+    # execution of .py files under Windows.
     try:
         import subprocess
     except ImportError:
-        os.spawnl(os.P_NOWAIT, prog_name, args)
+        print "using os.spawnv..."
+        os.spawnv(os.P_NOWAIT, prog_name, args)
     else:
-        subprocess.Popen(prog_name, shell=True)
+        print "using subprocess.Popen..."
+        subprocess.Popen(cmdline, shell=True)
 
 def usage():
     print "Usage: %s <number of nodes>" % sys.argv[0]
