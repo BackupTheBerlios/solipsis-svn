@@ -63,7 +63,7 @@ class Plugin(ServicePlugin):
         window = ChatWindow(self, self.service_api.GetDirectory())
         main_window = self.service_api.GetMainWindow()
         self.ui = UIProxy(window)
-        self.ui.AddPeer(self.service_api.GetNode())
+        #~ self.ui.AddPeer(self.service_api.GetNode())
         # Set up network connection
         #~ n = NetworkLauncher(self.reactor, self, self.port)
         #~ self.network = TwistedProxy(n, self.reactor)
