@@ -145,6 +145,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             [ self.connect_dialog, "connect_pseudo", NicknameValidator, c, "pseudo" ],
             [ self.prefs_dialog, "proxymode_auto", BooleanValidator, c, "proxymode_auto" ],
             [ self.prefs_dialog, "proxymode_manual", BooleanValidator, c, "proxymode_manual" ],
+            [ self.prefs_dialog, "proxymode_none", BooleanValidator, c, "proxymode_none" ],
             [ self.prefs_dialog, "proxy_host", HostnameValidator, c, "proxy_host" ],
             [ self.prefs_dialog, "proxy_port", PortValidator, c, "proxy_port" ],
             [ self.prefs_dialog, "node_autokill", BooleanValidator, c, "node_autokill" ],
@@ -381,6 +382,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.config_data.port = 8550
         self.config_data.proxymode_auto = False
         self.config_data.proxymode_manual = False
+        self.config_data.proxymode_none = True
         self.config_data.Autocomplete()
         # Hack so that the node has the time to launch
         self.connection_trials = 5

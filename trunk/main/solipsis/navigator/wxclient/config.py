@@ -39,6 +39,7 @@ class ConfigData(ManagedData):
         self.always_try_without_proxy = True
         self.proxymode_auto = True
         self.proxymode_manual = False
+        self.proxymode_none = False
         self.proxy_mode = ""
         self.proxy_pac_url = ""
         self.proxy_host = ""
