@@ -99,6 +99,7 @@ class StateMachine(object):
         'FOUND':        [],
         'HEARTBEAT':    [],
         'HELLO':        [],
+        'JUMPNEAR':     [],
         'META':         [],
         'NEAREST':      [states.Locating, states.Scanning],
         'QUERYAROUND':  [states.Idle],
@@ -107,6 +108,7 @@ class StateMachine(object):
         'SEARCH':       [states.Idle],
         'SERVICEDATA':  [],
         'SERVICEINFO':  [],
+        'SUGGEST':      [],
         'UPDATE':       [],
     }
 
@@ -152,6 +154,8 @@ class StateMachine(object):
         # BEST peer discovered at the end of a FINDNEAREST chain
         self.best_peer = None
         self.best_distance = 0.0
+        # Address of peer we asked a JUMPNEAR
+        self.jump_near_address = None
 
         # Delayed calls
         self.peer_timeouts = {}
@@ -712,6 +716,34 @@ class StateMachine(object):
         if around is not None:
             self._SendToPeer(peer, self._PeerMessage('FOUND', remote_peer=around))
 
+    def peer_JUMPNEAR(self, args):
+        """
+        A peer asks a position suggestion around the node.
+        """
+        x, y = self.topology.SuggestPosition(self.node.awareness_radius)
+        message = self._PeerMessage('SUGGEST')
+        message.args.remote_position = Position((x, y, 0.0))
+        self._SendToAddress(args.address, message)
+
+    def peer_SUGGEST(self, args):
+        """
+        A peer answers a position suggestion in response to a JUMPNEAR message.
+        """
+        # Instantiate the target peer
+        if not self.jump_near_address or self.jump_near_address != args.address:
+            self.logger.warning("Error, reception of unexpected SUGGEST message from peer '%s'"
+                % str(args.id_))
+            return
+        peer = self._Peer(args)
+        self.jump_near_address = None
+
+        # Really jump near the target peer
+        self.future_topology.Reset()
+        self.future_topology.AddPeer(peer)
+        self._ChangePosition(args.remote_position)
+        self._Jump()
+
+
     #
     # Control events
     #
@@ -775,13 +807,7 @@ class StateMachine(object):
         x %= self.world_size
         y %= self.world_size
         position = Position((x, y, z))
-        self.node.position = position
-        self.topology.SetOrigin((x, y))
-        # Important: this handles the case when the user continues moving
-        # while we are changing topologies
-        if self.future_topology is not None:
-            self.future_topology.SetOrigin((x, y))
-        self.moved = True
+        self._ChangePosition(position)
 
         def _finish():
             self.moved = False
@@ -795,6 +821,14 @@ class StateMachine(object):
         else:
             # Otherwise, do a full-fledged teleport
             self._Jump()
+    
+    def JumpNear(self, address):
+        """
+        Try to jump near an existing entity.
+        """
+        message = self._PeerMessage('JUMPNEAR')
+        self._SendToAddress(address, message)
+        self.jump_near_address = address
     
     def SendServiceData(self, id_, service_id, data):
         """
@@ -897,6 +931,18 @@ class StateMachine(object):
         for p in self.future_topology.EnumeratePeers():
             if p not in old_peers:
                 self._SayHello(p.address)
+
+    def _ChangePosition(self, position):
+        """
+        Low-level function to cleanly change the node position.
+        """
+        self.node.position = position
+        self.topology.SetOrigin((position.x, position.y))
+        # Important: this handles the case when the user continues moving
+        # while we are changing topologies
+        if self.future_topology is not None:
+            self.future_topology.SetOrigin((position.x, position.y))
+        self.moved = True
 
     def _Jump(self, topology=None):
         """

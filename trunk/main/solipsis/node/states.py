@@ -49,7 +49,8 @@ class NotConnected(State):
     Thus the only possible action is to to MOVE to an absolute position,
     which will trigger the Locating - Scanning - Connecting algorithm.
     """
-    expected_peer_messages = ['SERVICEDATA']
+    expected_peer_messages = [
+        'SERVICEDATA']
 
 
 class Locating(State):
@@ -58,7 +59,8 @@ class Locating(State):
 
     This means the node is expecting a BEST message from its latest peer.
     """
-    expected_peer_messages = ['SERVICEDATA', 'NEAREST', 'BEST', 'HEARTBEAT']
+    expected_peer_messages = [
+        'SERVICEDATA', 'NEAREST', 'BEST', 'HEARTBEAT', 'SUGGEST']
 
 
 class Scanning(State):
@@ -66,7 +68,8 @@ class Scanning(State):
     State Scanning: The node has found its place in the world. It is asking its
     first neighbours to discover other neighbours around its target positions.
     """
-    expected_peer_messages = ['SERVICEDATA', 'NEAREST', 'BEST', 'AROUND', 'HEARTBEAT', 'FINDNEAREST']
+    expected_peer_messages = [
+        'SERVICEDATA', 'NEAREST', 'BEST', 'AROUND', 'HEARTBEAT', 'FINDNEAREST', 'SUGGEST']
 
 
 class Connecting(State):
@@ -82,7 +85,8 @@ class EarlyConnecting(State):
     before launching the proper locating procedure.
     This state is a special state only used for the world creation.
     """
-    expected_peer_messages = ['SERVICEDATA', 'HELLO', 'CONNECT', 'CLOSE', 'HEARTBEAT', 'META', 'QUERYMETA']
+    expected_peer_messages = [
+        'SERVICEDATA', 'HELLO', 'CONNECT', 'CLOSE', 'HEARTBEAT', 'META', 'QUERYMETA']
 
 
 class Idle(State):

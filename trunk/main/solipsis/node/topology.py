@@ -20,6 +20,7 @@
 import logging
 import math
 import bisect
+import random
 
 # Python 2.3 compatibility
 try:
@@ -267,6 +268,16 @@ class Topology(object):
         dist_out = self.distance_peers[n][0]
         return math.sqrt(dist_in * dist_out) * (1.0 + self.epsilon)
 
+    def SuggestPosition(self, distance):
+        """
+        Suggest a random position within a given distance.
+        """
+        cx, cy = self.origin
+        angle = random.uniform(0.0, 2.0 * math.pi)
+        dist = random.uniform(0.0, distance)
+        x = cx + dist * math.cos(angle)
+        y = cy + dist * math.sin(angle)
+        return x, y
 
     #
     # Methods depending on a "target" position
