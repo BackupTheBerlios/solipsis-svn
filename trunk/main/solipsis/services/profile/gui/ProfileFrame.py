@@ -41,6 +41,13 @@ class ProfileFrame(wx.Frame):
         self.addpeer_item = wx.MenuItem(self.peers_item, wx.NewId(), _("&Add...\tCtrl+A"), _("Add saved peer to dedicated tab"), wx.ITEM_NORMAL)
         self.peers_item.AppendItem(self.addpeer_item)
         self.peers_item.AppendSeparator()
+        self.anonymous_item = wx.MenuItem(self.peers_item, wx.NewId(), _("Anonymous"), "", wx.ITEM_RADIO)
+        self.peers_item.AppendItem(self.anonymous_item)
+        self.friend_item = wx.MenuItem(self.peers_item, wx.NewId(), _("Friend"), "", wx.ITEM_RADIO)
+        self.peers_item.AppendItem(self.friend_item)
+        self.blacklisted_item = wx.MenuItem(self.peers_item, wx.NewId(), _("Black listed"), "", wx.ITEM_RADIO)
+        self.peers_item.AppendItem(self.blacklisted_item)
+        self.peers_item.AppendSeparator()
         self.raw_item = wx.MenuItem(self.peers_item, wx.NewId(), _("&Find...\tCtrl+F"), _("Search profile in surrounding area"), wx.ITEM_NORMAL)
         self.peers_item.AppendItem(self.raw_item)
         self.filters_item = wx.MenuItem(self.peers_item, wx.NewId(), _("Filters...\tCtrl+H"), _("Create active filters to get notified on peers approach"), wx.ITEM_NORMAL)
@@ -69,7 +76,11 @@ class ProfileFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_save, id=self.save_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_load, id=self.load_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_quit, id=self.quit_item.GetId())
+        
         self.Bind(wx.EVT_MENU, self.on_add, id=self.addpeer_item.GetId())
+        self.Bind(wx.EVT_MENU, self.on_make_friend, id=self.friend_item.GetId())
+        self.Bind(wx.EVT_MENU, self.on_blacklist, id=self.blacklisted_item.GetId())
+        self.Bind(wx.EVT_MENU, self.on_anonymous, id=self.anonymous_item.GetId())
 
     def on_add(self, evt):
         """save .profile.solipsis"""
@@ -126,6 +137,24 @@ class ProfileFrame(wx.Frame):
     def on_quit(self, evt):
         """end application"""
         self.Close()
+
+    def on_make_friend(self, evt):
+        """end application"""
+        pseudo = self.other_tab.peers_list.get_peer_selected()
+        if pseudo:
+            self.facade.make_friend(pseudo)
+
+    def on_blacklist(self, evt):
+        """end application"""
+        pseudo = self.other_tab.peers_list.get_peer_selected()
+        if pseudo:
+            self.facade.blacklist_peer(pseudo)
+
+    def on_anonymous(self, evt):
+        """end application"""
+        pseudo = self.other_tab.peers_list.get_peer_selected()
+        if pseudo:
+            self.facade.unmark_peer(pseudo)
         
     def __set_properties(self):
         # begin wxGlade: ProfileFrame.__set_properties

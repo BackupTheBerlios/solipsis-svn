@@ -31,9 +31,9 @@ class FileDescriptor:
 class PeerDescriptor:
     """contains information relative to peer of neioboourhood"""
 
-    ANONYMOUS = 0
-    FRIEND = 1
-    BLACKLISTED = 2
+    ANONYMOUS = 'Anonym'
+    FRIEND = 'Friend'
+    BLACKLISTED = 'Blacklisted'
     COLORS = {ANONYMOUS: 'black',
               FRIEND:'blue',
               BLACKLISTED:'red'}
@@ -56,6 +56,9 @@ class AbstractDocument:
 
     def __init__(self, name="abstract"):
         self.name = name
+
+    def __repr__(self):
+        return self.name
 
     def get_name(self):
         """used as key in index"""
@@ -92,11 +95,11 @@ class AbstractDocument:
         for pseudo, (peer_desc, peer_doc) in peers.iteritems():
             self.add_peer(pseudo)
             peer_doc and self.fill_data((pseudo, peer_doc))
-            if int(peer_desc.state) == PeerDescriptor.ANONYMOUS:
+            if peer_desc.state == PeerDescriptor.ANONYMOUS:
                 self.unmark_peer(pseudo)
-            elif int(peer_desc.state) == PeerDescriptor.FRIEND:
+            elif peer_desc.state == PeerDescriptor.FRIEND:
                 self.make_friend(pseudo)
-            elif int(peer_desc.state) == PeerDescriptor.BLACKLISTED:
+            elif peer_desc.state == PeerDescriptor.BLACKLISTED:
                 self.blacklist_peer(pseudo)
             else:
                 print >> sys.stderr, "state %s not recognised"% peer_desc.state
@@ -274,6 +277,11 @@ class AbstractDocument:
     # OTHERS TAB
     def add_peer(self, pseudo):
         """stores Peer object"""
+        if not isinstance(pseudo, unicode):
+            raise TypeError("pseudo expected as unicode")
+        
+    def remove_peer(self, pseudo):
+        """del Peer object"""
         if not isinstance(pseudo, unicode):
             raise TypeError("pseudo expected as unicode")
     
@@ -499,6 +507,12 @@ class CacheDocument(AbstractDocument):
         """stores Peer object"""
         AbstractDocument.add_peer(self, pseudo)
         self.peers[pseudo] = [PeerDescriptor(pseudo), None]
+        
+    def remove_peer(self, pseudo):
+        """del Peer object"""
+        AbstractDocument.remove_peer(self, pseudo)
+        if self.peers.has_key(pseudo):
+            del self.peers[pseudo]
     
     def get_peers(self):
         """returns Peers"""
@@ -788,27 +802,34 @@ class FileDocument(AbstractDocument):
     # OTHERS TAB
     def add_peer(self, pseudo):
         """stores Peer object"""
-        self.config.set(SECTION_OTHERS, pseudo, "")
+        AbstractDocument.add_peer(self, pseudo)
+        self.config.set(SECTION_OTHERS, pseudo, PeerDescriptor.ANONYMOUS)
+        
+    def remove_peer(self, pseudo):
+        """del Peer object"""
+        AbstractDocument.remove_peer(self, pseudo)
+        if self.config.has_option(SECTION_OTHERS, pseudo):
+            self.config.remove_option(SECTION_OTHERS, pseudo)
     
     def get_peers(self):
         """returns Peers"""
         result = {}
         try:
             options = self.config.options(SECTION_OTHERS)
-            for option in options:
-                uoption = unicode(option, self.encoding)
-                result[uoption] = [PeerDescriptor(uoption,
-                                                  self.config.get(SECTION_OTHERS, uoption)),
-                                   None]
-                #TODO: load FileDocument corresponding to  other peer 
-        finally:
-            return result
+            for opt in options:
+                if isinstance(opt, str):
+                    opt = unicode(opt, self.encoding)
+                result[opt] = [PeerDescriptor(opt, self.config.get(SECTION_OTHERS, opt)), None]
+                #TODO: load FileDocument corresponding to  other peer
+        except Exception, err:
+            print >> sys.stderr, err
+        return result
         
 
     def fill_data(self, pair):
         """stores CacheDocument associated with peer"""
+        AbstractDocument.fill_data(self, pair)
         #TODO: create other FileDocument for other peer wich will be saved apart
-        pass
         
     def make_friend(self, pseudo):
         """sets peer as friend """

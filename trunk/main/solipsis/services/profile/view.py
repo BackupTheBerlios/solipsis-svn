@@ -309,6 +309,7 @@ class GuiView(AbstractView):
         peers = self.document.get_peers()
         for peer_and_doc in peers.values():
             self.frame.other_tab.peers_list.add_peer(*peer_and_doc)
+        self.frame.other_tab.peers_list.RefreshAll()
         
     def update_peer_preview(self, pseudo):
         """peer"""
@@ -420,7 +421,6 @@ class HtmlView(AbstractView):
         
     def update_custom_attributes(self):
         """dict custom_attributes"""
-        self.context.addGlobal("attributes_name", self.document.get_custom_attributes().keys())
         self.context.addGlobal("attributes", self.document.get_custom_attributes())
         self.update_view()
         
@@ -438,8 +438,5 @@ class HtmlView(AbstractView):
     # OTHERS TAB : frame.other_tab  
     def update_peers(self):
         """peer"""
-        peer_info = {}
-        for peer, document in self.document.get_peers().values():
-            peer_info[peer.pseudo] = document and document.get_firstname() or u"no data"
-        self.context.addGlobal("peers",  peer_info)
+        self.context.addGlobal("peers",  self.document.get_peers())
         self.update_view()

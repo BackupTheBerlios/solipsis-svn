@@ -56,11 +56,10 @@
 
   <h2 class="header">Special Interests</h2>
   <div>
-    <div tal:repeat="hobby hobbies"
-       tal:omit-tag=""><span tal:content="hobby">element</span> | </div>
+     <div tal:repeat="hobby hobbies" tal:omit-tag=""><span tal:content="hobby">element</span> | </div>
   </div>
-  <div tal:repeat="name attributes/keys">
-    <b tal:content="name">name</b>: <span tal:content="python:attributes[name]">value</span>
+  <div>
+    <div tal:repeat="name attributes/keys" tal:omit-tag=""><div><b tal:content="name">name</b>: <span tal:content="python:attributes[name]">value</span></div></div>
   </div>
 
   <h2 class="header">Personal Files</h2>
@@ -73,9 +72,10 @@
 
   <h2 class="header">Known Neighbors</h2>
   <table>
-    <tr tal:repeat="peer peers/values">
-      <td tal:content="peer/pseudo">pseudo</td>
-      <td tal:content="peer/state">state</td>
+    <tr tal:repeat="pseudo peers/keys">
+      <td tal:content="pseudo">pseudo</td>
+      <td tal:content="python:peers[pseudo][1] and peers[pseudo][1].get_firstname() or 'no data'">name</td>
+      <td tal:content="python:peers[pseudo][0].state">state</td>
     </tr>
   </table>
 </body>

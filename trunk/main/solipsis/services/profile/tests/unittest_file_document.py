@@ -7,7 +7,7 @@ import sys
 from difflib import Differ
 from StringIO import StringIO
 import os.path
-from solipsis.services.profile.document import FileDocument, CacheDocument
+from solipsis.services.profile.document import FileDocument, CacheDocument, PeerDescriptor
 from solipsis.services.profile.view import PrintView, HtmlView
 from solipsis.services.profile import PROFILE_DIR
 
@@ -33,7 +33,7 @@ email = manu@ft.com
 description = anything
 
 [Others]
-nico = 1
+nico = Friend
 
 [File]
 /usr/lib/python2.3/unittest.pyc = tag description
@@ -106,7 +106,7 @@ hobbies = blabla,bla bla bla,
         self.assertEquals("%s (tag description)"% unittest.__file__,
                           str(files[unittest.__file__]))
         peers = self.document.get_peers()
-        self.assertEquals('[nico (1), None]', str(peers['nico']))
+        self.assertEquals('[nico (%s), None]'% PeerDescriptor.FRIEND, str(peers['nico']))
 
 
     def test_import(self):
@@ -134,7 +134,7 @@ hobbies = blabla,bla bla bla,
         self.assertEquals("%s (tag description)"% unittest.__file__,
                           str(files[unittest.__file__]))
         peers = new_doc.get_peers()
-        self.assertEquals('[nico (1), None]', str(peers['nico']))
+        self.assertEquals('[nico (%s), None]'% PeerDescriptor.FRIEND, str(peers['nico']))
 
     def test_view(self):
         """import file document into printView"""
@@ -160,16 +160,10 @@ anything
 {'color': u'blue', 'homepage': u'manu.com'}
 .
 {'/usr/lib/python2.3/unittest.pyc': /usr/lib/python2.3/unittest.pyc (tag description)}
-{u'nico': [nico (1), None]}
-""")
+{u'nico': [nico (%s), None]}
+"""% PeerDescriptor.FRIEND)
         result.close()
         sys.stdout = sav_stdout
-
-    def test_html_view(self):
-        """import file document into printView"""
-        self.document.load(TEST_PROFILE)
-        view = HtmlView(self.document)
-        result = view.get_view()
         
 if __name__ == '__main__':
     unittest.main()

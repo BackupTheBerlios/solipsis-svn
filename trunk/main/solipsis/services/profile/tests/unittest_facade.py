@@ -5,7 +5,7 @@ import unittest
 import sys
 from StringIO import StringIO
 
-from solipsis.services.profile.document import CacheDocument
+from solipsis.services.profile.document import CacheDocument, PeerDescriptor
 from solipsis.services.profile.view import PrintView
 from solipsis.services.profile.facade import get_facade
 from mx.DateTime import DateTime
@@ -145,28 +145,39 @@ class FacadeTest(unittest.TestCase):
         self.assertEquals("", sys.stderr.getvalue())
 
     # OTHERS TAB
-    def test_default_peers(self):
+    def test_add_peer(self):
         """sets peer as friend """
         self.facade.add_peer(u"emb")
-        self.assertEquals("{u'emb': [emb (0), None]}\n", sys.stdout.getvalue())
+        self.assertEquals("{u'emb': [emb (%s), None]}\n"% PeerDescriptor.ANONYMOUS,
+                          sys.stdout.getvalue())
         self.assertEquals("", sys.stderr.getvalue())
         
+    def test_fill_data(self):
+        """fill data, then remove it"""
+        self.facade.fill_data((u"emb", CacheDocument()))
+        self.facade.remove_peer(u"emb")
+        self.assertEquals("{u'emb': [emb (%s), cache]}\n{}\n"% PeerDescriptor.BLACKLISTED,
+                          sys.stdout.getvalue())
+    
     def test_friend(self):
         """sets peer as friend """
         self.facade.make_friend(u"emb")
-        self.assertEquals("{u'emb': [emb (1), None]}\n", sys.stdout.getvalue())
+        self.assertEquals("{u'emb': [emb (%s), None]}\n"% PeerDescriptor.FRIEND,
+                          sys.stdout.getvalue())
         self.assertEquals("", sys.stderr.getvalue())
         
     def test_blacklisted(self):
-        """sets peer as friend """
+        """sets peer as blacklisted """
         self.facade.blacklist_peer(u"emb")
-        self.assertEquals("{u'emb': [emb (2), None]}\n", sys.stdout.getvalue())
+        self.assertEquals("{u'emb': [emb (%s), None]}\n"% PeerDescriptor.BLACKLISTED,
+                          sys.stdout.getvalue())
         self.assertEquals("", sys.stderr.getvalue())
         
     def test_unmarked(self):
-        """sets peer as friend """
+        """sets peer as anonymous """
         self.facade.unmark_peer(u"emb")
-        self.assertEquals("{u'emb': [emb (0), None]}\n", sys.stdout.getvalue())
+        self.assertEquals("{u'emb': [emb (%s), None]}\n"% PeerDescriptor.ANONYMOUS,
+                          sys.stdout.getvalue())
         self.assertEquals("", sys.stderr.getvalue())
 
     #TODO test fill_data
