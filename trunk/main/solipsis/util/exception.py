@@ -59,17 +59,17 @@ class ConnectorError(SolipsisException, IOError):
     pass
 
 
-class DuplicateIdError(SolipsisException):
+class DuplicateIdError(SolipsisException, Exception):
     def __init__(self, id_):
         self.message = "Error : duplicate ID '" + str(id_) + "'"
         super(DuplicateIdError, self).__init__(self.message)
 
-class UnknownIdError(SolipsisException):
+class UnknownIdError(SolipsisException, Exception):
     def __init__(self, id_):
         self.message = "Error : unknown ID" + str(id_)
         super(UnknownIdError, self).__init__(self.message)
 
-class EmptyIdError(SolipsisException):
+class EmptyIdError(SolipsisException, Exception):
     def __init__(self):
         self.message = "Error : ID is empty"
         super(EmptyIdError, self).__init__(self.message)

@@ -25,6 +25,7 @@ class ConnectionData(ManagedData):
             self.host = host
         if port:
             self.port = port
+        print self.pseudo, self.host, self.port
 
 
 
@@ -36,9 +37,9 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     def __init__(self, parameters, *args, **kargs):
         self.params = parameters
         print self.params
-        self.connection_data = ConnectionData()
         self.alive = True
         self.redraw_pending = False
+        self.connection_data = ConnectionData(self.params.control_host, self.params.control_port, self.params.pseudo)
 
         # Caution : wx.App.__init__ automatically calls OnInit(),
         # thus all data must be initialized before
@@ -113,7 +114,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             attr.SetSizeHintsSz(attr.GetBestVirtualSize())
 
         # Validators for various form controls
-        c = ConnectionData(self.params.control_host, self.params.control_port, self.params.pseudo)
+        c = self.connection_data
         validators = [
             # Containing window, control name, validator class, data object, data attribute
             [ self.connect_dialog, "connect_port", PortValidator, c, "port" ],
@@ -293,7 +294,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """ Called on connect submit event (Ok button). """
         if (self.connect_dialog.Validate()):
             self.connect_dialog.Hide()
-            print self.connection_data.host, self.connection_data.port
+            print self.connection_data._dict
             self.network.ConnectToNode(self.connection_data.host, self.connection_data.port)
             #self._NotImplemented()
 
