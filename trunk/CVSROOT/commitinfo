@@ -15,4 +15,4 @@
 # in addition to the first matching regex or "DEFAULT".
 
 CVSROOT /bin/true
-DEFAULT /home/cvs/activitymail -lg
+DEFAULT $CVSROOT/CVSROOT/activitymail -lg
