@@ -64,10 +64,8 @@
         <border>8</border>
       </object>
       <cols>1</cols>
-      <growablerows>0</growablerows>
-      <growablerows>1</growablerows>
-      <growablerows>2</growablerows>
       <growablecols>0</growablecols>
+      <growablerows>0</growablerows>
     </object>
     <style>wxDEFAULT_DIALOG_STYLE|wxSYSTEM_MENU|wxRESIZE_BORDER|wxRESIZE_BOX</style>
   </object>
