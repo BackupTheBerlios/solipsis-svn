@@ -1,4 +1,4 @@
-#!/usr/bin/python -Qnew
+#!/usr/bin/python
 import os,sys
 from solipsis.navigator.wxclient.main import main
 
