@@ -427,7 +427,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             if id_ is not None:
                 menu.Append(wx.NewId(), _('Peer "%s"') % self.world.GetPeer(id_).pseudo)
                 menu.AppendSeparator()
-            l = self.services.GetPopupMenuItems(menu)
+            l = self.services.GetPopupMenuItems(menu, id_)
             if len(l) > 0:
                 for item in l:
                     menu.AppendItem(item)
