@@ -44,7 +44,7 @@ class Parameters(object):
 
     navigator_section = {
         'translation_dir': ('translation_dir', os.path.normcase, None),
-        'pseudo': ('pseudo', unicode, u"anonymous"),
+        'pseudo': ('pseudo', unicode, u""),
     }
 
     def __init__(self, option_parser, config_file="", defaults=None):

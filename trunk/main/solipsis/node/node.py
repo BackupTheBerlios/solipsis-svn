@@ -19,6 +19,7 @@
 
 import sys
 import logging
+import random
 
 from solipsis.util.parameter import Parameters
 from solipsis.util.position import Position
@@ -30,6 +31,38 @@ from solipsis.util.entity import Entity, Service
 
 class Node(Entity):
     count = 0
+    
+    random_pseudos = [
+        u'aardvark',
+        u'cat',
+        u'dog',
+        u'elephant',
+        u'rabbit',
+        u'tasmanian devil',
+
+        u'Izwal',
+        u'Buggol',
+        u'Croolis-Ulv',
+        u'Croolis-Var',
+        u'Torka',
+        u'Trauma',
+        u'Migrax',
+        u'the Ark',
+        
+        u'another shrubbery',
+        u'argument clinic',
+        u'bakery',
+        u'castle Anthrax',
+        u'cheese shop',
+        u'family homestead',
+        u'garage',
+        u'gorge of eternal peril',
+        u'hell\'s grannies',
+        u'junk food shop',
+        u'police station',
+        u'shrubbery',
+        u'wine shop',
+    ]
 
     def __init__(self, reactor, params):
         self.reactor = reactor
@@ -39,9 +72,14 @@ class Node(Entity):
         position = Position((params.pos_x, params.pos_y, 0))
         address = Address(params.host, params.port)
 
-        # call parent class constructor
+        # Call parent class constructor
         Entity.__init__(self, id_=id_, position=position, pseudo=params.pseudo, address=address)
 
+        # Random pseudos for unnamed nodes
+        if not self.pseudo:
+            self.pseudo = unicode(random.choice(self.random_pseudos))
+
+        # Dummy test data
         self.languages = ['fr', 'en']
         self.AddService(Service('chat', address='127.0.0.1:5555'))
         self.AddService(Service('video', address='127.0.0.1:6543'))
