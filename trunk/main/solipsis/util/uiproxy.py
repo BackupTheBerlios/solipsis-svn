@@ -32,7 +32,6 @@ class TwistedProxy(object):
         self.enabled = True
 
     def __getattr__(self, name):
-        print "proxying network __getattr__", name
         attr = getattr(self._target, name)
         call = self.reactor.callFromThread
         if callable(attr):
@@ -65,7 +64,6 @@ class UIProxy(object):
         self._methods = {}
 
     def __getattr__(self, name):
-        print "proxying UI __getattr__", name
         attr = getattr(self._target, name)
         ProxyEvent = self._target._ProxyEvent
         if callable(attr):

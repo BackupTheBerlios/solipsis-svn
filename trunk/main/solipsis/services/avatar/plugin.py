@@ -26,6 +26,7 @@ from solipsis.util.uiproxy import TwistedProxy, UIProxy
 from solipsis.services.plugin import ServicePlugin
 
 from gui import ConfigDialog
+from network import NetworkLauncher
 
 
 class Plugin(ServicePlugin):
@@ -67,10 +68,15 @@ class Plugin(ServicePlugin):
         menu.Append(item_id, _("&Configure"))
         wx.EVT_MENU(main_window, item_id, self._Configure)
         self.service_api.SetMenu(_("Avatar"), menu)
+        # Set up network handler
+        network = NetworkLauncher(self.reactor, self, self.port)
+        self.network = TwistedProxy(network, self.reactor)
+        # Start network
+        self.network.Start()
 
     def Disable(self):
-        #~ self.network.Stop()
-        #~ self.network = None
+        self.network.Stop()
+        self.network = None
         self.ui.Destroy()
         self.ui = None
 
@@ -80,7 +86,6 @@ class Plugin(ServicePlugin):
         except ValueError:
             pass
         else:
-            #~ self.ui.AddPeer(peer)
             self.hosts[peer.id_] = host, port
 
     def ChangedPeer(self, peer, service):
@@ -89,21 +94,15 @@ class Plugin(ServicePlugin):
         except ValueError:
             if peer.id_ in self.hosts:
                 del self.hosts[peer.id_]
-                #~ self.ui.RemovePeer(peer.id_)
-                self._SetHosts()
         else:
-            #~ self.ui.UpdatePeer(peer)
             self.hosts[peer.id_] = host, port
 
     def LostPeer(self, peer_id):
         if peer_id in self.hosts:
             del self.hosts[peer_id]
-            #~ self.ui.RemovePeer(peer_id)
     
     def ChangedNode(self, node):
         pass
-        #~ self.ui.RemovePeer(node.id_)
-        #~ self.ui.AddPeer(node)
     
     def _Configure(self, evt):
         self.ui.Configure()

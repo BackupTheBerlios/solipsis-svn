@@ -17,10 +17,11 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
 
+import os
 import wx
 from wx.xrc import XRCCTRL, XRCID
 
-from PIL import Image, ImageDraw
+from PIL import Image
 
 from solipsis.util.uiproxy import UIProxyReceiver
 from solipsis.util.wxutils import _
@@ -29,38 +30,76 @@ from solipsis.util.wxutils import *        # '*' doesn't import '_'
 
 class ConfigDialog(wx.EvtHandler, XRCLoader, UIProxyReceiver):
     size = 64
+    # We voluntarily limit the list of supported file formats
+    # in order to make interoperability easier
+    allowed_formats = ['PNG', 'GIF', 'JPEG']
 
-    def __init__(self, plugin, dir):
+    def __init__(self, plugin, plugin_dir):
         self.plugin = plugin
-        self.dir = dir
+        self.plugin_dir = plugin_dir
+        self.filename = 'avatars/dauphin.jpg'
+        self.avatar_dir = 'avatars'
 
         wx.EvtHandler.__init__(self)
         UIProxyReceiver.__init__(self)
 
     def Configure(self):
-        f = 'avatars/dauphin.jpg'
-        source = Image.open(f)
-        # Resize to desired target size
-        resized = source.resize((self.size, self.size), Image.BICUBIC)
-        # Build mask to shape the avatar inside a circle
-        transparent = (0,255,0,0)
-        opaque = (255,0,0,255)
-        background = (0,0,255,0)
-        mask = Image.new('RGBA', (self.size, self.size), transparent)
-        draw = ImageDraw.Draw(mask)
-        draw.ellipse((0, 0, self.size - 1, self.size - 1), outline=opaque, fill=opaque)
-        # Build the final result
-        target = Image.new('RGBA', (self.size, self.size), background)
-        target.paste(resized, None, mask)
-        #~ target.show()
-        # Convert to wxBitmap
-        r, g, b, alpha = target.split()
-        rgb_data = Image.merge('RGB', (r, g, b))
-        image = wx.EmptyImage(self.size, self.size)
-        print len(rgb_data.tostring()), len(alpha.tostring())
-        image.SetData(rgb_data.tostring())
-        image.SetAlphaData(alpha.tostring())
-        bitmap = wx.BitmapFromImage(image)
+        """
+        Launches the configuration GUI.
+        When done, returns the chosen file path, or None.
+        """
+        file_spec = "%s (PNG, JPEG, GIF)|*.gif;*.png;*.jpg;*.jpeg|%s (*.*)|*.*" \
+            % (_("Images"), _("All files"))
+        dialog = wx.FileDialog(None, _("Choose your avatar"), 
+            defaultDir=os.path.realpath(self.avatar_dir),
+            defaultFile=os.path.basename(self.filename),
+            wildcard=file_spec,
+            style=wx.OPEN | wx.FILE_MUST_EXIST
+            )
+        # Loop while the user tries to choose a file and the file is not acceptable
+        while dialog.ShowModal() == wx.ID_OK:
+            filename = dialog.GetPath()
+            try:
+                # Try to open the file ourselves to check it is readable
+                f = file(filename, 'rb')
+            except IOError, e:
+                print str(e)
+                msg = _("The file you chose could not be opened.")
+                pass
+            else:
+                try:
+                    im = Image.open(f)
+                except IOError, e:
+                    pass
+                else:
+                    # Ensure the file format is one of the supported formats
+                    format = im.format
+                    # Explicitely delete the Image object (freeing some resources)
+                    del im
+                    if format in self.allowed_formats:
+                        dialog.Destroy()
+                        ok_dialog = wx.MessageDialog(None,
+                            _("Your avatar has been changed."),
+                            _("Avatar configured"),
+                            style=wx.OK | wx.ICON_INFORMATION)
+                        ok_dialog.ShowModal()
+                        return filename
+                msg = _("The file you chose does not belong to the \nsupported image types (%s).") \
+                    % ", ".join(self.allowed_formats)
+            # Display error dialog
+            msg += "\n" + _("Please choose another file.")
+            err_dialog = wx.MessageDialog(None, msg, _("Error"),
+                style=wx.OK | wx.ICON_ERROR)
+            err_dialog.ShowModal()
+        
+        # We come here if the user pressed Cancel in the file dialog
+        dialog.Destroy()
+        return None
+
+    def Destroy(self):
+        pass
+
+
         # Test!
         #~ b2 = wx.Bitmap('avatars/lion.jpg')
         #~ dialog = wx.Dialog(None, 4555, "title")
@@ -74,5 +113,15 @@ class ConfigDialog(wx.EvtHandler, XRCLoader, UIProxyReceiver):
         #~ dc.EndDrawing()
         #~ panel.Update()
 
-    def Destroy(self):
-        pass
+        # Test!
+        #~ b2 = wx.Bitmap('avatars/lion.jpg')
+        #~ dialog = wx.Dialog(None, 4555, "title")
+        #~ dialog.Show()
+        #~ panel = wx.Panel(dialog)
+        #~ dc = wx.ClientDC(panel)
+        #~ dc.BeginDrawing()
+        #~ dc.DrawText("toto", 5, 5)
+        #~ dc.DrawBitmap(bitmap, 30, 30, useMask=False)
+        #~ dc.DrawBitmap(b2, 130, 130, useMask=False)
+        #~ dc.EndDrawing()
+        #~ panel.Update()
