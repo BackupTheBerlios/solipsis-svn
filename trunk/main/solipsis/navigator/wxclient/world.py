@@ -29,32 +29,39 @@ class World(object):
     It receives events from the remote connector and communicates
     with the viewport to display the world on screen.
     """
+    class Item(object):
+        def __init__(self, peer):
+            self.peer = peer
+            self.label_id = None
+            self.avatar_id = None
+    
     def __init__(self, viewport):
+        self.charset = str(wx.GetLocale().GetSystemEncodingName())
         self.viewport = viewport
         self.Reset()
 
     def Reset(self):
-        self.peers = {}
+        self.items = {}
         self.viewport.Reset()
 
     def AddPeer(self, peer):
         """
         Called when a new peer is discovered.
         """
-        self.peers[peer.id_] = peer
-        charset = str(wx.GetLocale().GetSystemEncodingName())
+        item = self.Item(peer)
+        id_ = peer.id_
+        self.items[id_] = item
         x, y, z = peer.position
-        self.viewport.AddObject(peer.id_, None, position=(x, y))
-        self.viewport.AddDrawable(peer.id_, drawable.Image(images.IMG_AVATAR), (0, 0), 0)
-        #~ print repr(peer.pseudo.encode(charset))
-        self.viewport.AddDrawable(peer.id_, drawable.Text(peer.pseudo.encode(charset)), (0, 20), 1)
+        self.viewport.AddObject(id_, None, position=(x, y))
+        self._CreatePeerLabel(item)
+        self._CreatePeerAvatar(item)
 
     def RemovePeer(self, peer_id):
         """
         Called when a peer disappears.
         """
-        if peer_id in self.peers:
-            del self.peers[peer_id]
+        if peer_id in self.items:
+            del self.items[peer_id]
             self.viewport.RemoveObject(peer_id)
 
     def UpdateNode(self, node):
@@ -68,9 +75,26 @@ class World(object):
         """
         Called when a peer has changed.
         """
-        if peer.id_ in self.peers:
-            self.RemovePeer(peer.id_)
-            self.AddPeer(peer)
-            #~ self.peers[peer.id_] = peer
-            #~ x, y, z = peer.position
-            #~ self.viewport.MoveObject(peer.id_, position=(x, y))
+        id_ = peer.id_
+        try:
+            item = self.items[id_]
+        except KeyError:
+            return
+        old = item.peer
+        item.peer = peer
+        if peer.position != old.position:
+            x, y, z = peer.position
+            self.viewport.MoveObject(id_, position=(x, y))
+        print "%s => %s" % (old.pseudo, peer.pseudo)
+        self.viewport.RemoveDrawable(id_, item.label_id)
+        self._CreatePeerLabel(item)
+
+    def _CreatePeerLabel(self, item):
+        peer = item.peer
+        d = drawable.Text(peer.pseudo.encode(self.charset))
+        item.label_id = self.viewport.AddDrawable(peer.id_, d, (0, 20), 1)
+
+    def _CreatePeerAvatar(self, item):
+        peer = item.peer
+        d = drawable.Image(images.IMG_AVATAR)
+        item.avatar_id = self.viewport.AddDrawable(peer.id_, d, (0, 0), 0)

@@ -228,9 +228,11 @@ class Viewport(object):
     def AddDrawable(self, obj_name, drawable, rel_pos, z_order=0):
         """
         Add a drawable owned by a given object.
+        Returns its internal id.
         """
         class DrawableItem(object):
-            def __init__(self, drawable, index, rel_pos, z_order):
+            def __init__(self, id_, drawable, index, rel_pos, z_order):
+                self.id_ = id_
                 self.drawable = drawable
                 self.index = index
                 self.rel_pos = rel_pos
@@ -239,7 +241,7 @@ class Viewport(object):
         # Append to the object's drawable list
         index = self.obj_dict[obj_name]
         id_ = obj_name + '%' + str(id(drawable))
-        item = DrawableItem(drawable, index, rel_pos, z_order)
+        item = DrawableItem(id_, drawable, index, rel_pos, z_order)
         self.obj_drawables[index][id_] = item
         # If necessary, create painter
         painter = drawable.painter
@@ -255,36 +257,17 @@ class Viewport(object):
         if painter not in d:
             d[painter] = {}
         d[painter][id_] = item
-
-    def RemoveByIndex(self, index):
+        return id_
+    
+    def RemoveDrawable(self, obj_name, id_):
         """
-        Remove an object giving its index rather than its name.
+        Removes a single drawable.
         """
-        # Remove all drawables
-        for id_, item in self.obj_drawables[index].iteritems():
-            painter = item.drawable.painter
-            i = bisect.bisect(self.radix_list, (item.z_order, None))
-            assert self.radix_list[i][0] == item.z_order
-            d = self.radix_list[i][1]
-
-            del d[painter][id_]
-            if len(d[painter]) == 0:
-                del d[painter]
-            if len(d) == 0:
-                del self.radix_list[i]
-        # Delete stored object properties
-        name = self.obj_name[index]
-        for a in self.obj_arrays:
-            del a[index]
-        del self.obj_dict[name]
-        # Re-arrange moved objects in dictionary
-        _names = self.obj_name
-        _drawables = self.obj_drawables
-        for i in xrange(index, len(_names)):
-            self.obj_dict[_names[i]] = i
-            for item in _drawables[i].itervalues():
-                item.index = i
-        self._ObjectsGeometryChanged()
+        # Fetch drawable item
+        index = self.obj_dict[obj_name]
+        item = self.obj_drawables[index][id_]
+        self._RemoveDrawableItem(item)
+        del self.obj_drawables[index][id_]
 
     def RemoveObject(self, name):
         """
@@ -295,7 +278,7 @@ class Viewport(object):
         except:
             print "Cannot remove unknown object '%s' from viewport" % name
             return
-        self.RemoveByIndex(index)
+        self._RemoveByIndex(index)
 
     def MoveObject(self, name, position):
         """
@@ -383,9 +366,47 @@ class Viewport(object):
         self.disabled = False
 
     #
+    # Private methods: object management
+    #
+    def _RemoveDrawableItem(self, item):
+        id_ = item.id_
+        painter = item.drawable.painter
+        # Find the drawable's slot in the radix list
+        i = bisect.bisect(self.radix_list, (item.z_order, None))
+        assert self.radix_list[i][0] == item.z_order
+        d = self.radix_list[i][1]
+
+        del d[painter][id_]
+        if len(d[painter]) == 0:
+            del d[painter]
+        if len(d) == 0:
+            del self.radix_list[i]
+
+    def _RemoveByIndex(self, index):
+        """
+        Remove an object giving its index rather than its name.
+        """
+        # Remove all drawables
+        for id_, item in self.obj_drawables[index].iteritems():
+            self._RemoveDrawableItem(item)
+        # Delete stored object properties
+        name = self.obj_name[index]
+        for a in self.obj_arrays:
+            del a[index]
+        del self.obj_dict[name]
+        # Re-arrange moved objects in dictionary
+        _names = self.obj_name
+        _drawables = self.obj_drawables
+        for i in xrange(index, len(_names)):
+            self.obj_dict[_names[i]] = i
+            for item in _drawables[i].itervalues():
+                item.index = i
+        self._ObjectsGeometryChanged()
+
+
+    #
     # Private methods: window ops
     #
-
     def _ViewportGeometryChanged(self):
         if not self.Empty() and not self.disabled:
             self._SetFutureRatio()

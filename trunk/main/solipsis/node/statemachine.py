@@ -415,11 +415,8 @@ class StateMachine(object):
         id_ = args.id_
         if self.topology.HasPeer(id_):
             peer = self.topology.GetPeer(id_)
-            peer.pseudo = args.pseudo
-            peer.UpdateServices(args.accept_services)
+            self._UpdatePeerMeta(peer, args)
             self._SendMeta(peer)
-            # Notify remote control
-            self.event_sender.event_ChangedPeer(peer)
 
     def peer_META(self, args):
         """
@@ -428,10 +425,7 @@ class StateMachine(object):
         id_ = args.id_
         if self.topology.HasPeer(id_):
             peer = self.topology.GetPeer(id_)
-            peer.pseudo = args.pseudo
-            peer.UpdateServices(args.accept_services)
-            # Notify remote control
-            self.event_sender.event_ChangedPeer(peer)
+            self._UpdatePeerMeta(peer, args)
 
     def peer_NEAREST(self, args):
         """
@@ -729,7 +723,7 @@ class StateMachine(object):
 
 
     #
-    # Private methods: connection management
+    # Private methods: add / remove peers
     #
     def _AddPeer(self, peer):
         """
@@ -836,27 +830,26 @@ class StateMachine(object):
     #
     # Awareness radius management
     #
-    def _UpdatePeer(self, peer):
+    def _UpdatePeer(self, new_peer):
         """
         Update a peer's characteristics.
         """
         topology = self.topology
 
         # Save old peer value and update
-        old = topology.GetPeer(peer.id_)
+        peer = topology.GetPeer(new_peer.id_)
+
+        old_pos = peer.position.getCoords()
+        new_pos = new_peer.position.getCoords()
+        old_ar = peer.awareness_radius
+        new_ar = new_peer.awareness_radius
+
+        # Update characteristics while keeping metadata
+        peer.Update(new_peer)
+        topology.UpdatePeer(peer)
 
         # Notify remote control
         self.event_sender.event_ChangedPeer(peer)
-
-        old_pos = old.position.getCoords()
-        new_pos = peer.position.getCoords()
-        old_ar = old.awareness_radius
-        new_ar = peer.awareness_radius
-
-        # Update characteristics while keeping metadata
-        old.position = peer.position
-        old.awareness_radius = peer.awareness_radius
-        topology.UpdatePeer(old)
 
         # Peer position or awareness radius changed
         if new_pos != old_pos or new_ar != old_ar:
@@ -946,6 +939,13 @@ class StateMachine(object):
         if new_ar != ar:
             self._UpdateAwarenessRadius(new_ar)
 
+    def _UpdatePeerMeta(self, peer, args):
+        """
+        Update a peer's metadata from the incoming message's arguments.
+        """
+        peer.UpdateMeta(pseudo=args.pseudo, services=args.accept_services)
+        # Notify remote control
+        self.event_sender.event_ChangedPeer(peer)
 
     #
     # Protocol helpers

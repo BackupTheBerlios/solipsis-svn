@@ -49,19 +49,14 @@ class Entity(object):
         ('bidir', 'bidir'),
     ])
 
-    def __init__(self, id_="", position=Position(), orientation=0, awareness_radius=0,
-                 calibre=0, pseudo=u'', address=None):
+    def __init__(self, id_="", position=Position(), awareness_radius=0,
+                 pseudo=u'', address=None):
         """
         Create a new Entity and keep information about it.
         """
         # position
         self.position = position
-
-        # awareness radius, calibre, pseudo, orientation
         self.awareness_radius = awareness_radius
-        self.calibre = calibre
-        self.pseudo = pseudo
-        self.orientation = orientation
 
         # public address of this node, address= IP+port
         self.address = address
@@ -69,6 +64,8 @@ class Entity(object):
         # id of this node
         self.id_ = id_
 
+        # Metadata
+        self.pseudo = pseudo
         self.services = {}
         self.AddService(Service('chat'))
         self.AddService(Service('video'))
@@ -94,12 +91,28 @@ class Entity(object):
         """
         return self.services.values()
 
-    def UpdateServices(self, services):
+    def Update(self, other):
+        """
+        Update basic characteristics (not metadata) from the 'other' entity object.
+        """
+        self.position = other.position
+        self.awareness_radius = other.awareness_radius
+
+    def UpdateMeta(self, pseudo=None, services=None):
+        """
+        Update metadata.
+        """
+        if pseudo is not None:
+            self.pseudo = pseudo
+        if services is not None:
+            self.UpdateServices(services)
+
+    def UpdateServices(self, new_services):
         """
         Update the entity's services with the new service list.
         """
         self.services.clear()
-        for service in services:
+        for service in new_services:
             self.services[service.id_] = service
     
     def MatchServices(self, entity):
@@ -110,6 +123,7 @@ class Entity(object):
         """
         matched = []
         for service in entity.services:
+            # For each offered service, see if it matches ours
             my_service = self.services.get(service.id_)
             if my_service is not None:
                 if (service.type, my_service.type) in self.service_matches:
@@ -120,8 +134,6 @@ class Entity(object):
         ent = 'Id:' + str(self.id_) + '\n'
         ent += 'Position:' +  str(self.position)+ '\n'
         ent += 'ar:' + str(self.awareness_radius)+ '\n'
-        ent += 'Calibre:' + str(self.calibre)     + '\n'
         ent += 'Pseudo:' + str(self.pseudo)   + '\n'
-        ent += 'Orientation:' + str(self.orientation)    + '\n'
         ent += 'Address:' + str(self.address)+ '\n'
         return ent
