@@ -133,6 +133,9 @@ class PeersManager(object):
         self.maxPeers = int(self.expectedPeers * maxCoeff)
         self.minPeers = int(self.expectedPeers * minCoeff)
 
+    def getExpectedPeers(self):
+        return self.expectedPeers
+
     def getRandomPeer(self):
         """ Return a peer randomly chosen from a file
         Read the entities file and return a random peer

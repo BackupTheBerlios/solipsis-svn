@@ -899,7 +899,7 @@ class TooManyPeers(State):
         manager = self.node.getPeersManager()
         factory = EventFactory.getInstance(PeerEvent.TYPE)
 
-        while manager.hasTooManyPeers():
+        while manager.getNumberOfPeers() > manager.getExpectedPeers():
             peer = manager.getWorstPeer()
             close = factory.createCLOSE()
             close.setRecipientAddress(peer.getAddress())

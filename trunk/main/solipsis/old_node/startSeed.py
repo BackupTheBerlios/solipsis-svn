@@ -36,6 +36,9 @@ import sys
 import exceptions
 from optparse import OptionParser
 
+import psyco
+psyco.profile()
+
 # Solipsis Packages
 from solipsis.util.parameter import Parameters
 from solipsis.node.seed import Seed
