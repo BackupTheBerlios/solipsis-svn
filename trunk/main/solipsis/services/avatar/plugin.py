@@ -132,7 +132,7 @@ class Plugin(ServicePlugin):
         def _configured(filename):
             self.network.SetFile(filename)
             node_id = self.service_api.GetNode().id_
-            data = file(filename).read()
+            data = file(filename, "rb").read()
             # Add the avatar to the repository, and send its hash to all peers
             self.node_avatar_hash = self.avatars.BindAvatarToPeer(data, node_id)
             for peer_id in self.hosts.keys():
