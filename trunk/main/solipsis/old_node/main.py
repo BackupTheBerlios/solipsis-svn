@@ -36,10 +36,6 @@ import logging
 import exceptions
 from optparse import OptionParser
 
-import psyco
-psyco.profile()
-
-
 # Solipsis Packages
 from solipsis.util.parameter import Parameters
 from solipsis.node.node import Node
@@ -51,6 +47,12 @@ from solipsis.node.node import Node
 #################################################################################################
 
 #-----Step 0: Initialize my informations
+
+global run
+
+def run(params):
+    myNode = Node(params)
+    myNode.mainLoop()
 
 def main():
     try:
@@ -77,6 +79,9 @@ def main():
                             help="notification port for navigator")
         parser.add_option("-f", "--file", dest="config_file", default=config_file,
                           help="configuration file" )
+        parser.add_option("-P", "--profile", action="store_true", dest="profile", default=False,
+                          help="profile execution to runnode.prof" )
+        global params
         params = Parameters(parser, config_file=config_file)
 
         if (params.detach):
@@ -99,8 +104,13 @@ def main():
                 os._exit(0)
 
         # Create node and enter main loop
-        myNode = Node(params)
-        myNode.mainLoop()
+        if (params.profile):
+            import profile
+            profile.run("solipsis.node.main.run(solipsis.node.main.params)")
+        else:
+            import psyco
+            psyco.profile()
+            run(params)
 
     except:
         raise

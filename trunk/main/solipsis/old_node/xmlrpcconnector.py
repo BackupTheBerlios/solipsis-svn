@@ -1,4 +1,5 @@
 from threading import Thread, Timer
+import time
 from SimpleXMLRPCServer import SimpleXMLRPCServer
 
 from solipsis.node.event import EventFactory
@@ -94,16 +95,21 @@ class XMLRPCNotificationChannel(Thread):
         self.outgoing.acquire()
         # nothing to send, just wait
         if self.outgoing.empty():
-            self.outgoing.wait()
+            time.sleep(0.020)
+            self.outgoing.wait(4.0)
 
         # the main thread called the notify method to awaken this thread
         # release the lock and send back the message to the controller.
         self.outgoing.release()
 
-        e = self.outgoing.get()
-        response = self.parser.getData(e)
-        print response
-        return response
+        l = []
+        while not self.outgoing.empty():
+            e = self.outgoing.get()
+            response = self.parser.getData(e)
+            l.append(response)
+        print "*** %d notifications ... ***" % len(l)
+        print "\n".join([str(_r) for _r in l])
+        return l
 
     def send(self, notification):
         """ Send a message to the controller

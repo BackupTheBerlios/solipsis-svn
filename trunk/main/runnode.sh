@@ -1,6 +1,6 @@
 #!/usr/bin/python -Qnew
 import os
-from solipsis.node.main import main
+import solipsis.node.main
 
 # add current directory to the python search path
 # it is needed in case solipsis is not installed in the standard python
@@ -11,4 +11,4 @@ else:
     os.environ['PYTHONPATH'] = '.'
 
 if __name__ == '__main__':
-    main()
+    solipsis.node.main.main()

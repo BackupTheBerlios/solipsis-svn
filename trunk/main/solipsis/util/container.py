@@ -35,8 +35,8 @@ class NotificationQueue(Queue):
     def release(self):
         self.lock.release()
 
-    def wait(self):
-        self.lock.wait()
+    def wait(self, timeout=None):
+        self.lock.wait(timeout)
 
 class GenericList(object):
 

@@ -86,19 +86,23 @@ class XMLRPCConnector(object):
     #
     # XML RPC callbacks
     #
-    def ControlResponse(self, value):
+    def ControlResponse(self, reply):
         pass
 
-    def NotifResponse(self, value):
+    def NotifResponse(self, reply):
         self._AskNotif()
-        message = None
         try:
-            request = value['request']
-            items = [(k, v) for (k, v) in value.items() if k != 'request']
+            notifications = []
+            for value in reply:
+                request = value['request']
+                items = [(k, v) for (k, v) in value.items() if k != 'request']
+                notifications.append((request, items))
         except AttributeError:
-            print "Bad notification:", str(value)
+            print "Bad notification:", str(reply)
         else:
-            self.notification_receiver(request, dict(items))
+            for (request, items) in notifications:
+                self.notification_receiver(request, dict(items))
+
 
     def ControlError(self, failure):
         print "Control error:", str(failure)

@@ -171,43 +171,51 @@ class Node(Entity):
         for c in self.connectors:
             c.start()
 
-        while self.alive:
-            # Check our connectors are still there
-            for c in self.connectors:
-                if not c.isAlive():
-                    print "connector aborted"
-                    self.exit()
-                    raise ConnectorError()
+        try:
+            while self.alive:
+                # Check our connectors are still there
+                for c in self.connectors:
+                    if not c.isAlive():
+                        print "connector aborted"
+                        self.exit()
+                        raise ConnectorError()
 
-            self.events.acquire()
-            # no events to process - wait for a notification from other threads
-            if self.events.empty():
-                self.events.wait()
+                self.events.acquire()
+                # no events to process - wait for a notification from other threads
+                if self.events.empty():
+                    self.events.wait()
 
-            # We can immediately release the lock: we know that there is an item available
-            # because this is the only thread that consumes items from the queue.
-            # If other threads can consume item then we must first get the item then
-            # release the lock
-            self.events.release()
+                # We can immediately release the lock: we know that there is an item available
+                # because this is the only thread that consumes items from the queue.
+                # If other threads can consume item then we must first get the item then
+                # release the lock
+                self.events.release()
 
-            # process one event in queue
-            event = self.events.get()
-            request = event.getRequest()
+                # process one event in queue
+                event = self.events.get()
+                request = event.getRequest()
 
-            try:
-                fun = self.state.__getattribute__(request)
-            except:
-                self.logger.debug("unknown request "+ request)
-            else:
                 try:
-                    fun(event)
+                    fun = self.state.__getattribute__(request)
                 except:
-                    exception_type, value, tb = sys.exc_info()
-                    self.logger.debug(exception_type)
-                    self.logger.debug(value)
-                    stack_trace = traceback.format_tb(tb)
-                    self.logger.debug(stack_trace)
+                    self.logger.debug("unknown request "+ request)
+                else:
+                    try:
+                        fun(event)
+                    except:
+                        exception_type, value, tb = sys.exc_info()
+                        self.logger.debug(exception_type)
+                        self.logger.debug(value)
+                        stack_trace = traceback.format_tb(tb)
+                        self.logger.debug(stack_trace)
 
+        except Exception, e:
+            print e
 
         self.logger.debug("end of main loop")
+        try:
+            self.exit()
+        except:
+            pass
+
 

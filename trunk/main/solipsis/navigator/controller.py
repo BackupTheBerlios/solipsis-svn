@@ -161,19 +161,22 @@ class NodeNotification(threading.Thread):
     def run(self):
         while not self.stopThread:
             response = self.server.get()
-            # with XMLRPC complex type like objects are marshalled to
-            # dictionnaries.
-            # The module new allows us to convert this dictionary to a 'real'
-            # object of the class Event
-            notification = new.instance(Notification, response)
-            event = notification.createEvent()
-            # get request name
-            request = event.getRequest()
-            # build the statement that will be evaluated,
-            # e.g. 'self.subscriber.NEW(event)'
-            stmt = 'self.subscriber.' + request + '(event)'
-            # call the corresponding method on the subscriber
-            eval(stmt)
+            for value in response:
+                # with XMLRPC complex type like objects are marshalled to
+                # dictionnaries.
+                # The module new allows us to convert this dictionary to a 'real'
+                # object of the class Event
+                notification = new.instance(Notification, value)
+                event = notification.createEvent()
+                # get request name
+                request = event.getRequest()
+                # build the statement that will be evaluated,
+                # e.g. 'self.subscriber.NEW(event)'
+                attr = getattr(self.subscriber, request)
+                attr(event)
+#                stmt = 'self.subscriber.' + request + '(event)'
+                # call the corresponding method on the subscriber
+#                eval(stmt)
 
     def stop(self):
         self.stopThread = True
