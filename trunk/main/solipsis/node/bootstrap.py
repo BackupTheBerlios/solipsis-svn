@@ -124,9 +124,9 @@ class NodeLauncher(object):
 
         # Start remote controller(s)
         if not self.params.bot:
-            for controller in self.params.controllers:
+            for controller_name in self.params.controllers:
                 try:
-                    c = _import('solipsis.node.controller.' + controller)
+                    c = _import('solipsis.node.controller.' + controller_name)
                 except ImportError, e:
                     print str(e)
                     self.reactor.stop()

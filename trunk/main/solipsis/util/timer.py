@@ -85,7 +85,7 @@ def ExpFunc(begin=0.0, end=1.0, limit=0.01):
     return func
 
 
-class Looper(object):
+class _Looper(object):
     """ A Looper allows you to build a loop of values.
     Please use one of the derived classes:
     TriangleLooper, SawtoothLooper. """
@@ -102,16 +102,16 @@ class Looper(object):
     def Reset(self):
         self.timer.Reset()
 
-class TriangleLooper(Looper):
+class TriangleLooper(_Looper):
     """ TriangleLooper: loops according to a triangle curve. """
     func_factory = staticmethod(TriangleFunc)
 
-class SawtoothLooper(Looper):
+class SawtoothLooper(_Looper):
     """ SawtoothLooper: loops according to a sawtooth curve. """
     func_factory = staticmethod(SawtoothFunc)
 
 
-class Evolver(object):
+class _Evolver(object):
     """ An Evolver allows to gradually evolve a value from
     a beginning value and an end value.
     Please use one of the derived classes :
@@ -149,9 +149,8 @@ class Evolver(object):
         return self.finished
 
 
-class LinearEvolver(Evolver):
+class LinearEvolver(_Evolver):
     func_factory = staticmethod(SawtoothFunc)
 
-class ExpEvolver(Evolver):
+class ExpEvolver(_Evolver):
     func_factory = staticmethod(ExpFunc)
-

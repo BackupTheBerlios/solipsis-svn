@@ -27,7 +27,6 @@ from solipsis.util.exception import *
 from solipsis.util.position import Position
 from solipsis.util.address import Address
 from peer import Peer
-from solipsis.util.entity import Service, ServiceData
 import protocol
 import states
 from topology import Topology
@@ -37,7 +36,7 @@ from delayedcaller import DelayedCaller
 # Forward compatibility with built-in "set" types
 try:
     set
-except:
+except NameError:
     from sets import Set as set
 
 

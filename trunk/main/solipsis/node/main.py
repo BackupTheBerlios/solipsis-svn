@@ -70,7 +70,6 @@ def main():
 
     if (params.daemon):
         # Create background process for daemon-like operation
-        import os
         try:
             os.fork, os.setsid, os.umask
         except AttributeError:
@@ -115,8 +114,6 @@ def main():
             profile_run()
     except SystemExit:
         pass
-    except Exception, e:
-        raise
 
 if __name__ == '__main__':
     main()

@@ -22,7 +22,7 @@ import random
 import time
 try:
     set
-except:
+except NameError:
     from sets import Set as set
 
 from twisted.internet import defer

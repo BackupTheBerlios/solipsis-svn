@@ -300,7 +300,9 @@ class Topology(object):
         _p = self.relative_positions
         r2 = radius ** 2
         result = []
-        for id_, (x, y) in [(id_, _p[id_]) for (d, id_) in _distances[first:last]]:
+        #~ for id_, (x, y) in [(id_, _p[id_]) for (d, id_) in _distances[first:last]]:
+        for (d, id_) in _distances[first:last]:
+            x, y = _p[id_]
             if r2 >= (x - xt) ** 2 + (y - yt) ** 2:
                 result.append(self.peers[id_])
         return result
@@ -373,6 +375,9 @@ class Topology(object):
     # Private methods
     #
     def _InsertPeer(self, p):
+        """
+        Insert peer in internal helper lists.
+        """
         assert self.origin is not None, "topology origin is not set"
         xc, yc = self.origin
         id_ = p.id_
@@ -408,6 +413,9 @@ class Topology(object):
         return True
 
     def _ExtractPeer(self, id_):
+        """
+        Remove peer from internal helper lists.
+        """
         d = self.distances.pop(id_)
         angle = self.angles.pop(id_)
         self.distance_peers.remove((d, id_))

@@ -64,18 +64,18 @@ def DiscoverAddress(port, reactor, params):
     params.LoadSection('stun', stun_section)
     servers = params.stun_servers or '127.0.0.1'
     serv_list = [(s.strip(), 3478) for s in servers.split(',')]
-    stun = _StunDiscovery(servers=serv_list)
+    discovery = _StunDiscovery(servers=serv_list)
     # Define timeout callback
     def _timeout():
-        stun.Stop()
+        discovery.Stop()
         d.errback(Exception("timed out with servers %s" % servers))
     timeout = reactor.callLater(stun_timeout, _timeout)
     # Define intermediary succeed callback
     def _succeed(value):
-        stun.Stop()
+        discovery.Stop()
         timeout.cancel()
         return value
     d.addCallback(_succeed)
     # Start listening
-    stun.Start(port, reactor, d)
+    discovery.Start(port, reactor, d)
     return d

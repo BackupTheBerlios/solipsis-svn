@@ -30,8 +30,6 @@ from State:
     - etc.
 """
 
-import logging
-
 
 class State(object):
     """

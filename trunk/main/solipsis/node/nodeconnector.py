@@ -21,7 +21,7 @@ import sys
 import logging
 try:
     set
-except:
+except NameError:
     from sets import Set as set
 
 from twisted.internet.protocol import DatagramProtocol
@@ -81,4 +81,3 @@ class NodeConnector(DatagramProtocol):
         if message.request not in self.no_log:
             logging.debug(">>>> sending to %s:%d\n%s" % (host, port, data))
         self.transport.write(data, (host, port))
-

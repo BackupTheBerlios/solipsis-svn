@@ -16,6 +16,11 @@
 # License along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
+# <PYLINT>
+# pylint: disable-msg=E0602
+# (disable "Undefined variable" for dynamically created global variables...)
+# </PYLINT>
+
 
 import re
 import new
@@ -71,13 +76,16 @@ _args = [
     ('ARG_PAYLOAD', '', 'payload'),
 ]
 
+# An array of all argument numbers
+ALL_ARGS = []
+# An argument number -> attribute name map
+ATTRIBUTE_NAMES = bidict()
+# An argument number -> protocol header map
+PROTOCOL_STRINGS = bidict()
+
 def _init_args(args):
     from itertools import count, izip
     global ALL_ARGS, ATTRIBUTE_NAMES, PROTOCOL_STRINGS
-
-    ALL_ARGS = []
-    ATTRIBUTE_NAMES = bidict()
-    PROTOCOL_STRINGS = bidict()
 
     for c, (arg_const, full_string, attr_name) in izip(count(1), args):
         arg_id = c
@@ -97,16 +105,17 @@ _aliases = {
     ARG_REMOTE_PSEUDO:              ARG_PSEUDO,
 }
 
-def _init_table(table_name, table, aliases=_aliases, transform=(lambda x: x)):
+def _init_table(table, aliases=_aliases, transform=(lambda x: x)):
     # Create a global table of the specified name, then fill it with values
+    #~ t = {}
+    #~ globals()[table_name] = t
     t = {}
-    globals()[table_name] = t
-
     for k, v in table.items():
         t[k] = transform(v)
     for k, v in aliases.items():
         if not k in t:
             t[k] = t[v]
+    return t
 
 
 #
@@ -130,7 +139,9 @@ _syntax_table = {
     ARG_SERVICE_ID       : r'[-_/\w\d]+',
 }
 
-_init_table('ARGS_SYNTAX', _syntax_table, transform=(lambda x: re.compile('^' + x + '$')))
+ARGS_SYNTAX = _init_table(_syntax_table,
+    transform=(lambda x: re.compile('^' + x + '$'))
+    )
 
 
 #
@@ -201,8 +212,8 @@ _to_string = {
     ARG_SERVICE_ADDRESS:    (lambda a: a is not None and str(a) or ""),
 }
 
-_init_table('ARGS_FROM_STRING', _from_string)
-_init_table('ARGS_TO_STRING', _to_string)
+ARGS_FROM_STRING = _init_table(_from_string)
+ARGS_TO_STRING = _init_table(_to_string)
 
 
 #
@@ -403,7 +414,7 @@ class Parser(object):
             return True
 
 
-if __name__ == '__main__':
+def _test():
     data = ("HEARTBEAT SOLIPSIS/1.0\r\n" +
             "Id: 192.168.0.1\r\n" +
             "Position: 455464, 78785425, 0\r\n" +
@@ -417,3 +428,6 @@ if __name__ == '__main__':
     print data
     message = parser.ParseMessage(data)
     print message.args.__dict__
+
+if __name__ == '__main__':
+    _test()

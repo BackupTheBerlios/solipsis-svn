@@ -21,7 +21,6 @@ import wx
 import time
 import math
 import bisect
-from itertools import izip
 
 from solipsis.util.timer import *
 import images
@@ -29,9 +28,10 @@ import images
 def _optimize(obj):
     try:
         import psyco
-        psyco.bind(obj)
-    except:
+    except ImportError:
         pass
+    else:
+        psyco.bind(obj)
 
 
 class DrawableItem(object):
@@ -120,7 +120,8 @@ class Viewport(object):
         try:
             if not self.window.IsShown() or self.window.IsBeingDeleted():
                 return False
-        except:
+        except Exception, e:
+            print str(e)
             return False
 
         # Create a new buffer if the size has changed
@@ -152,7 +153,6 @@ class Viewport(object):
             dc = wx.BufferedDC(client_dc, self.draw_buffer)
 
         # Begin drawing
-        start_draw = time.time()
         dc.SetOptimization(True)
         dc.BeginDrawing()
         nb_blits = 0
@@ -203,10 +203,10 @@ class Viewport(object):
 
         # End drawing
         if not self.disabled:
-            (tick, elapsed) = self.fps_timer.Read()
-            c = 0.5
-            self.fps = (1.0 - c) * self.fps + c / max(tick, 0.001)
-            cpu_ratio = cpu_time / max(tick, 0.001) * 100
+            #~ (tick, elapsed) = self.fps_timer.Read()
+            #~ c = 0.5
+            #~ self.fps = (1.0 - c) * self.fps + c / max(tick, 0.001)
+            #~ cpu_ratio = cpu_time / max(tick, 0.001) * 100
             #~ dc.DrawTextPoint("FPS: %.2f, objects: %d, geometry CPU: %.1f%%" % (self.fps, nb_objects, cpu_ratio), (10,10))
             cx, cy = self.center
             cx = (float(cx) / self.world_size) % 1.0
@@ -298,7 +298,7 @@ class Viewport(object):
         """
         try:
             index = self.obj_dict[name]
-        except:
+        except KeyError:
             print "Cannot remove unknown object '%s' from viewport" % name
             return
         self._RemoveByIndex(index)
@@ -309,11 +309,9 @@ class Viewport(object):
         """
         try:
             index = self.obj_dict[name]
-        except:
+        except KeyError:
             print "Cannot move unknown object '%s' in viewport" % name
             return
-        fx, fy = position
-        x, y = self.positions[index]
         self.future_positions[index] = position, self.positions[index]
         self.obj_glider[index].Reset(0.0, 1.0)
         self._ObjectsGeometryChanged()
@@ -345,7 +343,7 @@ class Viewport(object):
         sn = math.sin(-self.angle)
         fx = self.normalize((x * cs - y * sn) / self.ratio) + cx
         fy = self.normalize((y * cs + x * sn) / self.ratio) + cy
-        self._SetFutureCenter((fx,fy))
+        self._SetFutureCenter((fx, fy))
 
         # Change orientation according to the destination we move towards
         if self.auto_rotate and not strafe and (abs(x) > 1 or abs(y) > 1):
@@ -409,11 +407,17 @@ class Viewport(object):
         return (changed, "")
 
     def PendingRedraw(self):
+        """
+        Is there a redraw pending ?
+        """
         r = self.redraw_pending
         self.redraw_pending = True
         return r
 
     def HoveredItem(self):
+        """
+        Returns the name of the object currently hovered by the mouse, or None.
+        """
         h = self.hovered_area
         if h is None:
             return None
@@ -421,18 +425,36 @@ class Viewport(object):
         return self.obj_name[index]
 
     def LastRedrawDuration(self):
+        """
+        Returns the time spent in the last redraw (in seconds).
+        Be careful, this does not always include the actual redraw by the
+        graphics layer (e.g. X11).
+        """
         return self.last_redraw_duration
 
     def Empty(self):
+        """
+        Returns True if the viewport is empty.
+        """
         return len(self.obj_list) == 0
 
     def Disable(self):
+        """
+        Disable the viewport, i.e. stop all animations.
+        """
         self.disabled = True
 
     def Enable(self):
+        """
+        Enable the viewport (animations, etc.).
+        """
         self.disabled = False
     
     def AutoRotate(self, flag):
+        """
+        Set the autorotate flag. If True, the viewport will smoothly change
+        its orientation when a relative move is done.
+        """
         self.auto_rotate = flag
 
     #
@@ -457,7 +479,7 @@ class Viewport(object):
         Remove an object giving its index rather than its name.
         """
         # Remove all drawables
-        for id_, item in self.obj_drawables[index].iteritems():
+        for item in self.obj_drawables[index].values():
             self._RemoveDrawableItem(item)
         # Delete stored object properties
         name = self.obj_name[index]
@@ -590,7 +612,7 @@ class Viewport(object):
             try:
                 dc.DrawLine(fx - dx, fy - dy, fx + dx, fy + dy)
                 dc.DrawLine(fx - dy, fy + dx, fx + dy, fy - dx)
-            except:
+            except OverflowError:
                 pass
 
     def _Animate(self, dc):
@@ -604,24 +626,29 @@ class Viewport(object):
     #
 
     def _SetCenter(self, position):
-        """ Immediately set the viewport center in logical coordinates. """
+        """
+        Immediately set the viewport center in logical coordinates.
+        """
         self.center = position
         self.future_center = position, position
 
     def _SetFutureCenter(self, position):
-        """ Set the viewport center in logical coordinates. """
-
-        fx, fy = position
-        cx, cy = self.center
+        """
+        Set the viewport center in logical coordinates.
+        """
         self.future_center = position, self.center
         self.center_glider.Reset(0.0, 1.0)
 
     def _SetRatio(self, ratio):
-        """ Immediately set the viewport ratio. """
+        """
+        Immediately set the viewport ratio.
+        """
         self.ratio = ratio
 
     def _SetFutureRatio(self, ratio=None):
-        """ Set the viewport center in logical coordinates. """
+        """
+        Set the viewport ratio.
+        """
 
         if ratio is None:
             ratio = self._UserOptimalRatio()
@@ -677,7 +704,6 @@ class Viewport(object):
         """
         cs = math.cos(self.angle)
         sn = math.sin(self.angle)
-        xc, yc = self.center
         p = self._RelativePositions(self.positions, indices)
         xs = [x * cs - y * sn for (x, y) in p] or [0.0]
         ys = [y * cs + x * sn for (x, y) in p] or [0.0]
@@ -697,12 +723,10 @@ class Viewport(object):
 
         w, h = self._WindowSize()
         ratio = self.ratio
-        xc, yc = self.center
         cs = math.cos(self.angle)
         sn = math.sin(self.angle)
         w /= 2.0
         h /= 2.0
-        lim = float(self.world_size)
         # These lines do several things at once:
         # - center view
         # - warp accross world borders
@@ -713,10 +737,10 @@ class Viewport(object):
         return display_positions
 
     def _OptimalRatio(self, indices):
-        """ Calculates the optimal display ratio given displayed objects. """
-
+        """
+        Calculates the optimal display ratio given displayed objects.
+        """
         (xmin, ymin), (xmax, ymax) = self._RelativeBBox(indices)
-        xc, yc = self.center
         w, h = self._WindowSize()
         xradius = max(abs(xmin), abs(xmax))
         yradius = max(abs(ymin), abs(ymax))
@@ -732,15 +756,18 @@ class Viewport(object):
         return ratio
 
     def _UserOptimalRatio(self):
-        """ Calculate the viewport's target display ratio. """
+        """
+        Calculate the viewport's target display ratio.
+        """
         optimal_ratio = self._OptimalRatio(self._Indices())
         ratio = max(optimal_ratio, self.user_ratio) / self.overview_ratio
         return ratio
 
     def _Glide(self):
-        """ Manage smooth movements of objects and of the central point.
-        Returns True if some values changed (redrawing needed), False otherwise. """
-
+        """
+        Manage smooth movements of objects and of the central point.
+        Returns True if some values changed (redrawing needed), False otherwise.
+        """
         dirty = False
         # Glide the viewport center
         if not self.center_glider.Finished():

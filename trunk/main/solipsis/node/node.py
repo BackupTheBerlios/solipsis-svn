@@ -17,11 +17,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
 
-import sys
-import logging
 import random
 
-from solipsis.util.parameter import Parameters
 from solipsis.util.position import Position
 from solipsis.util.address import Address
 from solipsis.util.exception import *
