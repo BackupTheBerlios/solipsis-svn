@@ -2,5 +2,7 @@
 
 for i in `find solipsis -name "*.py"`; do
 	echo $i
-	cat $i | ./apply_copyright.py | cat > $i
+	tmp=$i.tmp
+	./apply_copyright.py < $i > $tmp
+	mv -f $tmp $i
 done
