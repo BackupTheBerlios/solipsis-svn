@@ -162,6 +162,8 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.service_menu_pos = self.main_menubar.GetMenuCount() - 1
         self.services.ReadServices()
         self.config_data.SetServices(self.services.GetServices())
+        self.services.UpdateNode(self.config_data.GetNode())
+        self.services.EnableServices()
 
 
     def OnInit(self):
@@ -226,7 +228,8 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         
         # 4. Other tasks are launched after the window is drawn
         self.services = ServiceCollector(self.params, self, self.reactor)
-        wx.FutureCall(500, self.InitServices)
+        #~ wx.FutureCall(500, self.InitServices)
+        wx.CallAfter(self.InitServices)
         
         return True
 

@@ -18,6 +18,8 @@
 # </copyright>
 
 import os, os.path
+import md5
+import sys
 import wx
 from wx.xrc import XRCCTRL, XRCID
 
@@ -28,6 +30,7 @@ from solipsis.util.wxutils import *        # '*' doesn't import '_'
 class ChatWindow(wx.EvtHandler, XRCLoader, UIProxyReceiver):
     def __init__(self, plugin, dir):
         self.plugin = plugin
+        self.pseudos = {}
 
         wx.EvtHandler.__init__(self)
         UIProxyReceiver.__init__(self)
@@ -58,15 +61,55 @@ class ChatWindow(wx.EvtHandler, XRCLoader, UIProxyReceiver):
         wx.EVT_CLOSE(self.chat_window, self._Close)
 
 
-    def AppendMessage(self, message):
+    def AppendMessage(self, peer_id, message, our_message=False):
         """
         Append a formatted message to the text window.
         """
-        self.chat_window.Show()
-        self.chat_window.Raise()
         message = message.strip()
         if message:
+            self.chat_window.Show()
+            self.chat_window.Raise()
+            style = self.chat_view.GetDefaultStyle()
+            font = style.GetFont()
+            old_colour = style.GetTextColour()
+            if our_message:
+                style.SetTextColour(wx.BLUE)
+            # Display pseudo in bold
+            font.SetWeight(wx.BOLD)
+            style.SetFont(font)
+            self.chat_view.SetDefaultStyle(style)
+            pseudo = self.pseudos.get(peer_id, '???')
+            self.chat_view.AppendText('[%s] ' % pseudo)
+            # Display message in regular weight
+            font.SetWeight(wx.NORMAL)
+            style.SetFont(font)
+            self.chat_view.SetDefaultStyle(style)
             self.chat_view.AppendText(message + "\n")
+            # Restore default style
+            style.SetTextColour(wx.NullColour)
+            self.chat_view.SetDefaultStyle(style)
+    
+    def AppendSelfMessage(self, peer_id, message):
+        """
+        Append a formatted message to the text window.
+        """
+        self.AppendMessage(peer_id, message, True)
+    
+    def AddPeer(self, peer):
+        if peer.pseudo:
+            self.pseudos[peer.id_] = peer.pseudo
+            index = self.chat_users.GetItemCount()
+            self.chat_users.InsertStringItem(index, peer.pseudo)
+            self.chat_users.SetItemData(index, self._PeerData(peer.id_))
+
+    def RemovePeer(self, peer_id):
+        index = self.chat_users.FindItemData(0, self._PeerData(peer_id))
+        print index
+        self.chat_users.DeleteItem(index)
+    
+    def UpdatePeer(self, peer):
+        self.RemovePeer(peer.id_)
+        self.AddPeer(peer)
 
     def Destroy(self):
         """
@@ -81,6 +124,12 @@ class ChatWindow(wx.EvtHandler, XRCLoader, UIProxyReceiver):
         self.chat_window.Show()
         self.chat_window.Raise()
         self.chat_edit.SetFocus()
+
+    def _PeerData(self, peer_id):
+        hash = 0
+        for x in md5.new(peer_id).digest():
+            hash = (hash << 8) + ord(x)
+        return int(hash & sys.maxint)
 
     def _Close(self, evt):
         """

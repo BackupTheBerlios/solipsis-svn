@@ -63,6 +63,7 @@ class ServiceCollector(object):
         self.reactor = reactor
         self.dir = self.params.services_dir
         self.charset = GetCharset()
+        self.node = None
         self.Reset()
 
     def Finish(self):
@@ -92,7 +93,7 @@ class ServiceCollector(object):
 
     def LoadService(self, path, name):
         """
-        Load a service plugin, register it and initialize it.
+        Load a service plugin and register it.
         """
         # Get main plugin file
         plugin_file = os.path.join(path, 'plugin.py')
@@ -114,11 +115,18 @@ class ServiceCollector(object):
                 print "Warning: failed to load translations for plugin '%s'" % name
         else:
             print "Warning: plugin \"%s\" has no translation directory" % name
-
-        # When plugin.Init() is called, everything else should have been
+    
+        # Note: when plugin.Init() is called, everything else should have been
         # properly initialized for the plugin to interact with it.
         plugin.Init()
-        plugin.Enable()
+
+    def EnableServices(self):
+        """
+        Enable all services.
+        """
+        for service_id in self._Services():
+            plugin = self.plugins[service_id]
+            plugin.Enable()
 
     def GetServices(self):
         """
@@ -218,6 +226,9 @@ class ServiceCollector(object):
             else:
                 plugin.LostPeer(peer_id)
     
+    def UpdateNode(self, node):
+        self.node = node
+    
     def ProcessServiceData(self, peer_id, service_id, data):
         """
         Called when service-specific data has been received.
@@ -237,6 +248,12 @@ class ServiceCollector(object):
         Get the plugin base directory.
         """
         return os.path.join(self.dir, service_id)
+
+    def service_GetNode(self, service_id):
+        """
+        Get the node.
+        """
+        return self.node
 
     def service_GetReactor(self, service_id):
         """

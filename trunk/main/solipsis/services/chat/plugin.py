@@ -37,7 +37,6 @@ class Plugin(ServicePlugin):
         self.host = socket.gethostbyname(socket.gethostname())
         self.port = random.randrange(7000, 7100)
         self.hosts = {}
-        self.pseudos = {}
 
     def GetTitle(self):
         return _("Chat")
@@ -61,27 +60,28 @@ class Plugin(ServicePlugin):
         # Set up chat GUI
         window = ChatWindow(self, self.service_api.GetDirectory())
         self.ui = UIProxy(window)
+        self.ui.AddPeer(self.service_api.GetNode())
         # Set up network connection
-        n = NetworkLauncher(self.reactor, self, self.port)
-        self.network = TwistedProxy(n, self.reactor)
-        self.network.Start(self.GotMessage)
+        #~ n = NetworkLauncher(self.reactor, self, self.port)
+        #~ self.network = TwistedProxy(n, self.reactor)
+        #~ self.network.Start(self.GotMessage)
         self._SetHosts()
         # Set up main GUI hooks
         menu = wx.Menu()
         self.service_api.SetMenu(_("Chat"), menu)
 
     def Disable(self):
-        self.network.Stop()
-        self.network = None
+        #~ self.network.Stop()
+        #~ self.network = None
         self.ui.Destroy()
         self.ui = None
 
     def DoAction(self):
         self.ui.Show()
     
-    def GotMessage(self, text, (host, port)):
-        # This method is called in network context (i.e. Twisted thread)
-        self.ui.AppendMessage(text)
+    #~ def GotMessage(self, text, (host, port)):
+        #~ # This method is called in network context (i.e. Twisted thread)
+        #~ self.ui.AppendMessage(text)
     
     def SendMessage(self, text):
         # This method is called in UI context (i.e. wx Thread)
@@ -89,48 +89,46 @@ class Plugin(ServicePlugin):
         data = text
         for peer_id in self.hosts.keys():
             self.service_api.SendData(peer_id, data)
+        self.ui.AppendSelfMessage(self.service_api.GetNode().id_, text)
 
+    def GotServiceData(self, peer_id, data):
+        # This method is called in network context (i.e. Twisted thread)
+        self.ui.AppendMessage(peer_id, data)
+    
     def NewPeer(self, peer, service):
-        #~ print "chat: NEW %s (%s)" % (peer.id_, service.address)
-        self.pseudos[peer.id_] = peer.pseudo
         try:
             host, port = self._ParseAddress(service.address)
         except ValueError:
             pass
         else:
+            self.ui.AddPeer(peer)
             self.hosts[peer.id_] = host, port
             self._SetHosts()
 
     def ChangedPeer(self, peer, service):
-        #~ print "chat: CHANGED %s (%s)" % (peer.id_, service.address)
-        self.pseudos[peer.id_] = peer.pseudo
         try:
             host, port = self._ParseAddress(service.address)
         except ValueError:
             if peer.id_ in self.hosts:
                 del self.hosts[peer.id_]
+                self.ui.RemovePeer(peer.id_)
                 self._SetHosts()
         else:
+            self.ui.UpdatePeer(peer)
             self.hosts[peer.id_] = host, port
             self._SetHosts()
 
     def LostPeer(self, peer_id):
-        #~ print "chat: LOST %s" % peer_id
         if peer_id in self.hosts:
             del self.hosts[peer_id]
+            self.ui.RemovePeer(peer_id)
             self._SetHosts()
 
-    def GotServiceData(self, peer_id, data):
-        # This method is called in network context (i.e. Twisted thread)
-        pseudo = self.pseudos.get(peer_id, '???' + peer_id)
-        text = '[%s]: ' % pseudo + data
-        self.ui.AppendMessage(text)
-    
     def _SetHosts(self):
         # For test purposes, chat with ourselves ;)
         hosts = self.hosts.values()
         hosts.append((self.host, self.port))
-        self.network.SetHosts(hosts)
+        #~ self.network.SetHosts(hosts)
 
     def _ParseAddress(self, address):
         try:

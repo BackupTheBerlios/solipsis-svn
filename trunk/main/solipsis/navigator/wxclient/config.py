@@ -33,8 +33,8 @@ class ConfigData(ManagedData):
     """
     def __init__(self, host=None, port=None, pseudo=None):
         ManagedData.__init__(self)
-        self.pseudo = pseudo or u"guest"
-        self.host = host or "localhost"
+        self.pseudo = pseudo or u"Guest"
+        self.host = host or "bots.netofpeers.net"
         self.port = port or 8550
         self.always_try_without_proxy = True
         self.proxymode_auto = True
