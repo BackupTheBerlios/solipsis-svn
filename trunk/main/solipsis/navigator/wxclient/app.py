@@ -332,7 +332,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """
         if self._CheckNodeProxy(False):
             self.network.DisconnectFromNode()
-        self.viewport_panel.SetCursor(wx.StockCursor(wx.CURSOR_ARROWWAIT))
+        self._SetWaiting(True)
         self.viewport.Reset()
         self.network.ConnectToNode(self.config_data)
         self.statusbar.SetText(_("Connecting"))
@@ -421,8 +421,16 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         # Kill the node if necessary
         if self.config_data.node_autokill and self._CheckNodeProxy(False):
             self.network.KillNode()
-            # Dirty hack to leave enough time to send Kill request to the node
-            wx.Sleep(1)
+            self._SetWaiting(True)
+            # Timeout in case the Kill request takes too much time to finish
+            wx.FutureCall(1000, self._Quit2)
+        else:
+            self._Quit2()
+    
+    def _Quit2(self):
+        """
+        The end of the quit procedure ;-)
+        """
         # Disable event proxying: as of now, all UI -> network
         # and network -> UI events will be discarded
         self.DisableProxy()
@@ -602,6 +610,9 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             self.viewport.Disable()
             self.Redraw()
             self.statusbar.SetText(_("Not connected"))
+        else:
+            # If not alive, then we are in the quit phase
+            self._Quit2()
 
     def NodeKillFailed(self):
         """ The node refused to kill itself. """
@@ -612,6 +623,9 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             msg = _("You cannot kill this node.")
             dialog = wx.MessageDialog(None, msg, caption=_("Kill refused"), style=wx.OK | wx.ICON_ERROR)
             dialog.ShowModal()
+        else:
+            # If not alive, then we are in the quit phase
+            self._Quit2()
 
     #===-----------------------------------------------------------------===#
     # Actions from the services

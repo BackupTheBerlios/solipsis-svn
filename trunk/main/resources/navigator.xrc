@@ -23,7 +23,6 @@
         <label>&amp;Disconnect</label>
         <accel>Ctrl-W</accel>
       </object>
-      <object class="separator"/>
       <object class="wxMenuItem" name="menu_kill">
         <label>&amp;Kill node</label>
       </object>
