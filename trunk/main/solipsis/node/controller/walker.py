@@ -22,7 +22,7 @@ import math
 
 from solipsis.util.entity import Entity
 from solipsis.util.timer import AutoTimer
-from delayedcaller import DelayedCaller
+from solipsis.node.delayedcaller import DelayedCaller
 
 
 class Controller(object):
