@@ -119,7 +119,7 @@ class ControlEventFactory(EventFactory):
         position : a Position object
         """
         evt = ControlEvent('MOVE')
-        evt.addArg('Position', position.toString())
+        evt.addArg('Position', position)
         return evt
 
     def createCONNECT(self, controlPort, notificationPort):

@@ -232,6 +232,18 @@ class State(object):
         # go to the tracking state
         self.node.setState(Locating())
 
+    def MOVE(self, event):
+        """ MOVE control event. Move the node to a new position. This position
+        is close to our current position (which is the difference with the JUMP
+        method)
+        event : Request = MOVE, args = {'Position'}
+        """
+        # change position
+        newPosition = event.getArg(protocol.ARG_POSITION)
+        self.node.setPosition(newPosition)
+        # notify peers of this change
+        self.sendUpdates()
+        
     def KILL(self, event):
         self.logger.debug("Received kill message")
         self.node.exit()
@@ -243,8 +255,14 @@ class State(object):
 
 
     def SET(self, event):
-        import exceptions
-        raise NotImplementedError()
+        field = event.getArg('Name')
+        value = event.getArg('Value')
+        if field == 'Pseudo':
+            self.node.setPseudo(value)
+            self.sendUpdates()
+        else:
+            import exceptions
+            raise NotImplementedError()
     
 
     def sendFindNearest(self, peerAddress):
@@ -258,7 +276,7 @@ class State(object):
         findnearest.setRecipientAddress(peerAddress)
         self.node.dispatch(findnearest)
 
-    def sendUpdate(self):
+    def sendUpdates(self):
         """ Send an UPDATE message to all our peers"""
         mng = self.node.getPeersManager()
         update = EventFactory.getInstance(PeerEvent.TYPE).createUPDATE()
@@ -286,7 +304,7 @@ class State(object):
         """ compute our new awareness radius and notify peers of this update"""
         ar = self.node.getPeersManager().computeAwarenessRadius()
         self.node.setAwarenessRadius(ar)
-        self.sendUpdate()
+        self.sendUpdates()
 
     def startTimer(self, timeout=None):
         if timeout is None:
@@ -547,7 +565,7 @@ class Connecting(State):
                 self.node.setAwarenessRadius(int(ar*factor))
 
             # notify our peers
-            self.sendUpdate()
+            self.sendUpdates()
             # relaunch a timer
             self.startTimer()
             self.nbArIncrease = self.nbArIncrease + 1
@@ -845,7 +863,7 @@ class TooManyPeers(State):
             self.node.dispatch(close)
 
         self.node.setAwarenessRadius(manager.computeAwarenessRadius())
-        self.sendUpdate()
+        self.sendUpdates()
 
         self.setState(Idle())
 
