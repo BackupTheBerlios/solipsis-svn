@@ -51,8 +51,10 @@ class ChatWindow(wx.EvtHandler, XRCLoader, UIProxyReceiver):
         # We must create the TextCtrl and its Sizer manually since XRCed
         # does not yet support adding the TE_RICH flag to a TextCtrl...
         # (which is needed to have styles inside the TextCtrl under Windows!)
-        self.chat_view = wx.TextCtrl(parent=self.chat_panel,
-            style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_RICH)
+        
+        id_ = wx.NewId()
+        self.chat_view = wx.TextCtrl(parent=self.chat_panel, id=id_, 
+            style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_RICH | wx.TE_PROCESS_ENTER)
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.chat_view, flag=wx.EXPAND, proportion=1)
         self.chat_panel.SetSizer(sizer)
@@ -68,6 +70,7 @@ class ChatWindow(wx.EvtHandler, XRCLoader, UIProxyReceiver):
         wx.EVT_BUTTON(self.chat_window, XRCID("chat_send"), self._Send)
         wx.EVT_BUTTON(self.chat_window, XRCID("chat_close"), self._Close)
         wx.EVT_CLOSE(self.chat_window, self._Close)
+        wx.EVT_COMMAND_ENTER(self.chat_view, id_, self._Send)
 
 
     def AppendMessage(self, peer_id, message, our_message=False):
@@ -150,6 +153,7 @@ class ChatWindow(wx.EvtHandler, XRCLoader, UIProxyReceiver):
         """
         Called on "Send" button event.
         """
+        #~ print evt
         text = self.chat_edit.GetValue().strip()
         self.chat_edit.Clear()
         if len(text):
