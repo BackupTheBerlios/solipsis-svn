@@ -21,6 +21,11 @@ import socket
 import wx
 import random
 
+try:
+    set
+except NameError:
+    from sets import Set as set
+
 from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import TwistedProxy, UIProxy
 from solipsis.services.plugin import ServicePlugin
@@ -40,8 +45,12 @@ class Plugin(ServicePlugin):
         # (this is where duplicated code starts to appear...)
         self.host = socket.gethostbyname(socket.gethostname())
         self.port = 7780 + random.randrange(0, 100)
+        # Network address container: { peer_id => (host, port) }
         self.hosts = {}
         self.node_avatar_hash = None
+        # Peers for which we have received an avatar hash but whose
+        # address we don't know yet
+        self.pending_peers = set()
 
     def GetTitle(self):
         return _("Avatars")
@@ -97,16 +106,26 @@ class Plugin(ServicePlugin):
         self.ui = None
 
     def NewPeer(self, peer, service):
+        """
+        A new neighbour has appeared.
+        """
         try:
             host, port = self._ParseAddress(service.address)
         except ValueError:
             pass
         else:
             self.hosts[peer.id_] = host, port
+            # If we have an avatar, send its hash to our new neighbour
             if self.node_avatar_hash is not None:
                 self.service_api.SendData(peer.id_, self.node_avatar_hash)
+            # If we need to fetch the peer's avatar, do it
+            if peer.id_ in self.pending_peers:
+                self._LoadPeerAvatar(peer.id_)
 
     def ChangedPeer(self, peer, service):
+        """
+        One of our neighbours changed its information.
+        """
         try:
             host, port = self._ParseAddress(service.address)
         except ValueError:
@@ -114,8 +133,14 @@ class Plugin(ServicePlugin):
                 del self.hosts[peer.id_]
         else:
             self.hosts[peer.id_] = host, port
+            # If we need to fetch the peer's avatar, do it
+            if peer.id_ in self.pending_peers:
+                self._LoadPeerAvatar(peer.id_)
 
     def LostPeer(self, peer_id):
+        """
+        One of our neighbours has disappeared.
+        """
         if peer_id in self.hosts:
             del self.hosts[peer_id]
     
@@ -130,10 +155,11 @@ class Plugin(ServicePlugin):
         # to the callback, if successful.
         # This is because self.ui goes through an asynchronous proxy.
         def _configured(filename):
+            """ Callback for avatar choice. """
             self.network.SetFile(filename)
             node_id = self.service_api.GetNode().id_
             data = file(filename, "rb").read()
-            # Add the avatar to the repository, and send its hash to all peers
+            # Add the avatar to the repository, and send its hash to all our neighbours
             self.node_avatar_hash = self.avatars.BindAvatarToPeer(data, node_id)
             for peer_id in self.hosts.keys():
                 self.service_api.SendData(peer_id, self.node_avatar_hash)
@@ -160,18 +186,35 @@ class Plugin(ServicePlugin):
         Called when another peer sent its avatar hash.
         """
         if not self.avatars.BindHashToPeer(hash_, peer_id):
-            def _got_avatar(data):
-                self.avatars.BindAvatarToPeer(data, peer_id)
-            def _failed(error):
-                print "failed getting avatar from '%s': %s" % (peer_id, str(error))
-            host, port = self.hosts[peer_id]
-            self.network.GetPeerFile(host, port, _got_avatar, _failed)
+            if peer_id in self.hosts:
+                self._LoadPeerAvatar(peer_id)
+            else:
+                self.pending_peers.add(peer_id)
 
     #
     # Private methods
     #
 
+    def _LoadPeerAvatar(self, peer_id):
+        """
+        Fetch the peer's avatar using its listening address.
+        """
+        def _got_avatar(data):
+            """ Callback for success. """
+            if peer_id in self.pending_peers:
+                self.pending_peers.remove(peer_id)
+            self.avatars.BindAvatarToPeer(data, peer_id)
+        def _failed(error):
+            """ Callback for failure. """
+            print "failed getting avatar from '%s': %s" % (peer_id, str(error))
+        host, port = self.hosts[peer_id]
+        self.network.GetPeerFile(host, port, _got_avatar, _failed)
+
     def _ParseAddress(self, address):
+        """
+        Parse network address as supplied by a peer.
+        Returns a (host, port) tuple.
+        """
         try:
             t = address.split(':')
             if len(t) != 2:

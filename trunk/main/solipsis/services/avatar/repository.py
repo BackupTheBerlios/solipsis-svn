@@ -187,7 +187,8 @@ class _AvatarRepository(object):
         try:
             im = Image.open(sio)
         except IOError, e:
-            print str(e)
+            print "Failed to open image with PIL library from raw data: '%s'" % str(e)
+            print "(image is %d bytes long)" % len(data)
             im = None
         else:
             im.load()

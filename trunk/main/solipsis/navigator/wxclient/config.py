@@ -58,11 +58,6 @@ class ConfigData(ManagedData):
             proxy_host, proxy_port = discover_http_proxy()
             self.proxy_host = proxy_host or ""
             self.proxy_port = proxy_port or 0
-        #~ d = self.GetDict()
-        #~ print d
-        #~ self.UpdateDict(pickle.loads(pickle.dumps(d, protocol=-1)))
-        #~ d = self.GetDict()
-        #~ print d
 
     def SetServices(self, services):
         self.services = list(services)
