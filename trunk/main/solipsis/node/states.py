@@ -124,21 +124,6 @@ class Connecting(State):
 #     def activate(self):
 #         pass
 #
-#     def CONNECT(self, event):
-#         super(Connecting, self).CONNECT(event)
-#         mng = self.node.getPeersManager()
-#
-#         # we have now reached our number of expected neighbours
-#         if not mng.hasTooFewPeers():
-#             self.timer.cancel()
-#             if not mng.hasGlobalConnectivity():
-#                 self.searchPeers()
-#                 self.node.setState(NoGlobalConnectivity())
-#             else:
-#                 # start periodic tasks and go to Idle state
-#                 self.node.startPeriodicTasks()
-#                 self.node.setState(Idle())
-#
 #     def TIMER(self, event):
 #         """ The timer expired."""
 #         mng = self.node.getPeersManager()

@@ -42,7 +42,7 @@ def main():
         parser.add_option("-f", "--file", dest="config_file", default=config_file,
                           help="configuration file")
         parser.add_option("-P", "--profile", action="store_true", dest="profile", default=False,
-                          help="profile execution to node.prof" )
+                          help="profile execution to node.prof")
         parser.add_option("-M", "--memdebug", action="store_true", dest="memdebug", default=False,
                           help="display periodic memory occupation statistics")
         params = Parameters(parser, config_file=config_file)
@@ -75,7 +75,7 @@ def main():
         else:
             # See Psyco documentation: http://psyco.sourceforge.net/psycoguide/module-psyco.html
             import psyco
-            #psyco.profile(watermark=0.01, halflife=10, time=600)
+            psyco.profile(watermark=0.01, halflife=10, time=600)
             profile_run()
 
     except:

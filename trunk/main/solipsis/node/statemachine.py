@@ -51,7 +51,7 @@ class StateMachine(object):
 
         self.peer_dispatch_cache = {}
         self.state_dispatch = {}
-        self.delayed = None
+        self.delayed_calls = []
 
         self.Reset()
 
@@ -67,7 +67,7 @@ class StateMachine(object):
         # BEST peer discovered at the end of a FINDNEAREST chain
         self.best_peer = None
 
-        self._CancelDelayed()
+        self._CancelDelayedCalls()
 
     def ConnectWithEntities(self, sender, addresses):
         self.Reset()
@@ -108,7 +108,7 @@ class StateMachine(object):
             self.peer_dispatch_cache[_class] = d
         # Call state initialization function
         if _class != old_state.__class__:
-            self._CancelDelayed()
+            self._CancelDelayedCalls()
             try:
                 func = self.state_dispatch[_class]
             except:
@@ -142,21 +142,47 @@ class StateMachine(object):
                 manager = self.peers
                 manager.heartbeat(id_)
 
-    def _CancelDelayed(self):
-        if self.delayed is not None:
+    def _CancelDelayedCalls(self):
+        """
+        Cancel all pending delayed calls.
+        Called on a state change.
+        """
+        for delayed in self.delayed_calls:
             try:
-                self.delayed[1].cancel()
-                self.delayed = None
-            except:
-                pass
+                delayed[1].cancel()
+            except Exception, e:
+                print str(e)
+        # Important: we must not create a new list
+        # (see _CallLater below)
+        self.delayed_calls[:] = []
 
     def _CallLater(self, _delay, _function, *args, **kargs):
-        self.delayed = (_delay, self.reactor.callLater(_delay, _function, *args, **kargs))
+        """
+        Call a function later in the current state.
+        The call will be cancelled if we enter another state.
+        """
+        # This class defines a callable that will remove itself
+        # from the list of delayed calls
+        class Fun:
+            def __call__(self):
+                self.delayed_calls.remove(self.delayed)
+                _function(*args, **kargs)
+        # We first register the callable, then give it the
+        # necessary parameters to remove itself...
+        fun = Fun()
+        delayed = (_delay, self.reactor.callLater(_delay, fun))
+        self.delayed_calls.append(delayed)
+        fun.delayed = delayed
+        fun.delayed_calls = self.delayed_calls
 
     def _CallPeriodically(self, _period, _function, *args, **kargs):
+        """
+        Call a function once in a while in the current state.
+        The calls will be cancelled if we enter another state.
+        """
         def fun():
-            _function(*args, **kargs)
             self._CallLater(_period, fun)
+            _function(*args, **kargs)
         self._CallLater(_period, fun)
 
     def _Peer(self, args):
@@ -237,25 +263,67 @@ class StateMachine(object):
         self._SendToAddress(peer.address, message)
 
     #
-    # State changes
+    # Methods called when a new state is entered
     #
-    def state_Connecting(self):
-        def hello():
-            print "connecting"
-        self._CallPeriodically(1, hello)
+    def state_NotConnected(self):
+        print "not connected"
+
+    def state_Locating(self):
+        print "locating"
 
     def state_Scanning(self):
-        def hello():
-            print "scanning"
-        self._CallPeriodically(1, hello)
+        print "scanning"
 
     def state_Connecting(self):
-        def hello():
-            print "connecting"
-        self._CallPeriodically(1, hello)
+        print "connecting"
+
+        def check_gc():
+            # Periodically check global connectivity
+            manager = self.peers
+            if manager.hasGlobalConnectivity():
+                self.SetState(states.Idle())
+        self._CallPeriodically(1, check_gc)
+
+    def state_Idle(self):
+        print "idle"
+        # TODO: add periodic handler for increasing / decreasing the number of peers
+
+        def check_gc():
+            # Periodically check global connectivity
+            manager = self.peers
+            if not manager.hasGlobalConnectivity():
+                self.SetState(states.LostGlobalConnectivity())
+        self._CallPeriodically(2, check_gc)
+
+    def state_LostGlobalConnectivity(self):
+        print "lost global connectivity"
+
+        def check_gc():
+            # Periodically check global connectivity
+            manager = self.peers
+            if manager.getNumberOfPeers() == 0:
+                # TODO: implement this
+                self.logger.info("All peers lost, relaunching JUMP algorithm")
+                return
+
+            pair = manager.getBadGlobalConnectivityPeers()
+            if not pair:
+                self.SetState(states.Idle())
+            else:
+                # Send search message to each entity
+                message1 = self._PeerMessage('SEARCH')
+                message1.clockwise = True
+                message2 = self._PeerMessage('SEARCH')
+                message2.clockwise = False
+                self._SendToPeer(pair[0], message1)
+                self._SendToPeer(pair[1], message2)
+
+        check_gc()
+        self._CallPeriodically(2, check_gc)
+
 
     #
-    # Peer events
+    # Methods called when a message is received from a peer
     #
     def peer_HELLO(self, args):
         """
@@ -666,27 +734,6 @@ class StateMachine(object):
     # Old stuff
     # TODO: remove
     #
-    def searchPeers(self):
-        """ Our Global connectivity is NOT OK, we have to search for new peers"""
-        manager = self.node.getPeersManager()
-        factory = EventFactory.getInstance(PeerEvent.TYPE)
-
-        if manager.getNumberOfPeers() == 0:
-            self.logger.info("All peers lost, relaunching JUMP algorithm")
-            self.jump()
-
-        else:
-            # send msg SEARCH
-            pair = manager.getBadGlobalConnectivityPeers()
-
-            if pair:
-                # send message to each entity
-                searchClockWise = factory.createSEARCH(True)
-                searchCounterclockWise = factory.createSEARCH(False)
-                searchClockWise.setRecipientAddress(pair[0].getAddress())
-                searchCounterclockWise.setRecipientAddress(pair[1].getAddress())
-                self.node.dispatch(searchClockWise)
-                self.node.dispatch(searchCounterclockWise)
 
     def updateAwarenessRadius(self):
         """ compute our new awareness radius and notify peers of this update"""
