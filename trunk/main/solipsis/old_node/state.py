@@ -60,6 +60,92 @@ class State(object):
         # by the controller connector but by the node itself
         self.node.events.put(timerEvt)
 
+    #
+    # Peer events
+    #
+
+    def HELLO(self, event):
+        """ A new peer is contacting us """
+        peer = event.createPeer()
+        manager = self.node.getPeersManager()
+
+        factory = EventFactory.getInstance(PeerEvent.TYPE)
+
+        # We have now too many peers and this is the worst one
+        if manager.isWorstPeer(peer):
+            # refuse connection
+            close = factory.createCLOSE()
+            close.setRecipientAddress(peer.getAddress())
+            self.node.dispatch(close)
+        else:
+            # check if we have not already connected to this peer
+            id_ = peer.getId()
+            if manager.hasPeer(id_):
+                manager.removePeer(id_)
+                self.logger.debug('HELLO from %s, but we are already connected',
+                                  peer.getId())
+            manager.addPeer(peer)
+            connect = factory.createCONNECT()
+            connect.setRecipientAddress(peer.getAddress())
+            self.node.dispatch(connect)
+            control_factory = EventFactory.getInstance(ControlEvent.TYPE)
+            newPeerEvent = control_factory.createNEW(peer)
+            self.node.dispatch(newPeerEvent)
+
+    def CONNECT(self, event):
+        """ reception of a connect message """
+        # TODO :check that we sent a HELLO message to this peer
+        peer = event.createPeer()
+        mng = self.node.getPeersManager()
+        if  not mng.hasPeer(peer.getId()):
+            mng.addPeer(peer)
+            factory = EventFactory.getInstance(ControlEvent.TYPE)
+            newPeerEvent = factory.createNEW(peer)
+            self.node.dispatch(newPeerEvent)
+
+            # Give the list of our services to the peer
+            for s in self.node.enumerateServices():
+                factory = EventFactory.getInstance(PeerEvent.TYPE)
+                srvEvt = factory.createADDSERVICE(s.getId())
+                srvEvt.setRecipientAddress(event.getSenderAddress())
+                self.node.dispatch(srvEvt)
+        else:
+            self.logger.debug('reception of CONNECT but we are already connected to'
+                              + peer.getId())
+
+    def CLOSE(self, event):
+        """ Connection closed with one of our peers."""
+        id_ = event.getArg(protocol.ARG_ID)
+        manager = self.node.getPeersManager()
+        if not manager.hasPeer(id_):
+            self.logger.debug('CLOSE from %s, but we are not connected',
+                peer.getId())
+            return
+        manager.removePeer(id_)
+
+        # notify controler that we lost connection with a peer
+        factory = EventFactory.getInstance(ControlEvent.TYPE)
+        dead = factory.createDEAD(id_)
+        self.node.dispatch(dead)
+
+        # check what is our state
+        if manager.hasTooFewPeers():
+            self.increaseAr()
+
+            # we don't have enough peers but our Global Connectivity is OK
+            if manager.hasGlobalConnectity():
+                self.node.setState(NotEnoughPeers())
+            # not enough peers + GC is NOK
+            else:
+                self.searchPeers()
+                self.node.setState(NotEnoughPeersAndNoGlobalConnectivity())
+        # we still have enough peers
+        else:
+            # but we don't have our GC
+            if not manager.hasGlobalConnectity():
+                self.searchPeers()
+                self.node.setState(NotEnoughPeersAndNoGlobalConnectivity())
+
     def GETNODEINFO(self, event):
         factory = EventFactory.getInstance(ControlEvent.TYPE)
         info = factory.createNODEINFO()
@@ -83,50 +169,25 @@ class State(object):
         address = event.getArg(protocol.ARG_REMOTE_ADDRESS)
         self.sendFindNearest(address)
 
-    def HELLO(self, event):
-        """ A new peer is contacting us """
-        peer = event.createPeer()
-        manager = self.node.getPeersManager()
+    def FINDNEAREST(self, event):
+        """ A peer sent us a FINDNEAREST message """
+        source_id = event.getArg(protocol.ARG_ID)
+        targetPosition = event.getArg(protocol.ARG_POSITION)
+        nearestPeer = self.node.getPeersManager().getClosestPeer(targetPosition, source_id)
 
         factory = EventFactory.getInstance(PeerEvent.TYPE)
 
-        # We have now too many peers and this is the worst one
-        if manager.isWorstPeer(peer):
-            # refuse connection
-            close = factory.createCLOSE()
-            close.setRecipientAddress(peer.getAddress())
-            self.node.dispatch(close)
+        # check if I am not closer than nearestPeer
+        if (nearestPeer.isCloser(self.node, targetPosition)):
+            response = factory.createNEAREST(nearestPeer)
+        # I'm closer : send a best message
         else:
-            # check if we have not already connected to this peer
-            if not manager.hasPeer(peer.getId()):
-                manager.addPeer(peer)
-                connect = factory.createCONNECT()
-                connect.setRecipientAddress(peer.getAddress())
-                self.node.dispatch(connect)
-            else:
-                self.logger.debug('HELLO from %s, but we are already connected',
-                                  peer.getId())
+            response = factory.createBEST()
 
-    def CONNECT(self, event):
-        """ reception of a connect message """
-        # TODO :check that we sent a HELLO message to this peer
-        peer = event.createPeer()
-        mng = self.node.getPeersManager()
-        if  not mng.hasPeer(peer.getId()):
-            mng.addPeer(peer)
-            factory = EventFactory.getInstance(ControlEvent.TYPE)
-            newPeerEvent = factory.createNEW(peer)
-            self.node.dispatch(newPeerEvent)
+        response.setRecipientAddress(event.getSenderAddress())
 
-            # Give the list of our services to the peer
-            for s in self.node.enumerateServices():
-                factory = EventFactory.getInstance(PeerEvent.TYPE)
-                srvEvt = factory.createADDSERVICE(s.getId())
-                srvEvt.setRecipientAddress(event.getSenderAddress())
-                self.node.dispatch(srvEvt)
-        else:
-            self.logger.debug('reception of CONNECT but we are already connected to'
-                              + peer.getId())
+        # send reply to remote peer
+        self.node.dispatch(response)
 
     def DETECT(self, event):
         """ Notification that a peer is moving towards us"""
@@ -146,12 +207,51 @@ class State(object):
                 hello.setRecipientAddress(peer.getAddress())
                 self.node.dispatch(hello)
 
+    def QUERYAROUND(self, event):
+        """ A peer sent us a QUERYAROUND message """
+        #peer, idNearest, distNearest:
+        idNearest = event.getArg(protocol.ARG_BEST_ID)
+        distNearest = event.getArg(protocol.ARG_BEST_DISTANCE)
+        manager = self.node.getPeersManager()
+        target = event.getArg(protocol.ARG_POSITION)
+        closest = manager.getClosestPeer(target)
+
+        factory = EventFactory.getInstance(PeerEvent.TYPE)
+        # found a closest peer and this peer is a new one (it isn't idNearest moving
+        # toward target position).
+        if ( (Geometry.distance(closest.getPosition(), target) < distNearest) and
+             closest.getId() <> idNearest ):
+            # send a nearest message
+            nearestEvent = factory.createNEAREST(closest)
+            nearestEvent.setRecipientAddress(event.getSenderAddress())
+            self.node.dispatch(nearestEvent)
+
+        else:
+            # search for a peer around target position
+            around = manager.getPeerAround(target)
+            if around is not None:
+                aroundEvt = factory.createAROUND(around)
+                aroundEvt.setRecipientAddress(event.getSenderAddress())
+                self.node.dispatch(aroundEvt)
+            else:
+                self.logger.debug('no peer around position:' +str(target))
+
+    def HEARTBEAT(self, event):
+        """ reception of a message: HEARTBEAT, id"""
+        self.node.getPeersManager().heartbeat(event.getArg(protocol.ARG_ID))
+
     def UPDATE(self, event):
         """ A peer sent us an UPDATE message."""
         # extract the peer from the event
         peer = event.createPeer()
+        id_ = peer.getId()
 
         manager = self.node.getPeersManager()
+        if not manager.hasPeer(id_):
+            self.logger.debug('UPDATE from %s, but we are not connected',
+                peer.getId())
+            return
+
         # save peer old value
         oldPeer = manager.getPeer(event.getArg(protocol.ARG_ID))
 
@@ -176,6 +276,8 @@ class State(object):
         if not oldPosition == newPosition:
             # verify entities that could be interested by the entity id
             for ent in manager.enumeratePeers():
+                if ent.getId() == id_:
+                    continue
                 itsAR = ent.getAwarenessRadius()
 
                 # get distance between self and ent
@@ -208,6 +310,8 @@ class State(object):
             self.logger.debug('AR updated')
             # verify entities that could be interested by the modified entity.
             for ent in manager.enumeratePeers():
+                if ent.getId() == id_:
+                    continue
                 # get distance between ent and modified entity
                 theirDist = Geometry.distance(ent.getPosition(), newPosition)
                 theirOldDist = Geometry.distance(ent.getPosition(), oldPosition)
@@ -218,6 +322,72 @@ class State(object):
                     detect = peerFct.createDETECT(ent)
                     detect.setRecipientAddress(peer.getAddress())
                     self.node.dispatch(detect)
+
+    def ADDSERVICE(self, event):
+        """ A peer sent us a ADDSERVICE message """
+        # get service information
+        srvId = event.getArg(protocol.ARG_SERVICE_ID)
+        srvDesc =event.getArg(protocol.ARG_SERVICE_DESC)
+        srvAddress = event.getArg(protocol.ARG_SERVICE_ADDRESS)
+        # See solipsis.navigator.service
+        srv = Service(srvId, srvDesc, srvAddress)
+
+        # update the corresponding peer
+        id_ = event.getArg(protocol.ARG_ID)
+        peer = self.node.getPeersManager().getPeer(id_)
+        peer.addService(srv)
+
+        # notify the controller that this peer has a new service available
+        factory = EventFactory.getInstance(ControlEvent.TYPE)
+        addsrv = factory.createADDSERVICE(id_, srvId, srvDesc, srvAddress)
+        self.node.dispatch(addsrv)
+
+    def DELSERVICE(self, event):
+        """ A peer sent us a DELSERVICE message.
+        The described service is longer available for this peer
+        """
+        # get service ID
+        srvId = event.getArg(protocol.ARG_SERVICE_ID)
+        # update the corresponding peer
+        id_ = event.getArg(protocol.ARG_ID)
+        peer = self.node.getPeersManager().getPeer(id_)
+        peer.delService(srvId)
+        # notify the controller that this peer deleted a service
+        factory = EventFactory.getInstance(ControlEvent.TYPE)
+        delsrv = factory.createDELSERVICE(id_, srvId)
+        self.node.dispatch(delsrv)
+
+    def SEARCH(self, event):
+        """ search an entity to restore the global connectivity of an other node
+        reception of message: SEARCH, id, wise = 1 if counterclockwise"""
+        id_ = event.getArg(protocol.ARG_ID)
+        wise = event.getArg(protocol.ARG_CLOCKWISE)
+        manager = self.node.getPeersManager()
+        queryEnt = None
+
+        try:
+            # queryEnt is the querying entity
+            queryEnt = manager.getPeer(id_)
+        except UnknownIdError:
+            self.logger.debug('Error, reception of SEARCH message with unknown ' +
+                               'peer ID: ' + id_)
+            return
+
+        # update the status of querying entity
+        manager.heartbeat(id_)
+
+        around = manager.getPeerAround(queryEnt.getPosition(), wise)
+
+        # send message if an entity has been found.
+        if around is not None:
+            factory = EventFactory.getInstance(PeerEvent.TYPE)
+            aroundEvt = factory.createFOUND(around)
+            aroundEvt.setRecipientAddress(event.getSenderAddress())
+            self.node.dispatch(aroundEvt)
+
+    #
+    # Control events
+    #
 
     def JUMP(self, jumpEvent):
         """
@@ -231,6 +401,14 @@ class State(object):
         manager = self.node.getPeersManager()
         peer = manager.getRandomPeer()
         self.sendFindNearest(peer.getAddress())
+
+        # disconnect from current peers
+        peerFct = EventFactory.getInstance(PeerEvent.TYPE)
+        for peer in manager.enumeratePeers():
+            evt = peerFct.createCLOSE()
+            evt.setRecipientAddress(peer.getAddress())
+            self.node.dispatch(evt)
+            manager.removePeer(peer.getId())
 
         # go to the tracking state
         self.node.setState(Locating())
@@ -246,7 +424,7 @@ class State(object):
         self.node.setPosition(newPosition)
         # notify peers of this change
         self.sendUpdates()
-        
+
     def KILL(self, event):
         self.logger.debug("Received kill message")
         self.node.exit()
@@ -266,7 +444,10 @@ class State(object):
         else:
             import exceptions
             raise NotImplementedError()
-    
+
+    #
+    # Private methods
+    #
 
     def sendFindNearest(self, peerAddress):
         """ Send a FINNEAREST event and return the timer object assocoiated
@@ -293,8 +474,9 @@ class State(object):
         factory = EventFactory.getInstance(PeerEvent.TYPE)
 
         # send msg SEARCH.
-        searchEntities = manager.getBadGlobalConnectivityPeers()
-        for pair in searchEntities:
+        pair = manager.getBadGlobalConnectivityPeers()
+
+        if pair:
             # send message to each entity
             searchClockWise = factory.createSEARCH(True)
             searchCounterclockWise = factory.createSEARCH(False)
@@ -336,12 +518,6 @@ class NotConnected(State):
 
     def activate(self):
         self.logger.debug('NotConnected(State)')
-
-
-
-
-
-
 
 
 class Locating(State):
@@ -584,168 +760,6 @@ class Idle(State):
     def activate(self):
         self.logger.debug('State Idle')
 
-    def FINDNEAREST(self, event):
-        """ A peer sent us a FINDNEAREST message """
-        targetPosition = event.getArg(protocol.ARG_POSITION)
-        nearestPeer = self.node.getPeersManager().getClosestPeer(targetPosition)
-
-        factory = EventFactory.getInstance(PeerEvent.TYPE)
-
-        # check if I am not closer than nearestPeer
-        if (nearestPeer.isCloser(self.node, targetPosition)):
-            response = factory.createNEAREST(nearestPeer)
-        # I'm closer : send a best message
-        else:
-            response = factory.createBEST()
-
-        response.setRecipientAddress(event.getSenderAddress())
-
-        # send reply to remote peer
-        self.node.dispatch(response)
-
-    def QUERYAROUND(self, event):
-        """ A peer sent us a QUERYAROUND message """
-        #peer, idNearest, distNearest:
-        idNearest = event.getArg(protocol.ARG_BEST_ID)
-        distNearest = event.getArg(protocol.ARG_BEST_DISTANCE)
-        manager = self.node.getPeersManager()
-        target = event.getArg(protocol.ARG_POSITION)
-        closest = manager.getClosestPeer(target)
-
-        factory = EventFactory.getInstance(PeerEvent.TYPE)
-        # found a closest peer and this peer is a new one (it isn't idNearest moving
-        # toward target position).
-        if ( (Geometry.distance(closest.getPosition(), target) < distNearest) and
-             closest.getId() <> idNearest ):
-            # send a nearest message
-            nearestEvent = factory.createNEAREST(closest)
-            nearestEvent.setRecipientAddress(event.getSenderAddress())
-            self.node.dispatch(nearestEvent)
-
-        else:
-            # search for a peer around target position
-            around = manager.getPeerAround(target)
-            if around is not None:
-                aroundEvt = factory.createAROUND(around)
-                aroundEvt.setRecipientAddress(event.getSenderAddress())
-                self.node.dispatch(aroundEvt)
-            else:
-                self.logger.debug('no peer around position:' +str(target))
-
-    def HEARTBEAT(self, event):
-        """ reception of a message: HEARTBEAT, id"""
-        self.node.getPeersManager().heartbeat(event.getArg(protocol.ARG_ID))
-
-    def ADDSERVICE(self, event):
-        """ A peer sent us a ADDSERVICE message """
-        # get service information
-        srvId = event.getArg(protocol.ARG_SERVICE_ID)
-        srvDesc =event.getArg(protocol.ARG_SERVICE_DESC)
-        srvAddress = event.getArg(protocol.ARG_SERVICE_ADDRESS)
-        # See solipsis.navigator.service
-        srv = Service(srvId, srvDesc, srvAddress)
-
-        # update the corresponding peer
-        id_ = event.getArg(protocol.ARG_ID)
-        peer = self.node.getPeersManager().getPeer(id_)
-        peer.addService(srv)
-
-        # notify the controller that this peer has a new service available
-        factory = EventFactory.getInstance(ControlEvent.TYPE)
-        addsrv = factory.createADDSERVICE(id_, srvId, srvDesc, srvAddress)
-        self.node.dispatch(addsrv)
-
-    def DELSERVICE(self, event):
-        """ A peer sent us a DELSERVICE message.
-        The described service is longer available for this peer
-        """
-        # get service ID
-        srvId = event.getArg(protocol.ARG_SERVICE_ID)
-        # update the corresponding peer
-        id_ = event.getArg(protocol.ARG_ID)
-        peer = self.node.getPeersManager().getPeer(id_)
-        peer.delService(srvId)
-        # notify the controller that this peer deleted a service
-        factory = EventFactory.getInstance(ControlEvent.TYPE)
-        delsrv = factory.createDELSERVICE(id_, srvId)
-        self.node.dispatch(delsrv)
-
-    def CLOSE(self, event):
-        """ A peer sent us a CLOSE message."""
-        # remove the corresponding peer
-        id_ = event.getArg(protocol.ARG_ID)
-        manager = self.node.getPeersManager()
-        manager = removePeer(id_)
-
-        # notify the controller that we lost connection with this peer
-        factory = EventFactory.getInstance(ControlEvent.TYPE)
-        dead = factory.createDEAD(id_)
-        self.node.dispatch(dead)
-        if manager.hasTooFewPeers():
-            if not manager.hasGlobalConnectivity():
-                self.node.setState(NotEnoughPeersAndNoGlobalConnectivity())
-            else:
-                self.node.setState(NotEnoughPeers())
-        elif not manager.hasGlobalConnectivity():
-            self.node.setState(NoGlobalConnectivity())
-
-
-    def SEARCH(self, event):
-        """ search an entity to restore the global connectivity of an other node
-        reception of message: SEARCH, id, wise = 1 if counterclockwise"""
-        id_ = event.getArg(protocol.ARG_ID)
-        wise = event.getArg(protocol.ARG_CLOCKWISE)
-        manager = self.node.getPeersManager()
-        queryEnt = None
-
-        try:
-            # queryEnt is the querying entity
-            queryEnt = manager.getPeer(id_)
-        except UnknownIdError:
-            self.logger.debug('Error, reception of SEARCH message with unknown ' +
-                               'peer ID: ' + id_)
-            return
-
-        # update the status of querying entity
-        manager.heartbeat(id_)
-
-        around = manager.getPeerAround(queryEnt.getPosition(), wise)
-
-        # send message if an entity has been found.
-        if around is not None:
-            factory = EventFactory.getInstance(PeerEvent.TYPE)
-            aroundEvt = factory.createFOUND(around)
-            aroundEvt.setRecipientAddress(event.getSenderAddress())
-            self.node.dispatch(aroundEvt)
-
-    def CLOSE(self, event):
-        """ Connection closed with one of our peers."""
-        id_ = event.getArg(protocol.ARG_ID)
-        manager = self.node.getPeersManager()
-        manager.removePeer(id_)
-
-        # notify controler that we lost connection with a peer
-        factory = EventFactory.getInstance(ControlEvent.TYPE)
-        dead = factory.createDEAD(id_)
-        self.node.dispatch(dead)
-
-        # check what is our state
-        if manager.hasTooFewPeers():
-            self.increaseAr()
-
-            # we don't have enough peers but our Global Connectivity is OK
-            if manager.hasGlobalConnectity():
-                self.node.setState(NotEnoughPeers())
-            # not enough peers + GC is NOK
-            else:
-                self.searchPeers()
-                self.node.setState(NotEnoughPeersAndNoGlobalConnectivity())
-        # we still have enough peers
-        else:
-            # but we don't have our GC
-            if not manager.hasGlobalConnectity():
-                self.searchPeers()
-                self.node.setState(NotEnoughPeersAndNoGlobalConnectivity())
 
 class NoGlobalConnectivity(State):
     """ Our global connectivity rule is not satisfied """

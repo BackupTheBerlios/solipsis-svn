@@ -236,7 +236,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
 
     def _Disconnect(self, evt):
         """ Called on "disconnect" event (menu -> File -> Disconnect). """
-        self._NotImplemented()
+        self.network.DisconnectFromNode()
 
     def _Preferences(self, evt):
         """ Called on "preferences" event (menu -> File -> Preferences). """

@@ -50,7 +50,7 @@ class XMLRPCConnector(object):
     def _AskNotif(self):
         if self.xmlrpc_notif is not None:
             print 'Get'
-            d = self.xmlrpc_notif.callRemote('Get')
+            d = self.xmlrpc_notif.callRemote('get')
             d.addCallbacks(self.NotifResponse, self.NotifError)
 
 
@@ -95,7 +95,8 @@ class NetworkLoop(threading.Thread):
         self.node_connector.CallControl('jump', 500, 2000, 0)
 
     def DisconnectFromNode(self, *args, **kargs):
-        self.node_connector.Disconnect(*args, **kargs)
+        self.node_connector.CallControl('move', str(488888888888888889), str(45645646465465465), 0)
+        #self.node_connector.Disconnect(*args, **kargs)
 
 
     #

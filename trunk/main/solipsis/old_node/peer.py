@@ -135,25 +135,26 @@ class PeersManager(object):
         """ Return a peer randomly chosen from a file
         Read the entities file and return a random peer
         """
+        lines = []
         try:
             f = file(self.entitiesFileName, 'r')
-
             # read file
             lines = f.readlines()
-
-            # retrieve peer
-            peer = ''
-            # ignore blank lines in file
-            while peer == '':
-                peer = random.choice(lines).strip()
-
-            host, stringPort = string.splitfields(peer)
-            port = int(stringPort)
-            addr = Address(host, port)
             f.close()
+
         except:
             self.logger.critical("Cannot read file " + self.entitiesFileName)
             raise
+
+        # retrieve peer
+        peer = ''
+        # ignore blank lines in file
+        while peer == '':
+            peer = random.choice(lines).strip()
+
+        host, stringPort = string.splitfields(peer)
+        port = int(stringPort)
+        addr = Address(host, port)
         p = Peer(address=addr)
         return p
 
@@ -233,13 +234,15 @@ class PeersManager(object):
         return None
 
 
-    def getClosestPeer(self, target):
+    def getClosestPeer(self, target, orig_id = None):
         """ Return the peer that is the closest to a target position
         target : a Position object
         """
-        closestPeer = self.peers.values()[0]
+        closestPeer = None
         for p in self.peers.values():
-            if p.isCloser(closestPeer, target):
+            if p.getId() == orig_id:
+                continue
+            if closestPeer is None or p.isCloser(closestPeer, target):
                 closestPeer = p
 
         return closestPeer
@@ -380,7 +383,7 @@ class PeersManager(object):
     def enumeratePeers(self):
         """ return a list with all peers """
         return self.peers.values()
-        
+
     def getBadGlobalConnectivityPeers(self):
         """ Check if global connectivity is ensured
 
@@ -392,15 +395,15 @@ class PeersManager(object):
         length = self.getNumberOfPeers()
         # three or more entities,
         if length >= 2:
-            for index in range(length) :
+            for index in range(length):
                 ent = self.ccwPeers.ll[index]
                 nextEnt = self.ccwPeers.ll[ (index+1) % length ]
                 entPos = ent.getPosition()
                 nextEntPos = nextEnt.getPosition()
                 if not Geometry.inHalfPlane(entPos, nodePos, nextEntPos) :
-                    result = [ent, nextEnt]
+                    return [ent, nextEnt]
 
-        return result
+        return []
 
     def hasGlobalConnectivity(self):
         """ Return True if Global connectivity rule is respected"""

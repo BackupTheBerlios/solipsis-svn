@@ -125,9 +125,10 @@ class PeerEventFactory(EventFactory):
         """
         evt = PeerEvent('FINDNEAREST')
         if targetPosition is None:
-            evt.addArg('Position', self.node.getPosition())
+            evt.addArg(protocol.ARG_POSITION, self.node.getPosition())
         else:
-            evt.addArg('Position', targetPosition)
+            evt.addArg(protocol.ARG_POSITION, targetPosition)
+        evt.addArg(protocol.ARG_ID, self.node.getId())
         return evt
 
     def createADDSERVICE(self, serviceId):
@@ -137,7 +138,7 @@ class PeerEventFactory(EventFactory):
         """
         evt = PeerEvent('SERVICE')
         srv = self.node.service[serviceId]
-        evt.addArg(protocol.ARG_ID, self.node.id)
+        evt.addArg(protocol.ARG_ID, self.node.getId())
         evt.addArg(protocol.ARG_SERVICE_ID, serviceId)
         evt.addArg(protocol.ARG_SERVICE_DESC, srv.desc)
         evt.addArg(protocol.ARG_SERVICE_ADDRESS, srv.address)
@@ -148,7 +149,7 @@ class PeerEventFactory(EventFactory):
         a  service is no longer available.
         serviceIdc : the id of the service that is no longer available."""
         evt = PeerEvent('ENDSERVICE')
-        evt.addArg(protocol.ARG_ID, self.node.id)
+        evt.addArg(protocol.ARG_ID, self.node.getId())
         evt.addArg(protocol.ARG_SERVICE_ID, serviceId)
         return evt
 
@@ -157,7 +158,7 @@ class PeerEventFactory(EventFactory):
         Args: 'Id'
         """
         evt = PeerEvent('CLOSE')
-        evt.addArg('Id', self.node.id)
+        evt.addArg(protocol.ARG_ID, self.node.getId())
         return evt
 
     def createUPDATE(self):
@@ -191,7 +192,7 @@ class PeerEventFactory(EventFactory):
         Args: 'Id'
         """
         evt = PeerEvent('HEARTBEAT')
-        evt.addArg('Id', self.node.getId())
+        evt.addArg(protocol.ARG_ID, self.node.getId())
         return evt
 
     def createDETECT(self, peer):
@@ -224,7 +225,10 @@ class PeerEventFactory(EventFactory):
         """
         evt = PeerEvent('SEARCH')
         evt.addArg(protocol.ARG_ID, self.node.getId())
-        evt.addArg(protocol.ARG_CLOCKWISE, isClockwise)
+        if isClockwise:
+            evt.addArg(protocol.ARG_CLOCKWISE, "+1")
+        else:
+            evt.addArg(protocol.ARG_CLOCKWISE, "-1")
         return evt
 
     def createQUERYAROUND(self, idBest, distBest):

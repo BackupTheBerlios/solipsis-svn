@@ -43,7 +43,7 @@ REQUESTS = {
     'CONNECT'    : ALL_NODE_ARGS,
     'DETECT'     : ALL_REMOTE_ARGS,
     'ENDSERVICE' : [ ARG_ID, ARG_SERVICE_ID ],
-    'FINDNEAREST': [ ARG_POSITION ],
+    'FINDNEAREST': [ ARG_ID, ARG_POSITION ],
     'FOUND'      : ALL_REMOTE_ARGS,
     'HEARTBEAT'  : [ ARG_ID ],
     'HELLO'      : ALL_NODE_ARGS,
@@ -57,6 +57,7 @@ REQUESTS = {
 ARGS_SYNTAX = {
     ARG_ADDRESS          : '\s*.*:\d+\s*',
     ARG_AWARENESS_RADIUS : '\d+',
+    ARG_CLOCKWISE        : '[-+]1',
     ARG_CALIBRE          : '\d{1,4}',
     ARG_BEST_DISTANCE    : '\d+',
     ARG_ID               : '[^\s]*',
@@ -76,14 +77,15 @@ ARGS_SYNTAX[ARG_REMOTE_POSITION]           = ARGS_SYNTAX[ARG_POSITION]
 ARGS_SYNTAX[ARG_REMOTE_PSEUDO]             = ARGS_SYNTAX[ARG_PSEUDO]
 
 ARGS_CONSTRUCTOR = {
-    ARG_POSITION : 'PositionFactory.create',
-    ARG_ADDRESS : 'AddressFactory.create',
-    ARG_CALIBRE : 'int',
-    ARG_ORIENTATION : 'int',
-    ARG_PSEUDO : 'str',
-    ARG_AWARENESS_RADIUS : 'int',
-    ARG_BEST_DISTANCE : 'int',
-    ARG_ID : 'str'
+    ARG_CLOCKWISE : (lambda x: int(x) > 0),
+    ARG_POSITION : PositionFactory.create,
+    ARG_ADDRESS : AddressFactory.create,
+    ARG_CALIBRE : int,
+    ARG_ORIENTATION : int,
+    ARG_PSEUDO : str,
+    ARG_AWARENESS_RADIUS : int,
+    ARG_BEST_DISTANCE : int,
+    ARG_ID : str
     }
 
 ARGS_CONSTRUCTOR[ARG_BEST_ID]                 = ARGS_CONSTRUCTOR[ARG_ID]
@@ -189,7 +191,8 @@ class Message(object):
             # The syntax is correct => add this arg to the arg list
             if args.has_key(argName):
                 raise EventParsingError("Duplicate value for arg '%s'" % argName)
-            args[argName] =  eval(ARGS_CONSTRUCTOR[argName] + '(argVal)')
+            #args[argName] =  eval(ARGS_CONSTRUCTOR[argName] + '(argVal)')
+            args[argName] =  ARGS_CONSTRUCTOR[argName](argVal)
 
         # Check that all required fields have been encountered
         for argName in argList:

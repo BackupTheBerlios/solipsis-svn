@@ -57,6 +57,7 @@ class XMLRPCConnector(Connector):
         notification : an Event object
         """
         self.notificationChannel.send(notification)
+        self.logger.debug(str(notification))
 
 class XMLRPCNotificationChannel(Thread):
     """ Comunication channel used by the node to send notification to its controller.
@@ -241,4 +242,4 @@ class XMLRPCControlChannel(object):
         set = factory.createSET(name, value)
         self.incoming.put(set)
         return self.ok
-    
+

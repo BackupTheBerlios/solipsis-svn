@@ -99,16 +99,16 @@ class UDPConnector(Connector):
         Immediatly send a message. This method must only be called from the network
         thread.
         """
+        address =  netEvent.getRecipientAddress()
+        host = address.getHost()
+        port = address.getPort()
+        data = ""
+        data = self.parser.getData(netEvent)
+        self.logger.debug("_send_no_wait %s %d - %s", host, port, data)
         try:
-            address =  netEvent.getRecipientAddress()
-            host = address.getHost()
-            port = address.getPort()
-            data = ""
-            data = self.parser.getData(netEvent)
-            self.logger.debug("_send_no_wait %s %d - %s", host, port, data)
             self.socket.sendto(self.parser.getData(netEvent), (host, port))
         except:
-            self.logger.critical("Error in udpconnector._send_no_wait")
+            self.logger.critical("Error in udpconnector._send_no_wait %s %s" % (host, port))
             raise
 
 
