@@ -38,8 +38,9 @@ class Plugin(ServicePlugin):
         # TODO: smartly discover our own address IP
         # (this is where duplicated code starts to appear...)
         self.host = socket.gethostbyname(socket.gethostname())
-        self.port = 7780
+        self.port = 7780 + random.randrange(0,100)
         self.hosts = {}
+        self.node_avatar_hash = None
 
     def GetTitle(self):
         return _("Avatars")
@@ -60,6 +61,9 @@ class Plugin(ServicePlugin):
     # Here comes the real action
     #
     def Enable(self):
+        """
+        Enable the service.
+        """
         # Set up avatar GUI
         dialog = ConfigDialog(self, self.service_api.GetDirectory())
         self.ui = UIProxy(dialog)
@@ -68,7 +72,7 @@ class Plugin(ServicePlugin):
         menu = wx.Menu()
         item_id = wx.NewId()
         menu.Append(item_id, _("&Configure"))
-        wx.EVT_MENU(main_window, item_id, self._Configure)
+        wx.EVT_MENU(main_window, item_id, self.Configure)
         self.service_api.SetMenu(_("Avatar"), menu)
         # Set up network handler
         network = NetworkLauncher(self.reactor, self, self.port)
@@ -77,6 +81,9 @@ class Plugin(ServicePlugin):
         self.network.Start()
 
     def Disable(self):
+        """
+        Disable the service.
+        """
         self.network.Stop()
         self.network = None
         self.ui.Destroy()
@@ -89,6 +96,8 @@ class Plugin(ServicePlugin):
             pass
         else:
             self.hosts[peer.id_] = host, port
+            if self.node_avatar_hash is not None:
+                self.service_api.SendData(peer.id_, self.node_avatar_hash)
 
     def ChangedPeer(self, peer, service):
         try:
@@ -106,15 +115,33 @@ class Plugin(ServicePlugin):
     def ChangedNode(self, node):
         pass
     
-    #
-    # Private methods
-    #
-
-    def _Configure(self, evt=None):
+    def Configure(self, evt=None):
+        """
+        Called when the "Configure" action is selected.
+        """
         # The result of the Configure() method will be passed
         # to the callback, if successful.
         # This is because self.ui goes through an asynchronous proxy.
-        self.ui.Configure(callback=self.network.SetFile)
+        def _configured(filename):
+            self.network.SetFile(filename)
+            node_id = self.service_api.GetNode().id_
+            data = file(filename).read()
+            # Add the avatar to the repository, and send its hash to all peers
+            self.node_avatar_hash = self.avatars.BindAvatarToPeer(data, node_id)
+            for peer_id in self.hosts.keys():
+                self.service_api.SendData(peer_id, self.node_avatar_hash)
+
+        self.ui.Configure(callback=_configured)
+
+    def GotServiceData(self, peer_id, hash_):
+        """
+        Called when another peer sent its avatar hash.
+        """
+        print "peer %s peer_id has avatar '%s'" % (peer_id, hash_)
+
+    #
+    # Private methods
+    #
 
     def _ParseAddress(self, address):
         try:

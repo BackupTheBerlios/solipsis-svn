@@ -83,6 +83,7 @@ class _AvatarRepository(object):
     def BindAvatarToPeer(self, data, peer_id):
         """
         Adds an avatar based on its binary data.
+        Returns its hash.
         """
         # Get the already cached version, or create it if it doesn't exist
         hash_ = self._HashAvatarData(data)
@@ -92,6 +93,7 @@ class _AvatarRepository(object):
             self._AddAvatar(data, hash_)
         self._CalculateAvatar(hash_)
         self.peer_avatar_hashes[peer_id] = hash_
+        return hash_
     
     def GetAvatarBitmap(self, peer_id):
         """
@@ -135,14 +137,14 @@ class _AvatarRepository(object):
             original = self.original_avatar_cache[hash_]
         except KeyError:
             pil = self.pil_avatar_cache[hash_]
-            print "** image convert 1 (%s)" % hash_
+            #~ print "** image convert 1 (%s)" % hash_
             original = self._BitmapFromPIL(pil)
             self.original_avatar_cache[hash_] = original
         try:
             processed = self.processed_avatar_cache[hash_]
         except KeyError:
             pil = self.pil_avatar_cache[hash_]
-            print "** image convert 2 (%s)" % hash_
+            #~ print "** image convert 2 (%s)" % hash_
             pil2 = self._ProcessAvatar(pil)
             processed = self._BitmapFromPIL(pil2)
             self.processed_avatar_cache[hash_] = processed
@@ -152,7 +154,7 @@ class _AvatarRepository(object):
         Converts raw image data (as JPEG, PNG, etc.) to PIL image.
         Returns None if conversion failed.
         """
-        print "** image parse"
+        #~ print "** image parse"
         sio = StringIO()
         sio.write(data)
         sio.seek(0)
@@ -198,7 +200,6 @@ class _AvatarRepository(object):
         rgb_data = Image.merge('RGB', (r, g, b))
         w, h = im.size
         wxim = wx.EmptyImage(w, h)
-        #~ print len(rgb_data.tostring()), len(alpha.tostring())
         wxim.SetData(rgb_data.tostring())
         wxim.SetAlphaData(alpha.tostring())
         return wx.BitmapFromImage(wxim)
@@ -233,7 +234,7 @@ class _AvatarRepository(object):
                 data = f.read()
                 f.close()
                 hash_ = self._AddAvatar(data)
-                print hash_
+                #~ print hash_
                 self.default_avatars.append(hash_)
 
 
