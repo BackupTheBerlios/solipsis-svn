@@ -52,8 +52,7 @@ class ChatWindow(wx.EvtHandler, XRCLoader, UIProxyReceiver):
         # does not yet support adding the TE_RICH flag to a TextCtrl...
         # (which is needed to have styles inside the TextCtrl under Windows!)
         
-        id_ = wx.NewId()
-        self.chat_view = wx.TextCtrl(parent=self.chat_panel, id=id_, 
+        self.chat_view = wx.TextCtrl(parent=self.chat_panel, 
             style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_RICH)
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.chat_view, flag=wx.EXPAND, proportion=1)
@@ -70,7 +69,6 @@ class ChatWindow(wx.EvtHandler, XRCLoader, UIProxyReceiver):
         wx.EVT_BUTTON(self.chat_window, XRCID("chat_send"), self._Send)
         wx.EVT_BUTTON(self.chat_window, XRCID("chat_close"), self._Close)
         wx.EVT_CLOSE(self.chat_window, self._Close)
-        wx.EVT_TEXT_ENTER(self.chat_view, id_, self._Send)
 
 
     def AppendMessage(self, peer_id, message, our_message=False):
