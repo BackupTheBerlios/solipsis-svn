@@ -164,6 +164,8 @@ class Node(Entity):
         self.periodic.append(hb)
         hb.start()
         if self.params.memdebug:
+            import gc
+            gc.set_debug(gc.DEBUG_STATS | gc.DEBUG_COLLECTABLE | gc.DEBUG_UNCOLLECTABLE | gc.DEBUG_INSTANCES | gc.DEBUG_OBJECTS)
             md = periodic.Memdump()
             self.periodic.append(md)
             md.start()

@@ -1,4 +1,5 @@
-import threading, time
+import threading
+import time
 import logging
 
 from event import EventFactory
@@ -60,4 +61,7 @@ class Memdump(PeriodicExecutor):
 #         print "\n".join(self.sizer.get_sizes()) + "\n"
         print "... Memdiff ..."
         print "\n".join(self.sizer.get_deltas()) + "\n"
+        import gc
+        print "... Summary ..."
+        print "%d objects managed by the GC\n" % len(gc.get_objects())
 
