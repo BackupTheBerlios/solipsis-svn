@@ -4,6 +4,10 @@ workings of documents"""
 
 import wx
 import sys
+from StringIO import StringIO
+from simpletal import simpleTAL, simpleTALES
+from solipsis.services.profile import ENCODING
+
 
 class AbstractView:
     """Base class for all views"""
@@ -11,9 +15,13 @@ class AbstractView:
     def __init__(self, document, name="abstract"):
         self.document = document
         self.name = name
-        self.import_document(document)
+        self.import_document()
 
-    def import_document(self, document):
+    def get_name(self):
+        """used as key in index"""
+        return self.name
+
+    def import_document(self):
         """update view with document"""
         # personal tab
         self.update_title()
@@ -202,7 +210,9 @@ class GuiView(AbstractView):
     """synthetises information and renders it in HTML"""
 
     def __init__(self, document, frame, name="gui"):
+        # link to the frame used by view
         self.frame = frame
+        # init view
         AbstractView.__init__(self, document, name)
 
     # PERSONAL TAB: frame.personal_tab
@@ -224,8 +234,11 @@ class GuiView(AbstractView):
 
     def update_photo(self):
         """photo"""
-        self.frame.personal_tab.photo_button.SetBitmapLabel(\
+        try:
+            self.frame.personal_tab.photo_button.SetBitmapLabel(\
                 wx.Bitmap(self.document.get_photo(), wx.BITMAP_TYPE_ANY))
+        except:
+            print >> stderr, "Could not load bitmap"
 
     def update_email(self):
         """email"""
@@ -266,6 +279,7 @@ class GuiView(AbstractView):
         
     def update_custom_attributes(self):
         """dict custom_attributes"""
+        self.frame.custom_tab.custom_list.DeleteAllItems()
         for key, value in self.document.get_custom_attributes().iteritems():
             index = self.frame.custom_tab.custom_list.InsertStringItem(sys.maxint, key)
             self.frame.custom_tab.custom_list.SetStringItem(index, 1, value)
@@ -285,4 +299,126 @@ class GuiView(AbstractView):
         """peer"""
         #TODO
         peers = self.document.get_peers()
+        
+
+class HtmlView(AbstractView):
+    """synthetises information and renders it in HTML"""
+
+    def __init__(self, document, html_window=None, name="html"):
+        # init HTML string, wxWidget
+        self.view = None
+        self.html_window = html_window
+        # Create the context that is used by the template
+        self.context = simpleTALES.Context(allowPythonPath=1)
+        templateFile = open ("../preview.html", 'r')
+        self.template = simpleTAL.compileHTMLTemplate(templateFile, inputEncoding=ENCODING)
+        templateFile.close()
+        # init view
+        AbstractView.__init__(self, document, name)
+
+    def update_view(self):
+        """rebuild HTML View"""
+        self.view and self.view.close()
+        self.view = StringIO()
+        self.template.expand(self.context, self.view, outputEncoding=ENCODING)
+        self.html_window and self.html_window.SetPage(self.get_view())
+
+    def get_view(self):
+        """returns HTLM String"""
+        return unicode(self.view.getvalue(), ENCODING)
+
+    # PERSONAL TAB: frame.personal_tab
+    def update_title(self):
+        """title"""
+        self.context.addGlobal("title", self.document.get_title())
+        self.update_view()
+
+    def update_firstname(self):
+        """firstname"""
+        self.context.addGlobal("firstname", self.document.get_firstname())
+        self.update_view()
+        
+    def update_lastname(self):
+        """lastname"""
+        self.context.addGlobal("lastname", self.document.get_lastname())
+        self.update_view()
+
+    def update_pseudo(self):
+        """pseudo"""
+        self.context.addGlobal("pseudo", self.document.get_pseudo())
+        self.update_view()
+
+    def update_photo(self):
+        """photo"""
+        self.context.addGlobal("photo", self.document.get_photo())
+        self.update_view()
+
+    def update_email(self):
+        """email"""
+        self.context.addGlobal("email", self.document.get_email()) 
+        self.update_view()    
+
+    def update_birthday(self):
+        """DateTime birthday"""
+        self.context.addGlobal("birthday", self.document.get_birthday()) 
+        self.update_view()
+
+    def update_language(self):
+        """language"""
+        self.context.addGlobal("language", self.document.get_language())
+        self.update_view()
+
+    def update_address(self):
+        """address"""
+        self.context.addGlobal("address", self.document.get_address())
+        self.update_view()
+
+    def update_postcode(self):
+        """int postcode"""
+        self.context.addGlobal("postcode", self.document.get_postcode())
+        self.update_view()
+
+    def update_city(self):
+        """city"""
+        self.context.addGlobal("city", self.document.get_city())
+        self.update_view()
+
+    def update_country(self):
+        """country"""
+        self.context.addGlobal("country", self.document.get_country())
+        self.update_view()
+
+    def update_description(self):
+        """description"""
+        self.context.addGlobal("description", self.document.get_description())
+        self.update_view()
+
+    # CUSTOM TAB : frame.custom_tab
+    def update_hobbies(self):
+        """list hobbies"""
+        self.context.addGlobal("hobbies", self.document.get_hobbies())
+        self.update_view()
+        
+    def update_custom_attributes(self):
+        """dict custom_attributes"""
+        self.context.addGlobal("attributes_name", self.document.get_custom_attributes().keys())
+        self.context.addGlobal("attributes", self.document.get_custom_attributes())
+        self.update_view()
+        
+    # FILE TAB : frame.file_tab
+    def update_repository(self):
+        """repository"""
+        self.context.addGlobal("repository", self.document.get_repository())
+        self.update_view()
+        
+    def update_files(self):
+        """file"""
+        self.context.addGlobal("files", self.document.get_files())
+        self.update_view()
+        
+    # OTHERS TAB : frame.other_tab  
+    def update_peers(self):
+        """peer"""
+        self.context.addGlobal("peers",  self.document.get_peers())
+        self.update_view()
         

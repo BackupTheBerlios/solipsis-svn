@@ -15,10 +15,12 @@ class FacadeTest(unittest.TestCase):
 
     def setUp(self):
         """override one in unittest.TestCase"""
-        doc = CacheDocument()
-        self.facade = get_facade(doc, PrintView(doc))
         self.sys_stdout = sys.stdout
         self.sys_stderr = sys.stderr
+        sys.stdout = StringIO()
+        sys.stderr = StringIO()
+        doc = CacheDocument()
+        self.facade = get_facade(doc, PrintView(doc))
         sys.stdout = StringIO()
         sys.stderr = StringIO()
 

@@ -6,10 +6,9 @@ import mx.DateTime
 import ConfigParser
 import os.path
 from os.path import isfile, isdir
+from solipsis.services.profile import ENCODING, PROFILE_FILE
 
 DATE_FORMAT = "%d/%m/%Y"
-ENCODING = "ISO-8859-1"
-PROFILE_FILE = ".profile.solipsis"
 SECTION_PERSONAL = "Personal"
 SECTION_CUSTOM = "Custom"
 SECTION_FILE = "File"
@@ -48,6 +47,10 @@ class AbstractDocument:
     def __init__(self, name="abstract"):
         self.name = name
 
+    def get_name(self):
+        """used as key in index"""
+        return self.name
+
     def import_document(self, other_document):
         """copy data from another document into self"""
         # personal data (unicode)
@@ -80,6 +83,16 @@ class AbstractDocument:
         for pseudo, peer_desc in peers.iteritems():
             self.add_peer(pseudo)
             self.peers[pseudo].state = peer_desc.state
+    
+    # MENU
+
+    def save(self):
+        """fill document with information from .profile file"""
+        pass
+
+    def load(self):
+        """fill document with information from .profile file"""
+        pass
     
     # PERSONAL TAB
     def set_title(self, value):
@@ -294,7 +307,10 @@ class CacheDocument(AbstractDocument):
         self.files = {}
         # dictionary of peers. {pseudo : PeerDescriptor}
         self.peers = {}
+    
+    # MENU
 
+    # used base method: saving / loading not implemented
         
     # PERSONAL TAB
     def set_title(self, value):
@@ -498,17 +514,19 @@ class FileDocument(AbstractDocument):
         self.config.add_section(SECTION_CUSTOM)
         self.config.add_section(SECTION_FILE)
         self.config.add_section(SECTION_OTHERS)
+    
+    # MENU
 
-    def save(self):
+    def save(self, path=None):
         """fill document with information from .profile file"""
-        file_obj = open(self.file_name, 'w')
+        file_obj = open(path or self.file_name, 'w')
         file_obj.write("#%s\n"% self.encoding)
         self.config.write(file_obj)
 
-    def load(self):
+    def load(self, path=None):
         """fill document with information from .profile file"""
-        if os.path.exists(self.file_name):
-            file_obj = open(self.file_name)
+        if os.path.exists(path or self.file_name):
+            file_obj = open(path or self.file_name)
             self.encoding = file_obj.readline()[1:]
             self.config = ConfigParser.ConfigParser()
             self.config.readfp(file_obj)

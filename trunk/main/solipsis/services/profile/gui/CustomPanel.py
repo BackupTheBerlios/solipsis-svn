@@ -11,12 +11,6 @@ from StringIO import StringIO
 # begin wxGlade: dependencies
 # end wxGlade
 
-class AdaptableListCtrl(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
-    def __init__(self, parent, ID, pos=wx.DefaultPosition,
-                 size=wx.DefaultSize, style=0):
-        wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
-        listmix.ListCtrlAutoWidthMixin.__init__(self)
-
 class CustomPanel(wx.Panel):
     def __init__(self, *args, **kwds):
         # begin wxGlade: CustomPanel.__init__
@@ -25,8 +19,11 @@ class CustomPanel(wx.Panel):
         self.action_sizer_staticbox = wx.StaticBox(self, -1, _("Actions"))
         self.keywords_sizer_staticbox = wx.StaticBox(self, -1, _("Hobbies, special interests... (one per line)"))
         self.hobbies_value = wx.TextCtrl(self, -1, "", style=wx.TE_PROCESS_ENTER|wx.TE_PROCESS_TAB|wx.TE_MULTILINE|wx.HSCROLL|wx.TE_RICH2|wx.TE_LINEWRAP)
-        self.custom_list = AdaptableListCtrl(self, -1, style=wx.LC_REPORT|wx.LC_EDIT_LABELS|wx.LC_SINGLE_SEL|wx.LC_SORT_ASCENDING|wx.NO_BORDER)
-        self.more_button = wx.Button(self, -1, _("More"))
+        self.custom_list = wx.ListCtrl(self, -1, style=wx.LC_REPORT|wx.LC_SINGLE_SEL|wx.LC_SORT_ASCENDING|wx.NO_BORDER)
+        self.key_value = wx.TextCtrl(self, -1, "")
+        self.custom_value = wx.TextCtrl(self, -1, "")
+        self.add_custom_button = wx.BitmapButton(self, -1, wx.Bitmap("/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/add_file.jpeg", wx.BITMAP_TYPE_ANY))
+        self.del_custom_button = wx.BitmapButton(self, -1, wx.Bitmap("/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/del_file.jpeg", wx.BITMAP_TYPE_ANY))
 
         self.__set_properties()
         self.__do_layout()
@@ -41,13 +38,14 @@ class CustomPanel(wx.Panel):
         
         self.facade = get_facade()
         self.bind_controls()
+        self.edited_item = None
 
     def PopulateList(self):
-        self.custom_list.InsertColumn(0, "Key")
-        self.custom_list.InsertColumn(1, "Value")
+        self.custom_list.InsertColumn(0, _("MetaData"))
+        self.custom_list.InsertColumn(1, _("Custom value"))
         
-        self.custom_list.SetColumnWidth(0, wx.LIST_AUTOSIZE)
-        self.custom_list.SetColumnWidth(1, wx.LIST_AUTOSIZE)
+        self.custom_list.SetColumnWidth(0, wx.LIST_AUTOSIZE_USEHEADER)
+        self.custom_list.SetColumnWidth(1, wx.LIST_AUTOSIZE_USEHEADER)
         
         
     # Used by the ColumnSorterMixin, see wxPython/lib/mixins/listctrl.py
@@ -63,16 +61,36 @@ class CustomPanel(wx.Panel):
     def bind_controls(self):
         """bind all controls with facade"""
         self.hobbies_value.Bind(wx.EVT_KILL_FOCUS, self.on_hobbies)
-        self.custom_list.Bind(wx.EVT_LIST_END_LABEL_EDIT, self.on_custom)
-        self.more_button.Bind(wx.EVT_BUTTON, self.on_more)
+        self.custom_list.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_selected)
+        self.add_custom_button.Bind(wx.EVT_BUTTON, self.on_add)
+        self.del_custom_button.Bind(wx.EVT_BUTTON, self.on_del)
 
-    def on_custom(self, evt):
+    def on_selected(self, evt):
+        """meta data"""
+        self.edited_item = (evt.GetIndex(), evt.GetItem().GetText())
+        self.key_value.SetValue(self.edited_item[1])
+        self.custom_value.SetValue(self.custom_list.GetItem(evt.GetIndex(), 1).GetText())
+        
+    def on_add(self, evt):
+        """a custom attribute has been modified"""
+        if self.edited_item and self.edited_item[1] == self.key_value.GetValue():
+            # update data
+            self.custom_list.SetStringItem(self.edited_item[0], 0, self.key_value.GetValue())
+            self.custom_list.SetStringItem(self.edited_item[0], 1, self.custom_value.GetValue())
+        else:
+            # new
+            index = self.custom_list.InsertStringItem(sys.maxint, self.key_value.GetValue())
+            self.custom_list.SetStringItem(index, 1, self.custom_value.GetValue())
+        # update cache
+        self.facade.add_custom_attributes((self.key_value.GetValue(),
+                                           self.custom_value.GetValue()))
+
+    def on_del(self, evt):
         """a custom attribute has been modified"""
         # update data
-        desc = evt.GetText().split(':')
-        self.custom_list.SetStringItem(index=evt.GetIndex(), col=0, label=desc[0])
-        self.custom_list.SetStringItem(evt.GetIndex(), 1, u":".join(desc[1:]))
-        self.facade.add_custom_attributes((desc[0], u":".join(desc[1:])))
+        if self.custom_list.DeleteItem(self.custom_list.FindItem(0, self.key_value.GetValue())):
+            # update cache
+            self.facade.del_custom_attributes(self.key_value.GetValue())
         
     def on_hobbies(self, evt):
         """language loses focus"""
@@ -87,6 +105,8 @@ class CustomPanel(wx.Panel):
     def __set_properties(self):
         # begin wxGlade: CustomPanel.__set_properties
         self.custom_list.SetToolTipString(_("use format 'key:value' when editing"))
+        self.add_custom_button.SetSize(self.add_custom_button.GetBestSize())
+        self.del_custom_button.SetSize(self.del_custom_button.GetBestSize())
         # end wxGlade
 
     def __do_layout(self):
@@ -97,8 +117,10 @@ class CustomPanel(wx.Panel):
         keywords_sizer.Add(self.hobbies_value, 1, wx.EXPAND|wx.FIXED_MINSIZE, 0)
         custom_sizer.Add(keywords_sizer, 1, wx.ALL|wx.EXPAND, 3)
         custom_sizer.Add(self.custom_list, 1, wx.EXPAND, 0)
-        action_sizer.Add(self.more_button, 0, wx.FIXED_MINSIZE, 0)
-        action_sizer.Add((20, 20), 0, wx.FIXED_MINSIZE, 0)
+        action_sizer.Add(self.key_value, 1, wx.ALL|wx.EXPAND|wx.FIXED_MINSIZE, 3)
+        action_sizer.Add(self.custom_value, 1, wx.ALL|wx.EXPAND|wx.FIXED_MINSIZE, 3)
+        action_sizer.Add(self.add_custom_button, 0, wx.LEFT|wx.FIXED_MINSIZE, 3)
+        action_sizer.Add(self.del_custom_button, 0, wx.FIXED_MINSIZE, 0)
         custom_sizer.Add(action_sizer, 0, wx.ALL|wx.EXPAND|wx.ALIGN_RIGHT, 3)
         self.SetAutoLayout(True)
         self.SetSizer(custom_sizer)

@@ -6,7 +6,7 @@ import wx
 from ProfileFrame import ProfileFrame
 from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile.document import CacheDocument, FileDocument
-from solipsis.services.profile.view import GuiView
+from solipsis.services.profile.view import GuiView, HtmlView
 
 if __name__ == "__main__":
     #set up GUI
@@ -22,10 +22,12 @@ if __name__ == "__main__":
     file_doc.load()
     cache_doc = CacheDocument()
     cache_doc.import_document(file_doc)
-    view = GuiView(cache_doc, profile_frame)
+    gui_view = GuiView(cache_doc, profile_frame)
+    html_view = HtmlView(cache_doc, profile_frame.preview_tab.html_preview)
     facade.add_document(file_doc)
     facade.add_document(cache_doc)
-    facade.add_view(view)
+    facade.add_view(gui_view)
+    facade.add_view(html_view)
 
     #launch gui
     app.SetTopWindow(profile_frame)

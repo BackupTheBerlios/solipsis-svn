@@ -7,7 +7,7 @@ import sys
 from difflib import Differ
 from StringIO import StringIO
 from solipsis.services.profile.document import FileDocument, CacheDocument
-from solipsis.services.profile.view import PrintView
+from solipsis.services.profile.view import PrintView, HtmlView
 
 class ValidatorTest(unittest.TestCase):
     """test that all fields are correctly validated"""
@@ -36,6 +36,7 @@ nico = 1
 repository = .
 
 [Custom]
+color = blue
 homepage = manu.com
 hobbies = blabla,bla bla bla,
 
@@ -63,6 +64,7 @@ hobbies = blabla,bla bla bla,
         self.document.set_description(u"anything")
         self.document.set_hobbies(u"blabla\nbla bla bla\n")
         self.document.add_custom_attributes((u"homepage", u"manu.com"))
+        self.document.add_custom_attributes((u'color', u'blue'))
         self.document.set_repository(".")
         self.document.add_file(unittest.__file__)
         self.document.tag_file((unittest.__file__, u"tag description"))
@@ -94,7 +96,7 @@ hobbies = blabla,bla bla bla,
         self.assertEquals("France", self.document.get_country())
         self.assertEquals("anything", self.document.get_description())
         self.assertEquals([u'blabla', u'bla bla bla', u''], self.document.get_hobbies())
-        self.assertEquals({"homepage": "manu.com"}, self.document.get_custom_attributes())
+        self.assertEquals({"homepage": "manu.com", 'color':'blue'}, self.document.get_custom_attributes())
         self.assertEquals(".", self.document.get_repository())
         files = self.document.get_files()
         self.assertEquals("%s (tag description)"% unittest.__file__,
@@ -122,7 +124,7 @@ hobbies = blabla,bla bla bla,
         self.assertEquals("France", new_doc.get_country())
         self.assertEquals("anything", new_doc.get_description())
         self.assertEquals([u'blabla', u'bla bla bla', u''], new_doc.get_hobbies())
-        self.assertEquals({"homepage": "manu.com"}, new_doc.get_custom_attributes())
+        self.assertEquals({"homepage": "manu.com", 'color':'blue'}, new_doc.get_custom_attributes())
         self.assertEquals(".", new_doc.get_repository())
         files = new_doc.get_files()
         self.assertEquals("%s (tag description)"% unittest.__file__,
@@ -151,13 +153,19 @@ Paris
 France
 anything
 [u'blabla', u'bla bla bla', u'']
-{'homepage': u'manu.com'}
+{'color': u'blue', 'homepage': u'manu.com'}
 .
 {'/usr/lib/python2.3/unittest.pyc': /usr/lib/python2.3/unittest.pyc (tag description)}
 {u'nico': nico (1)}
 """)
         result.close()
         sys.stdout = sav_stdout
+
+    def test_html_view(self):
+        """import file document into printView"""
+        self.document.load()
+        view = HtmlView(self.document)
+        result = view.get_view()
         
 if __name__ == '__main__':
     unittest.main()

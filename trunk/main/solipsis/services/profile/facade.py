@@ -2,6 +2,7 @@
 available. This facade will be used both by GUI and unittests."""
 
 from sys import stderr
+from solipsis.services.profile import ENCODING
 
 #TODO: add state pattern when doc modified => prompt to save
 
@@ -22,34 +23,57 @@ class Facade:
     s_facade = None
 
     def __init__(self):
-        self.documents = []
-        self.views = []
+        self.documents = {}
+        self.views = {}
 
     def add_view(self, view):
         """add  a view object to facade"""
-        self.views.append(view)
+        self.views[view.get_name()] = view
 
     def add_document(self, doc):
         """add  a view object to facade"""
-        if len(self.documents)>0:
-            doc.import_document(self.documents[0])
-        self.documents.append(doc)
+        # syncrhonize existing docs
+        if "cache" in self.documents:
+            doc.import_document(self.documents["cache"])
+        # add new
+        self.documents[doc.get_name()] = doc
         
     def _try_change(self, value, setter, updater):
         """tries to call function doc_set and then, if succeeded, gui_update"""
-        for document in self.documents:
+        for document in self.documents.values():
             try:
                 getattr(document, setter)(value)
             except TypeError, error:
                 print >> stderr, "%s: %s"% (document.name, str(error))
             except AttributeError, error:
                 print >> stderr, "%s: %s"% (document.name, str(error))
-        for view in self.views:
+        for view in self.views.values():
             try:
                 getattr(view, updater)()
             except AttributeError, error:
                 print >> stderr, "%s: %s"% (view.name, str(error))
-        
+    
+    # MENU
+
+    def save_profile(self, path):
+        """save .profile.solipsis"""
+        if "file" in self.documents:
+            self.documents["file"].save(path)
+
+    def load_profile(self, path):
+        """save .profile.solipsis"""
+        if "file" in self.documents:
+            self.documents["file"].load(path)
+        for name, doc in self.documents.iteritems():
+            name != "file" and doc.import_document(self.documents["file"])
+        for view in self.views.values():
+            view.import_document()
+
+    def export_profile(self, path):
+        """save .profile.solipsis"""
+        html_file = open(path, "w")
+        html_file.write(self.views["html"].get_view().encode(ENCODING))
+    
     # PERSONAL TAB
     def change_title(self, value):
         """sets new value for title"""
@@ -144,8 +168,9 @@ class Facade:
 
     def del_custom_attributes(self, value):
         """sets new value for custom_attributes"""
-        for  document in self.documents:
-            document.remove_custom_attributes(value)
+        return self._try_change(value,
+                               "remove_custom_attributes",
+                               "update_custom_attributes")
 
     # FILE TAB
     def change_repository(self, value):
