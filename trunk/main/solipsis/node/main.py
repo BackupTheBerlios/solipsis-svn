@@ -40,9 +40,11 @@ def main():
         parser.add_option("-n", "--notification_port", type="int", dest="notif_port",
                             help="notification port for navigator")
         parser.add_option("-f", "--file", dest="config_file", default=config_file,
-                          help="configuration file" )
+                          help="configuration file")
         parser.add_option("-P", "--profile", action="store_true", dest="profile", default=False,
                           help="profile execution to node.prof" )
+        parser.add_option("-M", "--memdebug", action="store_true", dest="memdebug", default=False,
+                          help="display periodic memory occupation statistics")
         params = Parameters(parser, config_file=config_file)
 
         if (params.detach):
@@ -71,8 +73,9 @@ def main():
             import profile
             profile.run(__name__ + ".profile_run()", "node.prof")
         else:
+            # See Psyco documentation: http://psyco.sourceforge.net/psycoguide/module-psyco.html
             import psyco
-            psyco.profile()
+            psyco.profile(watermark=0.01, halflife=10, time=600)
             profile_run()
 
     except:
