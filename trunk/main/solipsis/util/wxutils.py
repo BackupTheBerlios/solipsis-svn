@@ -54,6 +54,28 @@ def GetCharset():
     return str(wx.Locale.GetSystemEncodingName())
 
 
+class IdPool(object):
+    """
+    Autogrowing pool of wxWidgets IDs.
+    (why do we need them ? Grr)
+    """
+    def __init__(self):
+        self.ids = []
+        self.Begin()
+    
+    def Begin(self):
+        self.cursor = 0
+    
+    def GetId(self):
+        if self.cursor == len(self.ids):
+            new_id = wx.NewId()
+            self.ids.append(new_id)
+        else:
+            new_id = self.ids[self.cursor]
+            self.cursor += 1
+        return new_id
+
+
 class XRCLoader(object):
     """
     This class is a mix-in that allows loading resources from an XRC file.

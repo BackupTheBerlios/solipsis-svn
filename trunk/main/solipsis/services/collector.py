@@ -22,7 +22,7 @@ import os.path
 import wx
 
 from solipsis.util.uiproxy import UIProxy
-from solipsis.util.wxutils import _, GetCharset
+from solipsis.util.wxutils import _, GetCharset, IdPool
 
 
 # Helper (see Python documentation for built-in function __import__)
@@ -32,28 +32,6 @@ def _import(name):
     for comp in components[1:]:
         mod = getattr(mod, comp)
     return mod
-
-
-class IdPool(object):
-    """
-    Autogrowing pool of wxWidgets IDs.
-    (why do we need them in the first place ? sigh)
-    """
-    def __init__(self):
-        self.ids = []
-        self.Begin()
-    
-    def Begin(self):
-        self.cursor = 0
-    
-    def GetId(self):
-        if self.cursor == len(self.ids):
-            new_id = wx.NewId()
-            self.ids.append(new_id)
-        else:
-            new_id = self.ids[self.cursor]
-            self.cursor += 1
-        return new_id
 
 
 class ServiceCollector(object):
