@@ -216,11 +216,36 @@ class State(object):
                     detect.setRecipientAddress(peer.getAddress())
                     self.node.dispatch(detect)
 
+    def JUMP(self, jumpEvent):
+        """
+        JUMP control event. Move this node to a target position.
+        jumpEvent : Request = JUMP, args = {'Position'}
+        """
+        newPosition = jumpEvent.getArg(protocol.ARG_POSITION)
+        self.node.setPosition(newPosition)
+
+        # send a findnearest message
+        manager = self.node.getPeersManager()
+        peer = manager.getRandomPeer()
+        self.sendFindNearest(peer.getAddress())
+
+        # go to the tracking state
+        self.node.setState(Locating())
+
+    def KILL(self, event):
+        self.logger.debug("Received kill message")
+        self.node.exit()
 
     def ABORT(self, event):
         self.node.alive = False
         print "\nFatal error: " + event.getArg('Message') + "\nAborting"
         self.node.dispatch(event)
+
+
+    def SET(self, event):
+        import exceptions
+        raise NotImplementedError()
+    
 
     def sendFindNearest(self, peerAddress):
         """ Send a FINNEAREST event and return the timer object assocoiated
@@ -291,30 +316,11 @@ class NotConnected(State):
     def activate(self):
         self.logger.debug('NotConnected(State)')
 
-    def JUMP(self, jumpEvent):
-        """
-        JUMP control event. Move this node to a target position.
-        jumpEvent : Request = JUMP, args = {'Position'}
-        """
-        newPosition = jumpEvent.getArg(protocol.ARG_POSITION)
-        self.node.setPosition(newPosition)
-
-        # send a findnearest message
-        manager = self.node.getPeersManager()
-        peer = manager.getRandomPeer()
-        self.sendFindNearest(peer.getAddress())
-
-        # go to the tracking state
-        self.node.setState(Locating())
 
 
-    def KILL(self, event):
-        self.logger.debug("Received kill message")
-        self.node.exit()
 
-    def SET(self, event):
-        import exceptions
-        raise NotImplementedError()
+
+
 
 
 class Locating(State):
