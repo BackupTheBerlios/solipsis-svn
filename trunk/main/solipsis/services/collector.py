@@ -46,7 +46,7 @@ class ServiceCollector(object):
         def __getattr__(self, name):
             meth = getattr(self.target, 'service_' + name)
             def fun(*args, **kargs):
-                meth(self.service_id, *args, **kargs)
+                return meth(self.service_id, *args, **kargs)
             setattr(self, name, fun)
             return fun
 
@@ -64,6 +64,9 @@ class ServiceCollector(object):
         self.action_ids = IdPool()
 
     def ReadServices(self):
+        """
+        Read available services from the service directory.
+        """
         l = os.listdir(self.dir)
         for f in l:
             if f.startswith('.') or f.startswith('_'):
@@ -74,16 +77,25 @@ class ServiceCollector(object):
             self.LoadService(path, f)
 
     def LoadService(self, path, name):
+        """
+        Load a service plugin, register it and initialize it.
+        """
         plugin_file = os.path.join(path, 'plugin.py')
         assert os.path.isfile(plugin_file), "Bad service plug-in: %s" % plugin_file
         print "Loading service '%s'..." % name
         plugin_module = _import('solipsis.services.%s.plugin' %name)
         api = self.ServiceAPI(self, name)
         plugin = plugin_module.Plugin(api)
-        plugin.Enable()
         self.plugins[name] = plugin
+        # When plugin.Init() is called, everything else should have been
+        # properly initialized for the plugin to interact with it.
+        plugin.Init()
+        plugin.Enable()
 
     def GetPopupMenuItems(self):
+        """
+        Get specific service items for the UI pop-up menu.
+        """
         l = []
         self.action_ids.Begin()
         for service_id in self._Services():
@@ -107,17 +119,29 @@ class ServiceCollector(object):
     def LostPeer(self, peer_id):
         pass
 
-    def _Services(self):
-        l = self.plugins.keys()
-        l.sort()
-        return l
-
     #
     # API callable from service plugins
     #
     def service_SetMenu(self, service_id, title, menu):
+        """
+        Set service-specific menu in the navigator's menubar.
+        """
         print "setting menu '%s' for service '%s'" % (title, service_id)
         self.ui.SetServiceMenu(service_id, title, menu)
 
     def service_GetReactor(self, service_id):
+        """
+        Get the Twisted reactor object.
+        """
         return self.reactor
+
+    #
+    # Private methods
+    #
+    def _Services(self):
+        """
+        List of services (sorted by id).
+        """
+        l = self.plugins.keys()
+        l.sort()
+        return l

@@ -31,6 +31,16 @@ class ServicePlugin(object):
         it can query some useful objects and information.
         """
         self.service_api = service_api
+    
+    def Init(self):
+        """
+        Please override this method to do any kind of concrete initialization
+        stuff, rather than doing it in __init__.
+        Especially, the service_api must *not* be used in __init__, since 
+        all data relating to the plugin may not have been initialized on the
+        API side.
+        """
+        pass
 
     #
     # Service description methods
@@ -110,11 +120,20 @@ class ServicePlugin(object):
     # Peer management
     #
 
-    def NewPeer(self, peer):
+    def NewPeer(self, peer, service):
+        """
+        Called when a new peer bearing the service appears.
+        """
         raise NotImplementedError
 
-    def ChangedPeer(self, peer):
+    def ChangedPeer(self, peer, service):
+        """
+        Called when a peer bearing the service is changed.
+        """
         raise NotImplementedError
 
     def LostPeer(self, peer_id):
+        """
+        Called when a peer bearing the service disappears.
+        """
         raise NotImplementedError
