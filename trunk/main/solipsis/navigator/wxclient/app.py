@@ -155,14 +155,26 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             validator = validator_class(data_obj.Ref(data_attr))
             XRCCTRL(window, control_name).SetValidator(validator)
 
+    def InitNetwork(self):
+        """
+        Launch network event loop.
+        """
+        loop = NetworkLoop(self.reactor, self)
+        loop.setDaemon(True)
+        loop.start()
+        self.network_loop = loop
+        self.network = TwistedProxy(loop, self.reactor)
+
     def InitServices(self):
         """
         Initialize all services.
         """
-        # We will insert service menus just before the last menu,
-        # which is the "Help" menu
+        self.services = ServiceCollector(self.params, self, self.reactor)
+        # Service-specific menus in the menubar: We will insert service menus
+        # just before the last menu, which is the "Help" menu
         self.service_menus = []
         self.service_menu_pos = self.main_menubar.GetMenuCount() - 1
+
         self.services.ReadServices()
         self.services.SetNode(self.config_data.GetNode())
         self.services.EnableServices()
@@ -173,7 +185,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         Main initialization handler.
         """
 
-        self.InitTwisted()
+        #~ self.InitTwisted()
         self.InitWx()
         self.InitResources()
         self.InitValidators()
@@ -217,14 +229,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.main_window.Show()
         self.SetTopWindow(self.main_window)
 
-        # 2. Launch network event loop
-        loop = NetworkLoop(self.reactor, self)
-        loop.setDaemon(True)
-        loop.start()
-        self.network_loop = loop
-        self.network = TwistedProxy(loop, self.reactor)
-
-        # 3. Launch main GUI loop
+        # 2. Launch main GUI loop
         if os.name == 'posix' and wx.Platform == '__WXGTK__':
             self.x11 = True
         else:
@@ -233,8 +238,9 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         if self.memsizer:
             self._MemDebug()
         
-        # 4. Other tasks are launched after the window is drawn
-        self.services = ServiceCollector(self.params, self, self.reactor)
+        # 3. Other tasks are launched after the window is drawn
+        wx.CallAfter(self.InitTwisted)
+        wx.CallAfter(self.InitNetwork)
         #~ wx.FutureCall(500, self.InitServices)
         wx.CallAfter(self.InitServices)
         

@@ -28,7 +28,7 @@ except:
 
 from solipsis.util.entity import Service
 from solipsis.util.uiproxy import UIProxy
-from solipsis.util.wxutils import _, GetCharset, IdPool
+from solipsis.util.wxutils import GetCharset, IdPool
 
 
 # Helper (see Python documentation for built-in function __import__)
