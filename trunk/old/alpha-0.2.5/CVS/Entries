@@ -1,0 +1,76 @@
+/Communication.py/1.1.1.1/Fri Jul 30 10:31:31 2004//
+/Communication.pyc/1.2/Fri Oct  1 09:48:42 2004//
+/Entity.py/1.1.1.1/Fri Jul 30 10:31:31 2004//
+/Entity.pyc/1.2/Fri Oct  1 09:48:42 2004//
+/Function.py/1.2/Thu Sep  9 06:43:27 2004//
+/Function.pyc/1.2/Fri Oct  1 09:48:42 2004//
+/GUI.py/1.1.1.1/Fri Jul 30 10:31:30 2004//
+/GUI.pyc/1.2/Fri Oct  1 09:48:42 2004//
+/List.py/1.1.1.1/Fri Jul 30 10:31:30 2004//
+/List.pyc/1.2/Fri Oct  1 09:48:42 2004//
+/Media.py/1.1.1.1/Fri Jul 30 10:31:30 2004//
+/Media.pyc/1.2/Fri Oct  1 09:48:42 2004//
+/Network.py/1.1.1.1/Fri Jul 30 10:31:30 2004//
+/Network.pyc/1.2/Fri Oct  1 09:48:42 2004//
+/Node.py/1.1.1.1/Fri Jul 30 10:31:30 2004//
+/Periodic.py/1.1.1.1/Fri Jul 30 10:31:30 2004//
+/Periodic.pyc/1.2/Fri Oct  1 09:48:42 2004//
+/README/1.1.1.1/Fri Jul 30 10:31:31 2004//
+/Self.py/1.1.1.1/Fri Jul 30 10:31:30 2004//
+/Self.pyc/1.2/Fri Oct  1 09:48:42 2004//
+/aboutDialog.py/1.1.1.1/Fri Jul 30 10:31:31 2004//
+/aboutDialog.pyc/1.2/Fri Oct  1 09:48:42 2004//
+/addFlagDialog.py/1.1.1.1/Fri Jul 30 10:31:30 2004//
+/addFlagDialog.pyc/1.2/Fri Oct  1 09:48:42 2004//
+/avatarSizeDialog.py/1.1.1.1/Fri Jul 30 10:31:30 2004//
+/avatarSizeDialog.pyc/1.2/Fri Oct  1 09:48:42 2004//
+/bak-entities.met/1.1.1.1/Fri Jul 30 10:31:31 2004//
+/chat.py/1.1.1.1/Fri Jul 30 10:31:31 2004//
+/chat.pyc/1.2/Fri Oct  1 09:48:42 2004//
+/commun.py/1.1.1.1/Fri Jul 30 10:31:31 2004//
+/commun.pyc/1.2/Fri Oct  1 09:48:42 2004//
+/configuration.py/1.1.1.1/Fri Jul 30 10:31:30 2004//
+/configuration.pyc/1.2/Fri Oct  1 09:48:42 2004//
+/connection.py/1.1.1.1/Fri Jul 30 10:31:31 2004//
+/connection.pyc/1.2/Fri Oct  1 09:48:42 2004//
+/createAvatarDialog.py/1.1.1.1/Fri Jul 30 10:31:30 2004//
+/createAvatarDialog.pyc/1.2/Fri Oct  1 09:48:42 2004//
+/debug.py/1.1.1.1/Fri Jul 30 10:31:30 2004//
+/debug.pyc/1.2/Fri Oct  1 09:48:42 2004//
+/display2d.py/1.1.1.1/Fri Jul 30 10:31:31 2004//
+/display2d.pyc/1.2/Fri Oct  1 09:48:42 2004//
+/entities.met/1.2/Fri Oct  1 09:48:42 2004//
+/entityDialog.py/1.1.1.1/Fri Jul 30 10:31:31 2004//
+/entityDialog.pyc/1.2/Fri Oct  1 09:48:42 2004//
+/flagsDialog.py/1.1.1.1/Fri Jul 30 10:31:31 2004//
+/flagsDialog.pyc/1.2/Fri Oct  1 09:48:42 2004//
+/gab.host/1.2/Fri Oct  1 09:48:42 2004//
+/globalvars.py/1.1.1.1/Fri Jul 30 10:31:30 2004//
+/globalvars.pyc/1.2/Fri Oct  1 09:48:42 2004//
+/imagesDialog.py/1.1.1.1/Fri Jul 30 10:31:31 2004//
+/imagesDialog.pyc/1.2/Fri Oct  1 09:48:42 2004//
+/module_Solipsis.py/1.1.1.1/Fri Jul 30 10:31:30 2004//
+/mytest1/1.2/Fri Oct  1 09:48:42 2004//
+/navigator.conf/1.2/Fri Oct  1 09:48:42 2004//
+/navigator.py/1.1.1.1/Fri Jul 30 10:31:30 2004//
+/navigator.pyc/1.2/Fri Oct  1 09:48:42 2004//
+/newDistantNodeDialog.py/1.1.1.1/Fri Jul 30 10:31:30 2004//
+/newDistantNodeDialog.pyc/1.2/Fri Oct  1 09:48:42 2004//
+/newFlagDialog.py/1.1.1.1/Fri Jul 30 10:31:30 2004//
+/newFlagDialog.pyc/1.2/Fri Oct  1 09:48:42 2004//
+/newLocalNodeDialog.py/1.1.1.1/Fri Jul 30 10:31:30 2004//
+/newLocalNodeDialog.pyc/1.2/Fri Oct  1 09:48:42 2004//
+/service.py/1.1.1.1/Fri Jul 30 10:31:30 2004//
+/service.pyc/1.2/Fri Oct  1 09:48:42 2004//
+/teleportationDialog.py/1.1.1.1/Fri Jul 30 10:31:30 2004//
+/teleportationDialog.pyc/1.2/Fri Oct  1 09:48:42 2004//
+/test.host/1.1.1.1/Fri Jul 30 10:31:30 2004//
+/titi.host/1.1.1.1/Fri Jul 30 10:31:30 2004//
+/wxMainFrame.py/1.1.1.1/Fri Jul 30 10:31:31 2004//
+/wxMainFrame.pyc/1.2/Fri Oct  1 09:48:42 2004//
+D/Avatars////
+D/Clash_Image////
+D/Img////
+D/Nodes////
+D/Test////
+D/bak////
