@@ -27,7 +27,7 @@ from solipsis.util.geometry import Position
 
 
 class Service(object):
-    def __init__(self, id_, type='bidir', address=None):
+    def __init__(self, id_, type='bidir', address=""):
         assert type in ('in', 'out', 'bidir'), "Wrong service type"
         self.id_ = id_
         self.type = type
@@ -115,7 +115,7 @@ class Entity(object):
         if services is not None:
             self.UpdateServices(services)
 
-    def UpdateServiceInfo(self, service_id, address=None):
+    def UpdateServiceInfo(self, service_id, address=""):
         """
         Update a service.
         """

@@ -198,8 +198,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         Redraw the world view.
         """
         self.viewport.Draw(onPaint=False)
-        self.redraw_pending = False
-
+        
     def AskRedraw(self):
         """
         This method tries hard to schedule redraws of the world view in a smart way.
@@ -213,7 +212,10 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
                     t = 5.0 + 5 * 1000 * self.viewport.LastRedrawDuration()
                 else:
                     t = 5.0
-                wx.FutureCall(t, self.Redraw)
+                def _redraw():
+                    self.redraw_pending = False
+                    self.Redraw()
+                wx.FutureCall(t, _redraw)
                 return True
         return False
 

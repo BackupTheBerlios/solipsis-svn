@@ -52,12 +52,12 @@ class Metametaclass(type):
     def __new__(cls, name, bases, dict_):
         d = { '__new__': dict_['class_new'] }
         def meta_new(cls, *args, **kargs):
-            print "New metaclass"
+            #~ print "New metaclass"
             name = '__private'
             bases = (type,)
             return super(Metametaclass, cls).__new__(cls, name, bases, d)
         dict_['__new__'] = meta_new
-        print "New metametaclass", name
+        #~ print "New metametaclass", name
         return type.__new__(cls, name, bases, dict_)
 
 class Autohash(type):
@@ -67,7 +67,7 @@ class Autohash(type):
         cls.hash_attributes = hash_attributes
 
     def class_new(cls, name, bases, d):
-        print "New class", name
+        #~ print "New class", name
         l = cls.hash_attributes
         _hash = hash
         _tuple = tuple
