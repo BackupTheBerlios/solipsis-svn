@@ -1,0 +1,241 @@
+<?xml version="1.0" ?>
+<resource>
+  <object class="wxFrame" name="main_window">
+    <title>Navigator</title>
+    <centered>1</centered>
+    <object class="wxPanel" name="viewport_panel"/>
+  </object>
+  <object class="wxMenuBar" name="main_menubar">
+    <object class="wxMenu" name="file_menu">
+      <label>File</label>
+      <object class="wxMenuItem" name="menu_connect">
+        <label>&amp;Connect</label>
+        <bitmap stock_id="wxART_FILE_OPEN"></bitmap>
+        <accel>Ctrl-O</accel>
+      </object>
+      <object class="wxMenuItem" name="menu_disconnect">
+        <label>&amp;Disconnect</label>
+        <accel>Ctrl-W</accel>
+      </object>
+      <object class="separator"/>
+      <object class="wxMenuItem" name="menu_quit">
+        <label>Quit</label>
+      </object>
+    </object>
+    <object class="wxMenu" name="edit_menu">
+      <label>Edit</label>
+      <object class="separator"/>
+      <object class="wxMenuItem" name="menu_preferences">
+        <label>Preferences</label>
+      </object>
+    </object>
+    <object class="wxMenu" name="help_menu">
+      <label>Help</label>
+      <object class="wxMenuItem" name="menu_about">
+        <label>About</label>
+      </object>
+    </object>
+  </object>
+  <object class="wxDialog" name="about_dialog">
+    <title>About...</title>
+    <centered>1</centered>
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="spacer">
+        <size>20,20</size>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <orient>wxHORIZONTAL</orient>
+          <object class="spacer">
+            <size>20,20</size>
+          </object>
+          <object class="sizeritem">
+            <object class="wxStaticText">
+              <label>Solipsis Navigator 0.1
+
+Licensed under the GNU LGPL.
+(c) France Telecom R&amp;&amp;D
+</label>
+              <style>wxALIGN_CENTRE</style>
+            </object>
+            <flag>wxALIGN_CENTRE</flag>
+          </object>
+          <object class="spacer">
+            <size>20,20</size>
+          </object>
+        </object>
+      </object>
+      <object class="sizeritem">
+        <object class="wxButton" name="about_ok">
+          <label>&amp;OK</label>
+          <default>1</default>
+        </object>
+        <flag>wxALIGN_CENTRE</flag>
+      </object>
+      <object class="spacer">
+        <size>20,20</size>
+      </object>
+    </object>
+  </object>
+  <object class="wxDialog" name="connect_dialog">
+    <title>Connect to Solipsis</title>
+    <centered>1</centered>
+    <object class="wxFlexGridSizer">
+      <object class="spacer">
+        <size>20,20</size>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <orient>wxVERTICAL</orient>
+          <object class="spacer">
+            <size>20,20</size>
+          </object>
+          <object class="sizeritem">
+            <object class="wxStaticText">
+              <label>Name or pseudo</label>
+            </object>
+            <flag>wxLEFT</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxTextCtrl" name="connect_pseudo"/>
+            <flag>wxEXPAND</flag>
+          </object>
+          <object class="spacer">
+            <size>20,20</size>
+          </object>
+          <object class="sizeritem">
+            <object class="wxStaticBoxSizer">
+              <label>Node address</label>
+              <orient>wxVERTICAL</orient>
+              <object class="sizeritem">
+                <object class="wxBoxSizer">
+                  <orient>wxHORIZONTAL</orient>
+                  <object class="sizeritem">
+                    <object class="wxStaticText" name="">
+                      <label>Host: </label>
+                    </object>
+                    <flag>wxALIGN_CENTRE_VERTICAL</flag>
+                  </object>
+                  <object class="sizeritem">
+                    <object class="wxTextCtrl" name="connect_host"/>
+                    <flag>wxALIGN_CENTRE_VERTICAL</flag>
+                  </object>
+                </object>
+                <flag></flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxBoxSizer">
+                  <orient>wxHORIZONTAL</orient>
+                  <object class="sizeritem">
+                    <object class="wxStaticText" name="">
+                      <label>Port: </label>
+                    </object>
+                    <flag>wxALIGN_CENTRE_VERTICAL</flag>
+                  </object>
+                  <object class="sizeritem">
+                    <object class="wxTextCtrl" name="connect_port"/>
+                    <flag>wxALIGN_CENTRE_VERTICAL</flag>
+                  </object>
+                </object>
+              </object>
+            </object>
+            <flag>wxLEFT|wxEXPAND</flag>
+          </object>
+          <object class="spacer">
+            <size>20,20</size>
+          </object>
+          <object class="sizeritem">
+            <object class="wxBoxSizer">
+              <orient>wxHORIZONTAL</orient>
+              <object class="sizeritem">
+                <object class="wxButton" name="connect_ok">
+                  <label>&amp;OK</label>
+                  <default>1</default>
+                </object>
+                <flag>wxBOTTOM</flag>
+              </object>
+              <object class="spacer">
+                <size>20,20</size>
+              </object>
+              <object class="sizeritem">
+                <object class="wxButton" name="connect_cancel">
+                  <label>&amp;Cancel</label>
+                </object>
+                <flag>wxEXPAND</flag>
+              </object>
+            </object>
+            <flag>wxALIGN_CENTRE_HORIZONTAL</flag>
+            <border>10</border>
+          </object>
+          <object class="spacer">
+            <size>20,20</size>
+          </object>
+        </object>
+        <flag>wxEXPAND</flag>
+      </object>
+      <cols>3</cols>
+      <rows>1</rows>
+      <growablecols>1</growablecols>
+      <growablerows>0</growablerows>
+      <object class="spacer">
+        <size>20,20</size>
+      </object>
+    </object>
+    <style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxRESIZE_BOX</style>
+  </object>
+  <object class="wxDialog" name="not_implemented_dialog">
+    <title>Not implemented</title>
+    <centered>1</centered>
+    <object class="wxBoxSizer">
+      <orient>wxHORIZONTAL</orient>
+      <object class="spacer">
+        <size>20,20</size>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <orient>wxVERTICAL</orient>
+          <object class="spacer">
+            <size>20,20</size>
+          </object>
+          <object class="sizeritem">
+            <object class="wxBoxSizer">
+              <orient>wxHORIZONTAL</orient>
+              <object class="sizeritem">
+                <object class="wxStaticBitmap">
+                  <bitmap stock_id="wxART_ERROR"></bitmap>
+                </object>
+              </object>
+              <object class="spacer">
+                <size>20,20</size>
+              </object>
+              <object class="sizeritem">
+                <object class="wxStaticText">
+                  <label>This function is not yet implemented.
+Sorry! please come back later...
+</label>
+                </object>
+                <flag>wxALIGN_CENTRE</flag>
+              </object>
+            </object>
+          </object>
+          <object class="sizeritem">
+            <object class="wxButton" name="not_implemented_ok">
+              <label>&amp;OK</label>
+              <default>1</default>
+              <style></style>
+            </object>
+            <flag>wxALIGN_CENTRE</flag>
+          </object>
+          <object class="spacer">
+            <size>20,20</size>
+          </object>
+        </object>
+        <ratio>1</ratio>
+      </object>
+      <object class="spacer">
+        <size>20,20</size>
+      </object>
+    </object>
+  </object>
+</resource>
