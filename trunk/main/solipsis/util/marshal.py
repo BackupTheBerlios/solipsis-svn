@@ -20,6 +20,9 @@
 
 from solipsis.util.address import Address
 
+# TODO: unify Peer and PeerInfo, as well as Service and ServiceInfo,
+# and get rid of all this duplication
+
 
 class Marshallable:
     """
