@@ -17,16 +17,14 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
 
-import os
-import sha
-import random
 import wx
-from cStringIO import StringIO
-from PIL import Image, ImageDraw
 
 from solipsis.util.wxutils import GetCharset
 import drawable
 import images
+
+# TODO: ask the avatar plugin to the app instead
+from solipsis.services.avatar.repository import AvatarRepository
 
 
 class World(object):
@@ -36,15 +34,6 @@ class World(object):
     with the viewport to display the world on screen.
     """
 
-    repository = images.ImageRepository()
-    avatar_size = 32
-    # hash -> PIL image
-    pil_avatar_cache = {}
-    # hash -> wx.Bitmap
-    original_avatar_cache = {}
-    # hash -> wx.Bitmap
-    processed_avatar_cache = {}
-    
     class Item(object):
         def __init__(self, peer):
             self.peer = peer
@@ -52,33 +41,17 @@ class World(object):
             self.label_id = None
             self.avatar_id = None
             # avatar hash
-            self.avatar_hash = ""
+            #~ self.avatar_hash = ""
             # wx.Bitmaps
-            self.original_avatar = None
-            self.processed_avatar = None
+            #~ self.original_avatar = None
+            #~ self.processed_avatar = None
     
     def __init__(self, viewport):
         self.charset = GetCharset()
         self.viewport = viewport
+        self.repository = images.ImageRepository()
+        self.avatars = AvatarRepository()
         self.Reset()
-
-        self.random_avatars = []
-        avatar_dir = 'avatars'
-        l = os.listdir(avatar_dir)
-        for filename in l:
-            if filename.startswith('.') or filename.startswith('_'):
-                continue
-            path = os.path.join(avatar_dir, filename)
-            if not os.path.isfile(path):
-                continue
-            try:
-                f = file(path, 'rb')
-            except IOError, e:
-                print str(e)
-            else:
-                self.random_avatars.append(f.read())
-                f.close()
-
 
     def Reset(self):
         self.items = {}
@@ -177,112 +150,29 @@ class World(object):
         Add the peer'savatar to the viewport.
         """
         peer_id = item.peer.id_
-        #~ bitmap = self.repository.GetBitmap(images.IMG_AVATAR)
         
-        # Load random PIL image or use existing one
-        try:
-            hash_ = item.avatar_hash
-            pil = self.pil_avatar_cache[hash_]
-        except KeyError:
-            pil = None
-            while pil is None:
-                data = self._GetRandomAvatarData()
-                print "** image load"
-                pil = self._PILFromData(data)
-            hash_ = self._HashAvatarData(data)
-            self.pil_avatar_cache[hash_] = pil
+        #~ # Load random PIL image or use existing one
+        #~ try:
+            #~ hash_ = item.avatar_hash
+            #~ pil = self.pil_avatar_cache[hash_]
+        #~ except KeyError:
+            #~ pil = None
+            #~ while pil is None:
+                #~ data = self._GetRandomAvatarData()
+                #~ print "** image load"
+                #~ pil = self._PILFromData(data)
+            #~ hash_ = self._HashAvatarData(data)
+            #~ self.pil_avatar_cache[hash_] = pil
 
-        # Calculate wx.Bitmaps
-        item.avatar_hash = hash_
-        self._CalculatePeerAvatar(item)
-        
-        d = drawable.Image(item.processed_avatar)
+        #~ # Calculate wx.Bitmaps
+        #~ item.avatar_hash = hash_
+        #~ self._CalculatePeerAvatar(item)
+
+        #~ d = drawable.Image(item.processed_avatar)
+        bitmap = self.avatars.GetProcessedAvatarBitmap(peer_id)
+        if bitmap is None:
+            avatar = self.avatars.GetRandomAvatar()
+            self.avatars.BindAvatarToPeer(avatar, peer_id)
+            bitmap = self.avatars.GetProcessedAvatarBitmap(peer_id)
+        d = drawable.Image(bitmap)
         item.avatar_id = self.viewport.AddDrawable(peer_id, d, (0, 0), 0)
-
-    def _CalculatePeerAvatar(self, item):
-        """
-        Make sure the wxBitmap versions of the avatar are up-to-date.
-        """
-        hash_ = item.avatar_hash
-        try:
-            original = self.original_avatar_cache[hash_]
-        except KeyError:
-            pil = self.pil_avatar_cache[hash_]
-            print "** image convert 1"
-            original = self._BitmapFromPIL(pil)
-            self.original_avatar_cache[hash_] = original
-        try:
-            processed = self.processed_avatar_cache[hash_]
-        except KeyError:
-            pil = self.pil_avatar_cache[hash_]
-            print "** image convert 2"
-            processed = self._BitmapFromPIL(self._ProcessAvatar(pil))
-            self.processed_avatar_cache[hash_] = processed
-        item.original_avatar = original
-        item.processed_avatar = processed
-
-    def _PILFromData(self, data):
-        """
-        Converts raw image data (as JPEG, PNG, etc.) to PIL image.
-        Returns None if conversion failed.
-        """
-        sio = StringIO()
-        sio.write(data)
-        sio.seek(0)
-        try:
-            im = Image.open(sio)
-        except IOError, e:
-            print str(e)
-            im = None
-        else:
-            im.load()
-        sio.close()
-        return im
-
-    def _BitmapFromPIL(self, im):
-        """
-        Creates a wxBitmap from a PIL image.
-        """
-        bands = im.getbands()
-        if bands != ('R', 'G', 'B', 'A'):
-            im = im.convert('RGBA')
-        r, g, b, alpha = im.split()
-        rgb_data = Image.merge('RGB', (r, g, b))
-        w, h = im.size
-        wxim = wx.EmptyImage(w, h)
-        #~ print len(rgb_data.tostring()), len(alpha.tostring())
-        wxim.SetData(rgb_data.tostring())
-        wxim.SetAlphaData(alpha.tostring())
-        return wx.BitmapFromImage(wxim)
-
-    def _HashAvatarData(self, data):
-        """
-        Computes the avatar's hash from its data.
-        """
-        return sha.new(data).digest()
-
-    def _GetRandomAvatarData(self):
-        """
-        Get a random avatar from the built-in list.
-        """
-        return random.choice(self.random_avatars)
-
-    def _ProcessAvatar(self, source):
-        """
-        Process the original avatar (as PIL image) and returns 
-        its processed counterpart (as PIL image).
-        """
-        s = self.avatar_size
-        # Resize to desired target size
-        resized = source.resize((s, s), Image.BICUBIC)
-        # Build mask to shape the avatar inside a circle
-        transparent = (0,255,0,0)
-        opaque = (255,0,0,255)
-        background = (0,0,255,0)
-        mask = Image.new('RGBA', (s, s), transparent)
-        draw = ImageDraw.Draw(mask)
-        draw.ellipse((0, 0, s - 1, s - 1), outline=opaque, fill=opaque)
-        # Build the final result
-        target = Image.new('RGBA', (s, s), background)
-        target.paste(resized, None, mask)
-        return target
