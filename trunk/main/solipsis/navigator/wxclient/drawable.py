@@ -27,42 +27,33 @@ class ImagePainter(object):
     """
     Paints a list of images to a wx.DC.
     """
-    def __init__(self):
-        pass
-
     def Paint(self, dc, images, positions):
+        boxes = []
         for image, (x, y) in izip(images, positions):
-            x -= image.width // 2
-            y -= image.height // 2
+            w, h = image.width, image.height
+            x -= w // 2
+            y -= h // 2
             dc.DrawBitmapPoint(image.bitmap, (x, y), True)
+            boxes.append((x, y, x + w, y + h))
+        return boxes
 
 class TextPainter(object):
     """
     Paints a list of texts to a wx.DC.
     """
-    def __init__(self):
-        pass
-
     def Paint(self, dc, texts, positions):
         real_pos = []
+        boxes = []
         for text, (x, y) in izip(texts, positions):
             if text.size is None:
                 text.size = dc.GetTextExtent(text.text)
-            real_pos.append((x - text.size[0] // 2, y - text.size[1] // 2))
+            w, h = text.size
+            x -= w // 2
+            y -= h // 2
+            real_pos.append((x, y))
+            boxes.append((x, y, x + w, y + h))
         dc.DrawTextList([t.text for t in texts], real_pos)
-#                 text_dc = wx.MemoryDC()
-#                 bmp = wx.EmptyBitmap(300, 30)
-#                 text_dc.SelectObject(bmp)
-#                 brush = wx.Brush(wx.BLUE)
-#                 text_dc.BeginDrawing()
-#                 text_dc.SetBackground(brush)
-#                 text_dc.Clear()
-#                 tw, th = text_dc.GetTextExtent(s)
-#                 text_dc.DrawTextPoint(s, (0, 0))
-#                 text_dc.EndDrawing()
-#                 bmp.SetMaskColour(wx.BLUE)
-#                 dc.BlitPointSize((x, y), (tw, th), text_dc, (0, 0), useMask=True)
-#                 text_dc = None
+        return boxes
 
 class Image(object):
     """

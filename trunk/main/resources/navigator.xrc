@@ -9,7 +9,7 @@
     <object class="wxMenu" name="file_menu">
       <label>File</label>
       <object class="wxMenuItem" name="menu_connect">
-        <label>&amp;Connect</label>
+        <label>&amp;Connect to node</label>
         <bitmap stock_id="wxART_FILE_OPEN"></bitmap>
         <accel>Ctrl-O</accel>
       </object>
@@ -19,7 +19,7 @@
       </object>
       <object class="separator"/>
       <object class="wxMenuItem" name="menu_kill">
-        <label>&amp;Kill</label>
+        <label>&amp;Kill node</label>
       </object>
       <object class="separator"/>
       <object class="wxMenuItem" name="menu_quit">

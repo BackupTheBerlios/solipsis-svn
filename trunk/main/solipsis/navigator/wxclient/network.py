@@ -19,8 +19,8 @@
 
 import threading
 
-from proxy import UIProxy
-from remote import RemoteConnector
+from solipsis.util.uiproxy import UIProxy
+from solipsis.util.remote import RemoteConnector
 
 
 class NetworkLoop(threading.Thread):

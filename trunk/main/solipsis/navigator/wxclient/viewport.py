@@ -34,6 +34,15 @@ def _optimize(obj):
         pass
 
 
+class DrawableItem(object):
+    def __init__(self, id_, drawable, index, rel_pos, z_order):
+        self.id_ = id_
+        self.drawable = drawable
+        self.index = index
+        self.rel_pos = rel_pos
+        self.z_order = z_order
+
+
 class Viewport(object):
     """
     This class is a viewport that displays
@@ -95,6 +104,11 @@ class Viewport(object):
         # Different painter instances
         self.painters = {}
 
+        # List of sensitive areas as (index, (x1, y1, x2, y2)) tuples
+        self.sensitive_areas = []
+        # Currently hovered object area, or None
+        self.hovered_area = None
+
     def Draw(self, onPaint = False):
         """
         Refresh the viewport.
@@ -155,27 +169,34 @@ class Viewport(object):
         positions = self._ConvertPositions(indices)
         cpu_time += cpu_timer.Read()[0]
         nb_objects = len(indices)
+        sensitive_areas = []
         # First we traverse the radix list in Z order
-        for z_order, d in self.radix_list:
+        for z_order, dict_ in self.radix_list:
             # Then we select the drawables for each painter at the same Z
-            for painter, items in d.iteritems():
+            for painter, items in dict_.iteritems():
                 l = []
                 p = []
+                objs = []
                 for it in items.itervalues():
-                    i = it.index
+                    # Transform relative drawable position into an absolute position
+                    index = it.index
                     x, y = it.rel_pos
-                    x = int(x + positions[i][0])
-                    y = int(y + positions[i][1])
+                    x = int(x + positions[index][0])
+                    y = int(y + positions[index][1])
                     if isinstance(x, int) and isinstance(y, int):
+                        objs.append(index)
                         l.append(it.drawable)
                         p.append((x, y))
                 if len(l) > 0:
-                    self.painters[painter].Paint(dc, l, p)
+                    bboxes = self.painters[painter].Paint(dc, l, p)
+                    sensitive_areas.extend(zip(objs, bboxes))
+
+        # Store sensitive areas
+        self.sensitive_areas = sensitive_areas
 
         # If the viewport is disabled, we dim it
         if self.disabled:
             dim_dc = self._HalfTransparentDC(width, height)
-#             dc.DrawBitmapPoint(dim_dc, (0, 0), useMask=True)
             dc.BlitPointSize((0,0), (width, height), dim_dc, (0,0), useMask=True)
 
         # End drawing
@@ -230,13 +251,6 @@ class Viewport(object):
         Add a drawable owned by a given object.
         Returns its internal id.
         """
-        class DrawableItem(object):
-            def __init__(self, id_, drawable, index, rel_pos, z_order):
-                self.id_ = id_
-                self.drawable = drawable
-                self.index = index
-                self.rel_pos = rel_pos
-                self.z_order = z_order
 
         # Append to the object's drawable list
         index = self.obj_dict[obj_name]
@@ -347,6 +361,32 @@ class Viewport(object):
         fx = fx % self.world_size
         fy = fy % self.world_size
         return (fx, fy)
+        
+    def Hover(self, (px, py)):
+        """
+        Hover a specific pixel in the viewport.
+        """
+        if self.hovered_area is not None:
+            # If an area is already being hovered, go the fast path to see
+            # if nothing has changed.
+            index, (x1, y1, x2, y2) = self.hovered_area
+            if x1 <= px and y1 <= py and x2 >= px and y2 >= py:
+                return
+        # Normal path: check all sensitive areas
+        areas = [(index, (x1, y1, x2, y2)) for index, (x1, y1, x2, y2) in self.sensitive_areas
+            if x1 <= px and y1 <= py and x2 >= px and y2 >= py]
+        old_area = self.hovered_area
+        if len(areas) == 0:
+            self.hovered_area = None
+            changed = old_area is not None
+        else:
+            self.hovered_area = areas[0]
+            changed = old_area is None or old_area[0] != self.hovered_area[0]
+        if changed:
+            if self.hovered_area is not None:
+                self.window.SetCursor(wx.StockCursor(wx.CURSOR_HAND))
+            else:
+                self.window.SetCursor(wx.StockCursor(wx.CURSOR_DEFAULT))
 
     def PendingRedraw(self):
         r = self.redraw_pending

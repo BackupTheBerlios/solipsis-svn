@@ -28,7 +28,7 @@ from wxutils import *        # '*' doesn't import '_'
 from validators import *
 from viewport import Viewport
 from world import World
-from proxy import TwistedProxy, UIProxyReceiver
+from solipsis.util.uiproxy import TwistedProxy, UIProxyReceiver
 from network import NetworkLoop
 
 
@@ -110,8 +110,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.viewport_panel = XRCCTRL(self.main_window, "viewport_panel")
         self.viewport = Viewport(self.viewport_panel)
         self.Bind(wx.EVT_IDLE, self.OnIdle)
-#         self.Bind(wx.EVT_PAINT, self.OnPaint)
-        self.viewport.JumpTo((0.5,0.5))
+        #~ self.viewport.JumpTo((0.5,0.5))
         self.world = World(self.viewport)
 
         # Putting objects together
@@ -164,6 +163,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         wx.EVT_PAINT(self.viewport_panel, self.OnPaint)
         wx.EVT_SIZE(self.viewport_panel, self.OnResize)
         wx.EVT_LEFT_DOWN(self.viewport_panel, self._LeftClickViewport)
+        wx.EVT_MOTION(self.viewport_panel, self._HoverViewport)
 
         # Let's go...
         # 1. Show UI on screen
@@ -306,7 +306,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         for obj_name in self.dialogs + self.windows:
             try:
                 win = getattr(self, obj_name)
-                win.DestroyChildren()
+                #~ win.DestroyChildren()
                 win.Destroy()
             except:
                 pass
@@ -351,7 +351,14 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         if self._CheckNodeProxy(False):
             x, y = self.viewport.MoveToPixels(evt.GetPositionTuple())
             self.node_proxy.Move(str(long(x)), str(long(y)), str(0))
-            evt.Skip()
+        evt.Skip()
+
+    def _HoverViewport(self, evt):
+        """ Called on mouse movement. """
+        if self._CheckNodeProxy(False):
+            x, y = evt.GetPositionTuple()
+            self.viewport.Hover((x, y))
+        evt.Skip()
 
 
     #===-----------------------------------------------------------------===#
@@ -413,6 +420,8 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
 
     def NodeKillFailed(self):
         """ The node refused to kill itself. """
+        self.node_proxy = None
+        self.viewport.Disable()
         msg = _("You cannot kill this node.")
         dialog = wx.MessageDialog(None, msg, caption=_("Kill refused"), style=wx.OK | wx.ICON_ERROR)
         dialog.ShowModal()
