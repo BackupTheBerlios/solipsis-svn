@@ -682,7 +682,7 @@ class StateMachine(object):
         nb_peers = topology.GetNumberOfPeers()
         neighbours = topology.GetPeersWithinDistance(ar)
         nb_neighbours = len(neighbours)
-        print ar, nb_peers, nb_neighbours, self.min_neighbours
+        print "ar=%6f, peers=%d, neighbours=%d (min=%d, max=%d)" % (ar, nb_peers, nb_neighbours, self.min_neighbours, self.max_neighbours)
         if nb_peers < 3:
             # This case is handled by the global connectivity check
             return
@@ -690,7 +690,8 @@ class StateMachine(object):
         # Not enough neighbours in our awareness radius
         if nb_neighbours < self.min_neighbours:
             if nb_peers >= self.min_neighbours:
-                new_ar = topology.GetEnclosingDistance(self.min_neighbours)
+                # +1% to avoid boundary/imprecision issues
+                new_ar = topology.GetEnclosingDistance(self.min_neighbours) * 1.01
             else:
                 # We assume areal density is roughly constant
                 d = topology.GetEnclosingDistance(nb_peers)

@@ -9,8 +9,8 @@ from wxutils import _
 from wxutils import *        # '*' doesn't import '_'
 from validators import *
 from viewport import Viewport
-from proxy import UIProxyReceiver
-
+from proxy import TwistedProxy, UIProxyReceiver
+from network import NetworkLoop
 
 
 class ConnectionData(ManagedData):
@@ -154,8 +154,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.SetTopWindow(self.main_window)
 
         # 2. Launch network event loop
-        from network import NetworkLoop
-        from proxy import TwistedProxy
         loop = NetworkLoop(self.reactor, self)
         loop.setDaemon(True)
         loop.start()

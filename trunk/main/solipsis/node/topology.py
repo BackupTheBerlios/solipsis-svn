@@ -350,9 +350,6 @@ class Topology(object):
         self.angles[id_] = angle
         bisect.insort(self.distance_peers, (d, id_))
         bisect.insort(self.angle_peers, (angle, id_))
-        print self.distance_peers
-        print self.angle_peers
-        print
         return True
 
     def _ExtractPeer(self, id_):
