@@ -56,7 +56,7 @@ class Launcher(object):
         print "Executing '%s'..." % cmdline
 
         # Here we use subprocess for portability, but in case it doesn't exist
-        # (Python < 2.4) we fall back on os.spawnv which does not allow direct
+        # (Python < 2.4) we fall back on os.spawnv - which does not allow direct
         # execution of .py files under Windows.
         try:
             import subprocess
