@@ -305,8 +305,19 @@ class GuiView(AbstractView):
     # OTHERS TAB : frame.other_tab  
     def update_peers(self):
         """peer"""
-        #TODO
+        self.frame.other_tab.peers_list.Clear()
         peers = self.document.get_peers()
+        for peer_and_doc in peers.values():
+            self.frame.other_tab.peers_list.add_peer(*peer_and_doc)
+        
+    def update_peer_preview(self, pseudo):
+        """peer"""
+        document = self.frame.other_tab.peers_list.get_peer_document(pseudo)
+        if document:
+            view = HtmlView(document)
+            self.frame.other_tab.detail_preview.SetPage(view.get_view())
+        else:
+            print >> sys.stderr, "no data associated with %s"% pseudo
         
 
 class HtmlView(AbstractView):
@@ -427,5 +438,8 @@ class HtmlView(AbstractView):
     # OTHERS TAB : frame.other_tab  
     def update_peers(self):
         """peer"""
-        self.context.addGlobal("peers",  self.document.get_peers())
+        peer_info = {}
+        for peer, document in self.document.get_peers().values():
+            peer_info[peer.pseudo] = document and document.get_firstname() or u"no data"
+        self.context.addGlobal("peers",  peer_info)
         self.update_view()

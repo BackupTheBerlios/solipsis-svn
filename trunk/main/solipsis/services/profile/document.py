@@ -5,6 +5,7 @@ independant from views"""
 import mx.DateTime
 import ConfigParser
 import os.path
+import sys
 from os.path import isfile, isdir
 from solipsis.services.profile import ENCODING, \
      PROFILE_DIR, PROFILE_FILE
@@ -33,6 +34,9 @@ class PeerDescriptor:
     ANONYMOUS = 0
     FRIEND = 1
     BLACKLISTED = 2
+    COLORS = {ANONYMOUS: 'black',
+              FRIEND:'blue',
+              BLACKLISTED:'red'}
     
     def __init__(self, pseudo, state=ANONYMOUS):
         self.pseudo = pseudo
@@ -40,6 +44,10 @@ class PeerDescriptor:
 
     def __repr__(self):
         return "%s (%s)"% (self.pseudo, self.state)
+
+    def html(self):
+        """render peer in HTML"""
+        return "<font color=%s>%s</font>"% (PeerDescriptor.COLORS[self.state], self.pseudo)
         
 class AbstractDocument:
     """Base class for data container. Acts as validator.
@@ -81,12 +89,19 @@ class AbstractDocument:
             self.tag_file((file_path, file_desc.tag))
         # others' data
         peers = other_document.get_peers()
-        for pseudo, peer_desc in peers.iteritems():
+        for pseudo, (peer_desc, peer_doc) in peers.iteritems():
             self.add_peer(pseudo)
-            self.peers[pseudo].state = peer_desc.state
+            peer_doc and self.fill_data((pseudo, peer_doc))
+            if int(peer_desc.state) == PeerDescriptor.ANONYMOUS:
+                self.unmark_peer(pseudo)
+            elif int(peer_desc.state) == PeerDescriptor.FRIEND:
+                self.make_friend(pseudo)
+            elif int(peer_desc.state) == PeerDescriptor.BLACKLISTED:
+                self.blacklist_peer(pseudo)
+            else:
+                print >> sys.stderr, "state %s not recognised"% peer_desc.state
     
     # MENU
-
     def save(self):
         """fill document with information from .profile file"""
         pass
@@ -265,6 +280,18 @@ class AbstractDocument:
     def get_peers(self):
         """returns Peers"""
         raise NotImplementedError
+
+    def fill_data(self, pair):
+        """stores CacheDocument associated with peer"""
+        if not isinstance(pair, list) and not isinstance(pair, tuple):
+            raise TypeError("argument of tag_file expected as list or tuple")
+        elif len(pair) != 2:
+            raise TypeError("argument of  expected as couple (file_path, tag)")
+        pseudo, document = pair
+        if not isinstance(pseudo, unicode):
+            raise TypeError("pseudo expected as unicode")
+        if not isinstance(document, AbstractDocument):
+            raise TypeError("data expected as AbstractDocument")
     
     def make_friend(self, pseudo):
         """sets peer as friend """
@@ -471,18 +498,26 @@ class CacheDocument(AbstractDocument):
     def add_peer(self, pseudo):
         """stores Peer object"""
         AbstractDocument.add_peer(self, pseudo)
-        self.peers[pseudo] = PeerDescriptor(pseudo)
+        self.peers[pseudo] = [PeerDescriptor(pseudo), None]
     
     def get_peers(self):
         """returns Peers"""
         return self.peers
+
+    def fill_data(self, pair):
+        """stores CacheDocument associated with peer"""
+        AbstractDocument.fill_data(self, pair)
+        pseudo, document = pair
+        if not self.peers.has_key(pseudo):
+            self.add_peer(pseudo)
+        self.peers[pseudo][1] = document
     
     def make_friend(self, pseudo):
         """sets peer as friend """
         AbstractDocument.make_friend(self, pseudo)
         if not self.peers.has_key(pseudo):
             self.add_peer(pseudo)
-        peer_obj = self.peers[pseudo]
+        peer_obj = self.peers[pseudo][0]
         peer_obj.state = PeerDescriptor.FRIEND
 
     def blacklist_peer(self, pseudo):
@@ -490,15 +525,15 @@ class CacheDocument(AbstractDocument):
         AbstractDocument.blacklist_peer(self, pseudo)
         if not self.peers.has_key(pseudo):
             self.add_peer(pseudo)
-        peer_obj = self.peers[pseudo]
+        peer_obj = self.peers[pseudo][0]
         peer_obj.state = PeerDescriptor.BLACKLISTED
 
     def unmark_peer(self, pseudo):
         """sets new value for unshared file"""
-        AbstractDocument.blacklist_peer(self, pseudo)
+        AbstractDocument.unmark_peer(self, pseudo)
         if not self.peers.has_key(pseudo):
             self.add_peer(pseudo)
-        peer_obj = self.peers[pseudo]
+        peer_obj = self.peers[pseudo][0]
         peer_obj.state = PeerDescriptor.ANONYMOUS
 
 
@@ -520,7 +555,9 @@ class FileDocument(AbstractDocument):
 
     def save(self, path=None):
         """fill document with information from .profile file"""
-        file_obj = open(path or self.file_name, 'w')
+        if path:
+            self.file_name = path
+        file_obj = open(self.file_name, 'w')
         file_obj.write("#%s\n"% self.encoding)
         self.config.write(file_obj)
 
@@ -760,10 +797,18 @@ class FileDocument(AbstractDocument):
             options = self.config.options(SECTION_OTHERS)
             for option in options:
                 uoption = unicode(option, self.encoding)
-                result[uoption] = PeerDescriptor(uoption,
-                                                 self.config.get(SECTION_OTHERS, uoption))
+                result[uoption] = [PeerDescriptor(uoption,
+                                                  self.config.get(SECTION_OTHERS, uoption)),
+                                   None]
+                #TODO: load FileDocument corresponding to  other peer 
         finally:
             return result
+        
+
+    def fill_data(self, pair):
+        """stores CacheDocument associated with peer"""
+        #TODO: create other FileDocument for other peer wich will be saved apart
+        pass
         
     def make_friend(self, pseudo):
         """sets peer as friend """
@@ -777,6 +822,6 @@ class FileDocument(AbstractDocument):
 
     def unmark_peer(self, pseudo):
         """sets new value for unshared file"""
-        AbstractDocument.blacklist_peer(self, pseudo)
+        AbstractDocument.unmark_peer(self, pseudo)
         self.config.set(SECTION_OTHERS, pseudo, PeerDescriptor.ANONYMOUS)
 

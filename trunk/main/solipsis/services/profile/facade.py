@@ -191,14 +191,21 @@ class Facade:
                                "update_files")
 
     # OTHERS TAB
-    def display_peer_preview(self, value):
+    def display_peer_preview(self, pseudo):
         """sets new preview for peer"""
-        self.view.update_peer_preview(value)
+        if "gui" in self.views:
+            self.views["gui"].update_peer_preview(pseudo)
 
     def add_peer(self, value):
         """sets peer as friend """
         return self._try_change(value,
                                 "add_peer",
+                                "update_peers")
+
+    def fill_data(self, value):
+        """sets peer as friend """
+        return self._try_change(value,
+                                "fill_data",
                                 "update_peers")
 
     def make_friend(self, value):

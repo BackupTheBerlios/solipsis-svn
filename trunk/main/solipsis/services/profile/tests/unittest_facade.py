@@ -148,26 +148,28 @@ class FacadeTest(unittest.TestCase):
     def test_default_peers(self):
         """sets peer as friend """
         self.facade.add_peer(u"emb")
-        self.assertEquals("{u'emb': emb (0)}\n", sys.stdout.getvalue())
+        self.assertEquals("{u'emb': [emb (0), None]}\n", sys.stdout.getvalue())
         self.assertEquals("", sys.stderr.getvalue())
         
     def test_friend(self):
         """sets peer as friend """
         self.facade.make_friend(u"emb")
-        self.assertEquals("{u'emb': emb (1)}\n", sys.stdout.getvalue())
+        self.assertEquals("{u'emb': [emb (1), None]}\n", sys.stdout.getvalue())
         self.assertEquals("", sys.stderr.getvalue())
         
     def test_blacklisted(self):
         """sets peer as friend """
         self.facade.blacklist_peer(u"emb")
-        self.assertEquals("{u'emb': emb (2)}\n", sys.stdout.getvalue())
+        self.assertEquals("{u'emb': [emb (2), None]}\n", sys.stdout.getvalue())
         self.assertEquals("", sys.stderr.getvalue())
         
     def test_unmarked(self):
         """sets peer as friend """
         self.facade.unmark_peer(u"emb")
-        self.assertEquals("{u'emb': emb (0)}\n", sys.stdout.getvalue())
+        self.assertEquals("{u'emb': [emb (0), None]}\n", sys.stdout.getvalue())
         self.assertEquals("", sys.stderr.getvalue())
+
+    #TODO test fill_data
 
 
 if __name__ == '__main__':

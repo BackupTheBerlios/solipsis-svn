@@ -3,6 +3,7 @@
 
 import wx, os, os.path
 from solipsis.services.profile.facade import get_facade
+from solipsis.services.profile.document import FileDocument
 from solipsis.services.profile import PROFILE_DIR, PROFILE_FILE
 
 # begin wxGlade: dependencies
@@ -24,24 +25,27 @@ class ProfileFrame(wx.Frame):
         self.profile_menu = wx.MenuBar()
         self.SetMenuBar(self.profile_menu)
         self.profile_item = wx.Menu()
-        self.activate_item = wx.MenuItem(self.profile_item, wx.NewId(), _("&Activate\tCtrl+A"), _("Allow users seeing profile"), wx.ITEM_CHECK)
+        self.activate_item = wx.MenuItem(self.profile_item, wx.NewId(), _("&Online\tCtrl+O"), _("Allow users seeing profile"), wx.ITEM_CHECK)
         self.profile_item.AppendItem(self.activate_item)
-        self.export_item = wx.MenuItem(self.profile_item, wx.NewId(), _("&Export HTML ...\tCtrl+E"), _("Write HTML File"), wx.ITEM_NORMAL)
+        self.export_item = wx.MenuItem(self.profile_item, wx.NewId(), _("&Export HTML ...\tCtrl+E"), _("Write profile as HTML File"), wx.ITEM_NORMAL)
         self.profile_item.AppendItem(self.export_item)
         self.profile_item.AppendSeparator()
-        self.load_item = wx.MenuItem(self.profile_item, wx.NewId(), _("&Load ... \tCtrl+L"), "", wx.ITEM_NORMAL)
+        self.load_item = wx.MenuItem(self.profile_item, wx.NewId(), _("&Load ... \tCtrl+L"), _("Load profile from file"), wx.ITEM_NORMAL)
         self.profile_item.AppendItem(self.load_item)
         self.save_item = wx.MenuItem(self.profile_item, wx.NewId(), _("&Save ...\tCtrl+S"), _("Save profile into file"), wx.ITEM_NORMAL)
         self.profile_item.AppendItem(self.save_item)
         self.quit_item = wx.MenuItem(self.profile_item, wx.NewId(), _("&Quit\tCtrl+Q"), _("Exit profile management"), wx.ITEM_NORMAL)
         self.profile_item.AppendItem(self.quit_item)
         self.profile_menu.Append(self.profile_item, _("Profile"))
-        self.search_item = wx.Menu()
-        self.raw_item = wx.MenuItem(self.search_item, wx.NewId(), _("&Find...\tCtrl+F"), _("Search profile in surrounding area"), wx.ITEM_NORMAL)
-        self.search_item.AppendItem(self.raw_item)
-        self.filters_item = wx.MenuItem(self.search_item, wx.NewId(), _("Filters...\tCtrl+H"), _("Create active filters to get notified on peers approach"), wx.ITEM_NORMAL)
-        self.search_item.AppendItem(self.filters_item)
-        self.profile_menu.Append(self.search_item, _("Search"))
+        self.peers_item = wx.Menu()
+        self.addpeer_item = wx.MenuItem(self.peers_item, wx.NewId(), _("&Add...\tCtrl+A"), _("Add saved peer to dedicated tab"), wx.ITEM_NORMAL)
+        self.peers_item.AppendItem(self.addpeer_item)
+        self.peers_item.AppendSeparator()
+        self.raw_item = wx.MenuItem(self.peers_item, wx.NewId(), _("&Find...\tCtrl+F"), _("Search profile in surrounding area"), wx.ITEM_NORMAL)
+        self.peers_item.AppendItem(self.raw_item)
+        self.filters_item = wx.MenuItem(self.peers_item, wx.NewId(), _("Filters...\tCtrl+H"), _("Create active filters to get notified on peers approach"), wx.ITEM_NORMAL)
+        self.peers_item.AppendItem(self.filters_item)
+        self.profile_menu.Append(self.peers_item, _("Peers"))
         # Menu Bar end
         self.profile_statusbar = self.CreateStatusBar(1, 0)
         self.preview_tab = PreviewPanel(self.profile_book, -1)
@@ -61,10 +65,27 @@ class ProfileFrame(wx.Frame):
     
     def bind_controls(self):
         """bind all controls with facade"""
-        self.Bind(wx.EVT_MENU, self.on_save, id=self.save_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_export, id=self.export_item.GetId())
+        self.Bind(wx.EVT_MENU, self.on_save, id=self.save_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_load, id=self.load_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_quit, id=self.quit_item.GetId())
+        self.Bind(wx.EVT_MENU, self.on_add, id=self.addpeer_item.GetId())
+
+    def on_add(self, evt):
+        """save .profile.solipsis"""
+        dlg = wx.FileDialog(
+            self, message="Add profile ...",
+            defaultDir=PROFILE_DIR,
+            defaultFile="",
+            wildcard="Solipsis file (*.solipsis)|*.solipsis",
+            style=wx.OPEN)
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            loader = FileDocument()
+            loader.load(path)
+            self.facade.add_peer(loader.get_pseudo())
+            self.facade.fill_data((loader.get_pseudo(), loader))
+            self.facade.display_peer_preview(loader.get_pseudo())
 
     def on_load(self, evt):
         """save .profile.solipsis"""

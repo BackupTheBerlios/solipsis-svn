@@ -157,13 +157,15 @@ class ValidatorTest(unittest.TestCase):
         """action changes to accurate state"""
         self.document.make_friend(u"nico")
         self.assertEquals(PeerDescriptor.FRIEND,
-                          self.document.get_peers()[u"nico"].state)
+                          self.document.get_peers()[u"nico"][0].state)
         self.document.blacklist_peer(u"nico")
         self.assertEquals(PeerDescriptor.BLACKLISTED,
-                          self.document.get_peers()[u"nico"].state)
+                          self.document.get_peers()[u"nico"][0].state)
         self.document.unmark_peer(u"nico")
         self.assertEquals(PeerDescriptor.ANONYMOUS,
-                          self.document.get_peers()[u"nico"].state)
+                          self.document.get_peers()[u"nico"][0].state)
+
+    #TODO test fill data
 
 if __name__ == '__main__':
     unittest.main()

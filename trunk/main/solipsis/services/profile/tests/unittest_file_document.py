@@ -6,8 +6,12 @@ import unittest
 import sys
 from difflib import Differ
 from StringIO import StringIO
+import os.path
 from solipsis.services.profile.document import FileDocument, CacheDocument
 from solipsis.services.profile.view import PrintView, HtmlView
+from solipsis.services.profile import PROFILE_DIR
+
+TEST_PROFILE = os.path.join(PROFILE_DIR, ".test.solipsis")
 
 class ValidatorTest(unittest.TestCase):
     """test that all fields are correctly validated"""
@@ -71,7 +75,7 @@ hobbies = blabla,bla bla bla,
         self.document.add_peer(u"nico")
         self.document.make_friend(u"nico")
         # write file
-        self.document.save()
+        self.document.save(TEST_PROFILE)
         differ = Differ()
         result =  differ.compare([line.replace('\n', '') for line
                                   in open(self.document.file_name).readlines()],
@@ -81,7 +85,7 @@ hobbies = blabla,bla bla bla,
 
     def test_load(self):
         """import data"""
-        self.document.load()
+        self.document.load(TEST_PROFILE)
         self.assertEquals("Mr", self.document.get_title())
         self.assertEquals("manu", self.document.get_firstname())
         self.assertEquals("breton", self.document.get_lastname())
@@ -102,12 +106,12 @@ hobbies = blabla,bla bla bla,
         self.assertEquals("%s (tag description)"% unittest.__file__,
                           str(files[unittest.__file__]))
         peers = self.document.get_peers()
-        self.assertEquals('nico (1)', str(peers['nico']))
+        self.assertEquals('[nico (1), None]', str(peers['nico']))
 
 
     def test_import(self):
         """import file document into cache document"""
-        self.document.load()
+        self.document.load(TEST_PROFILE)
         new_doc = CacheDocument()
         new_doc.import_document(self.document)
         self.assertEquals("Mr", new_doc.get_title())
@@ -130,11 +134,11 @@ hobbies = blabla,bla bla bla,
         self.assertEquals("%s (tag description)"% unittest.__file__,
                           str(files[unittest.__file__]))
         peers = new_doc.get_peers()
-        self.assertEquals('nico (1)', str(peers['nico']))
+        self.assertEquals('[nico (1), None]', str(peers['nico']))
 
     def test_view(self):
         """import file document into printView"""
-        self.document.load()
+        self.document.load(TEST_PROFILE)
         sav_stdout = sys.stdout
         result = StringIO()
         sys.stdout = result
@@ -156,14 +160,14 @@ anything
 {'color': u'blue', 'homepage': u'manu.com'}
 .
 {'/usr/lib/python2.3/unittest.pyc': /usr/lib/python2.3/unittest.pyc (tag description)}
-{u'nico': nico (1)}
+{u'nico': [nico (1), None]}
 """)
         result.close()
         sys.stdout = sav_stdout
 
     def test_html_view(self):
         """import file document into printView"""
-        self.document.load()
+        self.document.load(TEST_PROFILE)
         view = HtmlView(self.document)
         result = view.get_view()
         

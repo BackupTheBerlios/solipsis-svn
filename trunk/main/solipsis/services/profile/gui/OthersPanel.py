@@ -6,6 +6,30 @@ import wx, wx.html
 # begin wxGlade: dependencies
 # end wxGlade
 
+class MyHtmlListBox(wx.HtmlListBox):
+
+    def __init__(self, parent, id):
+        self.peers = {}
+        wx.HtmlListBox.__init__(self, parent, id)
+        self.SetItemCount(0)
+        
+    def add_peer(self, descriptor, document):
+        """store peer in cache as wx.HtmlListBox is virtual"""
+        self.peers[descriptor.pseudo] = (descriptor, document)
+        self.SetItemCount(len(self.peers))
+
+    def get_peer_descriptor(self, pseudo):
+        """return PeerDescriptor associated with peer"""
+        return self.peers[pseudo][0]
+
+    def get_peer_document(self, pseudo):
+        """return CacheDocument associated with peer"""
+        return self.peers[pseudo][1]
+
+    def OnGetItem(self, n):
+        """callback to display item"""
+        return self.peers.values()[n][0].html()
+
 class OthersPanel(wx.Panel):
     def __init__(self, *args, **kwds):
         # begin wxGlade: OthersPanel.__init__
@@ -14,12 +38,18 @@ class OthersPanel(wx.Panel):
         self.other_split = wx.SplitterWindow(self, -1, style=wx.SP_3D|wx.SP_BORDER)
         self.details_panel = wx.Panel(self.other_split, -1)
         self.peers_panel = wx.Panel(self.other_split, -1)
-        self.peers_list = wx.HtmlListBox(self.peers_panel, -1)
+        self.peers_list = MyHtmlListBox(self.peers_panel, -1)
         self.detail_preview = wx.html.HtmlWindow(self.details_panel, -1)
 
         self.__set_properties()
         self.__do_layout()
         # end wxGlade
+
+    # EVENTS
+    
+    def bind_controls(self):
+        """bind all controls with facade"""
+        pass
 
     def __set_properties(self):
         # begin wxGlade: OthersPanel.__set_properties
@@ -41,7 +71,7 @@ class OthersPanel(wx.Panel):
         self.details_panel.SetSizer(details_sizer)
         details_sizer.Fit(self.details_panel)
         details_sizer.SetSizeHints(self.details_panel)
-        self.other_split.SplitVertically(self.peers_panel, self.details_panel)
+        self.other_split.SplitVertically(self.peers_panel, self.details_panel, 100)
         other_size.Add(self.other_split, 1, wx.EXPAND, 0)
         self.SetAutoLayout(True)
         self.SetSizer(other_size)
