@@ -37,7 +37,7 @@ class World(object):
     """
 
     repository = images.ImageRepository()
-    avatar_size = 40
+    avatar_size = 32
     # hash -> PIL image
     pil_avatar_cache = {}
     # hash -> wx.Bitmap

@@ -208,7 +208,9 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         wx.EVT_LEFT_DOWN(self.viewport_panel, self._LeftClickViewport)
         wx.EVT_RIGHT_DOWN(self.viewport_panel, self._RightClickViewport)
         wx.EVT_MOTION(self.viewport_panel, self._HoverViewport)
+        # For portability we need both
         wx.EVT_CHAR(self.main_window, self._KeyPressViewport)
+        wx.EVT_CHAR(self.viewport_panel, self._KeyPressViewport)
 
         # Let's go...
         # 1. Show UI on screen
