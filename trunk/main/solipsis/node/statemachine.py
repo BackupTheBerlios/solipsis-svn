@@ -978,7 +978,9 @@ class StateMachine(object):
         """
         Update a peer's metadata from the incoming message's arguments.
         """
-        peer.UpdateMeta(pseudo=args.pseudo, services=args.accept_services)
+        peer.UpdateMeta(pseudo=args.pseudo,
+            languages=args.accept_languages, 
+            services=args.accept_services)
         # Notify remote control
         self.event_sender.event_ChangedPeer(peer)
 
@@ -1040,6 +1042,7 @@ class StateMachine(object):
     def _FillMeta(self, message):
         a = message.args
         a.pseudo = self.node.pseudo
+        a.accept_languages = self.node.GetLanguages()
         a.accept_services = self.node.GetServices()
 
     def _SayHello(self, address, send_detects=False):

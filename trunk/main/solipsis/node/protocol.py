@@ -60,7 +60,8 @@ _args = [
     ('ARG_REMOTE_POSITION', 'Remote-Position', 'remote_position'),
     ('ARG_REMOTE_PSEUDO', 'Remote-Pseudo', 'remote_pseudo'),
 
-    ('ARG_ACCEPT_SERVICES', 'Accept-Services', 'accept_services'),
+    ('ARG_ACCEPT_LANGUAGES', 'Languages', 'accept_languages'),
+    ('ARG_ACCEPT_SERVICES', 'Services', 'accept_services'),
     ('ARG_PSEUDO', 'Pseudo', 'pseudo'),
     ('ARG_SERVICE_ADDRESS', 'Service-Address', 'service_address'),
     ('ARG_SERVICE_ID', 'Service-Id', 'service_id'),
@@ -110,7 +111,8 @@ def _init_table(table_name, table, aliases=_aliases, transform=(lambda x: x)):
 #
 
 _syntax_table = {
-    ARG_ACCEPT_SERVICES  : r'[-_/\w\d]+(;d=\w+)?(\s*,\s*[-_/\w\d]+(;d=\w+)?)*',
+    ARG_ACCEPT_LANGUAGES : r'([\w]+(\s*,\s*[\w]+)*)?',
+    ARG_ACCEPT_SERVICES  : r'([-_/\w\d]+(;d=\w+)?(\s*,\s*[-_/\w\d]+(;d=\w+)?)*)?',
     ARG_ADDRESS          : r'\s*.*:\d+\s*',
     ARG_AWARENESS_RADIUS : r'\d+',
     ARG_CLOCKWISE        : r'[-+]1',
@@ -130,6 +132,12 @@ _init_table('ARGS_SYNTAX', _syntax_table, transform=(lambda x: re.compile('^' + 
 # Constructor function for each argument
 # This is mandatory.
 #
+
+def _accept_languages_from_string(s):
+    return [l.strip() for l in s.split(',')]
+
+def _accept_languages_to_string(l):
+    return ", ".join(l)
 
 def _accept_services_from_string(s):
     services = []
@@ -153,6 +161,7 @@ def _accept_services_to_string(services):
     return ", ".join(s)
 
 _from_string = {
+    ARG_ACCEPT_LANGUAGES:   _accept_languages_from_string,
     ARG_ACCEPT_SERVICES:    _accept_services_from_string,
     ARG_ADDRESS:            (lambda s: Address(strAddress=s)),
     ARG_AWARENESS_RADIUS:   float,
@@ -167,6 +176,7 @@ _from_string = {
 }
 
 _to_string = {
+    ARG_ACCEPT_LANGUAGES:   _accept_languages_to_string,
     ARG_ACCEPT_SERVICES:    _accept_services_to_string,
     ARG_ADDRESS:            str,
     # TODO: change all coord and distance types to float
@@ -218,8 +228,8 @@ REQUESTS = {
     'SEARCH'     : [ ARG_ID, ARG_CLOCKWISE ],
     'UPDATE'     : NODE_ARGS,
 
-    'META'       : [ ARG_ID, ARG_PSEUDO, ARG_ACCEPT_SERVICES ],
-    'QUERYMETA'  : [ ARG_ID, ARG_PSEUDO, ARG_ACCEPT_SERVICES ],
+    'META'       : [ ARG_ID, ARG_PSEUDO, ARG_ACCEPT_LANGUAGES, ARG_ACCEPT_SERVICES ],
+    'QUERYMETA'  : [ ARG_ID, ARG_PSEUDO, ARG_ACCEPT_LANGUAGES, ARG_ACCEPT_SERVICES ],
     'QUERYSERVICE': [ ARG_ID, ARG_SERVICE_ID, ARG_SERVICE_ADDRESS ],
     'SERVICEINFO': [ ARG_ID, ARG_SERVICE_ID, ARG_SERVICE_ADDRESS ],
 }

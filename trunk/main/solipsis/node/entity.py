@@ -69,6 +69,7 @@ class Entity(object):
         # Metadata
         self.pseudo = pseudo
         self.services = {}
+        self.languages = ['fr', 'en']
         self.AddService(Service('chat', address='127.0.0.1:5555'))
         self.AddService(Service('video', address='127.0.0.1:6543'))
         self.AddService(Service('browse', 'in'))
@@ -99,6 +100,12 @@ class Entity(object):
         """
         return self.services.values()
 
+    def GetLanguages(self):
+        """
+        Get a list of the entity's preferred languages (in decreasing order).
+        """
+        return self.languages
+
     def Update(self, other):
         """
         Update basic characteristics (not metadata) from the 'other' entity object.
@@ -106,12 +113,14 @@ class Entity(object):
         self.position = other.position
         self.awareness_radius = other.awareness_radius
 
-    def UpdateMeta(self, pseudo=None, services=None):
+    def UpdateMeta(self, pseudo=None, languages=None, services=None):
         """
         Update metadata.
         """
         if pseudo is not None:
             self.pseudo = pseudo
+        if languages is not None:
+            self.languages = languages
         if services is not None:
             self.UpdateServices(services)
 
