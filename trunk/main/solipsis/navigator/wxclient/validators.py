@@ -19,12 +19,13 @@
 
 import re
 
-from wxutils import Validator, _
+from solipsis.util.wxutils import Validator, _
 
 
 class _RegexpValidator(Validator):
-    """ Intermediate class for regexp-based validators. """
-
+    """
+    Intermediate class for regexp-based validators.
+    """
     def __init__(self, *args, **kargs):
         Validator.__init__(self, *args, **kargs)
 
@@ -40,8 +41,9 @@ class _RegexpValidator(Validator):
 
 
 class PortValidator(Validator):
-    """ Validator for port numbers (1 .. 65535). """
-
+    """
+    Validator for port numbers (1 .. 65535).
+    """
     def __init__(self, *args, **kargs):
         Validator.__init__(self, *args, **kargs)
         self.message = _("Port number must be between 1 and 65535")
@@ -61,8 +63,9 @@ class PortValidator(Validator):
 
 
 class HostnameValidator(_RegexpValidator):
-    """ Validator for hostnames. """
-
+    """
+    Validator for hostnames.
+    """
     regexp = re.compile(r'^[-_\w\.\:]+$')
 
     def __init__(self, *args, **kargs):
@@ -71,11 +74,29 @@ class HostnameValidator(_RegexpValidator):
 
 
 class NicknameValidator(_RegexpValidator):
-    """ Validator for nicknames. """
-
+    """
+    Validator for nicknames.
+    """
     regexp = re.compile(r'^.+$')
 
     def __init__(self, *args, **kargs):
         super(NicknameValidator, self).__init__(*args, **kargs)
         self.message = _("Please enter a valid nickname")
 
+
+class BooleanValidator(Validator):
+    """
+    Validator for booleans (radio buttons, etc.).
+    """
+    def __init__(self, *args, **kargs):
+        Validator.__init__(self, *args, **kargs)
+
+    def _ReprToData(self, _repr):
+        return _repr
+
+    def _DataToRepr(self, _data):
+        return _data
+
+    def _Validate(self, value):
+        assert isinstance(value, bool)
+        return True

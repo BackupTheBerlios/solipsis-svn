@@ -21,6 +21,7 @@ import twisted.web.xmlrpc as xmlrpc
 
 import solipsis.util.httpproxy as httpproxy
 
+
 class _BaseNode(object):
     """
     Base class for node proxying objects.
@@ -124,11 +125,13 @@ class XMLRPCNode(_BaseNode):
     """
     Class for connecting to a node via XMLRPC.
     """
-    def __init__(self, reactor, host, port, *args, **kargs):
-        _BaseNode.__init__(self, *args, **kargs)
+    def __init__(self, reactor, host, port, proxy_host=None, proxy_port=None):
+        _BaseNode.__init__(self)
         self.reactor = reactor
         self.host = host
         self.port = port
+        self.proxy_host = proxy_host
+        self.proxy_port = proxy_port
         self.xmlrpc_control = None
         self.receiver = None
 
@@ -142,10 +145,10 @@ class XMLRPCNode(_BaseNode):
         """
         self.receiver = receiver
         control_url = 'http://%s:%d/RPC2' % (self.host, self.port)
-        proxy_host, proxy_port = httpproxy.discover_http_proxy()
-        if proxy_host is not None:
-            print "HTTP proxy is (%s, %d)" % (proxy_host, proxy_port)
-            xmlrpc_control = httpproxy.ProxiedXMLRPC(self.reactor, control_url, proxy_host, proxy_port)
+        if self.proxy_host and self.proxy_port:
+            print "HTTP proxy is (%s, %d)" % (self.proxy_host, self.proxy_port)
+            xmlrpc_control = httpproxy.ProxiedXMLRPC(self.reactor,
+                control_url, self.proxy_host, self.proxy_port)
         else:
             print "no HTTP proxy"
             xmlrpc_control = xmlrpc.Proxy(control_url)

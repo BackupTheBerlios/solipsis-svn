@@ -110,7 +110,11 @@ class Validator(wx.PyValidator):
         return True
 
     def Validate(self, window):
-        value = self.GetWindow().GetValue()
+        control = self.GetWindow()
+        # Do not check the input if the widget is actually disabled
+        if not control.IsEnabled():
+            return True
+        value = control.GetValue()
         if self._Validate(value):
             self.TransferFromWindow()
             return True

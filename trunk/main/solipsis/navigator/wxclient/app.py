@@ -31,14 +31,33 @@ from validators import *
 from viewport import Viewport
 from world import World
 from network import NetworkLoop
+from config_ui import ConfigUI
 
 
-class ConnectionData(ManagedData):
+class ConfigData(ManagedData):
     def __init__(self, host=None, port=None, pseudo=None):
         ManagedData.__init__(self)
         self.pseudo = pseudo or u"guest human"
         self.host = host or "localhost"
         self.port = port or 8550
+        self.always_try_without_proxy = True
+        self.proxymode_auto = True
+        self.proxymode_manual = False
+        self.proxy_mode = ""
+        self.proxy_pac_url = ""
+        self.proxy_host = ""
+        self.proxy_port = 0
+        self.proxy_autodetect_done = False
+
+    def Autocomplete(self):
+        self.proxy_mode = self.proxymode_auto and "auto" or (
+            self.proxymode_manual and "manual" or "none")
+        if self.proxy_mode == "auto":
+            from solipsis.util.httpproxy import discover_http_proxy
+            proxy_host, proxy_port = discover_http_proxy()
+            self.proxy_host = proxy_host or ""
+            self.proxy_port = proxy_port or 0
+            #~ print "detected proxy (%s, %d)" % (self.proxy_host, self.proxy_port)
 
 
 class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
@@ -50,8 +69,12 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.params = parameters
         self.alive = True
         self.redraw_pending = False
-        self.connection_data = ConnectionData()
+        self.config_data = ConfigData()
         self.node_proxy = None
+        
+        self.dialogs = None
+        self.windows = None
+        self.menubars = None
 
         # Caution : wx.App.__init__ automatically calls OnInit(),
         # thus all data must be initialized before
@@ -71,7 +94,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
 
     def InitWx(self):
         """
-        Initialize some wxWidgets stuff, including localization.
+        Initialize some basic wxWidgets stuff, including localization.
         """
 
         import locale as system_locale
@@ -88,16 +111,16 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         # Workaround for buggy Python behaviour with floats
         system_locale.setlocale(system_locale.LC_NUMERIC, "C")
 
-    def OnInit(self):
+    def InitResources(self):
         """
-        Main initialization handler.
+        Load UI layout from XML file(s).
         """
-
-        self.InitTwisted()
-        self.InitWx()
-
-        # Loading UI layout from XML file
-        self.dialogs = ["about_dialog", "connect_dialog", "not_implemented_dialog"]
+        self.dialogs = [
+            "about_dialog",
+            "connect_dialog",
+            "not_implemented_dialog",
+            "prefs_dialog",
+        ]
         self.windows = ["main_window"]
         self.menubars = ["main_menubar"]
         objects = self.dialogs + self.windows + self.menubars
@@ -110,9 +133,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         # 2D viewport for the world view
         self.viewport_panel = XRCCTRL(self.main_window, "viewport_panel")
         self.viewport = Viewport(self.viewport_panel)
-        self.Bind(wx.EVT_IDLE, self.OnIdle)
-        #~ self.viewport.JumpTo((0.5,0.5))
-        self.world = World(self.viewport)
 
         # Putting objects together
         self.main_window.SetMenuBar(self.main_menubar)
@@ -125,18 +145,43 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             attr = self.__getattribute__(obj_name)
             attr.SetSizeHintsSz(attr.GetBestVirtualSize())
 
-        # Validators for various form controls
-        c = self.connection_data
+    def InitValidators(self):
+        """
+        Setup validators for various form controls.
+        Validators have two purposes :
+        1. Validate proper data is entered in forms
+        2. Transfer validated data to their storage location 
+           (an instance variable of a ManagedData subclass instance).
+        """
+        c = self.config_data
         validators = [
-            # Containing window, control name, validator class, data object, data attribute
-            [ self.connect_dialog, "connect_port", PortValidator, c, "port" ],
+            # [ Containing window, control name, validator class, data object, data attribute ]
             [ self.connect_dialog, "connect_host", HostnameValidator, c, "host" ],
+            [ self.connect_dialog, "connect_port", PortValidator, c, "port" ],
             [ self.connect_dialog, "connect_pseudo", NicknameValidator, c, "pseudo" ],
+            [ self.prefs_dialog, "proxymode_auto", BooleanValidator, c, "proxymode_auto" ],
+            [ self.prefs_dialog, "proxymode_manual", BooleanValidator, c, "proxymode_manual" ],
+            [ self.prefs_dialog, "proxy_host", HostnameValidator, c, "proxy_host" ],
+            [ self.prefs_dialog, "proxy_port", PortValidator, c, "proxy_port" ],
         ]
         for v in validators:
             window, control_name, validator_class, data_obj, data_attr = v
             validator = validator_class(data_obj.Ref(data_attr))
             XRCCTRL(window, control_name).SetValidator(validator)
+
+
+    def OnInit(self):
+        """
+        Main initialization handler.
+        """
+
+        self.InitTwisted()
+        self.InitWx()
+        self.InitResources()
+        self.InitValidators()
+
+        self.world = World(self.viewport)
+        self.config_ui = ConfigUI(self.config_data, self.prefs_dialog)
 
         # UI events in main window
         wx.EVT_MENU(self, XRCID("menu_about"), self._About)
@@ -151,7 +196,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         wx.EVT_CLOSE(self.about_dialog, self._CloseAbout)
         wx.EVT_BUTTON(self, XRCID("about_ok"), self._CloseAbout)
 
-        # UI events in close dialog
+        # UI events in connect dialog
         wx.EVT_CLOSE(self.connect_dialog, self._CloseConnect)
         wx.EVT_BUTTON(self, XRCID("connect_cancel"), self._CloseConnect)
         wx.EVT_BUTTON(self, XRCID("connect_ok"), self._ConnectOk)
@@ -161,6 +206,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         wx.EVT_BUTTON(self, XRCID("not_implemented_ok"), self._CloseNotImplemented)
 
         # UI events in world viewport
+        wx.EVT_IDLE(self.viewport_panel, self.OnIdle)
         wx.EVT_PAINT(self.viewport_panel, self.OnPaint)
         wx.EVT_SIZE(self.viewport_panel, self.OnResize)
         wx.EVT_LEFT_DOWN(self.viewport_panel, self._LeftClickViewport)
@@ -289,7 +335,8 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
 
     def _Preferences(self, evt):
         """ Called on "preferences" event (menu -> File -> Preferences). """
-        self._NotImplemented()
+        self.config_data.Autocomplete()
+        self.prefs_dialog.Show()
 
     def _Quit(self, evt):
         """ Called on quit event (menu -> File -> Quit, window close box). """
@@ -340,7 +387,8 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """ Called on connect submit event (Ok button). """
         if (self.connect_dialog.Validate()):
             self.connect_dialog.Hide()
-            self.network.ConnectToNode(self.connection_data.host, self.connection_data.port)
+            self.config_data.Autocomplete()
+            self.network.ConnectToNode(self.config_data)
             self.viewport.Reset()
 
 
@@ -408,8 +456,8 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """ Failed connecting to the node. """
         self.node_proxy = None
         msg = _("Connection to the node has failed. \nPlease the check the node is running, then retry.")
-        msg += "\n\n" + _("For information, here is the error message:")
-        msg += "\n" + str(error)
+        #~ msg += "\n\n" + _("For information, here is the error message:")
+        #~ msg += "\n" + str(error)
         dialog = wx.MessageDialog(None, msg, caption=_("Connection error"), style=wx.OK | wx.ICON_ERROR)
         dialog.ShowModal()
 
