@@ -19,7 +19,9 @@ function do_po() {
 	PY_FILES=`find -name '*.py' -not -path "*/services/*/*"`
 
 	echo "" | $GETTEXT_FIRST -
-	wxrc -g $XRC_FILES | $GETTEXT --no-location -
+	if [ "$XRC_FILES" != "" ] ; then
+		wxrc -g $XRC_FILES | $GETTEXT --no-location -
+	fi
 	$GETTEXT $PY_FILES
 
 	# 2. Create or update PO files
@@ -46,9 +48,10 @@ MAIN_DIR=`pwd`
 do_po solipsis
 
 PLUGIN_DIR=solipsis/services
-PLUGINS=`find $PLUGIN_DIR -type d -regex "$PLUGIN_DIR/[^./]*" -printf %f`
+PLUGINS=`find $PLUGIN_DIR -type d -regex "$PLUGIN_DIR/[^./]*" -printf "%f "`
 for plugin in $PLUGINS ; do
 	echo "** Plugin '$plugin' **"
+	cd $MAIN_DIR
 	cd $PLUGIN_DIR/$plugin
 	mkdir -p po/fr/LC_MESSAGES
 	do_po solipsis_$plugin
