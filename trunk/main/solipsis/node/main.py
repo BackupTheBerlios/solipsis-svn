@@ -95,7 +95,8 @@ def main():
                 os._exit(0)
 
     # Create node and enter main loop
-    try:        #send statistic
+    try:        
+        #send statistic
         if params.send_stat:
             getPage('http://solipsis.netofpeers.net/stat/index.php?z=1').addCallbacks(
                 #we don't care about result
