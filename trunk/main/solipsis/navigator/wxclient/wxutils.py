@@ -58,7 +58,6 @@ class ManagedData(object):
             self._dict[name] = [value]
 
     def __getattr__(self, name):
-        print name
         assert name != "_dict"
         return self._dict[name][0]
 

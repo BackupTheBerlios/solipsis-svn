@@ -14,11 +14,18 @@ from proxy import UIProxyReceiver
 
 
 class ConnectionData(ManagedData):
-    def __init__(self):
-        ManagedData.__init__(self)
+    def __init__(self, host=None, port=None, pseudo=None):
+        super(ConnectionData, self).__init__()
         self.pseudo = ""
         self.host = "localhost"
-        self.port = 8550
+        self.port = ""
+        if pseudo:
+            self.pseudo = pseudo
+        if host:
+            self.host = host
+        if port:
+            self.port = port
+
 
 
 class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
@@ -106,7 +113,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             attr.SetSizeHintsSz(attr.GetBestVirtualSize())
 
         # Validators for various form controls
-        c = ConnectionData()
+        c = ConnectionData(self.params.control_host, self.params.control_port, self.params.pseudo)
         validators = [
             # Containing window, control name, validator class, data object, data attribute
             [ self.connect_dialog, "connect_port", PortValidator, c, "port" ],
@@ -286,7 +293,9 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """ Called on connect submit event (Ok button). """
         if (self.connect_dialog.Validate()):
             self.connect_dialog.Hide()
-            self._NotImplemented()
+            print self.connection_data.host, self.connection_data.port
+            self.network.ConnectToNode(self.connection_data.host, self.connection_data.port)
+            #self._NotImplemented()
 
 
     #===-----------------------------------------------------------------===#
