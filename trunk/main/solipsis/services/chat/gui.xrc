@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resource>
-  <object class="wxFrame" name="chat_window">
+  <object class="wxDialog" name="chat_window">
     <title>Chat</title>
     <centered>1</centered>
-    <style>wxDEFAULT_FRAME_STYLE</style>
     <object class="wxFlexGridSizer">
       <object class="sizeritem">
         <object class="wxSplitterWindow">
@@ -73,5 +72,6 @@
       <growablerows>2</growablerows>
       <growablecols>0</growablecols>
     </object>
+    <style>wxDEFAULT_DIALOG_STYLE|wxSYSTEM_MENU|wxRESIZE_BORDER|wxRESIZE_BOX</style>
   </object>
 </resource>
