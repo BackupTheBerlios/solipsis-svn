@@ -74,7 +74,7 @@ class RemoteConnector(object):
         for struct in reply:
             peer_info = marshal.PeerInfo(struct)
             print "PEER", peer_info.id_
-            self.ui.AddPeer(peer_info.id_, None, position=peer_info.position)
+            self.ui.AddPeer(peer_info)
         self.ui.Redraw()
 
     def success_GetEvents(self, reply):
@@ -97,7 +97,7 @@ class RemoteConnector(object):
     def event_NEW(self, struct):
         peer_info = marshal.PeerInfo(struct)
         print "NEW", peer_info.id_
-        self.ui.AddPeer(peer_info.id_, None, position=peer_info.position)
+        self.ui.AddPeer(peer_info)
         self.ui.AskRedraw()
 
     def event_LOST(self, peer_id):

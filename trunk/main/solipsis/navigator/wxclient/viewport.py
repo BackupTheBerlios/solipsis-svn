@@ -2,11 +2,11 @@
 import wx
 import time
 import math
+import bisect
 from itertools import izip
 
 from solipsis.util.timer import *
-from images import *
-
+import images
 
 def _optimize(obj):
     try:
@@ -28,7 +28,6 @@ class Viewport(object):
 
     def __init__(self, window, world_size = 2**128):
         self.window = window
-        self.images = ImageRepository()
         self.draw_buffer = None
         self.background = None
         self.fps = 0.0
@@ -37,8 +36,8 @@ class Viewport(object):
         self.redraw_pending = False
         self.last_redraw_duration = 0.01
         self.world_size = world_size
-        #self.world_size = 1.0
         self.normalize = (lambda x, lim=float(self.world_size) / 2.0: (x + lim) % (lim + lim) - lim)
+        self.images = images.ImageRepository() # for 2D background
 
         self.fps_timer = AutoTimer()
         self.center_glider = ExpEvolver(duration = self.glide_duration)
@@ -56,12 +55,21 @@ class Viewport(object):
         """
         Reinitialize the viewport. Clears all objects.
         """
+        # (object name -> index) dictionary
         self.obj_dict = {}
+        # List of objects
         self.obj_list = []
         self.obj_name = []
         self.obj_visible = []
+        # List of dicts of drawables
+        self.obj_drawables = []
         self.positions = []
-        self.obj_arrays = (self.obj_list, self.obj_name, self.obj_visible, self.positions)
+        self.obj_arrays = (self.obj_list, self.obj_name, self.obj_visible, self.obj_drawables, self.positions)
+
+        # List of (z-index, dict { painter-type -> dict of drawables } )
+        self.radix_list = []
+        # Different painter instances
+        self.painters = {}
 
         self.future_positions = []
 
@@ -107,7 +115,7 @@ class Viewport(object):
 
         # Begin drawing
         start_draw = time.time()
-#         dc.SetOptimization(True)
+        dc.SetOptimization(True)
         dc.BeginDrawing()
         nb_blits = 0
 
@@ -119,37 +127,26 @@ class Viewport(object):
         # Animate
         self._Animate(dc)
 
-        # Draw the characters
-        bmp_avatar = self.images.GetBitmap(IMG_AVATAR)
-        (w, h) = bmp_avatar.GetSize()
-        w /= 2
-        h /= 2
+        # Draw everything
         cpu_timer.Reset()
         indices = self._Indices()
         positions = self._ConvertPositions(indices)
         cpu_time += cpu_timer.Read()[0]
-        for i, pos in izip(indices, positions):
-            x = int(pos[0] - w)
-            y = int(pos[1] - h)
-            # Safety guard against too big coordinates
-            if isinstance(x, int) and isinstance(y, int):
-                dc.DrawBitmapPoint(bmp_avatar, (x, y), True)
-                s = self.obj_name[i]
-#                 text_dc = wx.MemoryDC()
-#                 bmp = wx.EmptyBitmap(300, 30)
-#                 text_dc.SelectObject(bmp)
-#                 brush = wx.Brush(wx.BLUE)
-#                 text_dc.BeginDrawing()
-#                 text_dc.SetBackground(brush)
-#                 text_dc.Clear()
-#                 tw, th = text_dc.GetTextExtent(s)
-#                 text_dc.DrawTextPoint(s, (0, 0))
-#                 text_dc.EndDrawing()
-#                 bmp.SetMaskColour(wx.BLUE)
-#                 dc.BlitPointSize((x, y), (tw, th), text_dc, (0, 0), useMask=True)
-#                 text_dc = None
-                dc.DrawTextPoint(self.obj_name[i], (x, y))
         nb_blits += len(indices)
+        for z_order, d in self.radix_list:
+            for painter, items in d.iteritems():
+                l = []
+                p = []
+                for it in items.itervalues():
+                    i = it.index
+                    x, y = it.rel_pos
+                    x = int(x + positions[i][0])
+                    y = int(y + positions[i][1])
+                    if isinstance(x, int) and isinstance(y, int):
+                        l.append(it.drawable)
+                        p.append((x, y))
+                if len(l) > 0:
+                    self.painters[painter].Paint(dc, l, p)
 
         # End drawing
         (tick, elapsed) = self.fps_timer.Read()
@@ -170,12 +167,13 @@ class Viewport(object):
         """
         return not self.Empty() and self.need_further_redraw
 
-    def Add(self, name, obj, position=None):
+    def AddObject(self, name, obj, position):
         """
-        Add a drawable object to this viewport.
+        Add an object to this viewport.
         """
 
         # First add the object to the dictionary
+        name = intern(name)
         if name in self.obj_dict:
             print "Cannot add already existing object '%s' to viewport" % name
             return self.obj_dict[name]
@@ -188,31 +186,77 @@ class Viewport(object):
 
         # Then initialize the object's properties
         self.obj_name[index] = name
-        # (It may be better to replace this code
-        # with some generic keyword-argument management)
-        if position is not None:
-            self.positions[index] = position
+        self.positions[index] = position
         self.obj_visible[index] = True
+        self.obj_drawables[index] = {}
         self._ObjectsGeometryChanged()
 
         return index
 
+    def AddDrawable(self, obj_name, drawable, rel_pos, z_order=0):
+        """
+        Add a drawable owned by a given object.
+        """
+        class DrawableItem(object):
+            def __init__(self, drawable, index, rel_pos, z_order):
+                self.drawable = drawable
+                self.index = index
+                self.rel_pos = rel_pos
+                self.z_order = z_order
+
+        # Append to the object's drawable list
+        index = self.obj_dict[obj_name]
+        id_ = obj_name + '%' + str(id(drawable))
+        item = DrawableItem(drawable, index, rel_pos, z_order)
+        self.obj_drawables[index][id_] = item
+        # If necessary, create painter
+        painter = drawable.painter
+        if painter not in self.painters:
+            self.painters[painter] = painter()
+        # Insert into radix_list
+        i = bisect.bisect(self.radix_list, (z_order, None))
+        if i < len(self.radix_list) and self.radix_list[i][0] == z_order:
+            d = self.radix_list[i][1]
+        else:
+            d = {}
+            bisect.insort(self.radix_list, (z_order, d))
+        if painter not in d:
+            d[painter] = {}
+        d[painter][id_] = item
+
     def RemoveByIndex(self, index):
         """
-        Remove a drawable object giving its index rather than its name.
+        Remove an object giving its index rather than its name.
         """
+        # Remove all drawables
+        for id_, item in self.obj_drawables[index].iteritems():
+            painter = item.drawable.painter
+            i = bisect.bisect(self.radix_list, (item.z_order, None))
+            assert self.radix_list[i][0] == item.z_order
+            d = self.radix_list[i][1]
+
+            del d[painter][id_]
+            if len(d[painter]) == 0:
+                del d[painter]
+            if len(d) == 0:
+                del self.radix_list[i]
+        # Delete stored object properties
         name = self.obj_name[index]
         for a in self.obj_arrays:
             del a[index]
         del self.obj_dict[name]
         # Re-arrange moved objects in dictionary
-        for i in xrange(index, len(self.obj_name)):
-            self.obj_dict[self.obj_name[i]] = i
+        _names = self.obj_name
+        _drawables = self.obj_drawables
+        for i in xrange(index, len(_names)):
+            self.obj_dict[_names[i]] = i
+            for item in _drawables[i].itervalues():
+                item.index = i
         self._ObjectsGeometryChanged()
 
-    def Remove(self, name):
+    def RemoveObject(self, name):
         """
-        Remove a drawable object from this viewport.
+        Remove an object from this viewport (and all its associated drawables).
         """
         try:
             index = self.obj_dict[name]
@@ -323,7 +367,7 @@ class Viewport(object):
     def _RebuildBackgroundDC(self, width, height):
         """ Builds a DC suitable for blitting the background from. """
 
-        image = self.images.GetImage(IMG_2D_BACKGROUND)
+        image = self.images.GetImage(images.IMG_2D_BACKGROUND)
         w, h = image.GetSize()
         rw = float(width) / w
         rh = float(height) / h
@@ -343,7 +387,6 @@ class Viewport(object):
         background_dc = wx.MemoryDC()
         background_dc.SelectObject(wx.EmptyBitmap(width, height))
         background_dc.BlitPointSize((0,0), (width, height), mem_dc, (dx, dy))
-#         background_dc.DrawTextPoint("yo!", (100,100))
         self.background = background_dc
 
     def _UpdateAnimations(self):
@@ -437,14 +480,14 @@ class Viewport(object):
         self.angle_glider.Reset(self.angle, angle)
 
     def _Indices(self):
-        """ Simple function that returns an iterator on indices of all objects. """
-
+        """
+        Returns an iterator on indices of all visible objects.
+        """
         v = self.obj_visible
-        return [i for i in xrange(len(v)) if v[i] == True]
+        d = self.obj_drawables
+        return [i for i in xrange(len(v)) if v[i] == True and len(d[i]) > 0]
 
-    def _RelativePositions(self, positions, indices=None):
-        if indices is None:
-            indices = xrange(len(positions))
+    def _RelativePositions(self, positions, indices):
         xc, yc = self.center
         p = positions
         _normalize = self.normalize
@@ -452,9 +495,10 @@ class Viewport(object):
         return relative_positions
 
     def _RelativeBBox(self, indices):
-        """ Returns a tuple containing the upper left and the bottom right
-        of the objects' bounding box relatively to the center of the viewport. """
-
+        """
+        Returns a tuple containing the upper left and the bottom right
+        of the objects' bounding box relatively to the center of the viewport.
+        """
         cs = math.cos(self.angle)
         sn = math.sin(self.angle)
         xc, yc = self.center
@@ -465,8 +509,9 @@ class Viewport(object):
         return r
 
     def _ConvertPositions(self, indices=None, positions=None):
-        """ Converts the objects' logical positions to physical center-relative (pixel) positions. """
-
+        """
+        Converts the objects' logical positions to physical center-relative (pixel) positions.
+        """
         if positions is not None:
             p = positions
         else:

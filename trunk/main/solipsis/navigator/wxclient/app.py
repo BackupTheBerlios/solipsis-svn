@@ -9,6 +9,7 @@ from wxutils import _
 from wxutils import *        # '*' doesn't import '_'
 from validators import *
 from viewport import Viewport
+from world import World
 from proxy import TwistedProxy, UIProxyReceiver
 from network import NetworkLoop
 
@@ -99,6 +100,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.Bind(wx.EVT_IDLE, self.OnIdle)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.viewport.JumpTo((0.5,0.5))
+        self.world = World(self.viewport)
 
         # Putting objects together
         self.main_window.SetMenuBar(self.main_menubar)
@@ -308,17 +310,19 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     #
     def AddPeer(self, *args, **kargs):
         """ Add an object to the viewport. """
-        self.viewport.Add(*args, **kargs)
+        #self.viewport.Add(*args, **kargs)
+        self.world.AddPeer(*args, **kargs)
 
     def MovePeer(self, *args, **kargs):
         """ Move an object in the viewport. """
-        self.viewport.MoveObject(*args, **kargs)
+#         self.viewport.MoveObject(*args, **kargs)
 
     def RemovePeer(self, *args, **kargs):
         """ Remove an object from the viewport. """
-        self.viewport.Remove(*args, **kargs)
+        self.world.RemovePeer(*args, **kargs)
+#         self.viewport.Remove(*args, **kargs)
 
     def ClearViewport(self, *args, **kargs):
         """ Reset the viewport. """
-        self.viewport.Reset(*args, **kargs)
+#         self.viewport.Reset(*args, **kargs)
 

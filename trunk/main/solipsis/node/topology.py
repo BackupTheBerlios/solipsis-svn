@@ -291,7 +291,7 @@ class Topology(object):
                 if id_ != exclude_id]
         if len(l) > 0:
             sq_dist, closest_id = min(l)
-            return self.peers[closest_id], math.sqrt(sq_dist)
+            return self.peers[closest_id], math.sqrt(sq_dist) * (1.0 + self.epsilon)
         else:
             return None, None
 
