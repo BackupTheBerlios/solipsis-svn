@@ -133,4 +133,3 @@ class DelayedCaller(object):
         fun.reactor = self.reactor
         fun.calls = self.calls
         return _id
-
