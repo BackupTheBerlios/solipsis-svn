@@ -19,7 +19,7 @@
 
 import twisted.internet.defer as defer
 
-import solipsis.node.lib.stun as stun
+import solipsis.lib.stun as stun
 
 stun_section = {
     'servers': ('stun_servers', str, ""),
