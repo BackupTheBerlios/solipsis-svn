@@ -9,181 +9,153 @@ class AbstractView:
         self.document = document
 
     # PERSONAL TAB
-    def update_firstname(self, value):
-        """sets new value for firstname"""
+    def update_firstname(self):
+        """display firstname in view"""
         raise NotImplementedError
 
-    def update_lastname(self, value):
-        """sets new value for lastname"""
+    def update_lastname(self):
+        """lastname"""
         raise NotImplementedError
 
-    def update_pseudo(self, value):
-        """sets new value for pseudo"""
+    def update_pseudo(self):
+        """pseudo"""
         raise NotImplementedError
 
-    def update_email(self, value):
-        """sets new value for email"""
+    def update_email(self):
+        """email"""
         raise NotImplementedError
 
-    def update_birthday(self, value):
-        """sets new value for birthday"""
+    def update_birthday(self):
+        """birthday"""
         raise NotImplementedError
 
-    def update_language(self, value):
-        """sets new value for language"""
+    def update_language(self):
+        """language"""
         raise NotImplementedError
 
-    def update_address(self, value):
-        """sets new value for """
+    def update_address(self):
+        """address"""
         raise NotImplementedError
 
-    def update_postcode(self, value):
-        """sets new value for """
+    def update_postcode(self):
+        """postcode"""
         raise NotImplementedError
 
-    def update_city(self, value):
-        """sets new value for """
+    def update_city(self):
+        """city"""
         raise NotImplementedError
 
-    def update_country(self, value):
-        """sets new value for """
+    def update_country(self):
+        """country"""
         raise NotImplementedError
 
-    def update_description(self, value):
-        """sets new value for """
+    def update_description(self):
+        """description"""
         raise NotImplementedError
 
     # CUSTOM TAB
-    def update_hobbies(self, value):
-        """sets new value for """
+    def update_hobbies(self):
+        """hobbies"""
         raise NotImplementedError
 
-    def update_custom_attributes(self, value):
-        """sets new value for """
+    def update_custom_attributes(self):
+        """custom_attributes"""
         raise NotImplementedError
 
     # FILE TAB
-    def update_repository(self, value):
-        """sets new value for """
+    def update_repository(self):
+        """repository"""
         raise NotImplementedError
 
-    def update_share_file(self, value):
-        """sets new value for """
-        raise NotImplementedError
-
-    def update_unshare_file(self, value):
-        """sets new value for """
-        raise NotImplementedError
-
-    def update_tag_file(self, value):
-        """sets new value for """
+    def update_files(self):
+        """file"""
         raise NotImplementedError
 
     # OTHERS TAB
     def update_peer_preview(self, value):
-        """sets new value for """
+        """peer_preview"""
         raise NotImplementedError
 
-    def update_friend(self, value):
-        """sets new value for """
-        raise NotImplementedError
-
-    def update_black_list(self, value):
-        """sets new value for """
+    def update_peers(self):
+        """peer"""
         raise NotImplementedError
 
 
-class GuiView(AbstractView):
+class PrintView(AbstractView):
     """synthetises information and renders it in HTML"""
 
     def __init__(self, document):
         AbstractView.__init__(self, document)
 
-    def update_all_view(self):
-        """trigger called on a modification of the document"""
-        pass
-
     # PERSONAL TAB
-    def update_firstname(self, value):
-        """sets new value for firstname"""
-        self.document.get_firstname()
+    def update_firstname(self):
+        """firstname"""
+        print self.document.get_firstname()
         
+    def update_lastname(self):
+        """lastname"""
+        print self.document.get_lastname()
 
-    def update_lastname(self, value):
-        """sets new value for lastname"""
-        
+    def update_pseudo(self):
+        """pseudo"""
+        print self.document.get_pseudo()       
 
-    def update_pseudo(self, value):
-        """sets new value for pseudo"""
-        
+    def update_email(self):
+        """email"""
+        print self.document.get_email()      
 
-    def update_email(self, value):
-        """sets new value for email"""
-        
+    def update_birthday(self):
+        """DateTime birthday"""
+        print self.document.get_birthday()  
 
-    def update_birthday(self, value):
-        """sets new value for birthday"""
-        
+    def update_language(self):
+        """language"""
+        print self.document.get_language()
 
-    def update_language(self, value):
-        """sets new value for language"""
-        
+    def update_address(self):
+        """address"""
+        print self.document.get_address()
 
-    def update_address(self, value):
-        """sets new value for """
-        
+    def update_postcode(self):
+        """int postcode"""
+        print self.document.get_postcode()
 
-    def update_postcode(self, value):
-        """sets new value for """
-        
+    def update_city(self):
+        """city"""
+        print self.document.get_city()
 
-    def update_city(self, value):
-        """sets new value for """
-        
+    def update_country(self):
+        """country"""
+        print self.document.get_country()
 
-    def update_country(self, value):
-        """sets new value for """
-        
-
-    def update_description(self, value):
-        """sets new value for """
-        
+    def update_description(self):
+        """description"""
+        print self.document.get_description()
 
     # CUSTOM TAB
-    def update_hobbies(self, value):
-        """sets new value for """
+    def update_hobbies(self):
+        """list hobbies"""
+        print self.document.get_hobbies()
         
-
-    def update_custom_attributes(self, value):
-        """sets new value for """
+    def update_custom_attributes(self):
+        """dict custom_attributes"""
+        print self.document.get_custom_attributes()
         
-
     # FILE TAB
-    def update_repository(self, value):
-        """sets new value for """
+    def update_repository(self):
+        """repository"""
+        print self.document.get_repository()
         
-
-    def update_share_file(self, value):
-        """sets new value for """
+    def update_files(self):
+        """file"""
+        print self.document.get_files()
         
-
-    def update_unshare_file(self, value):
-        """sets new value for """
-        
-
-    def update_tag_file(self, value):
-        """sets new value for """
-        
-
     # OTHERS TAB
     def update_peer_preview(self, value):
-        """sets new value for """
+        """peer_preview"""
+        print self.document.get_peers()[value]
         
-
-    def update_friend(self, value):
-        """sets new value for """
-        
-
-    def update_black_list(self, value):
-        """sets new value for """
+    def update_peers(self):
+        """peer"""
+        print self.document.get_peers()
         

@@ -10,98 +10,135 @@ class Facade:
         self.document = document
         self.view = view
 
-    def try_connect(self, value, doc_set, gui_update):
+    def _try_change(self, value, doc_set, gui_update):
         """tries to call function doc_set and then, if succeeded, gui_update"""
         try:
             doc_set(value)
         except TypeError, error:
             print >> stderr, str(error)
+            return False
         else:
-            gui_update()
+            return gui_update()
         
     # PERSONAL TAB
     def change_firstname(self, value):
         """sets new value for firstname"""
-        self.try_connect(value,
-                         self.document.set_firstname,
-                         self.viewupdate_firstname)
+        return self._try_change(value,
+                               self.document.set_firstname,
+                               self.view.update_firstname)
 
     def change_lastname(self, value):
         """sets new value for lastname"""
-        pass
+        return self._try_change(value,
+                               self.document.set_lastname,
+                               self.view.update_lastname)
 
     def change_pseudo(self, value):
         """sets new value for pseudo"""
-        pass
+        return self._try_change(value,
+                               self.document.set_pseudo,
+                               self.view.update_pseudo)
 
     def change_email(self, value):
         """sets new value for email"""
-        pass
+        return self._try_change(value,
+                               self.document.set_email,
+                               self.view.update_email)
 
     def change_birthday(self, value):
         """sets new value for birthday"""
-        pass
+        return self._try_change(value,
+                               self.document.set_birthday,
+                               self.view.update_birthday)
 
     def change_language(self, value):
         """sets new value for language"""
-        pass
+        return self._try_change(value,
+                               self.document.set_language,
+                               self.view.update_language)
 
     def change_address(self, value):
         """sets new value for """
-        pass
+        return self._try_change(value,
+                               self.document.set_address,
+                               self.view.update_address)
 
     def change_postcode(self, value):
         """sets new value for postcode"""
-        pass
+        return self._try_change(value,
+                               self.document.set_postcode,
+                               self.view.update_postcode)
 
     def change_city(self, value):
         """sets new value for city"""
-        pass
+        return self._try_change(value,
+                               self.document.set_city,
+                               self.view.update_city)
 
     def change_country(self, value):
         """sets new value for country"""
-        pass
+        return self._try_change(value,
+                               self.document.set_country,
+                               self.view.update_country)
 
     def change_description(self, value):
         """sets new value for description"""
-        pass
+        return self._try_change(value,
+                               self.document.set_description,
+                               self.view.update_description)
 
     # CUSTOM TAB
     def change_hobbies(self, value):
         """sets new value for hobbies"""
-        pass
+        return self._try_change(value,
+                               self.document.set_hobbies,
+                               self.view.update_hobbies)
 
-    def change_custom_attributes(self, value):
+    def add_custom_attributes(self, value):
         """sets new value for custom_attributes"""
-        pass
+        return self._try_change(value,
+                               self.document.add_custom_attributes,
+                               self.view.update_custom_attributes)
 
     # FILE TAB
-    def sets_repository(self, value):
+    def change_repository(self, value):
         """sets new value for repositor"""
-        pass
+        return self._try_change(value,
+                               self.document.set_repository,
+                               self.view.update_repository)
 
-    def share_file(self, value):
-        """sets new value for shared file"""
-        pass
-
-    def unshare_file(self, value):
+    def add_file(self, value):
         """sets new value for unshared file"""
-        pass
+        return self._try_change(value,
+                               self.document.add_file,
+                               self.view.update_file)
 
-    def tag_file(self, value):
+    def change_file_tag(self, value):
         """sets new value for tagged file"""
-        pass
+        return self._try_change(value,
+                               self.document.tag_file,
+                               self.view.update_file)
 
     # OTHERS TAB
     def display_peer_preview(self, value):
         """sets new preview for peer"""
-        pass
+        self.view.update_peer_preview(value)
 
     def make_friend(self, value):
         """sets peer as friend """
-        pass
+        return self._try_change(value,
+                               self.document.make_friend,
+                               self.view.update_peer)
 
-    def black_list(self, value):
+    def blacklist_peer(self, value):
         """black list peer"""
-        pass
+        return self._try_change(value,
+                               self.document.blacklist_peer,
+                               self.view.update_peer)
+
+    def unmark_peer(self, value):
+        """black list peer"""
+        return self._try_change(value,
+                               self.document.unmark_peer,
+                               self.view.update_peer)
 
