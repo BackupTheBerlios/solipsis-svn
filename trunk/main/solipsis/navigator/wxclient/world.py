@@ -46,6 +46,7 @@ class World(object):
         x, y, z = peer.position
         self.viewport.AddObject(peer.id_, None, position=(x, y))
         self.viewport.AddDrawable(peer.id_, drawable.Image(images.IMG_AVATAR), (0, 0), 0)
+        #~ print repr(peer.pseudo.encode(charset))
         self.viewport.AddDrawable(peer.id_, drawable.Text(peer.pseudo.encode(charset)), (0, 20), 1)
 
     def RemovePeer(self, peer_id):
@@ -68,6 +69,8 @@ class World(object):
         Called when a peer has changed.
         """
         if peer.id_ in self.peers:
-            self.peers[peer.id_] = peer
-            x, y, z = peer.position
-            self.viewport.MoveObject(peer.id_, position=(x, y))
+            self.RemovePeer(peer.id_)
+            self.AddPeer(peer)
+            #~ self.peers[peer.id_] = peer
+            #~ x, y, z = peer.position
+            #~ self.viewport.MoveObject(peer.id_, position=(x, y))

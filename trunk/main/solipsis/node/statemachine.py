@@ -391,10 +391,9 @@ class StateMachine(object):
         if not topology.HasPeer(peer.id_):
             self._AddPeer(peer)
             # TODO: exchange service info and other stuff
-            self._QueryMeta(peer)
-
         else:
             self.logger.info("reception of CONNECT but we are already connected to '%s'" % peer.id_)
+        self._QueryMeta(peer)
 
     def peer_CLOSE(self, args):
         """
@@ -419,6 +418,8 @@ class StateMachine(object):
             peer.pseudo = args.pseudo
             peer.UpdateServices(args.accept_services)
             self._SendMeta(peer)
+            # Notify remote control
+            self.event_sender.event_ChangedPeer(peer)
 
     def peer_META(self, args):
         """
@@ -429,6 +430,8 @@ class StateMachine(object):
             peer = self.topology.GetPeer(id_)
             peer.pseudo = args.pseudo
             peer.UpdateServices(args.accept_services)
+            # Notify remote control
+            self.event_sender.event_ChangedPeer(peer)
 
     def peer_NEAREST(self, args):
         """
@@ -841,7 +844,6 @@ class StateMachine(object):
 
         # Save old peer value and update
         old = topology.GetPeer(peer.id_)
-        topology.UpdatePeer(peer)
 
         # Notify remote control
         self.event_sender.event_ChangedPeer(peer)
@@ -850,6 +852,11 @@ class StateMachine(object):
         new_pos = peer.position.getCoords()
         old_ar = old.awareness_radius
         new_ar = peer.awareness_radius
+
+        # Update characteristics while keeping metadata
+        old.position = peer.position
+        old.awareness_radius = peer.awareness_radius
+        topology.UpdatePeer(old)
 
         # Peer position or awareness radius changed
         if new_pos != old_pos or new_ar != old_ar:

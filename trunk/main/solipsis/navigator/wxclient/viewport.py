@@ -692,36 +692,3 @@ class Viewport(object):
 # We optimize the whole object.
 # If problematic, we could just optimize selected methods.
 _optimize(Viewport)
-
-
-
-#
-# Built-in self test
-#
-
-def __test():
-    class W(object):
-        def GetClientSizeTuple(self):
-            return (640,480)
-
-    class O(object):
-        pass
-
-    w = W()
-    v = Viewport(w)
-    v.SetCenter((50, 3000))
-    objects = [ ( "a", 12555, -256 ),
-                ( "b", 123, 7885 ),
-                ( "c", -45645, 0 ),
-                ( "d", 235, 66 ),
-                ]
-    for i in xrange(5):
-        for name, x, y in objects:
-            v.Add(name + str(i), O(), position=(x, y))
-    print v._Ratio(v._Indices())
-    for i in xrange(50000):
-        v._ConvertPositions(v._Indices())
-    print v._ConvertPositions(v._Indices())
-
-if __name__ == '__main__':
-    __test()

@@ -20,7 +20,6 @@
 
 from solipsis.util.address import Address
 
-
 class PeerInfo:
     """
     This is a container class used to send node information to/from a navigator.
@@ -60,6 +59,7 @@ class PeerInfo:
         x, y = peer.position.getCoords()
         self.position = (float(x), float(y), float(peer.position.getPosZ()))
         self.pseudo = unicode(peer.pseudo)
+        #~ print "pseudo %s = %s" % (self.id_, self.pseudo)
         self.address = peer.address.toString()
         self.awareness_radius = float(peer.awareness_radius)
 
