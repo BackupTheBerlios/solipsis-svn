@@ -7,6 +7,8 @@ def discover_http_proxy():
     """
     Returns a (host, port) tuple if an HTTP proxy is found in the
     current machine configuration, (None, None) otherwise.
+    
+    Note: it currently doesn't handle automatic proxy configuration files (*.pac).
     """
 
     host_port = None
