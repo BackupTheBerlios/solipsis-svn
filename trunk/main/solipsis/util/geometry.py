@@ -3,7 +3,7 @@ import math
 class Position(object):
     """ Represents a Solipsis position. """
 
-    SEPARATOR = '-'
+    SEPARATOR = ','
 
     def __init__(self, posX=0, posY=0, posZ=0, strPosition=''):
         """ Constructor.
@@ -46,14 +46,14 @@ class Position(object):
         """ Set the new coordinates of this Position object.
         strPosition: a string representing the position '12454568745 - 7897456'
         """
-        if strPosition <> '':
-            strPosX, strPosY, strPosZ = strPosition.split(Position.SEPARATOR)
-            if strPosX <> '':
-                self.posX = long(strPosX)
-            if strPosY <> '':
-                self.posY = long(strPosY)
-            if strPosZ <> '':
-                self.posZ = long(strPosZ)
+        coords = strPosition.split(Position.SEPARATOR)
+        assert len(coords) == 3, "Wrong string '%s' for Position" % strPosition
+        try:
+            self.posX = long(coords[0])
+            self.posY = long(coords[1])
+            self.posZ = long(coords[2])
+        except:
+            raise Exception("Wrong string '%s' for Position" % strPosition)
 
     def __eq__(self, other):
         """ Equality operator, used to check if Postion1 == Position2"""
@@ -64,11 +64,6 @@ class Position(object):
     def __str__(self):
         return self.toString()
 
-class PositionFactory(object):
-    def create(strPos):
-        return Position(strPosition=strPos)
-
-    create = staticmethod(create)
 
 class Geometry(object):
     # size should be initialized before class is used

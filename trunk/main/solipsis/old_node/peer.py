@@ -234,13 +234,13 @@ class PeersManager(object):
         return None
 
 
-    def getClosestPeer(self, target, orig_id = None):
+    def getClosestPeer(self, target, emitter_id = None):
         """ Return the peer that is the closest to a target position
         target : a Position object
         """
         closestPeer = None
         for p in self.peers.values():
-            if p.getId() == orig_id:
+            if p.getId() == emitter_id:
                 continue
             if closestPeer is None or p.isCloser(closestPeer, target):
                 closestPeer = p
@@ -248,7 +248,7 @@ class PeersManager(object):
         return closestPeer
 
 
-    def getPeerAround(self, targetPosition, isClockWise=True):
+    def getPeerAround(self, targetPosition, emitter_id, isClockWise=True):
         """ Return the peer that is the closest to a target position and that
         is in the right half plane.
         targetPosition : target position which we are looking around
@@ -261,6 +261,8 @@ class PeersManager(object):
         distClosest = 0
         nodePosition = self.node.getPosition()
         for p in self.peers.values():
+            if p.getId() == emitter_id:
+                continue
             if Geometry.inHalfPlane(nodePosition, targetPosition,
                                     p.getPosition()) == isClockWise:
                 # first entity in right half-plane

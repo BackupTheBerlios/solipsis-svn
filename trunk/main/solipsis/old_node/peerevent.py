@@ -239,6 +239,7 @@ class PeerEventFactory(EventFactory):
         Args: 'Position', 'Best-Id', Best-Distance'
         """
         evt = PeerEvent('QUERYAROUND')
+        evt.addArg(protocol.ARG_ID, self.node.getId())
         evt.addArg(protocol.ARG_POSITION, self.node.getPosition())
         evt.addArg(protocol.ARG_BEST_ID, idBest)
         evt.addArg(protocol.ARG_BEST_DISTANCE,str(distBest))

@@ -2,8 +2,8 @@
 import re, new, logging
 
 from solipsis.util.exception import *
-from solipsis.util.geometry import PositionFactory
-from solipsis.util.address import AddressFactory
+from solipsis.util.geometry import Position
+from solipsis.util.address import Address
 
 VERSION = 1.0
 BANNER = "SOLIPSIS/" + `VERSION`
@@ -48,7 +48,7 @@ REQUESTS = {
     'HEARTBEAT'  : [ ARG_ID ],
     'HELLO'      : ALL_NODE_ARGS,
     'NEAREST'    : [ ARG_REMOTE_ADDRESS, ARG_REMOTE_POSITION ],
-    'QUERYAROUND': [ ARG_POSITION, ARG_BEST_ID, ARG_BEST_DISTANCE ],
+    'QUERYAROUND': [ ARG_ID, ARG_POSITION, ARG_BEST_ID, ARG_BEST_DISTANCE ],
     'SEARCH'     : [ ARG_ID, ARG_CLOCKWISE ],
     'SERVICE'    : [ ARG_ID, ARG_SERVICE_ID, ARG_SERVICE_DESC, ARG_SERVICE_ADDRESS ],
     'UPDATE'     : ALL_NODE_ARGS
@@ -62,7 +62,7 @@ ARGS_SYNTAX = {
     ARG_BEST_DISTANCE    : '\d+',
     ARG_ID               : '[^\s]*',
     ARG_ORIENTATION      : '\d{1,3}',
-    ARG_POSITION         : '^\s*\d+\s*-\s*\d+\s*-\s*\d+\s*$',
+    ARG_POSITION         : '\s*\d+\s*,\s*\d+\s*,\s*\d+\s*',
     ARG_PSEUDO           : '.*'
     }
 
@@ -78,13 +78,13 @@ ARGS_SYNTAX[ARG_REMOTE_PSEUDO]             = ARGS_SYNTAX[ARG_PSEUDO]
 
 ARGS_CONSTRUCTOR = {
     ARG_CLOCKWISE : (lambda x: int(x) > 0),
-    ARG_POSITION : PositionFactory.create,
-    ARG_ADDRESS : AddressFactory.create,
+    ARG_POSITION : (lambda s: Position(strPosition=s)),
+    ARG_ADDRESS : (lambda s: Address(strAddress=s)),
     ARG_CALIBRE : int,
     ARG_ORIENTATION : int,
     ARG_PSEUDO : str,
-    ARG_AWARENESS_RADIUS : int,
-    ARG_BEST_DISTANCE : int,
+    ARG_AWARENESS_RADIUS : long,
+    ARG_BEST_DISTANCE : long,
     ARG_ID : str
     }
 
@@ -191,7 +191,6 @@ class Message(object):
             # The syntax is correct => add this arg to the arg list
             if args.has_key(argName):
                 raise EventParsingError("Duplicate value for arg '%s'" % argName)
-            #args[argName] =  eval(ARGS_CONSTRUCTOR[argName] + '(argVal)')
             args[argName] =  ARGS_CONSTRUCTOR[argName](argVal)
 
         # Check that all required fields have been encountered

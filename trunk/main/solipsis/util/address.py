@@ -15,7 +15,7 @@ class Address(object):
         # override host, port value if strAddress is not null
         if strAddress <> '':
             self.setValueFromString(strAddress)
-        
+
     def toString(self):
         return str(self.host) + Address.SEPARATOR + str(self.port)
 
@@ -43,9 +43,3 @@ class Address(object):
     def __str__(self):
         return self.toString()
 
-class AddressFactory(object):
-    def create(strAddr):
-        return Address(strAddress=strAddr)
-
-    create = staticmethod(create)
-    

@@ -205,11 +205,12 @@ class State(object):
     def QUERYAROUND(self, event):
         """ A peer sent us a QUERYAROUND message """
         #peer, idNearest, distNearest:
+        source_id = event.getArg(protocol.ARG_ID)
         idNearest = event.getArg(protocol.ARG_BEST_ID)
         distNearest = event.getArg(protocol.ARG_BEST_DISTANCE)
         manager = self.node.getPeersManager()
         target = event.getArg(protocol.ARG_POSITION)
-        closest = manager.getClosestPeer(target)
+        closest = manager.getClosestPeer(target, source_id)
 
         factory = EventFactory.getInstance(PeerEvent.TYPE)
         # found a closest peer and this peer is a new one (it isn't idNearest moving
@@ -223,13 +224,13 @@ class State(object):
 
         else:
             # search for a peer around target position
-            around = manager.getPeerAround(target)
+            around = manager.getPeerAround(target, source_id)
             if around is not None:
                 aroundEvt = factory.createAROUND(around)
                 aroundEvt.setRecipientAddress(event.getSenderAddress())
                 self.node.dispatch(aroundEvt)
             else:
-                self.logger.debug('no peer around position:' +str(target))
+                self.logger.debug('no peer around position: ' + str(target))
 
     def HEARTBEAT(self, event):
         """ reception of a message: HEARTBEAT, id"""
@@ -373,7 +374,7 @@ class State(object):
         # update the status of querying entity
         manager.heartbeat(id_)
 
-        around = manager.getPeerAround(queryEnt.getPosition(), wise)
+        around = manager.getPeerAround(queryEnt.getPosition(), id_, wise)
 
         # send message if an entity has been found.
         if around is not None:

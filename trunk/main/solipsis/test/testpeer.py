@@ -18,7 +18,7 @@ from optparse import OptionParser
 TEST_DEBUG=False
 
 class CreatePeerManagerTestCase(unittest.TestCase):
-	
+
     def setUp(self):
         configFileName = "../../conf/solipsis.conf"
         parser = OptionParser('')
@@ -26,13 +26,13 @@ class CreatePeerManagerTestCase(unittest.TestCase):
         n = Node(param)
         n.setPosition(Position(4,1))
         self.manager = PeersManager(n, param)
-        
+
         p0 = Peer(id="0",position=Position(0,0))
         p1 = Peer(id="1",position=Position(0,10))
         p2 = Peer(id="2",position=Position(5,0))
         p3 = Peer(id="3",position=Position(5,20))
         p4 = Peer()
-    
+
         self.peers = [p0, p1, p2, p3, p4]
 
         p10 = Peer(id="0", position=Position(2,2))
@@ -43,9 +43,9 @@ class CreatePeerManagerTestCase(unittest.TestCase):
         p15 = Peer(id="5", position=Position(4,0))
 
         self.geoPeers = [p10, p11, p12, p13, p14, p15]
-        
-    def testAddPeer(self):          
-        self.manager.addPeer(self.peers[0])    
+
+    def testAddPeer(self):
+        self.manager.addPeer(self.peers[0])
         assert ( self.manager.getNumberOfPeers() == 1 )
 
         self.manager.addPeer(self.peers[1])
@@ -61,9 +61,9 @@ class CreatePeerManagerTestCase(unittest.TestCase):
 
         self.checkConsistency()
 
-		
+
     def testRemovePeer(self):
-        for i in range(4):      
+        for i in range(4):
             self.manager.addPeer(self.peers[i])
 
         self.manager.removePeer(self.peers[1].getId())
@@ -73,20 +73,20 @@ class CreatePeerManagerTestCase(unittest.TestCase):
                           self.peers[1].getId())
         self.assertRaises(UnknownIdError, self.manager.removePeer,
                           self.peers[4].getId())
-    
+
     def checkConsistency(self):
-        if TEST_DEBUG: 
+        if TEST_DEBUG:
             print 'in check consistency: '
             print 'nb:%d' %(self.manager.getNumberOfPeers())
             print 'ccw:%d' %(len(self.manager.ccwPeers.ll))
             print 'dist:%d' %(len(self.manager.distPeers.ll))
-        
+
         assert (self.manager.getNumberOfPeers() == len(self.manager.ccwPeers.ll))
         assert (self.manager.getNumberOfPeers() == len(self.manager.distPeers.ll))
 
-		
+
     def testGetClosestPeer(self):
-        for i in range(4):      
+        for i in range(4):
             self.manager.addPeer(self.peers[i])
 
         p5 = Peer(id="5", position=Position(-5, -2))
@@ -115,7 +115,7 @@ class CreatePeerManagerTestCase(unittest.TestCase):
         self.manager.setExpectedPeers(3)
         id = self.manager.getWorstPeer().getId()
 
-        # p4 is farther but is needed for global connectivity 
+        # p4 is farther but is needed for global connectivity
         assert (id == "3")
 
         self.manager.addPeer(p15)
@@ -124,7 +124,7 @@ class CreatePeerManagerTestCase(unittest.TestCase):
         # as p4 is the farthest it should be elected
         assert (id == "4")
 
-        
+
         if TEST_DEBUG:
             print "worst=" + id
             print "node=" + str(self.manager.node.getPosition())
@@ -132,7 +132,7 @@ class CreatePeerManagerTestCase(unittest.TestCase):
             print "ccw"
             for e in self.manager.ccwPeers.ll:
                 print e.getId()
-                
+
             print "dist"
             for e in self.manager.distPeers.ll:
                 print e.getId()
@@ -141,7 +141,7 @@ class CreatePeerManagerTestCase(unittest.TestCase):
     def testGetBadGlobalConnectivityPeers(self):
         for p in self.geoPeers:
             self.manager.addPeer(p)
-            
+
         [p10, p11, p12, p13, p14, p15] = self.geoPeers
         # global connectivity is OK
         gcPeers = self.manager.getBadGlobalConnectivityPeers()
@@ -155,7 +155,7 @@ class CreatePeerManagerTestCase(unittest.TestCase):
         if  TEST_DEBUG:
             print gcPeers[0]
             print gcPeers[1]
-        
+
         assert ( len(gcPeers) == 2 )
         assert ( gcPeers[0].getId() == "1" )
         assert ( gcPeers[1].getId() == "0" )
@@ -164,11 +164,11 @@ class CreatePeerManagerTestCase(unittest.TestCase):
         for p in self.geoPeers:
             self.manager.addPeer(p)
 
-        
+
         print "---"
-        print str(self.manager.getPeerAround(Position(6,2), True))
-        print str(self.manager.getPeerAround(Position(6,2), False))
+        print str(self.manager.getPeerAround(Position(6,2), "", True))
+        print str(self.manager.getPeerAround(Position(6,2), "", False))
         print "---"
-        
+
 if __name__ == "__main__":
     unittest.main()
