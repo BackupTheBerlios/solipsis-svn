@@ -16,7 +16,7 @@ class PersonalPanel(wx.Panel):
         self.address_sizer_staticbox = wx.StaticBox(self, -1, _("Address"))
         self.description_sizer_staticbox = wx.StaticBox(self, -1, _("Description"))
         self.identity_sizer_staticbox = wx.StaticBox(self, -1, _("Identity"))
-        self.title_value = wx.ComboBox(self, -1, choices=[_("Mr"), _("Mrs"), _("Ms")], style=wx.CB_DROPDOWN)
+        self.title_value = wx.ComboBox(self, -1, choices=["", _("Mr"), _("Mrs"), _("Ms")], style=wx.CB_DROPDOWN|wx.CB_SIMPLE|wx.CB_READONLY)
         self.firstname_value = wx.TextCtrl(self, -1, _("First name"))
         self.lastname_value = wx.TextCtrl(self, -1, _("Last Name"))
         self.nickname_lbl = wx.StaticText(self, -1, _("Pseudo: "))
@@ -26,7 +26,7 @@ class PersonalPanel(wx.Panel):
         self.birthday_lbl = wx.StaticText(self, -1, _("Birthday: "))
         self.birthday_value = wx.TextCtrl(self, -1, _("dd/mm/yyyy"))
         self.language_lbl = wx.StaticText(self, -1, _("Language: "))
-        self.language_value = wx.ComboBox(self, -1, choices=[_("French"), _("English")], style=wx.CB_DROPDOWN|wx.CB_SORT)
+        self.language_value = wx.ComboBox(self, -1, choices=["", _("French"), _("English")], style=wx.CB_DROPDOWN|wx.CB_SIMPLE|wx.CB_READONLY|wx.CB_SORT)
         self.photo_button = wx.BitmapButton(self, -1, wx.Bitmap("/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/question_mark.gif", wx.BITMAP_TYPE_ANY))
         self.road_value = wx.TextCtrl(self, -1, _("Road"))
         self.postcode_value = wx.TextCtrl(self, -1, _("Postcode"))
@@ -112,8 +112,10 @@ class PersonalPanel(wx.Panel):
             style=wx.OPEN | wx.CHANGE_DIR )
         
         if dlg.ShowModal() == wx.ID_OK:
-            path = dlg.GetPaths()
+            path = dlg.GetPath()
             self.facade.change_photo(path)
+            evt.GetEventObject().SetBitmapLabel(\
+                wx.Bitmap(path, wx.BITMAP_TYPE_ANY))
 
         dlg.Destroy()
         

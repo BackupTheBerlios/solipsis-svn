@@ -139,6 +139,11 @@ class Facade:
                                "add_custom_attributes",
                                "update_custom_attributes")
 
+    def del_custom_attributes(self, value):
+        """sets new value for custom_attributes"""
+        for  document in self.documents:
+            document.remove_custom_attributes(value)
+
     # FILE TAB
     def change_repository(self, value):
         """sets new value for repositor"""

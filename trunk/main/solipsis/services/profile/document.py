@@ -166,6 +166,9 @@ class AbstractDocument:
             raise TypeError("custom_attribute expected as couple (key, value)")
         if not isinstance(pair[1], unicode):
             raise TypeError("tag expected as unicode")
+    def remove_custom_attributes(self, value):
+        """sets new value for custom_attributes"""
+        raise NotImplementedError
     def get_custom_attributes(self):
         """returns value of custom_attributes"""
         raise NotImplementedError
@@ -369,6 +372,10 @@ class CacheDocument(AbstractDocument):
         AbstractDocument.add_custom_attributes(self, pair)
         key, value = pair
         self.custom_attributes[key] = value
+    def remove_custom_attributes(self, value):
+        """sets new value for custom_attributes"""
+        if self.custom_attributes.has_key(value):
+            del self.custom_attributes[value]
     def get_custom_attributes(self):
         """returns value of custom_attributes"""
         return self.custom_attributes
