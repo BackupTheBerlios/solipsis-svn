@@ -52,7 +52,8 @@ class TextPainter(object):
             y -= h // 2
             real_pos.append((x, y))
             boxes.append((x, y, x + w, y + h))
-        dc.DrawTextList([t.text for t in texts], real_pos)
+            dc.DrawText(text.text, x, y)
+        #~ dc.DrawTextList([t.text for t in texts], real_pos)
         return boxes
 
 class Image(object):
@@ -74,5 +75,6 @@ class Text(object):
 
     def __init__(self, text, font=None):
         self.font = font or wx.SWISS_FONT
-        self.text = text
+        #~ print repr(text), type(text) #, '=>', repr(self.text)
+        self.text = text#.encode('utf-8')
         self.size = None

@@ -110,11 +110,12 @@ class World(object):
         # has been removed from the viewport.
         if peer is not None:
             return peer.pseudo.encode(self.charset)
-        return ""    
+        return ""
 
     def _CreatePeerLabel(self, item):
         peer = item.peer
-        d = drawable.Text(peer.pseudo.encode(GetCharset()))
+        #~ d = drawable.Text(peer.pseudo.encode(self.charset))
+        d = drawable.Text(peer.pseudo)
         item.label_id = self.viewport.AddDrawable(peer.id_, d, (0, 20), 1)
 
     def _CreatePeerAvatar(self, item):

@@ -410,7 +410,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         if self._CheckNodeProxy(False):
             id_ = self.viewport.HoveredItem()
             if id_ is not None:
-                menu.Append(wx.NewId(), _('Peer "%s"') % self.world.GetItemPseudo(id_))
+                menu.Append(wx.NewId(), _('Peer "%s"') % self.world.GetPeer(id_).pseudo)
                 menu.AppendSeparator()
             l = self.services.GetPopupMenuItems(menu)
             if len(l) > 0:
@@ -430,7 +430,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             x, y = evt.GetPositionTuple()
             changed, id_ = self.viewport.Hover((x, y))
             if changed and id_:
-                self.statusbar.SetTemp(self.world.GetItemPseudo(id_))
+                self.statusbar.SetTemp(self.world.GetPeer(id_).pseudo)
             elif changed and not id_:
                 self.statusbar.Reset()
         evt.Skip()

@@ -26,14 +26,16 @@ class _RegexpValidator(Validator):
     """
     Intermediate class for regexp-based validators.
     """
+    value_type = str
+
     def __init__(self, *args, **kargs):
         Validator.__init__(self, *args, **kargs)
 
     def _ReprToData(self, _repr):
-        return str(_repr).strip()
+        return self.value_type(_repr).strip()
 
     def _DataToRepr(self, _data):
-        return str(_data)
+        return unicode(_data)
 
     def _Validate(self, value):
         value = value.strip()
@@ -78,6 +80,7 @@ class NicknameValidator(_RegexpValidator):
     Validator for nicknames.
     """
     regexp = re.compile(r'^.+$')
+    value_type = unicode
 
     def __init__(self, *args, **kargs):
         super(NicknameValidator, self).__init__(*args, **kargs)

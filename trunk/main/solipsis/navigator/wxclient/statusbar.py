@@ -25,7 +25,6 @@ class StatusBar(object):
     def __init__(self, window, text):        self.window = window
         self.status = text        self.window.CreateStatusBar()
         self.SetText(self.status)
-        
 
     def SetText(self, text):
         self.window.SetStatusText(text)
