@@ -175,7 +175,11 @@ class RemoteControl(object):
         Create a new connection ID.
         """
         nbytes = 20
-        r = random.getrandbits(nbytes * 8)
+        try:
+            r = random.getrandbits(nbytes * 8)
+        except AttributeError:
+            # Alternate method for Python < 2.4
+            r = random.randrange(2 ** (nbytes * 8))
         s = ''
         for i in xrange(nbytes):
             s += chr(r & 0xFF)
