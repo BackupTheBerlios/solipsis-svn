@@ -195,7 +195,7 @@ class StateMachine(object):
 
     def peer_NEAREST(self, args):
         """
-        A peer sent us a NEAREST message.
+        A peer answers us a NEAREST message.
         """
         # Create a find nearest event
         id_ = args.remote_id
@@ -204,55 +204,43 @@ class StateMachine(object):
                     % ", ".join(["'" + str(i) + "'" for i in self.nearest_peers]))
         else:
             address = args.remote_address
-            self._SendMessage(address, self._PeerMessage('FINDNEAREST'))
+            self._SendToAddress(address, self._PeerMessage('FINDNEAREST'))
 
     def peer_BEST(self, args):
         """
-        A peer sent us a BEST message
-        This is the default behaviour
+        A peer answers us a BEST message.
         """
-        self.timer.cancel()
 
-        # Get the ID and the position of the BEST peer
-        bestId = event.getArg(protocol.ARG_ID)
-        bestPos = event.getArg(protocol.ARG_POSITION)
-        bestAddress = event.getSenderAddress()
+        # Instantiate the best peer
+        peer = self._Peer(args)
 
-        # send a queryaround message
-        bestDistance = Geometry.distance(self.node.getPosition(), bestPos)
-        factory = EventFactory.getInstance(PeerEvent.TYPE)
-        queryaround = factory.createQUERYAROUND(bestId, bestDistance)
-        queryaround.setRecipientAddress(bestAddress)
-        self.node.dispatch(queryaround)
+        # Send a queryaround message
+        message = self._PeerMessage('QUERYAROUND')
+        message.args.best_id = peer.id_
+        message.args.best_distance = Geometry.distance(self.node.position, peer.position)
+        self._SendToPeer(peer, message)
 
-        # Create a turning state and store the Best peer
-        bestPeer = Peer(id=bestId, address=event.getSenderAddress(),
-                        position=bestPos)
-        scanning = Scanning()
-        scanning.setBestPeer(bestPeer)
-
-        # go to the Scanning state
-        self.node.setState(scanning)
+        # Store the best peer and launch the scanning procedure
+        self.SetState(states.Scanning())
+        self.best_peer = peer
 
     def peer_FINDNEAREST(self, args):
-        """ A peer sent us a FINDNEAREST message """
-        source_id = event.getArg(protocol.ARG_ID)
-        targetPosition = event.getArg(protocol.ARG_POSITION)
-        nearestPeer = self.node.getPeersManager().getClosestPeer(targetPosition, source_id)
+        """
+        A peer sends us a FINDNEAREST query.
+        """
+        id_ = args.id_
+        target = args.position
+        address = args.address
+        nearest = self.peers.getClosestPeer(target, id_)
 
-        factory = EventFactory.getInstance(PeerEvent.TYPE)
-
-        # check if I am not closer than nearestPeer
-        if (nearestPeer.isCloser(self.node, targetPosition)):
-            response = factory.createNEAREST(nearestPeer)
+        # Check if I am not closer than nearestPeer
+        if nearest.isCloser(self.node, targetPosition):
+            message = self._PeerMessage('NEAREST', remote_peer=nearest)
         # I'm closer : send a best message
         else:
-            response = factory.createBEST()
+            message = self._PeerMessage('BEST')
 
-        response.setRecipientAddress(event.getSenderAddress())
-
-        # send reply to remote peer
-        self.node.dispatch(response)
+        self._SendToAddress(address, message)
 
     def peer_DETECT(self, args):
         """ Notification that a peer is moving towards us"""
