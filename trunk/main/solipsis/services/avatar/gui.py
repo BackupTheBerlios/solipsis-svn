@@ -79,13 +79,13 @@ class ConfigDialog(wx.EvtHandler, XRCLoader, UIProxyReceiver):
                     del im
                     if format in self.allowed_formats:
                         dialog.Destroy()
-                        ok_dialog = wx.MessageDialog(None,
-                            _("Your avatar has been changed."),
-                            _("Avatar configured"),
-                            style=wx.OK | wx.ICON_INFORMATION)
-                        ok_dialog.ShowModal()
                         if callback is not None:
                             callback(filename)
+                        ok_dialog = wx.MessageDialog(None,
+                            _("Your avatar has been updated."),
+                            _("Avatar updated"),
+                            style=wx.OK | wx.ICON_INFORMATION)
+                        ok_dialog.ShowModal()
                         return filename
                 msg = _("The file you chose does not belong to the \nsupported image types (%s).") \
                     % ", ".join(self.allowed_formats)
