@@ -1,6 +1,5 @@
 #!/usr/bin/python -Qnew
 
-# test
 import os
 import os.path
 import sys
