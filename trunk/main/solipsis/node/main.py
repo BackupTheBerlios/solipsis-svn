@@ -1,54 +1,20 @@
-#!/usr/local/bin/env python
-######################################
-
-## SOLIPSIS Copyright (C) France Telecom
-
-## This file is part of SOLIPSIS.
-
-##    SOLIPSIS is free software; you can redistribute it and/or modify
-##    it under the terms of the GNU Lesser General Public License as published by
-##    the Free Software Foundation; either version 2.1 of the License, or
-##    (at your option) any later version.
-
-##    SOLIPSIS is distributed in the hope that it will be useful,
-##    but WITHOUT ANY WARRANTY; without even the implied warranty of
-##    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-##    GNU Lesser General Public License for more details.
-
-##    You should have received a copy of the GNU Lesser General Public License
-##    along with SOLIPSIS; if not, write to the Free Software
-##    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
-## ------------------------------------------------------------------------------
-## -----                           startup.py                                  -----
-## ------------------------------------------------------------------------------
-
-## ******************************************************************************
-##
-##   This module is the main module of SOLIPSIS.
-##   It initializes the node and launches all threads.
-##   It involves the bootstrap and the message for network address retrieval
-##
-## ******************************************************************************
 
 import sys
 import logging
 import exceptions
 from optparse import OptionParser
 
+from twisted.internet import reactor
+
 # Solipsis Packages
 from solipsis.util.parameter import Parameters
-from solipsis.node.node import Node
+from solipsis.twistednode.node import Node
 
-#################################################################################################
-#                                                                                               #
-#				     -------  main ---------				        #
-#                                                                                               #
-#################################################################################################
 
-#-----Step 0: Initialize my informations
+def run_loop(params):
+    myNode = Node(reactor, params)
+    reactor.run()
 
-#_module_name == __name__
 
 def main():
     try:
@@ -77,7 +43,6 @@ def main():
                           help="configuration file" )
         parser.add_option("-P", "--profile", action="store_true", dest="profile", default=False,
                           help="profile execution to node.prof" )
-
         params = Parameters(parser, config_file=config_file)
 
         if (params.detach):
@@ -101,14 +66,9 @@ def main():
 
         # Create node and enter main loop
         global profile_run
-        myNode = Node(params)
-        profile_run = lambda: myNode.mainLoop()
-#         def run(params):
-#             myNode.mainLoop()
-
+        profile_run = lambda: run_loop(params)
         if (params.profile):
             import profile
-            #profile.run("solipsis.node.main.run(solipsis.node.main.params)")
             profile.run(__name__ + ".profile_run()", "node.prof")
         else:
             import psyco

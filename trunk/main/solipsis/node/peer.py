@@ -55,7 +55,7 @@ class Peer(Entity):
         # local position is the position of this peer using a coordinate system
         # centered on the position of the node
         # this value is set-up by the peer manager
-        #self.localPosition = position
+        self.localPositon = position
 
         # set the ID of this peer
         #id = self.createId()
