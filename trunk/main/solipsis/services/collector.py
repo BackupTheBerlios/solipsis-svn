@@ -72,10 +72,12 @@ class ServiceCollector(object):
         """
         for service_id in self._Services():
             self.plugins[service_id].Disable()
+            self.enabled_services.clear()
 
     def Reset(self):
         self.plugins = {}
         self.peers = {}
+        self.enabled_services = set()
         self.action_ids = IdPool()
 
     def ReadServices(self):
@@ -124,9 +126,9 @@ class ServiceCollector(object):
         """
         Enable all services.
         """
-        for service_id in self._Services():
-            plugin = self.plugins[service_id]
+        for service_id, plugin in self.plugins.items():
             plugin.Enable()
+            self.enabled_services.add(service_id)
 
     def GetServices(self):
         """
@@ -226,8 +228,19 @@ class ServiceCollector(object):
             else:
                 plugin.LostPeer(peer_id)
     
-    def UpdateNode(self, node):
+    def RemoveAllPeers(self):
+        """
+        Called when all peers have disappeared (typically, when disconnecting).
+        """
+        peers = self.peers.keys()
+        for peer_id in peers:
+            self.RemovePeer(peer_id)
+    
+    def SetNode(self, node):
         self.node = node
+        for service_id in self._Services():
+            plugin = self.plugins[service_id]
+            plugin.ChangedNode(node)
     
     def ProcessServiceData(self, peer_id, service_id, data):
         """
@@ -251,9 +264,15 @@ class ServiceCollector(object):
 
     def service_GetNode(self, service_id):
         """
-        Get the node.
+        Get the node we are controlling.
         """
         return self.node
+
+    def service_GetService(self, service_id):
+        """
+        Get the service object.
+        """
+        return self.node.GetService(service_id)
 
     def service_GetReactor(self, service_id):
         """
@@ -280,6 +299,6 @@ class ServiceCollector(object):
         """
         List of services (sorted by id).
         """
-        l = self.plugins.keys()
+        l = list(self.enabled_services)
         l.sort()
         return l

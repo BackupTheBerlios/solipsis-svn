@@ -123,6 +123,10 @@ class Plugin(ServicePlugin):
             del self.hosts[peer_id]
             self.ui.RemovePeer(peer_id)
             self._SetHosts()
+    
+    def ChangedNode(self, node):
+        self.ui.RemovePeer(node.id_)
+        self.ui.AddPeer(node)
 
     def _SetHosts(self):
         # For test purposes, chat with ourselves ;)

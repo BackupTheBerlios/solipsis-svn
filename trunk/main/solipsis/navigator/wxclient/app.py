@@ -161,10 +161,9 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.service_menus = []
         self.service_menu_pos = self.main_menubar.GetMenuCount() - 1
         self.services.ReadServices()
-        self.config_data.SetServices(self.services.GetServices())
-        self.services.UpdateNode(self.config_data.GetNode())
+        self.services.SetNode(self.config_data.GetNode())
         self.services.EnableServices()
-
+        self.config_data.SetServices(self.services.GetServices())
 
     def OnInit(self):
         """
@@ -343,11 +342,13 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             self.viewport.Disable()
             self.Redraw()
             self.statusbar.SetText(_("Not connected"))
+            self.services.RemoveAllPeers()
 
     def _Kill(self, evt):
         """ Called on "kill" event (menu -> File -> Kill). """
         if self._CheckNodeProxy():
             self.network.KillNode()
+            self.services.RemoveAllPeers()
 
     def _Preferences(self, evt):
         """ Called on "preferences" event (menu -> File -> Preferences). """
@@ -399,6 +400,8 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             self.network.ConnectToNode(self.config_data)
             self.viewport.Reset()
             self.statusbar.SetText(_("Connecting"))
+            self.services.RemoveAllPeers()
+            self.services.SetNode(self.config_data.GetNode())
 
 
     #===-----------------------------------------------------------------===#

@@ -13,13 +13,13 @@
             <style>wxTE_MULTILINE|wxTE_READONLY</style>
           </object>
           <orientation>vertical</orientation>
-          <minsize>0</minsize>
+          <sashpos>-100</sashpos>
           <style>wxSP_3D|wxSP_3DSASH|wxSP_3DBORDER|wxSP_BORDER|wxSP_LIVE_UPDATE</style>
           <object class="wxPanel">
             <style></style>
             <object class="wxStaticBoxSizer">
               <label>Users</label>
-              <orient>wxHORIZONTAL</orient>
+              <orient>wxVERTICAL</orient>
               <object class="sizeritem">
                 <object class="wxListCtrl" name="chat_users">
                   <style>wxLC_REPORT|wxRAISED_BORDER|wxSTATIC_BORDER</style>
