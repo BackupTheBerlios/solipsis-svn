@@ -224,7 +224,7 @@ class PrintView(AbstractView):
     # FILE TAB
     def update_repository(self):
         """repository"""
-        print self.document.get_repository()
+        print self.document.get_dirs()
         
     def update_files(self):
         """file"""
@@ -330,7 +330,7 @@ class GuiView(AbstractView):
     # FILE TAB : frame.file_tab
     def update_repository(self):
         """repository"""
-        self.frame.file_tab.build_tree(self.document.get_repository())
+        #TODO        
         
     def update_files(self):
         """file"""
@@ -456,12 +456,14 @@ class HtmlView(AbstractView):
     # FILE TAB : frame.file_tab
     def update_repository(self):
         """repository"""
-        self.context.addGlobal("repository", self.document.get_repository())
+        self.context.addGlobal("repository", self.document.get_dirs())
+        #TODO
         
     def update_files(self):
         """file"""
         self.context.addGlobal("files", self.document.get_files())
         files = self.document.get_files()
+        #TODO
 
     def new_files(self, files):
         """nothing to change in HTML view when files expanded since they are not shared by default"""

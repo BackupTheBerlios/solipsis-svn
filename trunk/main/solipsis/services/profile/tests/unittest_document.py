@@ -157,30 +157,67 @@ class ValidatorTest(unittest.TestCase):
     # FILE TAB
     def test_repository(self):
         """repository valid path"""
-        self.assertRaises(NotImplementedError, self.abstract_doc.get_repository)
+        self.assertRaises(NotImplementedError, self.abstract_doc.get_dirs)
         for document in self.documents:
-            self.assertRaises(TypeError, document.set_repository,
-                              "./dummy/dummy")
-            document.set_repository(".")
+            self.assertRaises(TypeError, document.add_dir, "data/dummy")
+            self.assertRaises(TypeError, document.add_dir, u"data/dummy")
+            document.add_dir(u"data")
+            document.remove_dir(u"data")
         
-    def test_adding_file(self):
-        """file_path as valid file"""
-        self.assertRaises(NotImplementedError, self.abstract_doc.get_files)
+    def test_share_dir(self):
+        """share dir giving unicode name"""
         for document in self.documents:
-            self.assertRaises(TypeError, document.add_file, "~/dummy/dummy")
-            document.add_file(unittest.__file__)
+            document.add_dir(u"data")
+            self.assertRaises(TypeError, document.share_dir, "data, True")
+            self.assertRaises(TypeError, document.share_dir, ("data", ))
+            self.assertRaises(TypeError, document.share_dir, ("data", True))
+            document.share_dir((u"data", True))
+            document.share_dir([u"data", True])
+        
+    def test_share_files(self):
+        """share files giving root & unicode names"""
+        for document in self.documents:
+            document.add_dir(u"data")
+            self.assertRaises(TypeError, document.share_files,
+                              "data, ['.path', 'routage'], True")
+            self.assertRaises(TypeError, document.share_files,
+                              ("data", "['.path', 'routage'], True"))
+            self.assertRaises(TypeError, document.share_files,
+                              ("data", "['.path', 'routage']", "True"))
+            self.assertRaises(TypeError, document.share_files,
+                              (u"data", "['.path', 'routage']", True))
+            self.assertRaises(TypeError, document.share_files,
+                              ("data", ['.path', 'routage'], True))
+            document.share_files((u"data", ['.path', 'routage'], True))
+            document.share_files([u"data", ['.path', 'routage'], True])
         
     def test_tag_file(self):
-        """tagged file as unicode"""
+        """tag files giving root & unicode names"""
         for document in self.documents:
-            self.assertRaises(TypeError, document.tag_file,
-                              "file: tag description")
-            self.assertRaises(TypeError, document.tag_file,
-                              ("file", ))
-            self.assertRaises(TypeError, document.tag_file,
-                              ("file", "tag description"))
-            document.tag_file((unittest.__file__, u"tag description"))
-            document.tag_file([unittest.__file__, u"tag description"])
+            document.add_dir(u"data")
+            self.assertRaises(TypeError, document.tag_files,
+                              "data, ['.path', 'routage'], tag desc")
+            self.assertRaises(TypeError, document.tag_files,
+                              ("data", "['.path', 'routage'], tag desc"))
+            self.assertRaises(TypeError, document.tag_files,
+                              ("data", "['.path', 'routage']", "tag desc"))
+            self.assertRaises(TypeError, document.tag_files,
+                              ("data", ['.path', 'routage'], "tag desc"))
+            self.assertRaises(TypeError, document.tag_files,
+                              (u"data", "['.path', 'routage']", "tag desc"))
+            self.assertRaises(TypeError, document.tag_files,
+                              (u"data", ['.path', 'routage'], "tag desc"))
+            document.tag_files((u"data", ['.path', 'routage'], u"tag desc"))
+            document.tag_files([u"data", ['.path', 'routage'], u"tag desc"])
+        
+    def test_add_file(self):
+        """expand dir giving unicode name"""
+        self.assertRaises(NotImplementedError, self.abstract_doc.get_files)
+        for document in self.documents:
+            document.add_dir(u"data")
+            self.assertRaises(TypeError, document.expand_dir, "data/dummy")
+            self.assertRaises(TypeError, document.expand_dir, "data")
+            document.expand_dir(u"data")
             
     # OTHERS TAB
     def test_adding_peer(self):
@@ -234,8 +271,6 @@ class ValidatorTest(unittest.TestCase):
             document.unmark_peer(u"nico")
             self.assertEquals(PeerDescriptor.ANONYMOUS,
                               document.get_peers()[u"nico"][0].state)
-
-    #TODO test fill data
 
 if __name__ == '__main__':
     unittest.main()

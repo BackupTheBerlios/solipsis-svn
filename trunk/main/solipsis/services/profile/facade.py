@@ -29,10 +29,11 @@ def get_facade(doc=None, view=None):
     document end/or view to initialize facade with at creation"""
     if not Facade.s_facade:
         Facade.s_facade = Facade()
-        if doc:
-            Facade.s_facade.add_document(doc)
-        if view:
-            Facade.s_facade.add_view(view)
+        doc and Facade.s_facade.add_document(doc)
+        view and Facade.s_facade.add_view(view)
+    else:
+        doc and Facade.s_facade.reset_document(doc)
+        view and Facade.s_facade.reset_view(view)
     return Facade.s_facade
 
 class Facade:
@@ -55,6 +56,18 @@ class Facade:
             doc.import_document(self.documents["cache"])
         # add new
         self.documents[doc.get_name()] = doc
+
+    def reset_view(self, view=None):
+        """add  a view object to facade"""
+        self.views.clear()
+        if view:
+            self.views[view.get_name()] = view
+
+    def reset_document(self, doc=None):
+        """add  a view object to facade"""
+        self.documents.clear()
+        if doc:
+            self.documents[doc.get_name()] = doc
         
     def _try_change(self, value, setter, updater):
         """tries to call function doc_set and then, if succeeded, gui_update"""
@@ -190,20 +203,20 @@ class Facade:
                                "update_custom_attributes")
 
     # FILE TAB
-    def change_repository(self, value):
+    def add_dir(self, value):
         """sets new value for repositor"""
         return self._try_change(value,
-                               "set_repository",
+                               "add_dir",
                                "update_repository")
     
-    def remove_repository(self, value):
+    def remove_dir(self, value):
         """sets new value for repositor"""
         return self._try_change(value,
-                               "remove_repository",
+                               "remove_dir",
                                "update_repository")
 
     def expand_dir(self, value):
-        """put into cache new information when dir expanded in tree"""
+        """update doc when dir expanded"""
         for document in self.documents.values():
             try:
                 added_dirs = document.expand_dir(value)
@@ -214,19 +227,19 @@ class Facade:
     
     def share_dir(self, pair):
         """forward command to cache"""
-        return self._try_change(value,
+        return self._try_change(pair,
                                "share_dir",
                                "update_files")
 
     def share_files(self, triplet):
         """forward command to cache"""
-        return self._try_change(value,
+        return self._try_change(triplet,
                                "share_files",
                                "update_files")
 
     def tag_files(self, triplet):
         """forward command to cache"""
-        return self._try_change(value,
+        return self._try_change(triplet,
                                "tag_files",
                                "update_files")
 

@@ -13,10 +13,18 @@ from solipsis.services.profile import PROFILE_DIR
 
 TEST_PROFILE = os.path.join(PROFILE_DIR, ".test.solipsis")
 
-class ValidatorTest(unittest.TestCase):
+class FacadeTest(unittest.TestCase):
     """test that all fields are correctly validated"""
 
     expected = """#ISO-8859-1
+[Repository_data/emptydir]
+path = data/emptydir
+
+[Repository_data]
+routage = none
+path = data
+date.txt = Error: doc not shared
+
 [Personal]
 city = Paris
 language = fr
@@ -32,17 +40,22 @@ country = France
 email = manu@ft.com
 description = anything
 
+[Custom]
+color = blue
+dirs = data,data/emptydir,data/subdir1,data/subdir1/subsubdir
+homepage = manu.com
+hobbies = blabla,bla bla bla,
+
+[Repository_data/subdir1/subsubdir]
+path = data/subdir1/subsubdir
+null = empty
+dummy.txt = empty
+
 [Others]
 nico = Friend
 
-[File]
-/usr/lib/python2.3/unittest.pyc = tag description
-repository = .
-
-[Custom]
-color = blue
-homepage = manu.com
-hobbies = blabla,bla bla bla,
+[Repository_data/subdir1]
+path = data/subdir1
 
 """
     
@@ -73,18 +86,28 @@ hobbies = blabla,bla bla bla,
         self.document.set_hobbies([u"blabla", u"bla bla bla", u""])
         self.document.add_custom_attributes((u"homepage", u"manu.com"))
         self.document.add_custom_attributes((u'color', u'blue'))
-        self.document.set_repository(".")
-        self.document.add_file(unittest.__file__)
-        self.document.tag_file((unittest.__file__, u"tag description"))
+        self.document.add_dir(u"data")
+        self.document.expand_dir(u"data")
+        self.document.share_files((u"data", ["routage"], True))
+        self.document.share_dir((u"data/emptydir", True))
+        self.document.expand_dir(u"data/subdir1")
+        self.document.share_dir((u"data/subdir1", True))
+        self.document.share_files((u"data/subdir1/subsubdir", ["null", "dummy.txt"], True))
+        self.document.tag_files((u"data", ["date.txt"], u"Error: doc not shared"))
+        self.document.tag_files((u"data/subdir1/subsubdir", ["null", "dummy.txt"], u"empty"))
         self.document.add_peer(u"nico")
         self.document.make_friend(u"nico")
         # write file
         self.document.save(TEST_PROFILE)
         differ = Differ()
-        result =  differ.compare([line.replace('\n', '') for line
+        result =  list(differ.compare([line.replace('\n', '') for line
                                   in open(self.document.file_name).readlines()],
-                                 ValidatorTest.expected.splitlines())
-        for line in result:
+                                 FacadeTest.expected.splitlines()))
+        for index, line in enumerate(result):
+            if not line.startswith("  "):
+                print '\n'.join(result)
+                print "*************"
+                print '\n'.join(result[index-3: index+5])
             self.assert_(line.startswith("  "))
 
     def test_load(self):
@@ -104,11 +127,10 @@ hobbies = blabla,bla bla bla,
         self.assertEquals("France", self.document.get_country())
         self.assertEquals("anything", self.document.get_description())
         self.assertEquals([u'blabla', u'bla bla bla', u''], self.document.get_hobbies())
-        self.assertEquals({"homepage": "manu.com", 'color':'blue'}, self.document.get_custom_attributes())
-        self.assertEquals(".", self.document.get_repository())
-        files = self.document.get_files()
-        self.assertEquals("%s (tag description)"% unittest.__file__,
-                          str(files[unittest.__file__]))
+        self.assertEquals({'dirs': u'data,data/emptydir,data/subdir1,data/subdir1/subsubdir', 'color': u'blue', 'homepage': u'manu.com'}, self.document.get_custom_attributes())
+        self.assertEquals([u'data', u'data/emptydir', u'data/subdir1', u'data/subdir1/subsubdir'], self.document.get_dirs())
+        self.assertEquals("[u'data', u'data/emptydir', u'data/subdir1', u'data/subdir1/subsubdir']", 
+                          str(self.document.get_files()))
         peers = self.document.get_peers()
         self.assertEquals('[nico (%s), None]'% PeerDescriptor.FRIEND, str(peers['nico']))
 
@@ -132,16 +154,15 @@ hobbies = blabla,bla bla bla,
         self.assertEquals("France", new_doc.get_country())
         self.assertEquals("anything", new_doc.get_description())
         self.assertEquals([u'blabla', u'bla bla bla', u''], new_doc.get_hobbies())
-        self.assertEquals({"homepage": "manu.com", 'color':'blue'}, new_doc.get_custom_attributes())
-        self.assertEquals(".", new_doc.get_repository())
-        files = new_doc.get_files()
-        self.assertEquals("%s (tag description)"% unittest.__file__,
-                          str(files[unittest.__file__]))
+        self.assertEquals({'dirs': u'data,data/emptydir,data/subdir1,data/subdir1/subsubdir', 'color': u'blue', 'homepage': u'manu.com'}, new_doc.get_custom_attributes())
+        self.assertEquals([u'data', u'data/emptydir', u'data/subdir1', u'data/subdir1/subsubdir'], new_doc.get_dirs())
+        self.assertEquals("[u'data', u'data/emptydir', u'data/subdir1', u'data/subdir1/subsubdir']",
+                          str(self.document.get_files()))
         peers = new_doc.get_peers()
         self.assertEquals('[nico (%s), None]'% PeerDescriptor.FRIEND, str(peers['nico']))
-
-    def test_default_data(self):
-        """import file document into printView"""
+        
+    def test_default(self):
+        """load default"""
         self.document.load("dummy")
         sav_stdout = sys.stdout
         result = StringIO()
@@ -162,15 +183,15 @@ fr
 Developer/Designer of this handful plugin
 []
 {}
-/home/emb
-{}
+[]
+[]
 {}
 """, "iso-8859-1"))
         result.close()
         sys.stdout = sav_stdout
         
     def test_view(self):
-        """import file document into printView"""
+        """load & printView"""
         self.document.load(TEST_PROFILE)
         sav_stdout = sys.stdout
         result = StringIO()
@@ -190,9 +211,9 @@ Paris
 France
 anything
 [u'blabla', u'bla bla bla', u'']
-{'color': u'blue', 'homepage': u'manu.com'}
-.
-{'/usr/lib/python2.3/unittest.pyc': /usr/lib/python2.3/unittest.pyc (tag description)}
+{'dirs': u'data,data/emptydir,data/subdir1,data/subdir1/subsubdir', 'color': u'blue', 'homepage': u'manu.com'}
+[u'data', u'data/emptydir', u'data/subdir1', u'data/subdir1/subsubdir']
+[u'data', u'data/emptydir', u'data/subdir1', u'data/subdir1/subsubdir']
 {u'nico': [nico (%s), None]}
 """% PeerDescriptor.FRIEND)
         result.close()

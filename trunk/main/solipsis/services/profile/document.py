@@ -25,16 +25,17 @@ import ConfigParser
 import os.path
 import sys
 from os.path import isfile, isdir
-from solipsis.services.profile.services.profile.data import SharingContainer
+from solipsis.services.profile.data import SharingContainer
 from solipsis.services.profile import ENCODING, \
      PROFILE_DIR, PROFILE_FILE
 from solipsis.services.profile.images import DEFAULT_PIC
+from solipsis.services.profile.data import DEFAULT_TAG
 
 DATE_FORMAT = "%d/%m/%Y"
 SECTION_PERSONAL = "Personal"
 SECTION_CUSTOM = "Custom"
-SECTION_FILE = "File"
 SECTION_OTHERS = "Others"
+SECTION_REPO_PREFIX = "Repository_"
         
 
 class FileDescriptor:
@@ -106,10 +107,14 @@ class AbstractDocument:
         for key, val in attributes.iteritems():
             self.add_custom_attributes((key, val))
         # file data
-        self.set_repository(other_document.get_repository())
+        for repository in other_document.get_dirs():
+            self.add_dir(repository)
         files = other_document.get_files()
-        for file_path, file_desc in files.iteritems():
-            self.tag_file((file_path, file_desc.tag))
+        for dir_name in files.get_all_dirs():
+            self.add_dir(dir_name)
+            content = files.get_dir_content(dir_name)
+            for file_path, file_desc in content.iteritems():
+                self.tag_files((dir_name, [file_path], file_desc._tag))
         # others' data
         peers = other_document.get_peers()
         for pseudo, (peer_desc, peer_doc) in peers.iteritems():
@@ -269,28 +274,32 @@ class AbstractDocument:
         raise NotImplementedError
         
     # FILE TAB
-    def set_repository(self, value):
+    def add_dir(self, value):
         """sets new value for repository"""
         if not isdir(value):
-            raise TypeError("repository directory must exist")
+            raise TypeError("repository %s does not exist"% value)
+        if not isinstance(value, unicode):
+            raise TypeError("dir to expand expected as unicode")
         
-    def remove_repository(self, value):
+    def remove_dir(self, value):
         """sets new value for repository"""
-        if not isdir(value):
-            raise TypeError("repository directory must exist")
+        if not isinstance(value, unicode):
+            raise TypeError("dir to expand expected as unicode")
         
-    def get_repository(self):
-        """returns value of repository"""
-        raise NotImplementedError
+    def expand_dir(self, value):
+        """update doc when dir expanded"""
+        if not isinstance(value, unicode):
+            raise TypeError("dir to expand expected as unicode")
 
     def share_dir(self, pair):
         """forward command to cache"""
         if not isinstance(pair, list) and not isinstance(pair, tuple):
-            raise TypeError("argument of tag_file expected as list or tuple")
+            raise TypeError("argument ofshare_dir expected as list or tuple")
         elif len(pair) != 2:
-            raise TypeError("argument of  expected as couple (file_path, tag)")
-        if not isinstance(pair[1], unicode):
-            raise TypeError("tag expected as unicode")
+            raise TypeError("argument o fshare_dir expected as"
+                            " couple (path, share)")
+        if not isinstance(pair[0], unicode):
+            raise TypeError("name expected as unicode")
 
     def share_files(self, triplet):
         """forward command to cache"""
@@ -299,9 +308,10 @@ class AbstractDocument:
         elif len(triplet) != 3:
             raise TypeError("argument of  expected as couple (file_path, tag)")
         if not isinstance(triplet[0], unicode):
-            raise TypeError("tag expected as unicode")
-        if not isinstance(triplet[1], unicode):
-            raise TypeError("tag expected as unicode")
+            raise TypeError("path expected as unicode")
+        if not isinstance(triplet[1], list) \
+               and not isinstance(triplet[1], tuple):
+            raise TypeError("names expected as list")
         
     def tag_files(self, triplet):
         """sets new value for tagged file"""
@@ -310,14 +320,19 @@ class AbstractDocument:
         elif len(triplet) != 3:
             raise TypeError("argument of  expected as couple (file_path, tag)")
         if not isinstance(triplet[0], unicode):
-            raise TypeError("tag expected as unicode")
-        if not isinstance(triplet[1], unicode):
-            raise TypeError("tag expected as unicode")
+            raise TypeError("path expected as unicode")
+        if not isinstance(triplet[1], list) \
+               and not isinstance(triplet[1], tuple):
+            raise TypeError("name expected as unicode")
         if not isinstance(triplet[2], unicode):
             raise TypeError("tag expected as unicode")
         
     def get_files(self):
         """returns value of files"""
+        raise NotImplementedError
+        
+    def get_dirs(self):
+        """returns value of repository"""
         raise NotImplementedError
             
     # OTHERS TAB
@@ -384,7 +399,6 @@ class CacheDocument(AbstractDocument):
         self.hobbies = []
         # dictionary of file. {att_name : att_value}
         self.custom_attributes = {}
-        self.repository = u""
         # dictionary of file. {fullpath : FileDescriptor}
         self.files = SharingContainer()
         # dictionary of peers. {pseudo : PeerDescriptor}
@@ -523,33 +537,46 @@ class CacheDocument(AbstractDocument):
         return self.custom_attributes
 
     # FILE TAB
-    def set_repository(self, value):
-        """sets new value for repositor"""
-        AbstractDocument.set_repository(self, value)
-        self.repository = value
-        
-    def remove_repository(self, value):
+    def add_dir(self, value):
         """sets new value for repository"""
-        AbstractDocument.remove_repository(self, value)
+        AbstractDocument.add_dir(self, value)
+        self.files.add_dir(value)
         
-    def get_repository(self):
-        """returns value of repository"""
-        raise NotImplementedError
+    def remove_dir(self, value):
+        """sets new value for repository"""
+        AbstractDocument.remove_dir(self, value)
+        self.files.remove_dir(value)
+        
+    def expand_dir(self, value):
+        """update doc when dir expanded"""
+        AbstractDocument.expand_dir(self, value)
+        return self.files.expand_dir(value)
 
     def share_dir(self, pair):
         """forward command to cache"""
         AbstractDocument.share_dir(self, pair)
+        path, share = pair
+        self.files.share_dir(path, share)
 
     def share_files(self, triplet):
         """forward command to cache"""
         AbstractDocument.share_files(self, triplet)
+        path, names, share = triplet
+        self.files.share_files(path, names, share)
         
     def tag_files(self, triplet):
         """sets new value for tagged file"""
         AbstractDocument.tag_files(self, triplet)
+        path, names, tag = triplet
+        self.files.tag_files(path, names, tag)
         
     def get_files(self):
         """returns value of files"""
+        return self.files.data
+        
+    def get_dirs(self):
+        """returns value of repository"""
+        return self.files.get_all_dirs()
 
     # OTHERS TAB
     def add_peer(self, pseudo):
@@ -611,7 +638,6 @@ class FileDocument(AbstractDocument):
         self.config = ConfigParser.ConfigParser()
         self.config.add_section(SECTION_PERSONAL)
         self.config.add_section(SECTION_CUSTOM)
-        self.config.add_section(SECTION_FILE)
         self.config.add_section(SECTION_OTHERS)
     
     # MENU
@@ -843,33 +869,109 @@ class FileDocument(AbstractDocument):
             return result
 
     # FILE TAB
-    def set_repository(self, value):
-        """sets new value for repositor"""
-        AbstractDocument.set_repository(self, value)
-        self.repository = value
-        
-    def remove_repository(self, value):
+    def add_dir(self, value):
         """sets new value for repository"""
-        AbstractDocument.(self, value)
+        AbstractDocument.add_dir(self, value)
+        new_key = SECTION_REPO_PREFIX + value
+        # update list of repositories
+        values = self.get_dirs()
+        values.append(value)
+        self.config.set(SECTION_CUSTOM, "dirs",
+                        ",".join(values).encode(self.encoding))
+        # add section for new repository
+        self.config.add_section(new_key)
+        self.config.set(new_key, "path", value)
         
-    def get_repository(self):
-        """returns value of repository"""
-        raise NotImplementedError
+    def remove_dir(self, value):
+        """sets new value for repository"""
+        AbstractDocument.remove_dir(self, value)
+        new_key = SECTION_REPO_PREFIX + value
+        # update list of repositories
+        values = [repo for repo in self.get_dirs()
+                  if repo != value]
+        self.config.set(SECTION_CUSTOM, "dirs",
+                        ",".join(values).encode(self.encoding))
+        # remove repository section
+        self.config.remove_section(new_key)
+        
+    def expand_dir(self, value):
+        """put into cache new information when dir expanded in tree"""
+        AbstractDocument.expand_dir(self, value)
+        self._update_share_dir(value)
 
     def share_dir(self, pair):
         """forward command to cache"""
-        AbstractDocument.(self, pair)
+        AbstractDocument.share_dir(self, pair)
+        path, share = pair
+        if share:
+            self._update_share_dir(path)
 
     def share_files(self, triplet):
         """forward command to cache"""
-        AbstractDocument.(self, triplet)
-        
+        AbstractDocument.share_files(self, triplet)
+        path, names, share = triplet
+        self._update_share_dir(path)
+        key = SECTION_REPO_PREFIX + path
+        for name in names:
+            if share:
+                self.config.set(key, name, DEFAULT_TAG)
+            else:
+                self.config.remove_option(key, name)
+                
     def tag_files(self, triplet):
         """sets new value for tagged file"""
-        AbstractDocument.(self, triplet)
+        AbstractDocument.tag_files(self, triplet)
+        path, names, tag = triplet
+        self._update_share_dir(path)
+        key = SECTION_REPO_PREFIX + path
+        for name in names:
+            self.config.set(key, name, tag)
         
     def get_files(self):
         """returns value of files"""
+        files = SharingContainer()
+        # >> repositories
+        for value in self.get_dirs():
+            files.add_dir(value)
+            self._update_share_files(value, files)
+        return files
+    
+    def get_dirs(self):
+        """returns value of repository"""
+        try:
+            return [unicode(repo, self.encoding) for repo
+                    in  self.config.get(SECTION_CUSTOM, "dirs").split(',')]
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+            return []
+
+    def _update_share_files(self, section, container):
+        """parse all section for given files"""
+        key = SECTION_REPO_PREFIX + section
+        shared_files = [file_name for file_name in self.config.options(key)
+                        if file_name != "path"]
+        container.share_files(section, shared_files, True)
+        for shared_file in shared_files:
+            container.tag_files(section, [shared_file],
+                                unicode(self.config.get(key, shared_file),
+                                       self.encoding))
+
+    def _update_share_dir(self, dir_name):
+        """parse all section for given files"""
+        new_key = SECTION_REPO_PREFIX + dir_name
+        if self.config.has_section(new_key):
+            return
+        # update list of repositories
+        if self.config.has_option(SECTION_CUSTOM, "dirs"):
+            values = self.config.get(SECTION_CUSTOM, "dirs").split(',')
+        else:
+            values = []
+        values.append(dir_name)
+        self.config.set(SECTION_CUSTOM, "dirs",
+                        ",".join(values).encode(self.encoding))  
+        # add section for new dir
+        self.config.add_section(new_key)
+        self.config.set(new_key, "path", dir_name)
+
         
     # OTHERS TAB
     def add_peer(self, pseudo):

@@ -107,11 +107,20 @@ class SharingContainer:
     def __init__(self):
         self.data = {}
 
-    def add_repository(self, full_path):
-        """add shared directory to list"""
-        return self.add_dir(full_path)
+    def __str__(self):
+        return str(self.get_all_dirs())
 
-    def remove_repository(self, full_path):
+    def __repr__(self):
+        return self.get_all_dirs().__repr__()
+
+    def add_dir(self, full_path):
+        """add shared directory to list"""
+        dir_container = DirContainer(full_path)
+        # add in cache
+        self.data[full_path] = dir_container
+        return dir_container
+
+    def remove_dir(self, full_path):
         """add shared directory to list"""
         del self.data[full_path]
 
@@ -146,10 +155,9 @@ class SharingContainer:
     def get_dir_content(self, full_path):
         """return data assocaited with a DirContainer"""
         return self.data[full_path].content
-
-    def add_dir(self, full_path):
-        """add shared directory to list"""
-        dir_container = DirContainer(full_path)
-        # add in cache
-        self.data[full_path] = dir_container
-        return dir_container
+        
+    def get_all_dirs(self):
+        """return data assocaited with a DirContainer"""
+        result = self.data.keys()
+        result.sort()
+        return result

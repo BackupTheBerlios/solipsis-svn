@@ -8,8 +8,8 @@ from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile.data import SharingContainer
 
 # begin wxGlade: dependencies
-# end wxGlade
-
+# end wxGlade        
+    
 class FilePanel(wx.Panel):
     def __init__(self, *args, **kwds):
         # begin wxGlade: FilePanel.__init__
@@ -46,17 +46,19 @@ class FilePanel(wx.Panel):
         self.tree_list.SetMainColumn(0) # the one with the tree in it...
         self.tree_list.SetColumnWidth(0, 175)
         self.root = self.tree_list.AddRoot(_("File System..."))
-        self.tree_data = SharingContainer(self.tree_list.AppendItem,
-                                          self.tree_list.DeleteItem,
-                                          self._display_dir)
+        self.tree_data = SharingContainer()
         
         # build dir list view
         self.dir_list.InsertColumn(0, "Name")
         self.dir_list.InsertColumn(1, "Tag")
         self.dir_list.InsertColumn(2, "Shared", wx.LIST_FORMAT_RIGHT)
 
+        # specific stuff
         self.facade = get_facade()
         self.bind_controls()
+        self.file_state = SelectedFilelState()
+        self.dir_state = SelectedDirState()
+        self.current_state = FilePanelState()
         
     # EVENTS
     
@@ -77,38 +79,32 @@ class FilePanel(wx.Panel):
         
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            self.facade.change_repository(path)
+            self.facade.set_repository(path)
             
         dlg.Destroy()
-        self.tree_data.add_repository(full_path, self.root)
         
     def on_add(self, evt):
-        self.tree_list.GetSelection()
+        self.current_state.on_add(evt)
         
     def on_del(self, evt):
-        self.tree_list.GetSelection()
+        self.current_state.on_del(evt)
         
     def on_tag(self, evt):
-        self.tree_list.GetSelection()
+        self.current_state.on_tag(evt)
 
-    def on_selec_tree(self, evt):
+    def on_select_tree(self, evt):
         """new shared directory selecetd"""
-        dir_name = evt.GetItem().GetText()
+        self.current_state = self.file_state
+        self.current_state.on_select(evt)
 
-    def on_selec_dir(self, evt):
+    def on_select_dir(self, evt):
         """new shared directory selecetd"""
-        dir_name = evt.GetItem().GetText()
+        self.current_state = self.dir_state
+        self.current_state.on_select(evt)
 
     def expand_dir(self, full_path):
         """put into cache new information when dir expanded in tree"""
-        dir_container = self.data[full_path]
-        # add each dir of browsed dir
-        for dir_name in [os.path.join(dir_container.path, name) for name in os.listdir(dir_container.path)]:
-            if isdir(dir_name):
-                self._add_dir(dir_name, dir_container.item)
-            else:
-                # not a dir, do nothing
-                pass
+        self.facade.expand_dir(full_path)
             
     def _display_dir(self, dir_container):
         """format item in tree view"""
@@ -168,4 +164,60 @@ class FilePanel(wx.Panel):
 
 # end of class FilePanel
 
+
+class FilePanelState:
+    """Abstract class for states"""
+    def on_add(self, evt):
+        """share selected files or directory"""
+        raise NotImplementedError("need a selection to share")
+        
+    def on_del(self, evt):
+        """cancel sharing of selected files or directory"""
+        raise NotImplementedError("need a selection to unshare")
+        
+    def on_tag(self, evt):
+        """tag selected files or all directory"""
+        raise NotImplementedError("need a selection to tag")
+    
+    def on_select(self, evt):
+        """tag selected files or all directory"""
+        raise NotImplementedError
+
+
+class SelectedFilelState:
+    """Abstract class for states"""
+    def on_add(self, evt):
+        """share selected files"""
+        raise NotImplementedError("no selection")
+        
+    def on_del(self, evt):
+        """cancel sharing of selected files"""
+        raise NotImplementedError
+        
+    def on_tag(self, evt):
+        """tag selected files"""
+        raise NotImplementedError
+    
+    def on_select(self, evt):
+        """acrtion on selection"""
+        raise NotImplementedError
+
+
+class SelectedDirState:
+    """Abstract class for states"""
+    def on_add(self, evt):
+        """share directory"""
+        raise NotImplementedError
+        
+    def on_del(self, evt):
+        """cancel sharing of directory"""
+        raise NotImplementedError
+        
+    def on_tag(self, evt):
+        """tag selected all directory"""
+        raise NotImplementedError
+    
+    def on_select(self, evt):
+        """acrtion on selection"""
+        raise NotImplementedError
 

@@ -124,25 +124,45 @@ class FacadeTest(unittest.TestCase):
         self.assertEquals("", sys.stderr.getvalue())
 
     # FILE TAB
-    def test_change_repository(self):
-        """sets new value for repositor"""
-        self.facade.change_repository(u'.')
-        self.assertEquals(".\n", sys.stdout.getvalue())
-        self.assertEquals("", sys.stderr.getvalue())
+    def test_add_dir(self):
+        """sets new value for repository"""
+        self.facade.add_dir(u"data")
+        self.assertRaises(KeyError, self.facade.remove_dir, u"data/subdir1")
+        self.facade.add_dir(u"data/subdir1")
+        self.facade.remove_dir(u"data/subdir1")
 
-    def test_add_file(self):
-        """sets new value for unshared file"""
-        self.facade.add_file(unittest.__file__)
-        self.assertEquals("{'/usr/lib/python2.3/unittest.pyc': /usr/lib/python2.3/unittest.pyc (None)}\n",
-                          sys.stdout.getvalue())
-        self.assertEquals("", sys.stderr.getvalue())
+    def test_share_dir(self):
+        """share all content of dir"""
+        self.facade.add_dir(u"data")
+        self.facade.share_dir((u"data", True))
+        self.assertRaises(KeyError, self.facade.share_dir, (u"routage", True))
+        self.assertRaises(KeyError, self.facade.share_dir, (u"data/subdir1", True))
+        self.facade.add_dir(u"data/emptydir")
+        self.facade.add_dir(u"data/subdir1/subsubdir")
+        self.facade.share_dir((u"data/emptydir", True))
+        self.facade.share_dir((u"data/subdir1/subsubdir", True))
 
-    def test_change_file_tag(self):
-        """sets new value for tagged file"""
-        self.facade.change_file_tag((unittest.__file__, u'description test'))
-        self.assertEquals("{'/usr/lib/python2.3/unittest.pyc': /usr/lib/python2.3/unittest.pyc (description test)}\n",
-                          sys.stdout.getvalue())
-        self.assertEquals("", sys.stderr.getvalue())
+    def test_share_files(self):
+        """share specified files"""
+        self.facade.add_dir(u"data")
+        self.facade.share_files((u"data", ["routage"], True))
+        self.assertRaises(ValueError, self.facade.share_files, (u"data", ["routage", "subdir1"], True))
+        self.facade.share_files((u"data", ["routage"], False))
+
+    def test_tag_files(self):
+        """tag specified tags"""
+        self.facade.add_dir(u"data")
+        self.facade.tag_files((u"data", ["routage"], u"tag desc 1"))
+        self.assertRaises(ValueError, self.facade.tag_files, (u"data", ["routage", "subdir1"], u"tag desc 2"))
+        self.facade.tag_files((u"data", ["routage", "date.txt"], u"tag desc 3"))
+
+    def test_add_files(self):
+        """expand dir"""
+        self.facade.add_dir(u"data")
+        self.facade.expand_dir(u"data")
+        self.assertRaises(KeyError, self.facade.expand_dir, u"data/routage")
+        self.facade.expand_dir(u"data/emptydir")
+        self.assertRaises(KeyError, self.facade.expand_dir, u"data/subdir1/subsubdir")
 
     # OTHERS TAB
     def test_add_peer(self):
@@ -156,7 +176,7 @@ class FacadeTest(unittest.TestCase):
         """fill data, then remove it"""
         self.facade.fill_data((u"emb", CacheDocument()))
         self.facade.remove_peer(u"emb")
-        self.assertEquals("{u'emb': [emb (%s), cache]}\n{}\n"% PeerDescriptor.BLACKLISTED,
+        self.assertEquals("{u'emb': [emb (%s), cache]}\n{}\n"% PeerDescriptor.ANONYMOUS,
                           sys.stdout.getvalue())
     
     def test_friend(self):
