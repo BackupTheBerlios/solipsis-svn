@@ -132,23 +132,6 @@ class StateMachine(object):
         self._CloseCurrentConnections()
         self.Reset()
 
-    def ImmediatelyConnect(self):
-        self._CloseCurrentConnections()
-        self.Reset()
-        message = self._PeerMessage('HELLO')
-        for address in self.bootup_addresses:
-            self._SendToAddress(address, message)
-        self.SetState(states.EarlyConnecting())
-
-    def TryConnect(self):
-        self._CloseCurrentConnections()
-        self.Reset()
-        if len(self.bootup_addresses) > self.teleportation_flood:
-            addresses = random.sample(self.bootup_addresses, self.teleportation_flood)
-        else:
-            addresses = self.bootup_addresses
-        self._StartFindNearest(addresses)
-
     def SetState(self, state):
         """
         Change the current state of the state machine.
@@ -622,51 +605,91 @@ class StateMachine(object):
 
     #
     # Control events
-    # TODO: rewrite
     #
-    def control_MOVE(self, event):
-        """ MOVE control event. Move the node to a new position.
-        event : Request = MOVE, args = {'Position'}
+    def ImmediatelyConnect(self):
         """
+        Immediately connect to bootup entities. This is only used
+        for the first nodes when building the world.
+        """
+        self._CloseCurrentConnections()
+        self.Reset()
+        message = self._PeerMessage('HELLO')
+        for address in self.bootup_addresses:
+            self._SendToAddress(address, message)
+        self.SetState(states.EarlyConnecting())
 
+    def TryConnect(self):
+        """
+        Try to connect to the world, picking some bootup entities
+        at random and teleporting to our destination position.
+        """
+        self._CloseCurrentConnections()
+        self.Reset()
+        if len(self.bootup_addresses) > self.teleportation_flood:
+            addresses = random.sample(self.bootup_addresses, self.teleportation_flood)
+        else:
+            addresses = self.bootup_addresses
+        self._StartFindNearest(addresses)
+
+    def MoveTo(self, (x, y, z)):
+        """
+        Move to a given absolute position in the world.
+        """
         # Change position
-        newPosition = event.getArg(protocol.ARG_POSITION)
-        self.node.setPosition(newPosition)
-        manager = self.node.getPeersManager()
-        if manager.hasGlobalConnectivity():
+        position = Position(x, y, z)
+        self.node.position = position
+        self.topology.SetOrigin((x, y))
+        if self.topology.HasGlobalConnectivity():
             # We still have the global connectivity,
-            # so we can simply notify peers of the position change
-            self.sendUpdates()
-
+            # so we simply notify our peers of the position change
+            self._SendUpdates()
         else:
-            # We cannot keep our global connectivity,
-            # so we do the JUMP algorithm to get the knowledge
-            # of our new neighbourhood
-            self.jump()
+            # Otherwise, do a full-fledged teleport
+            self._Jump()
 
-    def control_KILL(self, event):
-        self.logger.info("Received kill message")
-        self.node.exit()
-
-    def control_ABORT(self, event):
-        self.node.alive = False
-        print "\nFatal error: " + event.getArg('Message') + "\nAborting"
-        self.node.dispatch(event)
-
-    def control_GETNODEINFO(self, event):
-        factory = EventFactory.getInstance(ControlEvent.TYPE)
-        info = factory.createNODEINFO()
-        self.node.dispatch(info)
-
-    def control_SET(self, event):
-        field = event.getArg('Name')
-        value = event.getArg('Value')
-        if field == 'Pseudo':
-            self.node.setPseudo(value)
-            self.sendUpdates()
-        else:
-            import exceptions
-            raise NotImplementedError()
+#     def control_MOVE(self, event):
+#         """ MOVE control event. Move the node to a new position.
+#         event : Request = MOVE, args = {'Position'}
+#         """
+#
+#         # Change position
+#         newPosition = event.getArg(protocol.ARG_POSITION)
+#         self.node.setPosition(newPosition)
+#         manager = self.node.getPeersManager()
+#         if manager.hasGlobalConnectivity():
+#             # We still have the global connectivity,
+#             # so we can simply notify peers of the position change
+#             self.sendUpdates()
+#
+#         else:
+#             # We cannot keep our global connectivity,
+#             # so we do the JUMP algorithm to get the knowledge
+#             # of our new neighbourhood
+#             self.jump()
+#
+#     def control_KILL(self, event):
+#         self.logger.info("Received kill message")
+#         self.node.exit()
+#
+#     def control_ABORT(self, event):
+#         self.node.alive = False
+#         print "\nFatal error: " + event.getArg('Message') + "\nAborting"
+#         self.node.dispatch(event)
+#
+#     def control_GETNODEINFO(self, event):
+#         factory = EventFactory.getInstance(ControlEvent.TYPE)
+#         info = factory.createNODEINFO()
+#         self.node.dispatch(info)
+#
+#     def control_SET(self, event):
+#         field = event.getArg('Name')
+#         value = event.getArg('Value')
+#         if field == 'Pseudo':
+#             self.node.setPseudo(value)
+#             self.sendUpdates()
+#         else:
+#             import exceptions
+#             raise NotImplementedError()
 
     #
     # Private methods: connection management
@@ -767,7 +790,10 @@ class StateMachine(object):
         addresses = [peer.address for peer in topology.GetNearestPeers(self.teleportation_flood)]
 
         # Start teleportation algorithm
-        self._StartFindNearest(addresses)
+        if addresses:
+            self._StartFindNearest(addresses)
+        else:
+            self.TryConnect()
 
     def _StartFindNearest(self, addresses):
         # Send FINDNEAREST to all selected addresses

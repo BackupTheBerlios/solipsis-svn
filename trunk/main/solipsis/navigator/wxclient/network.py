@@ -51,7 +51,6 @@ class NotificationHandler(object):
     def _ParsePosition(self, position):
         x, y, z = position.split(",")
         return (float(x), float(y), float(z))
-        #return (float(x)/2**128, float(y)/2**128, float(z))
 
 
 class XMLRPCConnector(object):
@@ -90,7 +89,6 @@ class XMLRPCConnector(object):
 
     def CallControl(self, method, *args):
         if self.xmlrpc_control is not None:
-            print method
             d = self.xmlrpc_control.callRemote(method, self.connect_id, *args)
             d.addCallbacks(self.ControlResponse, self.ControlError)
 
@@ -99,7 +97,6 @@ class XMLRPCConnector(object):
     #
     def ControlResponse(self, reply):
         """ Called on response to a control request. """
-        print reply
 
     def NotifResponse(self, reply):
         self._AskNotif()
@@ -180,7 +177,6 @@ class NetworkLoop(threading.Thread):
     def MoveTo(self, (x, y)):
         x = str(long(x))
         y = str(long(y))
-        print "move to:", x, y
         self.node_connector.CallControl('Move', x, y, 0)
 
     #

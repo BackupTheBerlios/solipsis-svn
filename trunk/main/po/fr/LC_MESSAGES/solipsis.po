@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Solipsis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2004-11-19 13:34+0100\n"
+"POT-Creation-Date: 2004-12-10 17:53+0100\n"
 "PO-Revision-Date: 2004-11-22 12:20+0100\n"
 "Last-Translator: Antoine Pitrou <antoine@pitrou.net>\n"
 "Language-Team: Solipsis translators <antoine@pitrou.net>\n"
@@ -19,102 +19,99 @@ msgstr ""
 "X-Poedit-Country: FRANCE\n"
 "X-Poedit-SourceCharset: utf-8\n"
 
-#: entrÃ©e standard:19
+#: entrée standard:19
 msgid "&Cancel"
 msgstr "&Annuler"
 
-#: entrÃ©e standard:3
+#: entrée standard:3
 msgid "&Connect"
 msgstr "&Connexion"
 
-#: entrÃ©e standard:4
+#: entrée standard:4
 msgid "&Disconnect"
 msgstr "&DÃ©connexion"
 
-#: entrÃ©e standard:12
-#: standard:18
-#: standard:22
+#: entrée standard:12 standard:18 standard:22 standard:23
 msgid "&OK"
 msgstr "&Valider"
 
-#: entrÃ©e standard:9
+#: entrée standard:9
 msgid "About"
 msgstr "Ã€ propos"
 
-#: entrÃ©e standard:10
+#: entrée standard:10
 msgid "About..."
 msgstr "Ã€ propos..."
 
-#: entrÃ©e standard:13
+#: entrée standard:13
 msgid "Connect to Solipsis"
 msgstr "Connexion Ã  Solipsis"
 
-#: entrÃ©e standard:6
+#: entrée standard:6
 msgid "Edit"
 msgstr "Ã‰dition"
 
-#: solipsis/wxnavigator/wxutils.py:102
+#: solipsis/navigator/wxclient/wxutils.py:100
 msgid "Error"
 msgstr "Erreur"
 
-#: entrÃ©e standard:2
+#: entrée standard:2
 msgid "File"
 msgstr "Fichier"
 
-#: entrÃ©e standard:8
+#: entrée standard:8
 msgid "Help"
 msgstr "Aide"
 
-#: entrÃ©e standard:16
+#: entrée standard:16
 msgid "Host: "
 msgstr "HÃ´te:"
 
-#: entrÃ©e standard:14
+#: entrée standard:14
 msgid "Name or pseudo"
 msgstr "Nom ou pseudonyme"
 
-#: entrÃ©e standard:1
+#: entrée standard:1
 msgid "Navigator"
 msgstr "Navigateur"
 
-#: entrÃ©e standard:15
+#: entrée standard:15
 msgid "Node address"
 msgstr "Adresse du noeud"
 
-#: entrÃ©e standard:20
-#: solipsis/wxnavigator/app.py:169
+#: entrée standard:20 solipsis/navigator/wxclient/app.py:174
 msgid "Not implemented"
 msgstr "Non disponible"
 
-#: solipsis/wxnavigator/validators.py:52
+#: solipsis/navigator/wxclient/validators.py:52
 msgid "Please enter a valid hostname or address"
 msgstr ""
 
-#: solipsis/wxnavigator/validators.py:62
+#: solipsis/navigator/wxclient/validators.py:62
 msgid "Please enter a valid nickname"
 msgstr ""
 
-#: solipsis/wxnavigator/wxutils.py:77
+#: solipsis/navigator/wxclient/wxutils.py:75
 msgid "Please fill this form correctly"
 msgstr ""
 
-#: solipsis/wxnavigator/validators.py:29
+#: solipsis/navigator/wxclient/validators.py:29
 msgid "Port number must be between 1 and 65535"
 msgstr ""
 
-#: entrÃ©e standard:17
+#: entrée standard:17
 msgid "Port: "
 msgstr "Ã‰lÃ©phant:"
 
-#: entrÃ©e standard:7
+#: entrée standard:7
 msgid "Preferences"
 msgstr "PrÃ©fÃ©rences"
 
-#: entrÃ©e standard:5
+#: entrée standard:5
 msgid "Quit"
 msgstr "Quitter"
 
-#: entrÃ©e standard:11
+#: entrée standard:11
 msgid ""
 "Solipsis Navigator 0.1\n"
 "\n"
@@ -122,15 +119,14 @@ msgid ""
 "(c) France Telecom R&&D\n"
 msgstr ""
 
-#: solipsis/wxnavigator/app.py:168
+#: solipsis/navigator/wxclient/app.py:173
 msgid ""
 "This function is not yet implemented.\n"
 "Sorry! Please come back later..."
 msgstr ""
 
-#: entrÃ©e standard:21
+#: entrée standard:21
 msgid ""
 "This function is not yet implemented.\n"
 "Sorry! please come back later...\n"
 msgstr ""
-

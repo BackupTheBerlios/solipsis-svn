@@ -45,7 +45,11 @@ class RemoteControl(object):
 
     def remote_Move(self, connect_id, x, y, z):
         self._CheckConnectId(connect_id)
+        x = float(x)
+        y = float(y)
+        z = float(z)
         print "Move received", x, y, z
+        self.state_machine.MoveTo((x, y, z))
         return True
 
     def remote_Die(self, connect_id):
