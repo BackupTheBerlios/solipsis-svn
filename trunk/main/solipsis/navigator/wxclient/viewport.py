@@ -107,7 +107,7 @@ class Viewport(object):
 
         # Begin drawing
         start_draw = time.time()
-        dc.SetOptimization(True)
+#         dc.SetOptimization(True)
         dc.BeginDrawing()
         nb_blits = 0
 
@@ -133,7 +133,22 @@ class Viewport(object):
             y = int(pos[1] - h)
             # Safety guard against too big coordinates
             if isinstance(x, int) and isinstance(y, int):
-                dc.DrawBitmapPoint(bmp_avatar, (pos[0] - w, pos[1] - h), True)
+                dc.DrawBitmapPoint(bmp_avatar, (x, y), True)
+                s = self.obj_name[i]
+#                 text_dc = wx.MemoryDC()
+#                 bmp = wx.EmptyBitmap(300, 30)
+#                 text_dc.SelectObject(bmp)
+#                 brush = wx.Brush(wx.BLUE)
+#                 text_dc.BeginDrawing()
+#                 text_dc.SetBackground(brush)
+#                 text_dc.Clear()
+#                 tw, th = text_dc.GetTextExtent(s)
+#                 text_dc.DrawTextPoint(s, (0, 0))
+#                 text_dc.EndDrawing()
+#                 bmp.SetMaskColour(wx.BLUE)
+#                 dc.BlitPointSize((x, y), (tw, th), text_dc, (0, 0), useMask=True)
+#                 text_dc = None
+                dc.DrawTextPoint(self.obj_name[i], (x, y))
         nb_blits += len(indices)
 
         # End drawing
@@ -146,14 +161,14 @@ class Viewport(object):
         self.redraws += 1
         (tick, elapsed) = draw_timer.Read()
         self.last_redraw_duration = tick
-        if not onPaint:
+        if not self.Empty() and not onPaint:
             self.window.Update()
 
     def NeedsFurtherRedraw(self):
         """
         Returns True if the viewport needs redrawing, False otherwise.
         """
-        return self.need_further_redraw
+        return not self.Empty() and self.need_further_redraw
 
     def Add(self, name, obj, position=None):
         """
@@ -279,17 +294,22 @@ class Viewport(object):
     def LastRedrawDuration(self):
         return self.last_redraw_duration
 
+    def Empty(self):
+        return len(self.obj_list) == 0
+
     #
     # Private methods: window ops
     #
 
     def _ViewportGeometryChanged(self):
-        self._SetFutureRatio()
-        self._AskRedraw()
+        if not self.Empty():
+            self._SetFutureRatio()
+            self._AskRedraw()
 
     def _ObjectsGeometryChanged(self):
-        self._SetFutureRatio()
-        self._AskRedraw()
+        if not self.Empty():
+            self._SetFutureRatio()
+            self._AskRedraw()
 
     def _WindowSize(self):
         """ Returns the current size of the drawing area, in pixels. """
@@ -319,9 +339,11 @@ class Viewport(object):
         bitmap = wx.BitmapFromImage(image.Scale(w, h))
         mem_dc = wx.MemoryDC()
         mem_dc.SelectObject(bitmap)
+        self.background = None
         background_dc = wx.MemoryDC()
         background_dc.SelectObject(wx.EmptyBitmap(width, height))
         background_dc.BlitPointSize((0,0), (width, height), mem_dc, (dx, dy))
+#         background_dc.DrawTextPoint("yo!", (100,100))
         self.background = background_dc
 
     def _UpdateAnimations(self):
@@ -537,9 +559,6 @@ _optimize(Viewport)
 #
 
 def __test():
-#     import psyco
-#     psyco.profile()
-
     class W(object):
         def GetClientSizeTuple(self):
             return (640,480)

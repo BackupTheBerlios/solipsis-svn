@@ -36,6 +36,7 @@ _args = [
     ('ARG_ORIENTATION', 'Orientation', 'orientation'),
     ('ARG_POSITION', 'Position', 'position'),
     ('ARG_PSEUDO', 'Pseudo', 'pseudo'),
+    ('ARG_SEND_DETECTS', 'Send-Detects', 'send_detects'),
 
     ('ARG_REMOTE_ADDRESS', 'Remote-Address', 'remote_address'),
     ('ARG_REMOTE_AWARENESS_RADIUS', 'Remote-Awareness-Radius', 'remote_awareness_radius'),
@@ -102,6 +103,7 @@ _syntax_table = {
     ARG_ORIENTATION      : '\d{1,3}',
     ARG_POSITION         : '\s*\d+\s*,\s*\d+\s*,\s*\d+\s*',
     ARG_PSEUDO           : '.*',
+    ARG_SEND_DETECTS     : '(now|later)',
 }
 
 _init_table('ARGS_SYNTAX', _syntax_table, transform=(lambda x: re.compile('^' + x + '$')))
@@ -113,14 +115,15 @@ _init_table('ARGS_SYNTAX', _syntax_table, transform=(lambda x: re.compile('^' + 
 #
 _from_string = {
     ARG_ADDRESS: (lambda s: Address(strAddress=s)),
-    ARG_AWARENESS_RADIUS: long,
-    ARG_BEST_DISTANCE: long,
+    ARG_AWARENESS_RADIUS: float,
+    ARG_BEST_DISTANCE: float,
     ARG_CALIBRE: int,
     ARG_CLOCKWISE: (lambda x: int(x) > 0),
     ARG_ID: str,
     ARG_ORIENTATION: int,
     ARG_POSITION: (lambda s: Position(strPosition=s)),
     ARG_PSEUDO: str,
+    ARG_SEND_DETECTS: (lambda s: s=='now'),
 }
 
 _to_string = {
@@ -134,6 +137,7 @@ _to_string = {
     ARG_ORIENTATION: str,
     ARG_POSITION: str,
     ARG_PSEUDO: str,
+    ARG_SEND_DETECTS: (lambda x: x and "now" or "later"),
 }
 
 _init_table('ARGS_FROM_STRING', _from_string)
@@ -173,7 +177,7 @@ REQUESTS = {
     'FINDNEAREST': [ ARG_ID, ARG_ADDRESS, ARG_POSITION ],
     'FOUND'      : [ ARG_REMOTE_ID, ARG_REMOTE_ADDRESS, ARG_REMOTE_POSITION ],
     'HEARTBEAT'  : [ ARG_ID ],
-    'HELLO'      : ALL_NODE_ARGS,
+    'HELLO'      : ALL_NODE_ARGS + [ ARG_SEND_DETECTS ],
     'NEAREST'    : [ ARG_REMOTE_ID, ARG_REMOTE_ADDRESS, ARG_REMOTE_POSITION ],
     'QUERYAROUND': [ ARG_ID, ARG_ADDRESS, ARG_POSITION, ARG_BEST_ID, ARG_BEST_DISTANCE ],
     'SEARCH'     : [ ARG_ID, ARG_CLOCKWISE ],
@@ -189,7 +193,6 @@ class Message(object):
     def __init__(self, request = ""):
         self.request = request
         self.args = self.Args()
-
 
 
 class Parser(object):

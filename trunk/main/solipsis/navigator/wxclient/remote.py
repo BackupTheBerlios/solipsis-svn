@@ -70,11 +70,11 @@ class RemoteConnector(object):
         """
         Transmit all peer information to the viewport.
         """
-        self.ui.ResetViewport()
+        self.ui.ClearViewport()
         for struct in reply:
             peer_info = marshal.PeerInfo(struct)
             print "PEER", peer_info.id_
-            self.ui.AddObject(peer_info.id_, None, position=peer_info.position)
+            self.ui.AddPeer(peer_info.id_, None, position=peer_info.position)
         self.ui.Redraw()
 
     def success_GetEvents(self, reply):
@@ -97,12 +97,12 @@ class RemoteConnector(object):
     def event_NEW(self, struct):
         peer_info = marshal.PeerInfo(struct)
         print "NEW", peer_info.id_
-        self.ui.AddObject(peer_info.id_, None, position=peer_info.position)
+        self.ui.AddPeer(peer_info.id_, None, position=peer_info.position)
         self.ui.AskRedraw()
 
     def event_LOST(self, peer_id):
         print "LOST", peer_id
-        self.ui.RemoveObject(peer_id)
+        self.ui.RemovePeer(peer_id)
         self.ui.AskRedraw()
 
     #

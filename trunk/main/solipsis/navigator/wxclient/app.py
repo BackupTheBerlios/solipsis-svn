@@ -306,19 +306,19 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     #===-----------------------------------------------------------------===#
     # Actions from the network thread(s)
     #
-    def AddObject(self, *args, **kargs):
+    def AddPeer(self, *args, **kargs):
         """ Add an object to the viewport. """
         self.viewport.Add(*args, **kargs)
 
-    def MoveObject(self, *args, **kargs):
+    def MovePeer(self, *args, **kargs):
         """ Move an object in the viewport. """
         self.viewport.MoveObject(*args, **kargs)
 
-    def RemoveObject(self, *args, **kargs):
+    def RemovePeer(self, *args, **kargs):
         """ Remove an object from the viewport. """
         self.viewport.Remove(*args, **kargs)
 
-    def ResetViewport(self, *args, **kargs):
+    def ClearViewport(self, *args, **kargs):
         """ Reset the viewport. """
         self.viewport.Reset(*args, **kargs)
 

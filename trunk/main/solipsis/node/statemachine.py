@@ -46,6 +46,10 @@ class StateMachine(object):
     scanning_trials = 3
     connecting_trials = 3
 
+    # Time during which we request to send detects on a HELLO
+    # after having moved
+    move_duration = 3.0
+
     # These are all the message types accepted from other peers.
     # Some of them will only be accepted in certain states.
     # The motivation is twofold:
@@ -100,6 +104,7 @@ class StateMachine(object):
         self.state = None
         self.peer_dispatch = {}
 
+        self.moved = False
         # Id's of the peers encountered during a FINDNEAREST chain
         self.nearest_peers = set()
         # Peers discovered during a QUERYAROUND chain
@@ -214,6 +219,8 @@ class StateMachine(object):
 
     def state_Locating(self):
         print "locating"
+
+        self.best_peer = None
 
         def _restart():
             self.SetState(states.NotConnected())
@@ -341,7 +348,8 @@ class StateMachine(object):
             elif self._SayConnect(peer):
                 # If it's a new peer, add it and notify it of neighbours
                 self._AddPeer(peer)
-#                 self._SendDetects(peer)
+                if args.send_detects:
+                    self._SendDetects(peer)
 
     def peer_CONNECT(self, args):
         """
@@ -474,7 +482,7 @@ class StateMachine(object):
             # Check we don't have too many peers, or have worse peers than this one
             if self._AcceptPeer(peer):
                 # Connect to this peer
-                self._SayHello(peer.address)
+                self._SayHello(peer.address, send_detects=self.moved)
 
     def peer_AROUND(self, args):
         """
@@ -608,9 +616,8 @@ class StateMachine(object):
         """
         self._CloseCurrentConnections()
         self.Reset()
-        message = self._PeerMessage('HELLO')
         for address in self.bootup_addresses:
-            self._SendToAddress(address, message)
+            self._SayHello(address)
         self.SetState(states.EarlyConnecting())
 
     def TryConnect(self):
@@ -634,6 +641,13 @@ class StateMachine(object):
         position = Position(x, y, z)
         self.node.position = position
         self.topology.SetOrigin((x, y))
+        self.moved = True
+
+        def _finish():
+            self.moved = False
+        caller = DelayedCaller(self.reactor)
+        caller.CallLater(self.move_duration, _finish)
+
         if self.topology.HasGlobalConnectivity():
             # We still have the global connectivity,
             # so we simply notify our peers of the position change
@@ -704,10 +718,12 @@ class StateMachine(object):
         self._SendToPeer(peer, self._PeerMessage('CLOSE'))
         self._RemovePeer(peer.id_)
 
-    def _SayHello(self, address):
+    def _SayHello(self, address, send_detects=False):
         # TODO: manage repeted connection failures and
         # optionally cancel request (returning False)
-        self._SendToAddress(address, self._PeerMessage('HELLO'))
+        msg = self._PeerMessage('HELLO')
+        msg.args.send_detects = send_detects
+        self._SendToAddress(address, msg)
         return True
 
     def _SayConnect(self, peer):
