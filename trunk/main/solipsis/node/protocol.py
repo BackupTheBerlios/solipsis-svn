@@ -43,13 +43,32 @@ _args = [
     ('ARG_SERVICE_ID', 'Service-Id', 'service_id'),
 ]
 
+
+class bidict(dict):
+    def __init__(self):
+        super(bidict, self).__init__()
+        self._rev = {}
+
+    def __setitem__(self, key, value):
+        super(bidict, self).__setitem__(key, value)
+        self._rev[value] = key
+
+    def __delitem__(self, key);
+        value = self[key]
+        super(bidict, self).__delitem__(key)
+        del self._rev[value]
+
+    def get_reverse(self, key, default=None):
+        return self._rev.get(key, default)
+
+
 def _init_args(args):
     from itertools import count, izip
     global ALL_ARGS, ATTRIBUTE_NAMES, PROTOCOL_STRINGS
 
     ALL_ARGS = []
-    ATTRIBUTE_NAMES = {}
-    PROTOCOL_STRINGS = {}
+    ATTRIBUTE_NAMES = bidict()
+    PROTOCOL_STRINGS = bidict()
 
     for c, (arg_name, full_string, attr_name) in izip(count(1), args):
         arg_value = full_string

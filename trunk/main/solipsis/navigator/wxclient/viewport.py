@@ -36,8 +36,7 @@ class Viewport(object):
         self.last_redraw_duration = 0.01
         self.world_size = world_size
         #self.world_size = 1.0
-        self.fmod = (lambda x, lim=float(self.world_size) / 2.0, fmod=math.fmod:
-                        x >= 0.0 and fmod(x + lim, lim + lim) - lim or lim - fmod(lim - x, lim + lim))
+        self.normalize = (lambda x, lim=float(self.world_size) / 2.0: (x + lim) % (lim + lim) - lim)
 
         self.fps_timer = AutoTimer()
         self.center_glider = ExpEvolver(duration = self.glide_duration)
@@ -219,8 +218,8 @@ class Viewport(object):
         print x, y
         cs = math.cos(-self.angle)
         sn = math.sin(-self.angle)
-        fx = self.fmod((x * cs - y * sn) / self.ratio) + cx
-        fy = self.fmod((y * cs + x * sn) / self.ratio) + cy
+        fx = self.normalize((x * cs - y * sn) / self.ratio) + cx
+        fy = self.normalize((y * cs + x * sn) / self.ratio) + cy
         self._SetFutureCenter((fx,fy))
 
         # Change orientation according to the destination we move towards
@@ -242,12 +241,8 @@ class Viewport(object):
             self._SetFutureAngle(self.angle + angle)
 
         self._ViewportGeometryChanged()
-        fx = self.fmod(fx)
-        fy = self.fmod(fy)
-        if fx < 0.0:
-            fx += self.world_size
-        if fy < 0.0:
-            fy += self.world_size
+        fx = fx % self.world_size
+        fy = fy % self.world_size
         return (fx, fy)
 
     def PendingRedraw(self):
@@ -403,9 +398,9 @@ class Viewport(object):
         if indices is None:
             indices = xrange(len(positions))
         xc, yc = self.center
-        fmod = self.fmod
         p = positions
-        relative_positions = [(fmod(p[i][0] - xc), fmod(p[i][1] - yc)) for i in indices]
+        _normalize = self.normalize
+        relative_positions = [(_normalize(p[i][0] - xc), _normalize(p[i][1] - yc)) for i in indices]
         return relative_positions
 
     def _RelativeBBox(self, indices):
@@ -418,8 +413,6 @@ class Viewport(object):
         p = self._RelativePositions(self.positions, indices)
         xs = [x * cs - y * sn for (x, y) in p] or [0.0]
         ys = [y * cs + x * sn for (x, y) in p] or [0.0]
-#         xs = [(p[i][0] - xc) * cs - (p[i][1] - yc) * sn for i in indices] or [0.0]
-#         ys = [(p[i][1] - yc) * cs + (p[i][0] - xc) * sn for i in indices] or [0.0]
         r = (min(xs), min(ys)), (max(xs), max(ys))
         return r
 
@@ -448,8 +441,6 @@ class Viewport(object):
         # - scale view
         relative_positions = self._RelativePositions(p, indices)
         display_positions = [(w + ratio * (cs * x - sn * y), h - ratio * (sn * x + cs * y)) for (x, y) in relative_positions]
-#         print p
-#         print relative_positions
         return display_positions
 
     def _OptimalRatio(self, indices):
