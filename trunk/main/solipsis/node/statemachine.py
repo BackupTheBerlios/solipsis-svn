@@ -959,7 +959,6 @@ class StateMachine(object):
             awareness_radius = args.awareness_radius,
             id_ = args.id_,
             position = args.position,
-            pseudo = getattr(args, 'pseudo', u""),
             )
 
     def _RemotePeer(self, args):
@@ -971,7 +970,6 @@ class StateMachine(object):
             awareness_radius = args.remote_awareness_radius,
             id_ = args.remote_id,
             position = args.remote_position,
-            pseudo = getattr(args, 'remote_pseudo', u""),
             )
 
     def _PeerMessage(self, request, peer=None, remote_peer=None):

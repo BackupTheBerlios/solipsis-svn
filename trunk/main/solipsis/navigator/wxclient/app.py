@@ -35,7 +35,7 @@ from network import NetworkLoop
 class ConnectionData(ManagedData):
     def __init__(self, host=None, port=None, pseudo=None):
         super(ConnectionData, self).__init__()
-        self.pseudo = pseudo or u"Solipsou"
+        self.pseudo = pseudo or u"Rick Dangerous"
         self.host = host or "localhost"
         self.port = port or 8550
 
@@ -361,5 +361,3 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             self.Redraw()
         elif status == 'UNAVAILABLE':
             self.viewport.Disable()
-
-

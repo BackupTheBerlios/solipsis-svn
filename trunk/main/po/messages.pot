@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2004-12-10 17:55+0100\n"
+"POT-Creation-Date: 2005-01-04 18:37+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -64,7 +64,7 @@ msgid ""
 "(c) France Telecom R&&D\n"
 msgstr ""
 
-#: entrée standard:12 standard:18 standard:22 standard:23
+#: entrée standard:12 standard:18 standard:22
 msgid "&OK"
 msgstr ""
 
@@ -92,7 +92,7 @@ msgstr ""
 msgid "&Cancel"
 msgstr ""
 
-#: entrée standard:20 solipsis/navigator/wxclient/app.py:174
+#: entrée standard:20 solipsis/navigator/wxclient/app.py:193
 msgid "Not implemented"
 msgstr ""
 
@@ -102,27 +102,27 @@ msgid ""
 "Sorry! please come back later...\n"
 msgstr ""
 
-#: solipsis/navigator/wxclient/wxutils.py:75
-msgid "Please fill this form correctly"
-msgstr ""
-
-#: solipsis/navigator/wxclient/wxutils.py:100
-msgid "Error"
-msgstr ""
-
-#: solipsis/navigator/wxclient/validators.py:29
+#: solipsis/navigator/wxclient/validators.py:47
 msgid "Port number must be between 1 and 65535"
 msgstr ""
 
-#: solipsis/navigator/wxclient/validators.py:52
+#: solipsis/navigator/wxclient/validators.py:70
 msgid "Please enter a valid hostname or address"
 msgstr ""
 
-#: solipsis/navigator/wxclient/validators.py:62
+#: solipsis/navigator/wxclient/validators.py:80
 msgid "Please enter a valid nickname"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:173
+#: solipsis/navigator/wxclient/wxutils.py:93
+msgid "Please fill this form correctly"
+msgstr ""
+
+#: solipsis/navigator/wxclient/wxutils.py:118
+msgid "Error"
+msgstr ""
+
+#: solipsis/navigator/wxclient/app.py:192
 msgid ""
 "This function is not yet implemented.\n"
 "Sorry! Please come back later..."
