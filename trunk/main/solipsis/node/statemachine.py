@@ -25,6 +25,7 @@ import time
 
 from solipsis.util.exception import *
 from solipsis.util.geometry import Position
+from solipsis.util.address import Address
 from peer import Peer
 from entity import Service
 import protocol
@@ -66,6 +67,10 @@ class StateMachine(object):
     locating_trials = 3
     scanning_trials = 3
     connecting_trials = 3
+
+    minimum_hold_time = 30
+    local_hold_time = 240
+    remote_hold_time = 30
     
     # Dampening delays
     hello_dampening = 3.0
@@ -73,6 +78,7 @@ class StateMachine(object):
     # Time during which we request to send detects on a HELLO
     # after having moved
     move_duration = 3.0
+
 
     # These are all the message types accepted from other peers.
     # Some of them will only be accepted in certain states.
@@ -368,10 +374,11 @@ class StateMachine(object):
         A new peer is contacting us.
         """
         peer = self._Peer(args)
+        peer.hold_time = args.hold_time
         topology = self.topology
 
-        # We have now too many peers and this is the worst one
-        if not self._AcceptPeer(peer):
+        # Check if we want to accept peer as a neighbour
+        if peer.hold_time < self.minimum_hold_time or not self._AcceptPeer(peer):
             # Refuse connection
             self._SendToPeer(peer, self._PeerMessage('CLOSE'))
         else:
@@ -394,7 +401,13 @@ class StateMachine(object):
         """
         # TODO: check that we sent a HELLO message to this peer
         peer = self._Peer(args)
+        peer.hold_time = args.hold_time
         topology = self.topology
+
+        # The proposed hold time is too small
+        if peer.hold_time < self.minimum_hold_time:
+            # Refuse connection
+            self._SendToPeer(peer, self._PeerMessage('CLOSE'))
 
         if not topology.HasPeer(peer.id_):
             self._AddPeer(peer)
@@ -722,8 +735,8 @@ class StateMachine(object):
         """
         self._CloseCurrentConnections()
         self.Reset()
-        for address in self.bootup_addresses:
-            self._SayHello(address)
+        for host, port in self.bootup_addresses:
+            self._SayHello(Address(host, port))
         self.SetState(states.EarlyConnecting())
 
     def TryConnect(self):
@@ -737,7 +750,7 @@ class StateMachine(object):
             addresses = random.sample(self.bootup_addresses, self.teleportation_flood)
         else:
             addresses = self.bootup_addresses
-        self._StartFindNearest(addresses)
+        self._StartFindNearest([Address(host, port) for host, port in addresses])
 
     def MoveTo(self, (x, y, z)):
         """
@@ -1053,6 +1066,15 @@ class StateMachine(object):
         a.accept_languages = self.node.GetLanguages()
         a.accept_services = self.node.GetServices()
 
+    def _HoldTime(self, address):
+        """
+        Choose hold time depending on peer address.
+        """
+        if address.host == self.node.address.host:
+            return self.local_hold_time
+        else:
+            return self.remote_hold_time
+
     def _SayHello(self, address, send_detects=False):
         """
         Say HELLO to a peer.
@@ -1065,6 +1087,7 @@ class StateMachine(object):
             self.last_hellos[address] = now
             msg = self._PeerMessage('HELLO')
             msg.args.send_detects = send_detects
+            msg.args.hold_time = self._HoldTime(address)
             self._SendToAddress(address, msg)
             return True
         return False
@@ -1077,6 +1100,8 @@ class StateMachine(object):
         # optionally cancel request (sending CLOSE and
         # returning False)
         msg = self._PeerMessage('CONNECT')
+        #~ msg.args.hold_time = self._HoldTime((peer.address.host, peer.address.host))
+        msg.args.hold_time = self._HoldTime(peer.address)
         self._SendToPeer(peer, msg)
         return True
 

@@ -50,6 +50,7 @@ _args = [
     ('ARG_BEST_DISTANCE', 'Best-Distance', 'best_distance'),
     ('ARG_BEST_ID', 'Best-Id', 'best_id'),
     ('ARG_CLOCKWISE', 'Clockwise', 'clockwise'),
+    ('ARG_HOLD_TIME', 'Hold-Time', 'hold_time'),
     ('ARG_ID', 'Id', 'id_'),
     ('ARG_POSITION', 'Position', 'position'),
     ('ARG_SEND_DETECTS', 'Send-Detects', 'send_detects'),
@@ -117,6 +118,7 @@ _syntax_table = {
     ARG_AWARENESS_RADIUS : r'\d+',
     ARG_CLOCKWISE        : r'[-+]1',
     ARG_BEST_DISTANCE    : r'\d+',
+    ARG_HOLD_TIME        : r'[\d]+',
     ARG_ID               : r'[^\s]*',
     ARG_POSITION         : r'\s*\d+\s*,\s*\d+\s*,\s*\d+\s*',
     ARG_PSEUDO           : r'.*',
@@ -167,6 +169,7 @@ _from_string = {
     ARG_AWARENESS_RADIUS:   float,
     ARG_BEST_DISTANCE:      float,
     ARG_CLOCKWISE:          (lambda c: int(c) > 0),
+    ARG_HOLD_TIME:          int,
     ARG_ID:                 intern,
     ARG_POSITION:           (lambda s: Position(strPosition=s)),
     ARG_PSEUDO:             (lambda s: unicode(s.decode(CHARSET))),
@@ -183,6 +186,7 @@ _to_string = {
     ARG_AWARENESS_RADIUS:   (lambda x: str(long(x))),
     ARG_BEST_DISTANCE:      (lambda x: str(long(x))),
     ARG_CLOCKWISE:          (lambda c: c and "+1" or "-1"),
+    ARG_HOLD_TIME:          str,
     ARG_ID:                 str,
     ARG_POSITION:           str,
     ARG_PSEUDO:             (lambda u: u.encode(CHARSET)),
@@ -214,9 +218,9 @@ REMOTE_ARGS = [
 
 REQUESTS = {
     'CLOSE'      : [ ARG_ID ],
-    'CONNECT'    : NODE_ARGS,
+    'CONNECT'    : NODE_ARGS + [ ARG_HOLD_TIME ],
     'HEARTBEAT'  : [ ARG_ID ],
-    'HELLO'      : NODE_ARGS + [ ARG_SEND_DETECTS ],
+    'HELLO'      : NODE_ARGS + [ ARG_HOLD_TIME, ARG_SEND_DETECTS ],
 
     'AROUND'     : REMOTE_ARGS,
     'BEST'       : NODE_ARGS,

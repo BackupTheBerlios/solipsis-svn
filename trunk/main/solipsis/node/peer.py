@@ -26,15 +26,11 @@ from entity import Entity
 
 
 class Peer(Entity):
-
     def __init__(self, *args, **kargs):
         """ Create a new Entity and keep information about it"""
 
         # Call parent class constructor
         super(Peer, self).__init__(*args, **kargs)
-
-        # TODO: initialize this from protocol message
-        self.hold_time = 180
 
         # Time of latest messages received/sent
         self.last_received_message = 0
