@@ -68,8 +68,11 @@ class StateMachine(object):
     scanning_trials = 3
     connecting_trials = 3
 
+    # Hold time
+    # With local nodes, we choose a very long timeout which enables us
+    # to minimize the number of HEARTBEAT messages in a mass-hosting setup
     minimum_hold_time = 30
-    local_hold_time = 240
+    local_hold_time = 1200
     remote_hold_time = 30
     
     # Dampening delays

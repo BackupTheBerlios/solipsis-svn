@@ -51,8 +51,6 @@ def main():
 
     parser.add_option("-c", "--controller", action="append", dest="controllers", default=[],
                         help="specify a controller (multiple occurences allowed)")
-    parser.add_option("-e", type="int", dest="expected_neighbours",
-                        help="number of expected neighbours")
     parser.add_option("-f", "--conf", dest="config_file", default=config_file,
                         help="configuration file")
     parser.add_option("", "--pool", type="int", dest="pool", default=0,
@@ -62,6 +60,8 @@ def main():
     # Debug/developper options
     parser.add_option("-P", "--profile", action="store_true", dest="profile", default=False,
                         help="profile execution to node.prof")
+    parser.add_option("-e", type="int", dest="expected_neighbours",
+                        help="number of expected neighbours")
     parser.add_option("-x", type="long", dest="pos_x",
                         help="X start value")
     parser.add_option("-y", type="long", dest="pos_y",
@@ -107,11 +107,11 @@ def main():
             #profile.run(__name__ + ".profile_run()", "node.prof")
         else:
             # See Psyco documentation: http://psyco.sourceforge.net/psycoguide/module-psyco.html
-            #~ try:
-                #~ import psyco
-                #~ psyco.profile(time=240)
-            #~ except ImportError:
-                #~ print "You can speed up this program by installing psyco (http://psyco.sourceforge.net/)."
+            try:
+                import psyco
+                psyco.profile(time=240)
+            except ImportError:
+                print "You can speed up this program by installing psyco (http://psyco.sourceforge.net/)."
             profile_run()
     except SystemExit:
         pass
