@@ -92,7 +92,7 @@ class Node(Entity):
 
         # Dummy test data
         self.languages = ['fr', 'en']
-        self.AddService(Service('chat', address='127.0.0.1:5555'))
+        #~ self.AddService(Service('chat', address='127.0.0.1:5555'))
         self.AddService(Service('video', address='127.0.0.1:6543'))
         self.AddService(Service('browse', 'in'))
         self.AddService(Service('share', 'out'))
