@@ -25,7 +25,7 @@ class Controller(xmlrpc.XMLRPC):
         Start listening to XML-RPC requests.
         """
         self.listening = self.reactor.listenTCP(pool_num + self.params.xmlrpc_port,
-            server.Site(self), interface=self.params.xmlrpc_host)
+            server.Site(self, timeout=30), interface=self.params.xmlrpc_host)
 
     def Stop(self):
         """

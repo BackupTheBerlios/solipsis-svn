@@ -53,12 +53,13 @@ def discover_proxy():
     # Split host and port
     if host_port is not None:
         t = host_port.split(':')
-        host = t[0]
-        try:
-            port = int(t[1])
-        except:
-            port = 80
-        return host, port
+        host = t[0].strip()
+        if host:
+            try:
+                port = int(t[1])
+            except:
+                port = 80
+            return host, port
 
     return None, None
 

@@ -89,8 +89,11 @@ def main():
             #profile.run(__name__ + ".profile_run()", "node.prof")
         else:
             # See Psyco documentation: http://psyco.sourceforge.net/psycoguide/module-psyco.html
-#             import psyco
-#             psyco.profile(time=120)
+            try:
+                import psyco
+                psyco.profile(time=120)
+            except ImportError:
+                print "You can speed up this program by installing psyco (http://psyco.sourceforge.net/)."
             profile_run()
     except SystemExit:
         pass
