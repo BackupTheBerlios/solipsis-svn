@@ -230,7 +230,7 @@ class Topology(object):
 
     def GetPeersWithinDistance(self, distance):
         """
-        Returns the peers within a given distance (in distance order).
+        Returns the peers within a given distance (in distance order if position is None).
         """
         last = bisect.bisect(self.distance_peers, (distance * (1.0 + self.epsilon), None))
         return [self.peers[id_] for (distance, id_) in self.distance_peers[:last]]
@@ -245,9 +245,33 @@ class Topology(object):
         dist_out = self.distance_peers[n][0]
         return math.sqrt(dist_in * dist_out) * (1.0 + self.epsilon)
 
+
     #
     # Methods depending on a "target" position
     #
+
+    def GetPeersInCircle(self, position, radius):
+        """
+        Returns the peers in a circle.
+        """
+        xc, yc = self.origin
+        xt = self.normalize(position[0] - xc)
+        yt = self.normalize(position[1] - yc)
+        _distances = self.distance_peers
+
+        # Heuristic to reduce calculations if possible
+        distance = math.sqrt(xt**2 + yt**2)
+        first = bisect.bisect_left(_distances, (distance - radius, None))
+        last = bisect.bisect_right(_distances, (distance + radius, None))
+
+        _p = self.relative_positions
+        ids = []
+        r2 = radius ** 2
+        result = []
+        for id_, (x, y) in [(id_, _p[id_]) for (d, id_) in _distances[first:last]]:
+            if r2 >= (x - xt) ** 2 + (y - yt) ** 2:
+                result.append(self.peers[id_])
+        return result
 
     def GetClosestPeer(self, target, exclude_id=None):
         """

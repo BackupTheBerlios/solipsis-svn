@@ -93,7 +93,6 @@ class StateMachine(object):
         self.best_peer = None
 
         # Delayed calls
-        # TODO: check they are properly garbage collected
         self.peer_timeouts = {}
         self.caller.Reset()
 
@@ -163,12 +162,12 @@ class StateMachine(object):
             self.logger.info("Ignoring unexpected message '%s' in state '%s'" % (request, self.state.__class__.__name__))
         else:
             func(args)
-            # TODO: properly handle heartbeat et al.
             try:
                 id_ = args.id_
             except AttributeError:
                 pass
             else:
+                # Heartbeat handling
                 if id_ in self.peer_timeouts:
                     self.peer_timeouts[id_].RescheduleCall('msg_receive_timeout')
 
@@ -260,7 +259,7 @@ class StateMachine(object):
                 self.logger.info("HELLO from '%s', but we are already connected" % peer.id_)
             if self._SayConnect(peer):
                 self._AddPeer(peer)
-                # TODO: detect peers within the new peer's awareness radius ?
+                self._SendDetects(peer)
 
     def peer_CONNECT(self, args):
         """
@@ -271,7 +270,7 @@ class StateMachine(object):
 
         if not self.topology.HasPeer(peer.id_):
             self._AddPeer(peer)
-            # TODO: detect peers within the new peer's awareness radius ?
+            self._SendDetects(peer)
             # TODO: exchange service info and other stuff
             # TODO: notify
 
@@ -367,10 +366,11 @@ class StateMachine(object):
         peer = self._RemotePeer(args)
         id_ = peer.id_
 
-        # Sanity check 1: don't connect with ourselves
+        # Filter 1: don't connect with ourselves
+        # (TODO: handle this case upstream)
         if id_ == self.node.id_:
             return
-        # Sanity check 2: don't connect with someone too far from us
+        # Filter 2: don't connect with someone too far from us
         distance = self.topology.RelativeDistance(peer.position.getCoords())
         if distance > self.node.awareness_radius:
             return
@@ -611,12 +611,6 @@ class StateMachine(object):
         self.peer_timeouts[peer.id_] = caller
 
         # TODO: notify navigator that we gained a new peer
-#         factory = EventFactory.getInstance(ControlEvent.TYPE)
-#         newPeerEvent = factory.createNEW(peer)
-#         self.node.dispatch(newPeerEvent)
-#         if type(self) == Idle:
-#             if manager.hasTooManyPeers():
-#                 self.node.setState(TooManyPeers())
 
     def _RemovePeer(self, id_):
         """
@@ -626,9 +620,6 @@ class StateMachine(object):
         self.topology.RemovePeer(id_)
 
         # TODO: notify navigator that we lost connection with a peer
-#         factory = EventFactory.getInstance(ControlEvent.TYPE)
-#         dead = factory.createDEAD(id_)
-#         self.node.dispatch(dead)
 
     def _AcceptPeer(self, peer):
         """
@@ -712,6 +703,17 @@ class StateMachine(object):
         for peer in self.topology.EnumeratePeers():
             self._SendToPeer(peer, message)
 
+    def _SendDetects(self, peer):
+        """
+        Send detect messages to a peer.
+        This is called on the connection initialization.
+        """
+        position = peer.position.getCoords()
+        radius = peer.awareness_radius
+        for remote_peer in self.topology.GetPeersInCircle(position, radius):
+            message = self._PeerMessage('DETECT', remote_peer=remote_peer)
+            self._SendToPeer(peer, message)
+
     def _UpdateAwarenessRadius(self, ar):
         self.node.awareness_radius = ar
         self._SendUpdates()
@@ -786,7 +788,7 @@ class StateMachine(object):
             peer = self.node
         message = protocol.Message(request)
         # Build message args from involved entities
-        # This could be smarter...
+        # TODO: rewrite this better
         a = message.args
         p = peer
         a.address = p.address
