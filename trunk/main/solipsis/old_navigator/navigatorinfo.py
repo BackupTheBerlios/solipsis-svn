@@ -1,6 +1,6 @@
 import math
 
-from solipsis.core.entity import Entity, Position
+from solipsis.node.entity import Entity, Position
 from solipsis.util.exception import InternalError
 from solipsis.util.util import Geometry
 

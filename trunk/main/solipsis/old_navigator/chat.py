@@ -2,8 +2,8 @@ import wx
 
 from solipsis.navigator.service import Service
 from solipsis.util.exception import SolipsisException
-#from solipsis.core.eventparser import EventParser
-from solipsis.core.event import Event, EventParser
+#from solipsis.node.eventparser import EventParser
+from solipsis.node.event import Event, EventParser
 from solipsis.navigator.basic.image import ImageManager
 
 

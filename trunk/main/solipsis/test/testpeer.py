@@ -4,11 +4,11 @@ import os,sys
 searchPath = os.path.dirname(os.path.dirname(sys.path[0]))
 sys.path.append(searchPath)
 
-from solipsis.core.peer import Peer, PeersManager
-from solipsis.core.peer import UnknownIdError, DuplicateIdError, EmptyIdError
+from solipsis.node.peer import Peer, PeersManager
+from solipsis.node.peer import UnknownIdError, DuplicateIdError, EmptyIdError
 from solipsis.util.geometry import Position, Geometry
 from solipsis.util.address import Address
-from solipsis.core.node import Node
+from solipsis.node.node import Node
 from solipsis.util.parameter import Parameters
 from solipsis.util.exception import InternalError
 

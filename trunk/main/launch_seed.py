@@ -2,10 +2,10 @@
 
 import os
 from solipsis.util.parameter import Parameters
-from solipsis.core.seed import Seed
+from solipsis.node.seed import Seed
 
 def createNode(port, x, y):
-    #args = ['./runseed.sh', 'solipsis/core/startSeed.py']
+    #args = ['./runseed.sh', 'solipsis/node/startSeed.py']
     args = ['./runseed.sh']
     args +=  ['-b', '-p', str(port)]
     args +=  ['-x', str(x), '-y', str(y), '-f', 'conf/seed.conf']

@@ -4,8 +4,8 @@ import os,sys
 searchPath = os.path.dirname(os.path.dirname(sys.path[0]))
 sys.path.append(searchPath)
 
-#from solipsis.core.controlevent import ControlEvent
-#from solipsis.core.event import Event
+#from solipsis.node.controlevent import ControlEvent
+#from solipsis.node.event import Event
 
 class superObj:
     def __init__(self):

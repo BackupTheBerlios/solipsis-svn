@@ -1,5 +1,5 @@
 import xmlrpclib, os, new, threading, time
-from solipsis.core.event import Event, Notification
+from solipsis.node.event import Event, Notification
 
 from solipsis.util.exception import AbstractMethodError
 
@@ -195,11 +195,11 @@ class DummyController(Controller):
 
     def connect(self):
         """ Generate a NEW peer event """
-        from solipsis.core.controlevent import ControlEvent
-        import solipsis.core.entity
+        from solipsis.node.controlevent import ControlEvent
+        import solipsis.node.entity
         nodeinfo = ControlEvent('NODEINFO')
         nodeinfo.addArg('Id', 'slp:node_dummycontroller')
-        nodeinfo.addArg('Position', solipsis.core.entity.Position(12,16))
+        nodeinfo.addArg('Position', solipsis.node.entity.Position(12,16))
         nodeinfo.addArg('Awareness-Radius', 10)
         nodeinfo.addArg('Pseudo', 'myNode')
         nodeinfo.addArg('Calibre', 2)
@@ -207,7 +207,7 @@ class DummyController(Controller):
 
         newEvent = ControlEvent('NEW')
         newEvent.addArg('Id', 'slp:dummycontroller')
-        newEvent.addArg('Position', solipsis.core.entity.Position(88,36))
+        newEvent.addArg('Position', solipsis.node.entity.Position(88,36))
         newEvent.addArg('Awareness-Radius', 10)
         newEvent.addArg('Pseudo', 'p1')
         self.getSubscriber().NEW(newEvent)
@@ -215,40 +215,5 @@ class DummyController(Controller):
         threading.Timer(10.0, self.OnTimer).start()
 
     def OnTimer(self):
-        from solipsis.core.controlevent import ControlEvent
-        import solipsis.core.entity
-        newEvent = ControlEvent('NEW')
-        newEvent.addArg('Id', 'slp:peerTimer')
-        newEvent.addArg('Position', solipsis.core.entity.Position(-20,126))
-        newEvent.addArg('Awareness-Radius', 10)
-        newEvent.addArg('Pseudo', 'p2')
-        self.getSubscriber().NEW(newEvent)
-
-    def createNode(self, pseudo):
-        f = file('nodes/nodes.txt', 'w')
-        f.write('dummy;127.0.0.1;1247;8088;7000;567687876787654;5668798798\n')
-        f.close()
-        self.getSubscriber()._OnNodeCreationSuccess()
-
-class CheckCreationThread(threading.Thread):
-    CREATION_TIMEOUT = 5
-    SLEEP_TIME = 0.5
-    def __init__(self, controller):
-        self.controller = controller
-        super(CheckCreationThread, self).__init__()
-
-    def run(self):
-        self.startTime = time.time()
-
-        while time.time() < self.startTime + CheckCreationThread.CREATION_TIMEOUT:
-            if not self.controller.isNodeAlive():
-                print 'CheckCreationThread sleeping'
-                time.sleep(CheckCreationThread.SLEEP_TIME)
-            else:
-                print 'CheckCreationThread success'
-                self.controller.OnNodeCreationSuccess()
-                return
-
-        # timeout expired
-        self.controller.OnNodeCreationTimeout()
-
+        from solipsis.node.controlevent import ControlEvent
+   

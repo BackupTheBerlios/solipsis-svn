@@ -7,7 +7,7 @@ import os,sys
 
 searchPath = os.path.dirname(os.path.dirname(sys.path[0]))
 sys.path.append(searchPath)
-from solipsis.core.controlevent import ControlEvent
+from solipsis.node.controlevent import ControlEvent
 
 def getmyobj():
     id=55

@@ -1,7 +1,7 @@
 from solipsis.util.exception import InternalError
 from solipsis.navigator.subscriber import AbstractSubscriber
 from solipsis.navigator.basic.wxProcessor import WxProcessor
-from solipsis.core.event import EventParser
+from solipsis.node.event import EventParser
 import solipsis.navigator.basic.basicFrame 
 import wx
 
