@@ -185,6 +185,7 @@ class Message(object):
         self.args = self.Args()
 
 
+
 class Parser(object):
     """
     This class represents a Solipsis message.
@@ -196,11 +197,20 @@ class Parser(object):
     def __init__(self):
         self.logger = logging.getLogger('root')
 
+    def StripMessage(self, message):
+        """
+        Strip unnecessary parameters from message.
+        """
+        d = dict.fromkeys([ATTRIBUTE_NAMES[arg_id] for arg_id in REQUESTS[message.request]])
+        args = message.args
+        for k in args.__dict__:
+            if k not in d:
+                delattr(args, k)
+
     def BuildMessage(self, message):
         """
         Build protocol data from message.
         """
-
         lines = []
         args = message.args.__dict__
 
@@ -221,7 +231,6 @@ class Parser(object):
         """
         Parse and extract message from protocol data.
         """
-
         # Parse raw data to construct message (strip empty lines)
         lines = [line.strip() for line in data.splitlines() if line.strip() != ""]
         # If message is empty, return false

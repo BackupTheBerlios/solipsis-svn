@@ -31,41 +31,25 @@
 ## ******************************************************************************
 
 import random, string, time, logging, math
-from solipsis.node.entity import Entity
+
 from solipsis.util.geometry import Geometry, Position
 from solipsis.util.address import Address
-
 from solipsis.util.exception import *
 from solipsis.util.container import CcwList, DistList
+
+from entity import Entity
 
 
 class Peer(Entity):
 
-    def __init__(self, id="", address=None, position=Position(0,0), orientation=0,
-                 awarenessRadius=0, calibre=0, pseudo=""):
+    def __init__(self, *args, **kargs):
         """ Create a new Entity and keep information about it"""
 
         # call parent class constructor
-        Entity.__init__(self, id, position, orientation, awarenessRadius, calibre,
-                        pseudo, address)
+        super(Peer, self).__init__(*args, **kargs)
 
         # last time when we saw this peer active
         self.activeTime = 0
-
-        # local position is the position of this peer using a coordinate system
-        # centered on the position of the node
-        # this value is set-up by the peer manager
-        self.localPositon = position
-
-        # set the ID of this peer
-        #id = self.createId()
-        #self.setId(id)
-
-        # position and relative position
-        #relative_position = Function.relativePosition(self.position,
-        # globalvars.me.position)
-        #self.local_position = [ relative_position[0] - globalvars.me.position[0],
-        #relative_position[1] - globalvars.me.position[1] ]
 
         # two boolean variables indicating that
         # we received a message from this entity
@@ -84,7 +68,7 @@ class Peer(Entity):
         """ Set the local position in the coordinate system with origin nodePosition
         nodePosition: position of the node, e.g. [12,56]
         """
-        self.localPosition = Geometry.localPosition(self.getPosition(), nodePosition)
+        self.localPosition = Geometry.localPosition(self.position, nodePosition)
 
     def setActiveTime(self, t):
         self.activeTime = t
@@ -93,8 +77,8 @@ class Peer(Entity):
     def isCloser(self, peerB, targetPosition):
         """ Return True if this peer is closer than peerB to targetPosition
         """
-        d1 = Geometry.distance(self.getPosition(), targetPosition)
-        d2 = Geometry.distance(peerB.getPosition(), targetPosition)
+        d1 = Geometry.distance(self.position, targetPosition)
+        d2 = Geometry.distance(peerB.position, targetPosition)
 
         return d1 < d2
 
@@ -175,10 +159,10 @@ class PeersManager(object):
         Raises : DuplicateIdError, if a peer with the same id already exists
         EmptyIdError, if the ID of the peer is empty
         """
-        referencePosition = self.node.getPosition()
+        referencePosition = self.node.position
         p.setLocalPosition(referencePosition)
 
-        id_ = p.getId()
+        id_ = p.id_
         if not id_:
             raise EmptyIdError()
 
@@ -211,7 +195,7 @@ class PeersManager(object):
 
     def updatePeer(self, p):
         """ update information on a peer. """
-        self.removePeer(p.getId())
+        self.removePeer(p.id_)
         self.addPeer(p)
 
     def getPeer(self, peerid):
@@ -253,7 +237,7 @@ class PeersManager(object):
         """
         closestPeer = None
         for p in self.peers.values():
-            if p.getId() == emitter_id:
+            if p.id_ == emitter_id:
                 continue
             if closestPeer is None or p.isCloser(closestPeer, target):
                 closestPeer = p
@@ -272,19 +256,19 @@ class PeersManager(object):
         found = False
         around = None
         distClosest = 0
-        nodePosition = self.node.getPosition()
+        nodePosition = self.node.position
         for p in self.peers.values():
-            if p.getId() == emitter_id:
+            if p.id_ == emitter_id:
                 continue
             if Geometry.inHalfPlane(nodePosition, targetPosition,
-                                    p.getPosition()) == isClockWise:
+                                    p.position) == isClockWise:
                 # first entity in right half-plane
                 if not found:
                     found = True
                     around = p
-                    distClosest = Geometry.distance(targetPosition, p.getPosition())
+                    distClosest = Geometry.distance(targetPosition, p.position)
                 else:
-                    dist = Geometry.distance(targetPosition, p.getPosition())
+                    dist = Geometry.distance(targetPosition, p.position)
                     # this peer is closer
                     if dist < distClosest:
                         around = p
@@ -300,7 +284,7 @@ class PeersManager(object):
         """
         arList = []
         for p in self.enumeratePeers():
-            arList.append(p.getAwarenessRadius())
+            arList.append(p.awareness_radius)
         arList.sort()
         return arList[len(arList)//2]
 
@@ -324,12 +308,12 @@ class PeersManager(object):
         if not self.hasTooManyPeers():
             return True
 
-        if self.hasPeer(peer.getId()):
+        if self.hasPeer(peer.id_):
             worst = self.getWorstPeer()
         else:
             self.addPeer(peer)
             worst = self.getWorstPeer()
-            self.removePeer(peer.getId())
+            self.removePeer(peer.id_)
 
         return worst is not peer
 
@@ -356,9 +340,9 @@ class PeersManager(object):
             return self.enumeratePeers()
         result = []
         for i in xrange(n):
-            pred_pos = self.ccwPeers.ll[i - 2].getPosition()
+            pred_pos = self.ccwPeers.ll[i - 2].position
             pos = self.node.getPosition()
-            succ_pos = self.ccwPeers.ll[i].getPosition()
+            succ_pos = self.ccwPeers.ll[i].position
             if not Geometry.inHalfPlane(pred_pos, pos, succ_pos):
                 result.append(self.ccwPeers.ll[i - 1])
 
@@ -375,7 +359,7 @@ class PeersManager(object):
         First entity should be used to search clockwise and the second one ccw"""
         result = []
 
-        nodePos = self.node.getPosition()
+        nodePos = self.node.position
         length = self.getNumberOfPeers()
 
         if length == 0:
@@ -388,8 +372,8 @@ class PeersManager(object):
         for index in range(length):
             ent = self.ccwPeers.ll[index]
             nextEnt = self.ccwPeers.ll[ (index+1) % length ]
-            entPos = ent.getPosition()
-            nextEntPos = nextEnt.getPosition()
+            entPos = ent.position
+            nextEntPos = nextEnt.position
             if not Geometry.inHalfPlane(entPos, nodePos, nextEntPos):
                 return [ent, nextEnt]
         return []
@@ -407,18 +391,17 @@ class PeersManager(object):
             offset = self.getNumberOfPeers() - self.maxPeers
             index = len(self.distPeers) - offset - 1
             # Get the average between the max inside distance and the min outside distance
-            pos_outside = self.distPeers.ll[index].getPosition()
-            pos_inside = self.distPeers.ll[index - 1].getPosition()
-            dist_outside = Geometry.distance(self.node.getPosition(), pos_outside)
-            dist_inside = Geometry.distance(self.node.getPosition(), pos_inside)
+            pos_outside = self.distPeers.ll[index].position
+            pos_inside = self.distPeers.ll[index - 1].position
+            dist_outside = Geometry.distance(self.node.position, pos_outside)
+            dist_inside = Geometry.distance(self.node.position, pos_inside)
             return (dist_outside + dist_inside) // 2
         if self.hasTooFewPeers():
-            fartherPeerPos = self.distPeers.ll[len(self.distPeers) - 1].getPosition()
-            maxDist = Geometry.distance(self.node.getPosition(), fartherPeerPos)
+            fartherPeerPos = self.distPeers.ll[len(self.distPeers) - 1].position
+            maxDist = Geometry.distance(self.node.position, fartherPeerPos)
             # Areal density
-            density = self.getNumberOfPeers() / (maxDist ** 2)
-            return math.sqrt(self.expectedPeers / density)
+            return maxDist * math.sqrt(self.expectedPeers / self.getNumberOfPeers())
         else:
-            fartherPeerPos = self.distPeers.ll[len(self.distPeers) - 1].getPosition()
-            return Geometry.distance(self.node.getPosition(), fartherPeerPos)
+            fartherPeerPos = self.distPeers.ll[len(self.distPeers) - 1].position
+            return Geometry.distance(self.node.position, fartherPeerPos)
 

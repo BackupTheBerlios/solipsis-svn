@@ -16,6 +16,8 @@ import logging
 
 
 class State(object):
+    current_best_peer = None
+
     def __init__(self, state_machine):
         self.state_machine = state_machine
         self.logger = logging.getLogger("root")
@@ -133,187 +135,185 @@ class Connecting(State):
     It is now attempting to connect to these peers.
     """
 
-    # in the connecting state we increase our awareness radius in a linear way
-    PERCENTAGE_AR_INCREASE = 0.3
-    # maximum number of times we will try to incerease our awareness radius
-    MAX_AR_INCREASE_ATTEMPTS = 10
+    expected_peer_messages = ['HELLO', 'CONNECT']
+    expected_control_messages = ['MOVE', 'KILL', 'SET']
 
-    def __init__(self):
-        self.expectedMessages = ['CONNECT', 'SERVICE', 'TIMER']
-        self.nbArIncrease = 0
-        self.startTimer()
+#     # in the connecting state we increase our awareness radius in a linear way
+#     PERCENTAGE_AR_INCREASE = 0.3
+#     # maximum number of times we will try to incerease our awareness radius
+#     MAX_AR_INCREASE_ATTEMPTS = 10
+#
+#     def __init__(self):
+#         self.expectedMessages = ['CONNECT', 'SERVICE', 'TIMER']
+#         self.nbArIncrease = 0
+#         self.startTimer()
+#
+#     def activate(self):
+#         pass
+#
+#     def CONNECT(self, event):
+#         super(Connecting, self).CONNECT(event)
+#         mng = self.node.getPeersManager()
+#
+#         # we have now reached our number of expected neighbours
+#         if not mng.hasTooFewPeers():
+#             self.timer.cancel()
+#             if not mng.hasGlobalConnectivity():
+#                 self.searchPeers()
+#                 self.node.setState(NoGlobalConnectivity())
+#             else:
+#                 # start periodic tasks and go to Idle state
+#                 self.node.startPeriodicTasks()
+#                 self.node.setState(Idle())
+#
+#     def TIMER(self, event):
+#         """ The timer expired."""
+#         mng = self.node.getPeersManager()
+#         # we got 0 responses: we have a big problem !
+#         if mng.getNumberOfPeers() == 0:
+#             self.connectionError()
+#         elif self.nbArIncrease < Connecting.MAX_AR_INCREASE_ATTEMPTS:
+#             # first time we increase our AR, try to guess a good value
+#             if self.nbArIncrease == 0:
+#                 self.node.setAwarenessRadius(mng.getMedianAwarenessRadius())
+#             else:
+#                 # increase awareness radius
+#                 ar = self.node.getAwarenessRadius()
+#                 factor = 1 + Connecting.PERCENTAGE_AR_INCREASE
+#                 self.node.setAwarenessRadius(int(ar*factor))
+#
+#             # notify our peers
+#             self.sendUpdates()
+#             # relaunch a timer
+#             self.startTimer()
+#             self.nbArIncrease = self.nbArIncrease + 1
+#         else:
+#             self.connectionError()
 
-    def activate(self):
-        pass
-
-    def CONNECT(self, event):
-        super(Connecting, self).CONNECT(event)
-        mng = self.node.getPeersManager()
-
-        # we have now reached our number of expected neighbours
-        if not mng.hasTooFewPeers():
-            self.timer.cancel()
-            if not mng.hasGlobalConnectivity():
-                self.searchPeers()
-                self.node.setState(NoGlobalConnectivity())
-            else:
-                # start periodic tasks and go to Idle state
-                self.node.startPeriodicTasks()
-                self.node.setState(Idle())
-
-    def TIMER(self, event):
-        """ The timer expired."""
-        mng = self.node.getPeersManager()
-        # we got 0 responses: we have a big problem !
-        if mng.getNumberOfPeers() == 0:
-            self.connectionError()
-        elif self.nbArIncrease < Connecting.MAX_AR_INCREASE_ATTEMPTS:
-            # first time we increase our AR, try to guess a good value
-            if self.nbArIncrease == 0:
-                self.node.setAwarenessRadius(mng.getMedianAwarenessRadius())
-            else:
-                # increase awareness radius
-                ar = self.node.getAwarenessRadius()
-                factor = 1 + Connecting.PERCENTAGE_AR_INCREASE
-                self.node.setAwarenessRadius(int(ar*factor))
-
-            # notify our peers
-            self.sendUpdates()
-            # relaunch a timer
-            self.startTimer()
-            self.nbArIncrease = self.nbArIncrease + 1
-        else:
-            self.connectionError()
 
 class Idle(State):
     """ IDLE: the node has a stable position and is fully connected to its local neighborhood.
     """
-
-    def __init__(self):
-        self.expectedMessages = ['HELLO', 'DETECT', 'ADDSERVICE', 'FINDNEAREST'
-                                 'QUERYAROUND', 'DELSERVICE']
-
-    def activate(self):
-        pass
+    pass
 
 
-class NoGlobalConnectivity(State):
-    """ Our global connectivity rule is not satisfied """
-    def __init__(self):
-        self.expectedMessages = ['FOUND', 'HELLO', 'DETECT', 'ADDSERVICE', 'FINDNEAREST'
-                                 'QUERYAROUND', 'DELSERVICE']
-        self.startTimer()
+# class NoGlobalConnectivity(State):
+#     """ Our global connectivity rule is not satisfied """
+#     def __init__(self):
+#         self.expectedMessages = ['FOUND', 'HELLO', 'DETECT', 'ADDSERVICE', 'FINDNEAREST'
+#                                  'QUERYAROUND', 'DELSERVICE']
+#         self.startTimer()
+#
+#     def activate(self):
+#         pass
+#
+#     def FOUND(self, event):
+#         """ an entity detected in an empty sector
+#         reception of message: FOUND"""
+#         peer = event.createRemotePeer()
+#         manager = self.node.getPeersManager()
+#         id_ = peer.getId()
+#         factory = EventFactory.getInstance(PeerEvent.TYPE)
+#
+#         # verify that new entity is neither self neither an already known entity.
+#         if id_ != self.node.getId() and not manager.hasPeer(id_):
+#             hello = factory.createHELLO()
+#             hello.setRecipientAddress(peer.getAddress())
+#             self.node.dispatch(hello)
+#
+#
+#
+#     def TIMER(self, event):
+#         """ Timeout : we still don't have our GC"""
+#         # restart the timer
+#         self.startTimer()
+#         # search peers
+#         self.searchPeers()
 
-    def activate(self):
-        pass
-
-    def FOUND(self, event):
-        """ an entity detected in an empty sector
-        reception of message: FOUND"""
-        peer = event.createRemotePeer()
-        manager = self.node.getPeersManager()
-        id_ = peer.getId()
-        factory = EventFactory.getInstance(PeerEvent.TYPE)
-
-        # verify that new entity is neither self neither an already known entity.
-        if id_ != self.node.getId() and not manager.hasPeer(id_):
-            hello = factory.createHELLO()
-            hello.setRecipientAddress(peer.getAddress())
-            self.node.dispatch(hello)
-
-
-
-    def TIMER(self, event):
-        """ Timeout : we still don't have our GC"""
-        # restart the timer
-        self.startTimer()
-        # search peers
-        self.searchPeers()
-
-class NotEnoughPeers(State):
-    """ We do NOT have enough peers."""
-    def __init__(self):
-        self.expectedMessages = ['FOUND', 'HELLO', 'DETECT', 'ADDSERVICE', 'FINDNEAREST'
-                                 'QUERYAROUND', 'DELSERVICE']
-        self.startTimer()
-
-    def activate(self):
-        pass
-
-    def CONNECT(self, event):
-        super(NotEnoughPeers, self).CONNECT(event)
-        mng = self.node.getPeersManager()
-
-        # we have now reached our number of expected neighbours
-        if not mng.hasTooFewPeers():
-            self.timer.cancel()
-            self.node.setState(Idle())
-
-    def TIMER(self, event):
-        """ Timeout : we still don't have enough peers"""
-        self.startTimer()
-        self.updateAwarenessRadius()
-
-
-
-class NotEnoughPeersAndNoGlobalConnectivity(State):
-    """ We don't have enough peers and the Global connectivity rule is
-    not satisfied"""
-    def __init__(self):
-        self.expectedMessages = ['FOUND', 'HELLO', 'DETECT', 'ADDSERVICE', 'FINDNEAREST'
-                                 'QUERYAROUND', 'DELSERVICE']
-        self.startTimer()
-
-    def activate(self):
-        self.logger.debug('NotEnoughPeersAndNoGlobalConnectivity')
-
-    def CONNECT(self, event):
-        super(Connecting, self).CONNECT(event)
-        mng = self.node.getPeersManager()
-
-        # we have now reached our number of expected neighbours
-        if not mng.hasTooFewPeers():
-            self.timer.cancel()
-            # our GC is also OK go to Idle state
-            if mng.hasGlobalConnectivity():
-                self.node.setState(Idle())
-            # GC is still NOK : go to NoGlobalConnectivity state
-            else:
-                self.searchPeers()
-                self.node.setState(NoGlobalConnectivity())
-        # we still don't have enough peers
-        else:
-            # but now our GC is OK : go to state NotEnoughPeers
-            if mng.hasGlobalConnectivity():
-                self.timer.cancel()
-                self.updateAwarenessRadius()
-                self.node.setState(NotEnoughPeers())
-
-    def TIMER(self, event):
-        """ Timeout : we still don't have enough peers"""
-        self.startTimer()
-        self.updateAwarenessRadius()
-        self.searchPeers()
-
-class TooManyPeers(State):
-    """ We have too many peers """
-    def __init__(self):
-        self.expectedMessages = ['FOUND', 'HELLO', 'DETECT', 'ADDSERVICE', 'FINDNEAREST'
-                                 'QUERYAROUND', 'DELSERVICE']
-        self.startTimer()
-
-    def TIMER(self, event):
-        """ Timeout : check if we still have too many peers peers"""
-        manager = self.node.getPeersManager()
-        factory = EventFactory.getInstance(PeerEvent.TYPE)
-
-        while manager.getNumberOfPeers() > manager.getExpectedPeers():
-            peer = manager.getWorstPeer()
-            close = factory.createCLOSE()
-            close.setRecipientAddress(peer.getAddress())
-            self.node.dispatch(close)
-            self.removePeer(peer)
-
-        self.updateAwarenessRadius()
-        self.node.setState(Idle())
-
+# class NotEnoughPeers(State):
+#     """ We do NOT have enough peers."""
+#     def __init__(self):
+#         self.expectedMessages = ['FOUND', 'HELLO', 'DETECT', 'ADDSERVICE', 'FINDNEAREST'
+#                                  'QUERYAROUND', 'DELSERVICE']
+#         self.startTimer()
+#
+#     def activate(self):
+#         pass
+#
+#     def CONNECT(self, event):
+#         super(NotEnoughPeers, self).CONNECT(event)
+#         mng = self.node.getPeersManager()
+#
+#         # we have now reached our number of expected neighbours
+#         if not mng.hasTooFewPeers():
+#             self.timer.cancel()
+#             self.node.setState(Idle())
+#
+#     def TIMER(self, event):
+#         """ Timeout : we still don't have enough peers"""
+#         self.startTimer()
+#         self.updateAwarenessRadius()
+#
+#
+#
+# class NotEnoughPeersAndNoGlobalConnectivity(State):
+#     """ We don't have enough peers and the Global connectivity rule is
+#     not satisfied"""
+#     def __init__(self):
+#         self.expectedMessages = ['FOUND', 'HELLO', 'DETECT', 'ADDSERVICE', 'FINDNEAREST'
+#                                  'QUERYAROUND', 'DELSERVICE']
+#         self.startTimer()
+#
+#     def activate(self):
+#         self.logger.debug('NotEnoughPeersAndNoGlobalConnectivity')
+#
+#     def CONNECT(self, event):
+#         super(Connecting, self).CONNECT(event)
+#         mng = self.node.getPeersManager()
+#
+#         # we have now reached our number of expected neighbours
+#         if not mng.hasTooFewPeers():
+#             self.timer.cancel()
+#             # our GC is also OK go to Idle state
+#             if mng.hasGlobalConnectivity():
+#                 self.node.setState(Idle())
+#             # GC is still NOK : go to NoGlobalConnectivity state
+#             else:
+#                 self.searchPeers()
+#                 self.node.setState(NoGlobalConnectivity())
+#         # we still don't have enough peers
+#         else:
+#             # but now our GC is OK : go to state NotEnoughPeers
+#             if mng.hasGlobalConnectivity():
+#                 self.timer.cancel()
+#                 self.updateAwarenessRadius()
+#                 self.node.setState(NotEnoughPeers())
+#
+#     def TIMER(self, event):
+#         """ Timeout : we still don't have enough peers"""
+#         self.startTimer()
+#         self.updateAwarenessRadius()
+#         self.searchPeers()
+#
+# class TooManyPeers(State):
+#     """ We have too many peers """
+#     def __init__(self):
+#         self.expectedMessages = ['FOUND', 'HELLO', 'DETECT', 'ADDSERVICE', 'FINDNEAREST'
+#                                  'QUERYAROUND', 'DELSERVICE']
+#         self.startTimer()
+#
+#     def TIMER(self, event):
+#         """ Timeout : check if we still have too many peers peers"""
+#         manager = self.node.getPeersManager()
+#         factory = EventFactory.getInstance(PeerEvent.TYPE)
+#
+#         while manager.getNumberOfPeers() > manager.getExpectedPeers():
+#             peer = manager.getWorstPeer()
+#             close = factory.createCLOSE()
+#             close.setRecipientAddress(peer.getAddress())
+#             self.node.dispatch(close)
+#             self.removePeer(peer)
+#
+#         self.updateAwarenessRadius()
+#         self.node.setState(Idle())
+#

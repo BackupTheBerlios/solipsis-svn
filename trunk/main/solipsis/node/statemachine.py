@@ -5,6 +5,14 @@ from solipsis.util.exception import *
 
 from peer import Peer
 import protocol
+import states
+
+
+# Forward compatibility with built-in "set" types
+try:
+    set
+except:
+    from Sets import Set as set
 
 
 class StateMachine(object):
@@ -29,11 +37,15 @@ class StateMachine(object):
     def __init__(self, reactor, node, logger=None):
         self.reactor = reactor
         self.node = node
+        self.peers = self.node.getPeersManager()
         self.logger = logger or logging.getLogger("root")
 
         self.peer_dispatch_cache = {}
         self.peer_dispatch = None
         self.state = None
+
+        self.nearest_peers = set()
+        self.best_peer = None
 
     def SetState(self, state):
         self.state = state
@@ -56,99 +68,147 @@ class StateMachine(object):
         except:
             self.logger.debug("Ignoring unexpected message '%s' in state '%s'" % (request, state.__class__.__name__))
 
+    def _Peer(self, args):
+        return Peer(
+            address = args.address
+            awareness_radius = args.awareness_radius,
+            calibre = args.calibre,
+            id_ = args.id_,
+            orientation = args.orientation,
+            position = args.position,
+            pseudo = args.pseudo)
+
+    def _RemotePeer(self, args):
+        return Peer(
+            address = args.remote_address
+            awareness_radius = args.remote_awareness_radius,
+            calibre = args.remote_calibre,
+            id_ = args.remote_id,
+            orientation = args.remote_orientation,
+            position = args.remote_position,
+            pseudo = args.remote_pseudo)
+
+    def _PeerMessage(self, request, entity=None, remote_entity=None):
+        if peer is None:
+            peer = self.node
+        message = protocol.Message()
+        # Build message args from involved entities
+        # This could be smarter...
+        a = message.args
+        a.address = entity.address
+        a.awareness_radius = entity.awareness_radius
+        a.calibre = entity.calibre
+        a.id_ = entity.id_
+        a.orientation = entity.orientation
+        a.position = entity.position
+        a.pseudo = entity.pseudo
+        if remote_entity:
+            r = remote_entity
+            a.remote_address = r.address
+            a.remote_awareness_radius = r.awareness_radius
+            a.remote_calibre = r.calibre
+            a.remote_id = r.id_
+            a.remote_orientation = r.orientation
+            a.remote_position = r.position
+            a.remote_pseudo = r.pseudo
+        # Then remove unnecessary fields
+        self.parser.StripMessage(message)
+        return message
+
+    def _SendToAddress(self, address, message):
+        print "sending '%s' message to %s:" % (message.request, str(address))
+        #print data
+
+    def _SendToPeer(self, peer, message):
+        data = self.parser.BuildMessage(message)
+        self._SendToAddress(peer.address, message)
+
     #
     # Peer events
     #
-    def peer_HELLO(self, event):
-        """ A new peer is contacting us """
-        peer = event.createPeer()
-        manager = self.node.getPeersManager()
-
-        factory = EventFactory.getInstance(PeerEvent.TYPE)
+    def peer_HELLO(self, args):
+        """
+        A new peer is contacting us.
+        """
+        peer = self._Peer(args)
+        manager = self.peers
 
         # We have now too many peers and this is the worst one
         if not manager.isPeerAccepted(peer):
             # refuse connection
-            close = factory.createCLOSE()
-            close.setRecipientAddress(peer.getAddress())
-            self.node.dispatch(close)
+            self._SendToPeer(peer, self._PeerMessage('CLOSE'))
         else:
             # check if we have not already connected to this peer
-            id_ = peer.getId()
-            if manager.hasPeer(id_):
-                manager.removePeer(id_)
+            if manager.hasPeer(peer.id_):
+                manager.removePeer(peer.id_)
                 self.logger.debug('HELLO from %s, but we are already connected',
                                   peer.getId())
-            self.addPeer(peer)
-            connect = factory.createCONNECT()
-            connect.setRecipientAddress(peer.getAddress())
-            self.node.dispatch(connect)
+            self._AddPeer(peer)
+            self._SendToPeer(peer, self._PeerMessage('CONNECT'))
 
-    def peer_CONNECT(self, event):
-        """ reception of a connect message """
-        # TODO :check that we sent a HELLO message to this peer
-        peer = event.createPeer()
-        mng = self.node.getPeersManager()
-        if not mng.hasPeer(peer.getId()):
-            self.addPeer(peer)
+    def peer_CONNECT(self, args):
+        """
+        A peer accepts our connection proposal.
+        """
+        # TODO: check that we sent a HELLO message to this peer
+        peer = self._Peer(args)
+        manager = self.peers
 
-            # Give the list of our services to the peer
-            for s in self.node.enumerateServices():
-                factory = EventFactory.getInstance(PeerEvent.TYPE)
-                srvEvt = factory.createADDSERVICE(s.getId())
-                srvEvt.setRecipientAddress(event.getSenderAddress())
-                self.node.dispatch(srvEvt)
+        if not manager.hasPeer(peer.id_):
+            self._AddPeer(peer)
+            # TODO: exchange service info and other stuff
+
         else:
             self.logger.debug('reception of CONNECT but we are already connected to'
                               + peer.getId())
 
-    def peer_CLOSE(self, event):
-        """ Connection closed with one of our peers."""
-        id_ = event.getArg(protocol.ARG_ID)
-        manager = self.node.getPeersManager()
+    def peer_CLOSE(self, args):
+        """
+        A peer closes or refuses a connection.
+        """
+        id_ = args.id_
+        manager = self.peers
         if not manager.hasPeer(id_):
             self.logger.debug('CLOSE from %s, but we are not connected' % id_)
             return
 
         self.removePeer(manager.getPeer(id_))
+        # TODO: check global connectivity
+
         # check what is our state
-        if manager.hasTooFewPeers():
-            self.updateAwarenessRadius()
+#         if manager.hasTooFewPeers():
+#             self.updateAwarenessRadius()
+#
+#             # we don't have enough peers but our Global Connectivity is OK
+#             if manager.hasGlobalConnectivity():
+#                 self.node.setState(NotEnoughPeers())
+#             # not enough peers + GC is NOK
+#             else:
+#                 self.searchPeers()
+#                 self.node.setState(NotEnoughPeersAndNoGlobalConnectivity())
+#         # we still have enough peers
+#         else:
+#             # but we don't have our GC
+#             if not manager.hasGlobalConnectivity():
+#                 self.searchPeers()
+#                 self.node.setState(NoGlobalConnectivity())
 
-            # we don't have enough peers but our Global Connectivity is OK
-            if manager.hasGlobalConnectivity():
-                self.node.setState(NotEnoughPeers())
-            # not enough peers + GC is NOK
-            else:
-                self.searchPeers()
-                self.node.setState(NotEnoughPeersAndNoGlobalConnectivity())
-        # we still have enough peers
-        else:
-            # but we don't have our GC
-            if not manager.hasGlobalConnectivity():
-                self.searchPeers()
-                self.node.setState(NoGlobalConnectivity())
-
-    def peer_NEAREST(self, event):
-        """ A peer sent us a NEAREST message
+    def peer_NEAREST(self, args):
         """
-        # unexpected message, do not process it
-        msg = 'NEAREST'
-        if not self.isExpected(msg):
-            self.logger.debug('Error, reception of a ' + msg + 'message in state '
-                              + str(self.__class__))
-            return
+        A peer sent us a NEAREST message.
+        """
+        # Create a find nearest event
+        id_ = args.remote_id
+        if id_ in self.nearest_peers:
+            self.logger.warning("Infinite loop in FINDNEAREST algorithm: %s"
+                    % ", ".join(["'" + str(i) + "'" for i in self.nearest_peers]))
+        else:
+            address = args.remote_address
+            self._SendMessage(address, self._PeerMessage('FINDNEAREST'))
 
-        if self.timer is not None:
-            # cancel timer
-            self.timer.cancel()
-
-        # create a find nearest event
-        address = event.getArg(protocol.ARG_REMOTE_ADDRESS)
-        self.sendFindNearest(address)
-
-    def peer_BEST(self, event):
-        """ A peer sent us a BEST message
+    def peer_BEST(self, args):
+        """
+        A peer sent us a BEST message
         This is the default behaviour
         """
         self.timer.cancel()
@@ -174,7 +234,7 @@ class StateMachine(object):
         # go to the Scanning state
         self.node.setState(scanning)
 
-    def peer_FINDNEAREST(self, event):
+    def peer_FINDNEAREST(self, args):
         """ A peer sent us a FINDNEAREST message """
         source_id = event.getArg(protocol.ARG_ID)
         targetPosition = event.getArg(protocol.ARG_POSITION)
@@ -194,7 +254,7 @@ class StateMachine(object):
         # send reply to remote peer
         self.node.dispatch(response)
 
-    def peer_DETECT(self, event):
+    def peer_DETECT(self, args):
         """ Notification that a peer is moving towards us"""
         peer = event.createRemotePeer()
         id_ = peer.getId()
@@ -218,7 +278,7 @@ class StateMachine(object):
                 hello.setRecipientAddress(peer.getAddress())
                 self.node.dispatch(hello)
 
-    def peer_AROUND(self, event):
+    def peer_AROUND(self, args):
         """ A peer sent us an AROUND message """
         # cancel timer since we got our response
         self.timer.cancel()
@@ -270,7 +330,7 @@ class StateMachine(object):
             self.node.dispatch(queryaround)
             self.startTimer()
 
-    def peer_QUERYAROUND(self, event):
+    def peer_QUERYAROUND(self, args):
         """ A peer sent us a QUERYAROUND message """
         #peer, idNearest, distNearest:
         source_id = event.getArg(protocol.ARG_ID)
@@ -300,11 +360,11 @@ class StateMachine(object):
             else:
                 self.logger.debug('no peer around position: ' + str(target))
 
-    def peer_HEARTBEAT(self, event):
+    def peer_HEARTBEAT(self, args):
         """ reception of a message: HEARTBEAT, id"""
         self.node.getPeersManager().heartbeat(event.getArg(protocol.ARG_ID))
 
-    def peer_UPDATE(self, event):
+    def peer_UPDATE(self, args):
         """ A peer sent us an UPDATE message."""
         # extract the peer from the event
         peer = event.createPeer()
@@ -389,7 +449,7 @@ class StateMachine(object):
                     detect.setRecipientAddress(peer.getAddress())
                     self.node.dispatch(detect)
 
-    def peer_SEARCH(self, event):
+    def peer_SEARCH(self, args):
         """ search an entity to restore the global connectivity of an other node
         reception of message: SEARCH, id, wise = 1 if counterclockwise"""
         id_ = event.getArg(protocol.ARG_ID)
@@ -467,7 +527,7 @@ class StateMachine(object):
     #
     # Private methods
     #
-    def addPeer(self, peer):
+    def _AddPeer(self, peer):
         """ Add a peer and send the necessary notification messages. """
         manager = self.node.getPeersManager()
         manager.addPeer(peer)
@@ -488,17 +548,6 @@ class StateMachine(object):
         factory = EventFactory.getInstance(ControlEvent.TYPE)
         dead = factory.createDEAD(id_)
         self.node.dispatch(dead)
-
-    def sendFindNearest(self, peerAddress):
-        """ Send a FINNEAREST event and return the timer object assocoiated
-        with this request
-        peerAddress : network address of the peer who will receive this request
-        """
-        # create a findnearest event
-        factory = EventFactory.getInstance(PeerEvent.TYPE)
-        findnearest = factory.createFINDNEAREST()
-        findnearest.setRecipientAddress(peerAddress)
-        self.node.dispatch(findnearest)
 
     def sendUpdates(self):
         """ Send an UPDATE message to all our peers"""
