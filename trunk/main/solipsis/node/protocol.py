@@ -19,8 +19,8 @@ BANNER = "SOLIPSIS/" + `VERSION`
 
 #
 # This is a list of allowed arguments in the Solipsis protocol.
-# Each tuple has several field:
-# - internal variable name to uniquely identify each argument
+# Each tuple has several fields:
+# - internal id to uniquely identify each argument
 #   (e.g. protocol.ARG_ID)
 # - full parameter string used in the Solipsis protocol
 # - attribute name used when creating messages
@@ -33,7 +33,6 @@ _args = [
     ('ARG_CLOCKWISE', 'Clockwise', 'clockwise'),
     ('ARG_ID', 'Id', 'id_'),
     ('ARG_POSITION', 'Position', 'position'),
-    ('ARG_PSEUDO', 'Pseudo', 'pseudo'),
     ('ARG_SEND_DETECTS', 'Send-Detects', 'send_detects'),
 
     ('ARG_REMOTE_ADDRESS', 'Remote-Address', 'remote_address'),
@@ -41,8 +40,10 @@ _args = [
     ('ARG_REMOTE_ID', 'Remote-Id', 'remote_id'),
     ('ARG_REMOTE_POSITION', 'Remote-Position', 'remote_position'),
     ('ARG_REMOTE_PSEUDO', 'Remote-Pseudo', 'remote_pseudo'),
+
+    ('ARG_ACCEPT_SERVICES', 'Accept-Services', 'accept_services'),
+    ('ARG_PSEUDO', 'Pseudo', 'pseudo'),
     ('ARG_SERVICE_ADDRESS', 'Service-Address', 'service_address'),
-    ('ARG_SERVICE_DESC', 'Service-Desc', 'service_desc'),
     ('ARG_SERVICE_ID', 'Service-Id', 'service_id'),
 ]
 
@@ -55,11 +56,11 @@ def _init_args(args):
     PROTOCOL_STRINGS = bidict()
 
     for c, (arg_const, full_string, attr_name) in izip(count(1), args):
-        arg_id = c
+        arg_id = intern(c)
         globals()[arg_const] = arg_id
         ALL_ARGS.append(arg_id)
-        ATTRIBUTE_NAMES[arg_id] = attr_name
-        PROTOCOL_STRINGS[arg_id] = full_string
+        ATTRIBUTE_NAMES[arg_id] = intern(attr_name)
+        PROTOCOL_STRINGS[arg_id] = intern(full_string)
 
 _init_args(_args)
 
@@ -150,21 +151,25 @@ REMOTE_ARGS = [
 ]
 
 REQUESTS = {
-    'AROUND'     : REMOTE_ARGS,
-    'BEST'       : NODE_ARGS,
     'CLOSE'      : [ ARG_ID ],
     'CONNECT'    : NODE_ARGS + [ ARG_PSEUDO ],
-    'DETECT'     : REMOTE_ARGS,
-    'ENDSERVICE' : [ ARG_ID, ARG_SERVICE_ID ],
-    'FINDNEAREST': [ ARG_ID, ARG_ADDRESS, ARG_POSITION ],
-    'FOUND'      : [ ARG_REMOTE_ID, ARG_REMOTE_ADDRESS, ARG_REMOTE_POSITION ],
     'HEARTBEAT'  : [ ARG_ID ],
     'HELLO'      : NODE_ARGS + [ ARG_PSEUDO, ARG_SEND_DETECTS ],
+
+    'AROUND'     : REMOTE_ARGS,
+    'BEST'       : NODE_ARGS,
+    'DETECT'     : REMOTE_ARGS,
+    'FINDNEAREST': [ ARG_ID, ARG_ADDRESS, ARG_POSITION ],
+    'FOUND'      : [ ARG_REMOTE_ID, ARG_REMOTE_ADDRESS, ARG_REMOTE_POSITION ],
     'NEAREST'    : [ ARG_REMOTE_ID, ARG_REMOTE_ADDRESS, ARG_REMOTE_POSITION ],
     'QUERYAROUND': [ ARG_ID, ARG_ADDRESS, ARG_POSITION, ARG_BEST_ID, ARG_BEST_DISTANCE ],
     'SEARCH'     : [ ARG_ID, ARG_CLOCKWISE ],
-    'SERVICE'    : [ ARG_ID, ARG_SERVICE_ID, ARG_SERVICE_DESC, ARG_SERVICE_ADDRESS ],
     'UPDATE'     : NODE_ARGS,
+
+    'META'       : [ ARG_ID, ARG_PSEUDO, ARG_ACCEPT_SERVICES ],
+    'QUERYMETA'  : [ ARG_ID, ARG_PSEUDO, ARG_ACCEPT_SERVICES ],
+    'QUERYSERVICE': [ ARG_ID, ARG_SERVICE_ID, ARG_SERVICE_ADDRESS ],
+    'SERVICEINFO': [ ARG_ID, ARG_SERVICE_ID, ARG_SERVICE_ADDRESS ],
 }
 
 
@@ -252,11 +257,6 @@ class Parser(object):
         # Now let's parse each parameter line in turn
         for line in lines[1:]:
             # Get arg name and arg value
-#             m = self.argument_syntax.match(line)
-#             if m is None:
-#                 raise EventParsingError("Invalid message syntax:\r\n" + data)
-#             name = m.group(1)
-#             value = m.group(2)
             t = line.split(':', 1)
             if len(t) != 2:
                 raise EventParsingError("Invalid message syntax:\r\n" + data)
