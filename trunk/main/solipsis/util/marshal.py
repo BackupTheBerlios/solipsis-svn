@@ -24,6 +24,7 @@ class Marshallable(object):
     by simple protocols like XMLRPC. It means Marshallable objects can be
     converted to/from a dictionnary (which can be nested).
     """
+    marshal_filters = {}
 
     def FromStruct(cls, struct_):
         """
@@ -57,6 +58,14 @@ class Marshallable(object):
 
         d = {}
         for k in self.marshallable_fields:
-            d[k] = _MarshalValue(getattr(self, k))
+            v = getattr(self, k)
+            #~ try:
+                #~ f = self.marshal_filters[k]
+            #~ except KeyError:
+                #~ pass
+            #~ else:
+                #~ if not f(v):
+                    #~ continue
+            d[k] = _MarshalValue(v)
         #~ print d
         return d

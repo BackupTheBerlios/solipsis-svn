@@ -150,7 +150,10 @@ def _accept_services_from_string(s):
             type = t[1][2:]
         else:
             type = 'bidir'
-        services.append(Service(id_, type))
+        service = Service(id_, type)
+        # The service is not known until we receive detailed information
+        service.known = False
+        services.append(service)
     return services
 
 def _accept_services_to_string(services):

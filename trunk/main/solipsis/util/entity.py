@@ -36,6 +36,8 @@ class Service(Marshallable):
             ("bidir", str),
         'address':
             ("", str),
+        'known':
+            (False, bool),
     }
 
     def __init__(self, id_="", type='bidir', address=""):
@@ -43,6 +45,7 @@ class Service(Marshallable):
         self.id_ = id_
         self.type = type
         self.address = address
+        self.known = True
 
 
 class Entity(Marshallable):
@@ -96,11 +99,7 @@ class Entity(Marshallable):
         # Metadata
         self.pseudo = pseudo
         self.services = {}
-        self.languages = ['fr', 'en']
-        self.AddService(Service('chat', address='127.0.0.1:5555'))
-        self.AddService(Service('video', address='127.0.0.1:6543'))
-        self.AddService(Service('browse', 'in'))
-        self.AddService(Service('share', 'out'))
+        self.languages = []
 
     def AddService(self, service):
         """
@@ -117,7 +116,7 @@ class Entity(Marshallable):
 
     def GetService(self, service_id):
         """
-        Get a list of the entity's services.
+        Get a service from the entity.
         """
         return self.services.get(service_id, None)
 
@@ -158,7 +157,10 @@ class Entity(Marshallable):
         if service_id not in self.services:
             logging.warning("Received service info from '%s' for unknown service '%s'"
                 % (self.id_, service_id))
-            self.services[service_id].address = address
+        else:
+            service = self.services[service_id]
+            service.address = address
+            service.known = True
     
     def UpdateServices(self, new_services):
         """

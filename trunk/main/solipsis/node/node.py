@@ -25,7 +25,7 @@ from solipsis.util.position import Position
 from solipsis.util.address import Address
 from solipsis.util.exception import *
 
-from solipsis.util.entity import Entity
+from solipsis.util.entity import Entity, Service
 
 
 class Node(Entity):
@@ -42,12 +42,11 @@ class Node(Entity):
         # call parent class constructor
         Entity.__init__(self, id_=id_, position=position, pseudo=params.pseudo, address=address)
 
-        # maximum expected number of neighbours.
-        self.expected_peers = params.expected_neighbours
-
-        #~ # our IP address or 'localhost' if not specified in config file
-        #~ self.host = params.host
-        self.alive = True
+        self.languages = ['fr', 'en']
+        self.AddService(Service('chat', address='127.0.0.1:5555'))
+        self.AddService(Service('video', address='127.0.0.1:6543'))
+        self.AddService(Service('browse', 'in'))
+        self.AddService(Service('share', 'out'))
 
     def CreateId(self):
         # TODO: reasonable ID generation and attribution

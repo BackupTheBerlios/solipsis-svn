@@ -37,7 +37,7 @@ def run_loop(params):
 
 def main():
     config_file = "conf/solipsis.conf"
-    usage = "usage: %prog [-dbPM] [-p <port>] [-x ... -y ...] [-e ...] [-c <port>] [-n <port>]"
+    usage = "usage: %prog [-dbqPM] [-p <port>] [--pool <nodes>] (-c <controller>)*"
     parser = OptionParser(usage)
     # User options
     parser.add_option("-p", "--port", type="int", dest="port",

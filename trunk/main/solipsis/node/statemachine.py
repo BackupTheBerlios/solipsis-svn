@@ -904,7 +904,7 @@ class StateMachine(object):
         old_ar = peer.awareness_radius
         new_ar = new_peer.awareness_radius
 
-        # Update characteristics while keeping metadata
+        # Update characteristics whilst keeping metadata
         peer.Update(new_peer)
         topology.UpdatePeer(peer)
 
