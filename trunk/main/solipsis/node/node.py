@@ -1,27 +1,26 @@
-import sys, os, traceback
+import sys
 import logging
 
 from solipsis.util.parameter import Parameters
 from solipsis.util.geometry import Geometry, Position
 from solipsis.util.address import Address
-from solipsis.util.container import NotificationQueue
-
 from solipsis.util.exception import *
 
 from entity import Entity
-import state
-import periodic
+from peer import PeersManager
+
 
 class Node(Entity):
-    def __init__(self, reactor, params):
+    def __init__(self, reactor, params, node_connector=None):
         self.reactor = reactor
         self.params = params
+        self.node_connector = node_connector
 
         if not params.bot:
             # TODO: initialize XMLRPC
             pass
 
-        id_ = self.createId()
+        id_ = self.CreateId()
         position = Position(params.pos_x, params.pos_y)
         address = Address(params.host, params.port)
 
@@ -46,12 +45,12 @@ class Node(Entity):
         # set world size in Geometry class
         Geometry.SIZE = params.world_size
 
-        self.state = None
-        self.setState(state.NotConnected())
+#         self.state = None
+#         self.setState(state.NotConnected())
 
     def CreateId(self):
         # TODO: reasonable ID generation and attribution
-        return self.params.host + ':' + str(self.params.port)
+        return "%s:%d" % (self.params.host, self.params.port)
 
     def SetPosition(self, position):
         super(Node, self).setPosition(position)

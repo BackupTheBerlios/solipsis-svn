@@ -9,7 +9,7 @@ from twisted.internet import reactor
 # Solipsis Packages
 from solipsis.util.parameter import Parameters
 from solipsis.twistednode.node import Node
-
+from bootstrap import Bootstrap
 
 def run_loop(params):
     bootstrap = Bootstrap(reactor, params)
@@ -75,7 +75,7 @@ def main():
         else:
             # See Psyco documentation: http://psyco.sourceforge.net/psycoguide/module-psyco.html
             import psyco
-            psyco.profile(watermark=0.01, halflife=10, time=600)
+            #psyco.profile(watermark=0.01, halflife=10, time=600)
             profile_run()
 
     except:

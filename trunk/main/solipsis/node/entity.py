@@ -23,7 +23,7 @@ from solipsis.util.geometry import Position
 
 class Entity(object):
 
-    def __init__(self, id="", position=Position(), ori=0, awarenessRadius=0,
+    def __init__(self, id_="", position=Position(), orientation=0, awareness_radius=0,
                  calibre=0, pseudo='', address=None):
         """ Create a new Entity and keep information about it"""
 
@@ -31,70 +31,18 @@ class Entity(object):
         self.position = position
 
         # awareness radius, calibre, pseudo, orientation
-        self.awarenessRadius = awarenessRadius
-        self.calibre         = calibre
-        self.pseudo          = pseudo
-        self.orientation     = ori
+        self.awareness_radius = awareness_radius
+        self.calibre = calibre
+        self.pseudo = pseudo
+        self.orientation = orientation
 
         # public address of this node, address= IP+port
         self.address = address
 
         # id of this node
-        self.id = id
+        self.id_ = id_
 
         self.services = {}
-
-    def setId(self, ID):
-        self.id = ID
-
-    def getId(self):
-        """ Get the ID of this node """
-        return self.id
-
-    def getAddress(self):
-        return self.address
-
-    def getStringPosition(self):
-        return self.position.toString()
-
-    def getPosition(self):
-        return self.position
-
-    def getAwarenessRadius(self):
-        return self.awarenessRadius
-
-    def getCalibre(self):
-        return self.calibre
-
-    def getOrientation(self):
-        return self.orientation
-
-    def getPseudo(self):
-        return self.pseudo
-
-    def setOrientation(self, value):
-        self.orientation = value
-
-    def setAwarenessRadius(self, value):
-        self.awarenessRadius = long(value)
-
-    def setCalibre(self, value):
-        self.calibre = value
-
-    def setPseudo(self, value):
-        self.pseudo = value
-
-    def setPosition(self, pos):
-        """ Set the new position of this entity
-        pos : a Position object """
-        self.position = pos
-
-    def setAddress(self, newAddress):
-        """ newAddress : a Address object"""
-        self.address = newAddress
-
-    def enumerateServices(self):
-        return self.services.values()
 
     def addService(self, srv):
         """ add a new service to this entity
@@ -108,10 +56,9 @@ class Entity(object):
         del(self.services[srvId])
 
     def __str__(self):
-        ent = 'Id:' + str(self.id) + '\n'
+        ent = 'Id:' + str(self.id_) + '\n'
         ent += 'Position:' +  str(self.position)+ '\n'
-        ent += 'relativePosition:'+ str(self.relativePosition)+ '\n'
-        ent += 'ar:' + str(self.awarenessRadius )+ '\n'
+        ent += 'ar:' + str(self.awareness_radius)+ '\n'
         ent += 'Calibre:' + str(self.calibre)     + '\n'
         ent += 'Pseudo:' + str(self.pseudo)   + '\n'
         ent += 'Orientation:' + str(self.orientation)    + '\n'
