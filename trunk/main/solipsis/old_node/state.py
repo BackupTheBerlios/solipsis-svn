@@ -813,7 +813,29 @@ class NoGlobalConnectivity(State):
             hello.setRecipientAddress(peer.getAddress())
             self.node.dispatch(hello)
 
+    def CONNECT(self, event):
+        self.timer.cancel()
+        super(Connecting, self).CONNECT(event)
+        mng = self.node.getPeersManager()
 
+        # check whether we now have our global connectivity
+        if not mng.hasGlobalConnectivity():
+            self.startTimer()
+            self.searchPeers()
+        else:
+            self.node.setState(Idle())
+
+    def HELLO(self, event):
+        self.timer.cancel()
+        super(Connecting, self).HELLO(event)
+        mng = self.node.getPeersManager()
+
+        # check whether we now have our global connectivity
+        if not mng.hasGlobalConnectivity():
+            self.startTimer()
+            self.searchPeers()
+        else:
+            self.node.setState(Idle())
 
     def TIMER(self, event):
         """ Timeout : we still don't have our GC"""
@@ -821,6 +843,7 @@ class NoGlobalConnectivity(State):
         self.startTimer()
         # search peers
         self.searchPeers()
+
 
 class NotEnoughPeers(State):
     """ We do NOT have enough peers."""
@@ -834,6 +857,15 @@ class NotEnoughPeers(State):
 
     def CONNECT(self, event):
         super(NotEnoughPeers, self).CONNECT(event)
+        mng = self.node.getPeersManager()
+
+        # we have now reached our number of expected neighbours
+        if not mng.hasTooFewPeers():
+            self.timer.cancel()
+            self.node.setState(Idle())
+
+    def HELLO(self, event):
+        super(NotEnoughPeers, self).HELLO(event)
         mng = self.node.getPeersManager()
 
         # we have now reached our number of expected neighbours
@@ -861,6 +893,28 @@ class NotEnoughPeersAndNoGlobalConnectivity(State):
 
     def CONNECT(self, event):
         super(Connecting, self).CONNECT(event)
+        mng = self.node.getPeersManager()
+
+        # we have now reached our number of expected neighbours
+        if not mng.hasTooFewPeers():
+            self.timer.cancel()
+            # our GC is also OK go to Idle state
+            if mng.hasGlobalConnectivity():
+                self.node.setState(Idle())
+            # GC is still NOK : go to NoGlobalConnectivity state
+            else:
+                self.searchPeers()
+                self.node.setState(NoGlobalConnectivity())
+        # we still don't have enough peers
+        else:
+            # but now our GC is OK : go to state NotEnoughPeers
+            if mng.hasGlobalConnectivity():
+                self.timer.cancel()
+                self.updateAwarenessRadius()
+                self.node.setState(NotEnoughPeers())
+
+    def HELLO(self, event):
+        super(Connecting, self).HELLO(event)
         mng = self.node.getPeersManager()
 
         # we have now reached our number of expected neighbours
