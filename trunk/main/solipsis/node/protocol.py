@@ -56,7 +56,7 @@ def _init_args(args):
     PROTOCOL_STRINGS = bidict()
 
     for c, (arg_const, full_string, attr_name) in izip(count(1), args):
-        arg_id = intern(c)
+        arg_id = c
         globals()[arg_const] = arg_id
         ALL_ARGS.append(arg_id)
         ATTRIBUTE_NAMES[arg_id] = intern(attr_name)

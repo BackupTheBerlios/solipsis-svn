@@ -1,13 +1,63 @@
 
+import os
+import urlparse
 import twisted.web.xmlrpc as xmlrpc
 
 from solipsis.util import marshal
 
 
+def discover_proxy():
+    """
+    Returns a (host, port) tuple if a proxy is found in the
+    current user configuration, (None, None) otherwise.
+    """
+    if 'http_proxy' in os.environ:
+        parts = urlparse.urlparse(os.environ['http_proxy'])
+        if not parts[0] or parts[0] == 'http':
+            t = parts[1].split(':')
+            host = t[0]
+            try:
+                port = int(t[1])
+            except:
+                port = 80
+            return host, port
+    return None, None
+
+class ProxiedXMLRPC:
+    """
+    A Proxy for making remote XML-RPC calls accross an HTTP proxy.
+
+    Pass the URL of the remote XML-RPC server to the constructor,
+    as well as the proxy host and port.
+
+    Use proxy.callRemote('foobar', *args) to call remote method
+    'foobar' with *args.
+    """
+
+    def __init__(self, reactor, url, proxy_host, proxy_port):
+        self.reactor = reactor
+        self.url = url
+        self.proxy_host = proxy_host
+        self.proxy_port = proxy_port
+        parts = urlparse.urlparse(url)
+        self.remote_host = parts[1]
+        self.secure = parts[0] == 'https'
+
+    def callRemote(self, method, *args):
+        factory = xmlrpc.QueryFactory(self.url, self.remote_host, method, *args)
+        if self.secure:
+            from twisted.internet import ssl
+            self.reactor.connectSSL(self.proxy_host, self.proxy_port,
+                               factory, ssl.ClientContextFactory())
+        else:
+            self.reactor.connectTCP(self.proxy_host, self.proxy_port, factory)
+        return factory.deferred
+
+
 class RemoteConnector(object):
     """
     RemoteConnector builds the socket-based connection to the Solipsis node.
-    It handles sending and receiving data from the node.
+    It sends and receives data from the node through an XMLRPC connection.
     """
     def __init__(self, reactor, ui):
         self.reactor = reactor
@@ -20,7 +70,13 @@ class RemoteConnector(object):
         Connect to the node.
         """
         control_url = 'http://%s:%d/RPC2' % (host, port)
-        xmlrpc_control = xmlrpc.Proxy(control_url)
+        proxy_host, proxy_port = discover_proxy()
+        if proxy_host is not None:
+            print "HTTP proxy is (%s, %d)" % (proxy_host, proxy_port)
+            xmlrpc_control = ProxiedXMLRPC(self.reactor, control_url, proxy_host, proxy_port)
+        else:
+            print "no HTTP proxy"
+            xmlrpc_control = xmlrpc.Proxy(control_url)
 
         def _success(connect_id):
             # As soon as we are connected, get all peers and ask for events
