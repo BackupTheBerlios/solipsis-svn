@@ -161,6 +161,10 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.network = TwistedProxy(loop, self.reactor)
 
         # 3. Launch main GUI loop
+        if os.name == 'posix' and wx.Platform == '__WXGTK__':
+            self.x11 = True
+        else:
+            self.x11 = False
         return True
 
 
@@ -183,7 +187,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
 
     def AskRedraw(self):
         """
-        This method hard to schedule redraws of the world view in a smart way.
+        This method tries hard to schedule redraws of the world view in a smart way.
         """
         if self.viewport.NeedsFurtherRedraw():
             if not self.viewport.PendingRedraw() and not self.redraw_pending:
@@ -191,7 +195,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
                 # and give some timeslices to the X server
                 self.redraw_pending = True
                 t = self.viewport.LastRedrawDuration()
-                wx.FutureCall(5.0 + 4 * 1000 * t, self.Redraw)
+                wx.FutureCall(5.0 + 5 * 1000 * t, self.Redraw)
                 return True
         return False
 
@@ -205,8 +209,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
                 event.Skip()
             else:
                 self.ProcessPendingEvents()
-#             else:
-#                 event.Skip()
         else:
             event.Skip()
 
@@ -288,6 +290,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         if (self.connect_dialog.Validate()):
             self.connect_dialog.Hide()
             self.network.ConnectToNode(self.connection_data.host, self.connection_data.port)
+            self.viewport.Reset()
 
 
     #===-----------------------------------------------------------------===#
@@ -314,4 +317,8 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     def RemoveObject(self, *args, **kargs):
         """ Remove an object from the viewport. """
         self.viewport.Remove(*args, **kargs)
+
+    def ResetViewport(self, *args, **kargs):
+        """ Reset the viewport. """
+        self.viewport.Reset(*args, **kargs)
 

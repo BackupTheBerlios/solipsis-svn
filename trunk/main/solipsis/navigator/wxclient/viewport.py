@@ -9,16 +9,18 @@ from images import *
 
 
 def _optimize(obj):
-#     try:
-#         import psyco
-#         psyco.bind(obj)
-#     except:
+    try:
+        import psyco
+        psyco.bind(obj)
+    except:
         pass
 
 
 class Viewport(object):
-    """ This class manages a viewport that displays
-    drawable objects in a wxWindow. """
+    """
+    This class is a viewport that displays
+    drawable objects in a wx.Window.
+    """
 
     overview_ratio = 1.15
     glide_duration = 0.8
@@ -43,6 +45,17 @@ class Viewport(object):
         self.angle_glider = LinearEvolver(duration = self.glide_duration)
         self.ratio_glider = ExpEvolver(duration = self.glide_duration)
 
+        self.user_ratio = 0.0
+        self._SetRatio(1.0)
+        self._SetCenter((0,0))
+        self._SetAngle(0.0)
+
+        self.Reset()
+
+    def Reset(self):
+        """
+        Reinitialize the viewport. Clears all objects.
+        """
         self.obj_dict = {}
         self.obj_list = []
         self.obj_name = []
@@ -52,13 +65,10 @@ class Viewport(object):
 
         self.future_positions = []
 
-        self.user_ratio = 0.0
-        self._SetRatio(1.0)
-        self._SetCenter((0,0))
-        self._SetAngle(0.0)
-
     def Draw(self, onPaint = False):
-        """ Refresh the viewport. """
+        """
+        Refresh the viewport.
+        """
 
         # Spare machine time if the window is hidden or if there is something wrong
         try:
@@ -140,11 +150,15 @@ class Viewport(object):
             self.window.Update()
 
     def NeedsFurtherRedraw(self):
-        """ Returns True if the viewport needs redrawing, False otherwise. """
+        """
+        Returns True if the viewport needs redrawing, False otherwise.
+        """
         return self.need_further_redraw
 
     def Add(self, name, obj, position=None):
-        """ Add a drawable object to this viewport. """
+        """
+        Add a drawable object to this viewport.
+        """
 
         # First add the object to the dictionary
         if name in self.obj_dict:
@@ -169,7 +183,9 @@ class Viewport(object):
         return index
 
     def RemoveByIndex(self, index):
-        """ Remove a drawable object giving its index rather than its name. """
+        """
+        Remove a drawable object giving its index rather than its name.
+        """
         name = self.obj_name[index]
         for a in self.obj_arrays:
             del a[index]
@@ -180,7 +196,9 @@ class Viewport(object):
         self._ObjectsGeometryChanged()
 
     def Remove(self, name):
-        """ Remove a drawable object from this viewport. """
+        """
+        Remove a drawable object from this viewport.
+        """
         try:
             index = self.obj_dict[name]
         except:
@@ -189,7 +207,9 @@ class Viewport(object):
         self.RemoveByIndex(index)
 
     def MoveObject(self, name, position):
-        """ Move an existing object in the viewport. """
+        """
+        Move an existing object in the viewport.
+        """
         try:
             index = self.obj_dict[name]
         except:
@@ -199,18 +219,24 @@ class Viewport(object):
         self._ObjectsGeometryChanged()
 
     def JumpTo(self, position):
-        """ Move to a position in logical coordinates. """
+        """
+        Jump to a position in logical coordinates.
+        """
         self._SetCenter(position)
         self._SetAngle(math.pi / 2)
         self._ViewportGeometryChanged()
 
     def MoveTo(self, position):
-        """ Move to a position in logical coordinates. """
+        """
+        Move to a position in logical coordinates.
+        """
         self._SetFutureCenter(position)
         self._ViewportGeometryChanged()
 
     def MoveToPixels(self, position):
-        """ Move to a position in physical (pixel) coordinates. """
+        """
+        Move to a position in physical (pixel) coordinates.
+        """
         w, h = self._WindowSize()
         cx, cy = self.center
         x = float(position[0]) - w / 2

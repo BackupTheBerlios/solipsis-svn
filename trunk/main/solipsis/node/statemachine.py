@@ -595,6 +595,12 @@ class StateMachine(object):
     #
     # Control events
     #
+    def GetAllPeers(self):
+        """
+        Returns a list of all peers.
+        """
+        return self.topology.EnumeratePeers()
+
     def ImmediatelyConnect(self):
         """
         Immediately connect to bootup entities. This is only used

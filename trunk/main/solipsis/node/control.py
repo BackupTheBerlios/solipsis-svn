@@ -93,7 +93,6 @@ class RemoteControl(object):
         self._CheckConnectId(connect_id)
         c = self.connections[connect_id]
         d = defer.Deferred()
-        print "GetEvents", connect_id
 
         def _register():
             self.pending_notifs[connect_id] = d
@@ -104,6 +103,19 @@ class RemoteControl(object):
         c.caller.CallLater(self.min_notif_delay, _register)
         c.caller.CallLater(self.max_notif_delay, _timeout)
         return d
+
+    def remote_GetAllPeers(self, connect_id):
+        """
+        Get a list of all our peers.
+        """
+        self._CheckConnectId(connect_id)
+        peers = self.state_machine.GetAllPeers()
+        result = []
+        for p in peers:
+            peer_info = marshal.PeerInfo()
+            peer_info.FromPeer(p)
+            result.append(peer_info)
+        return result
 
     def remote_Move(self, connect_id, x, y, z):
         """
