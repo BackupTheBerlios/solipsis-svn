@@ -98,7 +98,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.viewport_panel = XRCCTRL(self.main_window, "viewport_panel")
         self.viewport = Viewport(self.viewport_panel)
         self.Bind(wx.EVT_IDLE, self.OnIdle)
-        self.Bind(wx.EVT_PAINT, self.OnPaint)
+#         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.viewport.JumpTo((0.5,0.5))
         self.world = World(self.viewport)
 
@@ -148,6 +148,8 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         wx.EVT_BUTTON(self, XRCID("not_implemented_ok"), self._CloseNotImplemented)
 
         # UI events in world viewport
+        wx.EVT_PAINT(self.viewport_panel, self.OnPaint)
+        wx.EVT_SIZE(self.viewport_panel, self.OnResize)
         wx.EVT_LEFT_DOWN(self.viewport_panel, self._LeftClickViewport)
 
         # Let's go...
@@ -193,11 +195,14 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """
         if self.viewport.NeedsFurtherRedraw():
             if not self.viewport.PendingRedraw() and not self.redraw_pending:
-                # This is a hack so that we don't take 100% CPU time
-                # and give some timeslices to the X server
+                # This is a hack so that we don't take too much CPU time
+                # and give some timeslices to the graphics subsystem
                 self.redraw_pending = True
-                t = self.viewport.LastRedrawDuration()
-                wx.FutureCall(5.0 + 5 * 1000 * t, self.Redraw)
+                if self.x11:
+                    t = 5.0 + 5 * 1000 * self.viewport.LastRedrawDuration()
+                else:
+                    t = 2.0
+                wx.FutureCall(t, self.Redraw)
                 return True
         return False
 
@@ -205,7 +210,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """
         Idle event handler. Used to smoothly redraw some things.
         """
-
         if self.alive:
             if not self.AskRedraw():
                 event.Skip()
@@ -218,9 +222,14 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """
         Called on repaint request.
         """
-
         self.viewport.Draw(onPaint=True)
         event.Skip()
+
+    def OnResize(self, event):
+        """
+        Called on repaint request.
+        """
+        self.AskRedraw()
 
     #===-----------------------------------------------------------------===#
     # Event handlers for the main window

@@ -421,7 +421,7 @@ class StateMachine(object):
         # The fudge factor helps avoid infinite loops
         # (BEST->QUERYAROUND->NEAREST->FINDNEAREST->BEST->QUERYAROUND->...)
         # due to precision loss
-        distance = 0.999 * self.future_topology.RelativeDistance(peer.position.getCoords())
+        distance = self.future_topology.RelativeDistance(peer.position.getCoords())
 
         # Store the best peer
         if self.best_peer is not None:
@@ -544,7 +544,8 @@ class StateMachine(object):
 
         # Either:
         # 1. We have a peer closer to the target than the given Best
-        if nearest.id_ != best_id and nearest_distance < best_distance:
+        if nearest.id_ != best_id and long(nearest_distance) < long(best_distance):
+            print "QUERYAROUND: ('%s', %f) is closer than best ('%s', %f)" % (nearest.id_, nearest_distance, best_id, best_distance)
             self._SendToAddress(args.address, self._PeerMessage('NEAREST', remote_peer=nearest))
 
         # 2. Or we find the closest peer around the target position and in the right half-plane
