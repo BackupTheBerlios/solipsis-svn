@@ -419,7 +419,7 @@ class Viewport(object):
                 width = int(width * 1.5)
                 height = int(height * 1.5)
         print "Rebuilding dim DC %d*%d..." % (width, height)
-        opaque = wx.BLACK
+        opaque = wx.Colour(63, 63, 63)
         transparent = wx.RED
         # Create bitmap & enable transparency
         bmp = wx.EmptyBitmap(width, height)

@@ -25,10 +25,10 @@ def create_nodes(n, port, custom_args):
     try:
         import subprocess
     except ImportError:
-        print "using os.spawnv..."
+        print "(using os.spawnv)"
         os.spawnv(os.P_NOWAIT, prog_name, args)
     else:
-        print "using subprocess.Popen..."
+        print "(using subprocess.Popen)"
         subprocess.Popen(cmdline, shell=True)
 
 def usage():
