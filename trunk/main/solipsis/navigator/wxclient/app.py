@@ -1,3 +1,21 @@
+# <copyright>
+# Solipsis, a peer-to-peer serverless virtual world.
+# Copyright (C) 2002-2005 France Telecom R&D
+# 
+# This software is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+# 
+# This software is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+# 
+# You should have received a copy of the GNU Lesser General Public
+# License along with this software; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# </copyright>
 
 import os
 import sys
@@ -205,143 +223,4 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """
         if self.alive:
             if not self.AskRedraw():
-                event.Skip()
-            else:
-                self.ProcessPendingEvents()
-        else:
-            event.Skip()
-
-    def OnPaint(self, event):
-        """
-        Called on repaint request.
-        """
-        self.viewport.Draw(onPaint=True)
-        event.Skip()
-
-    def OnResize(self, event):
-        """
-        Called on repaint request.
-        """
-        self.Redraw()
-
-    #===-----------------------------------------------------------------===#
-    # Event handlers for the main window
-    # (in alphabetical order)
-    #
-    def _About(self, evt):
-        """ Called on "about" event (menu -> Help -> About). """
-        self.about_dialog.ShowModal()
-
-    def _OpenConnect(self, evt):
-        """ Called on "connect" event (menu -> File -> Connect). """
-        self.connect_dialog.ShowModal()
-
-    def _Disconnect(self, evt):
-        """ Called on "disconnect" event (menu -> File -> Disconnect). """
-        self.network.DisconnectFromNode()
-        self.viewport.Disable()
-
-    def _Preferences(self, evt):
-        """ Called on "preferences" event (menu -> File -> Preferences). """
-        self._NotImplemented()
-
-    def _Quit(self, evt):
-        """ Called on quit event (menu -> File -> Quit, window close box). """
-
-        self.alive = False
-        # Disable event proxying: as of now, all UI -> network
-        # and network -> UI events will be discarded
-        self.DisableProxy()
-        self.network.DisableProxy()
-        # Process the last pending events
-        self.ProcessPendingEvents()
-        # Now we are sure that no more events are pending, kill everything
-        self.reactor.crash()
-        #self.network_loop.join()
-        for obj_name in self.dialogs + self.windows:
-            try:
-                win = getattr(self, obj_name)
-                win.DestroyChildren()
-                win.Destroy()
-            except:
-                pass
-
-
-    #===-----------------------------------------------------------------===#
-    # Event handlers for the about dialog
-    #
-    def _CloseAbout(self, evt):
-        """ Called on close "about dialog" event (Ok button, window close box). """
-        self.about_dialog.Hide()
-
-
-    #===-----------------------------------------------------------------===#
-    # Event handlers for the "not implemented" dialog
-    #
-    def _CloseNotImplemented(self, evt):
-        """ Called on close "not implemented dialog" event (Ok button, window close box). """
-        self.not_implemented_dialog.Hide()
-
-
-    #===-----------------------------------------------------------------===#
-    # Event handlers for the connect dialog
-    #
-    def _CloseConnect(self, evt):
-        """ Called on close "connect dialog" event (Cancel button, window close box). """
-        self.connect_dialog.Hide()
-
-    def _ConnectOk(self, evt):
-        """ Called on connect submit event (Ok button). """
-        if (self.connect_dialog.Validate()):
-            self.connect_dialog.Hide()
-            self.network.ConnectToNode(self.connection_data.host, self.connection_data.port)
-            self.viewport.Reset()
-
-
-    #===-----------------------------------------------------------------===#
-    # Event handlers for the world viewport
-    #
-    def _LeftClickViewport(self, evt):
-        """ Called on left click event. """
-        x, y = self.viewport.MoveToPixels(evt.GetPositionTuple())
-        self.network.MoveTo((x, y))
-        evt.Skip()
-
-
-    #===-----------------------------------------------------------------===#
-    # Actions from the network thread(s)
-    #
-    def AddPeer(self, *args, **kargs):
-        """ Add an object to the viewport. """
-        self.world.AddPeer(*args, **kargs)
-
-    def RemovePeer(self, *args, **kargs):
-        """ Remove an object from the viewport. """
-        self.world.RemovePeer(*args, **kargs)
-
-    def UpdateNode(self, *args, **kargs):
-        """ Update node information. """
-        self.world.UpdateNode(*args, **kargs)
-
-    def UpdatePeer(self, *args, **kargs):
-        """ Update an object. """
-        self.world.UpdatePeer(*args, **kargs)
-
-    def ResetWorld(self, *args, **kargs):
-        """ Reset the viewport. """
-        self.world.Reset(*args, **kargs)
-
-    def SetStatus(self, status):
-        """ Change connection status. """
-        if status == 'READY':
-            self.viewport_panel.SetCursor(wx.StockCursor(wx.CURSOR_DEFAULT))
-            self.viewport.Enable()
-            self.Redraw()
-        elif status == 'BUSY':
-            self.viewport_panel.SetCursor(wx.StockCursor(wx.CURSOR_ARROWWAIT))
-            self.viewport.Enable()
-            self.Redraw()
-        elif status == 'UNAVAILABLE':
-            self.viewport.Disable()
-
-
+      

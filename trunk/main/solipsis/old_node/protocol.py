@@ -1,3 +1,21 @@
+# <copyright>
+# Solipsis, a peer-to-peer serverless virtual world.
+# Copyright (C) 2002-2005 France Telecom R&D
+# 
+# This software is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+# 
+# This software is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+# 
+# You should have received a copy of the GNU Lesser General Public
+# License along with this software; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# </copyright>
 
 import re, new, logging
 
@@ -191,38 +209,4 @@ class Message(object):
             # The syntax is correct => add this arg to the arg list
             if args.has_key(argName):
                 raise EventParsingError("Duplicate value for arg '%s'" % argName)
-            args[argName] =  ARGS_CONSTRUCTOR[argName](argVal)
-
-        # Check that all required fields have been encountered
-        for argName in argList:
-            if not args.has_key(argName):
-                raise EventParsingError("Missing argument '%s' in message '%s'" % (argName, request))
-
-        # Everything's ok
-        self.request = request
-        self.args = args
-        self.data = data
-        return True
-
-
-def checkMessage(data):
-    message = Message()
-    try:
-        message.fromData(data)
-        return True
-    except:
-        raise
-        return False
-
-
-if __name__ == '__main__':
-    data = ("HEARTBEAT SOLIPSIS/1.0\r\n" +
-            "Id: 192.168.0.1\r\n" +
-            "Position: 455464, 78785425, 0\r\n" +
-            "\r\n")
-    message = Message()
-    print message.fromData(data)
-    print message.toData()
-    print message.fromData(message.toData())
-
-
+            args[argName] =  ARGS_CONSTRUCTOR

@@ -1,3 +1,21 @@
+# <copyright>
+# Solipsis, a peer-to-peer serverless virtual world.
+# Copyright (C) 2002-2005 France Telecom R&D
+# 
+# This software is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+# 
+# This software is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+# 
+# You should have received a copy of the GNU Lesser General Public
+# License along with this software; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# </copyright>
 #!/usr/local/bin/env python
 ######################################
 
@@ -161,22 +179,4 @@ class wxMainFrame(wx.Frame):
               name='navig_window', parent=self, pos=wx.Point(0, 0),
               size=wx.Size(1014, 46), style=0)
 
-        top = ImageManager.getBitmap(ImageManager.IMG_TOP_BANNER)
-        self.bannerBitmap = wx.StaticBitmap(bitmap=top,
-                                           id=wxID_WXMAINFRAMETOPBANNERBITMAP,
-                                           name='topBannerBitmap',
-                                           parent=self.navig_window,
-                                           pos=wx.Point(0, 0), size=wx.Size(1014, 46),
-                                           style=0)
-
-        # logo window
-
-
-        # 2D view window
-        self.two_d_window = wx.Window(id=wxID_WXMAINFRAMETWO_D_WINDOW,
-              name='two_d_window', parent=self, pos=wx.Point(0, 46),
-              size=wx.Size(719, 676), style=0)
-
-        # application window
-        self.appli_window = wx.Notebook(id=wxID_WXMAINFRAMEAPPLI_WINDOW,
-                                     name='appli_window', par
+        top = Image

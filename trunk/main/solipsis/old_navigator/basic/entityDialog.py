@@ -1,3 +1,21 @@
+# <copyright>
+# Solipsis, a peer-to-peer serverless virtual world.
+# Copyright (C) 2002-2005 France Telecom R&D
+# 
+# This software is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+# 
+# This software is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+# 
+# You should have received a copy of the GNU Lesser General Public
+# License along with this software; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# </copyright>
 #!/usr/local/bin/env python
 ######################################
 
@@ -174,31 +192,4 @@ class entityDialog(wx.Dialog):
         return 1
 
     def OnSelectNode(self, event):
-        """ store the node selected by the user"""
-
-        self.nodeIndice = self.nodesListBox.GetSelection()
-
-    def OnNewLocalNodeButton(self, event):
-        """ create a new local node in the list """
-
-        dlg = newLocalNodeDialog(self)
-        if dlg.ShowModal() == wx.ID_OK:
-            pseudo = dlg.pseudoTextCtrl.GetValue()
-            if pseudo == "":
-                displayError(self, "Can't create the node : your node pseudo is empty !")
-            else:
-                self.controller.createNode(pseudo)                
-
-    def OnNodeCreationFailure(self, reason):
-        """ The node wasn't created"""
-        displayError(self, 'Error, node not created: ' + reason)
-
-    def OnNodeCreationSuccess(self):
-        """ Success : node created"""
-        self.initNodesList()
-
-
-    def OnNewDistantNodeButton(self, event):
-        """ create a new distant node in the list """
-
-    
+        """ store the node selected by the us

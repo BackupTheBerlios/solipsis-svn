@@ -1,3 +1,21 @@
+# <copyright>
+# Solipsis, a peer-to-peer serverless virtual world.
+# Copyright (C) 2002-2005 France Telecom R&D
+# 
+# This software is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+# 
+# This software is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+# 
+# You should have received a copy of the GNU Lesser General Public
+# License along with this software; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# </copyright>
 
 import re
 import new
@@ -237,84 +255,4 @@ class Parser(object):
             raise EventParsingError("Invalid request syntax: " + lines[0])
 
         # Request is first word of the first line (e.g. NEAREST, or BEST ...)
-        request = m.group(1).upper()
-        # Extract protocol version
-        version = float(m.group(2))
-
-        # Basic sanity check
-        if version > VERSION:
-            raise EventParsingError("Unexpected protocol version: %s" % str(version))
-        elif version < VERSION:
-            self.logger.info("Received message from older protocol version: %s" % str(version))
-        if not request in REQUESTS:
-            raise EventParsingError("Unknown request: " + request)
-
-        # Get args for this request
-        mandatory_args = REQUESTS[request]
-        missing_args = dict.fromkeys(mandatory_args)
-        args = {}
-
-        # Now let's parse each parameter line in turn
-        for line in lines[1:]:
-            # Get arg name and arg value
-            t = line.split(':', 1)
-            if len(t) != 2:
-                raise EventParsingError("Invalid message syntax:\r\n" + data)
-            name = t[0].strip()
-            value = t[1].strip()
-
-            # Each arg has its own syntax-checking regex
-            # (e.g. for a calibre we expect a 3-digit number)
-            try:
-                arg_id = PROTOCOL_STRINGS.get_reverse(name)
-                arg_syntax = ARGS_SYNTAX[arg_id]
-            except KeyError:
-                raise EventParsingError("Unknown arg '%s'" % (name))
-            if not arg_syntax.match(value):
-                raise EventParsingError("Invalid arg syntax for '%s': '%s'" % (name, value))
-
-            # The syntax is correct => add this arg to the arg list
-            if arg_id in args:
-                raise EventParsingError("Duplicate value for arg '%s'" % name)
-
-            # Build argument value from its registered constructor
-            if not parse_only:
-                args[arg_id] = ARGS_FROM_STRING[arg_id](value)
-
-            # Log optional arguments
-            if arg_id in missing_args:
-                del missing_args[arg_id]
-            else:
-                self.logger.debug("Optional argument '%s' in message '%s'" % (name, request))
-
-        # Check that all required fields have been encountered
-        if missing_args:
-            raise EventParsingError("Missing arguments (%s) in message '%s'"
-                    % (",".join([PROTOCOL_STRINGS[arg] for arg in missing_args]), request))
-
-        # Everything's ok
-        if not parse_only:
-            message = Message()
-            message.request = request
-            for arg_id, value in args.iteritems():
-                setattr(message.args, ATTRIBUTE_NAMES[arg_id], value)
-            return message
-        else:
-            return True
-
-
-if __name__ == '__main__':
-    data = ("HEARTBEAT SOLIPSIS/1.0\r\n" +
-            "Id: 192.168.0.1\r\n" +
-            "Position: 455464, 78785425, 0\r\n" +
-            "Clockwise: -1" +
-            "\r\n")
-    parser = Parser()
-    message = parser.ParseMessage(data)
-    print message.request
-    print message.args.__dict__
-    data = parser.BuildMessage(message)
-    print data
-    message = parser.ParseMessage(data)
-    print message.args.__dict__
-
+        reques

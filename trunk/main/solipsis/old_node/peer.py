@@ -1,3 +1,21 @@
+# <copyright>
+# Solipsis, a peer-to-peer serverless virtual world.
+# Copyright (C) 2002-2005 France Telecom R&D
+# 
+# This software is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+# 
+# This software is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+# 
+# You should have received a copy of the GNU Lesser General Public
+# License along with this software; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# </copyright>
 ## SOLIPSIS Copyright (C) France Telecom
 
 ## This file is part of SOLIPSIS.
@@ -204,220 +222,4 @@ class PeersManager(object):
     def recalculate(self):
         """ Recalculate topology information. This functions must be
         called when the node position has changed. """
-        peers = self.enumeratePeers()
-        self.reset()
-        for p in peers:
-            self.addPeer(p)
-
-    def updatePeer(self, p):
-        """ update information on a peer. """
-        self.removePeer(p.getId())
-        self.addPeer(p)
-
-    def getPeer(self, peerid):
-        """ Return the peer associated with this ID
-        Raises : UnknownIdError if the manager has no peer with this ID
-        """
-        try:
-            p = self.peers[peerid]
-            return p
-        except KeyError:
-            raise UnknownIdError(peerid)
-
-    def heartbeat(self, id_):
-        """ Update status of a peer
-        id : id of the peer that sent us a HEARTBEAT message
-        """
-        peer = self.peers[id_]
-        peer.setActiveTime(time.time())
-
-    def getPeerFromAddress(self, address):
-        """ Get the peer with address 'address'
-        address: address of the peer we are looking for - Address object
-        Return : a peer, or None if no such peer was found
-        """
-        # Iterate through list of peers
-        ids = self.peers.keys()
-        for id_ in ids:
-            p = self.peers[id_]
-            if p.address.toString() == address.toString():
-                return p
-
-        # no peer with this address was found
-        return None
-
-
-    def getClosestPeer(self, target, emitter_id = None):
-        """ Return the peer that is the closest to a target position
-        target : a Position object
-        """
-        closestPeer = None
-        for p in self.peers.values():
-            if p.getId() == emitter_id:
-                continue
-            if closestPeer is None or p.isCloser(closestPeer, target):
-                closestPeer = p
-
-        return closestPeer
-
-
-    def getPeerAround(self, targetPosition, emitter_id, isClockWise=True):
-        """ Return the peer that is the closest to a target position and that
-        is in the right half plane.
-        targetPosition : target position which we are looking around
-        isClockWise : boolean indicating if we we searching in the right or the
-        left half-plane - optional
-        Return : a peer or None if there is no peer in the half plane
-        """
-        found = False
-        around = None
-        distClosest = 0
-        nodePosition = self.node.getPosition()
-        for p in self.peers.values():
-            if p.getId() == emitter_id:
-                continue
-            if Geometry.inHalfPlane(nodePosition, targetPosition,
-                                    p.getPosition()) == isClockWise:
-                # first entity in right half-plane
-                if not found:
-                    found = True
-                    around = p
-                    distClosest = Geometry.distance(targetPosition, p.getPosition())
-                else:
-                    dist = Geometry.distance(targetPosition, p.getPosition())
-                    # this peer is closer
-                    if dist < distClosest:
-                        around = p
-                        distClosest = dist
-
-        return around
-
-    def getMedianAwarenessRadius(self):
-        """ Return the median value of the awareness radius of all our peers.
-
-        This is needed during the connection phasis when we to guess a reasonnable
-        value for our AR
-        """
-        arList = []
-        for p in self.enumeratePeers():
-            arList.append(p.getAwarenessRadius())
-        arList.sort()
-        return arList[len(arList)//2]
-
-    def getNumberOfPeers(self):
-        return len(self.peers)
-
-    def hasTooFewPeers(self):
-        """ Check if we have too few neighbours
-        Return True if we have too few peers"""
-        return self.getNumberOfPeers() < self.minPeers
-
-    def hasTooManyPeers(self):
-        """ Check if we have too many neighbours
-        Return True if we have too many peers"""
-        return self.getNumberOfPeers() > self.maxPeers
-
-    def isPeerAccepted(self, peer):
-        """ Check, if a peer is the worst peer.
-
-        """
-        if not self.hasTooManyPeers():
-            return True
-
-        if self.hasPeer(peer.getId()):
-            worst = self.getWorstPeer()
-        else:
-            self.addPeer(peer)
-            worst = self.getWorstPeer()
-            self.removePeer(peer.getId())
-
-        return worst is not peer
-
-    def getWorstPeer(self):
-        """ Choose a peer for removal. Removing this must NOT break the global
-        connectivity rule.
-        Return the worst or None if we cannot remove a peer
-        """
-
-        filter_list = self.necessaryPeers()
-        i = len(self.distPeers) - 1
-        while i >= 0:
-            peer = self.distPeers.ll[i]
-            if peer not in filter_list:
-                return peer
-            i -= 1
-        return None
-
-    def necessaryPeers(self):
-        """ Returns the list of peers that are necessary for our global connectivity. """
-
-        n = len(self.ccwPeers)
-        if n < 4:
-            return self.enumeratePeers()
-        result = []
-        for i in xrange(n):
-            pred_pos = self.ccwPeers.ll[i - 2].getPosition()
-            pos = self.node.getPosition()
-            succ_pos = self.ccwPeers.ll[i].getPosition()
-            if not Geometry.inHalfPlane(pred_pos, pos, succ_pos):
-                result.append(self.ccwPeers.ll[i - 1])
-
-        return result
-
-    def enumeratePeers(self):
-        """ return a list with all peers """
-        return self.peers.values()
-
-    def getBadGlobalConnectivityPeers(self):
-        """ Check if global connectivity is ensured
-
-        Return a pair of entities not respecting property or an empty set.
-        First entity should be used to search clockwise and the second one ccw"""
-        result = []
-
-        nodePos = self.node.getPosition()
-        length = self.getNumberOfPeers()
-
-        if length == 0:
-            return []
-
-        if length == 1:
-            (peer,) = self.peers.values()
-            return [peer, peer]
-
-        for index in range(length):
-            ent = self.ccwPeers.ll[index]
-            nextEnt = self.ccwPeers.ll[ (index+1) % length ]
-            entPos = ent.getPosition()
-            nextEntPos = nextEnt.getPosition()
-            if not Geometry.inHalfPlane(entPos, nodePos, nextEntPos):
-                return [ent, nextEnt]
-        return []
-
-    def hasGlobalConnectivity(self):
-        """ Return True if Global connectivity rule is respected"""
-        return self.getNumberOfPeers() > 0 and self.getBadGlobalConnectivityPeers() == []
-
-    def computeAwarenessRadius(self):
-        """ Based on curent the repartition of our peers (number, position),
-        compute what should be our awareness radius
-        Return an awareness radius (integer)
-        """
-        if self.hasTooManyPeers():
-            offset = self.getNumberOfPeers() - self.maxPeers
-            index = len(self.distPeers) - offset - 1
-            # Get the average between the max inside distance and the min outside distance
-            pos_outside = self.distPeers.ll[index].getPosition()
-            pos_inside = self.distPeers.ll[index - 1].getPosition()
-            dist_outside = Geometry.distance(self.node.getPosition(), pos_outside)
-            dist_inside = Geometry.distance(self.node.getPosition(), pos_inside)
-            return (dist_outside + dist_inside) // 2
-        if self.hasTooFewPeers():
-            fartherPeerPos = self.distPeers.ll[len(self.distPeers) - 1].getPosition()
-            maxDist = Geometry.distance(self.node.getPosition(), fartherPeerPos)
-            # Areal density
-            return maxDist * math.sqrt(self.expectedPeers / self.getNumberOfPeers())
-        else:
-            fartherPeerPos = self.distPeers.ll[len(self.distPeers) - 1].getPosition()
-            return Geometry.distance(self.node.getPosition(), fartherPeerPos)
-
+        peers = self.enumeratePeers
