@@ -24,3 +24,8 @@
 #DEFAULT (echo ""; id; echo %s; date; cat) >> $CVSROOT/CVSROOT/commitlog
 # or
 #DEFAULT (echo ""; id; echo %{sVv}; date; cat) >> $CVSROOT/CVSROOT/commitlog
+
+
+CVSROOT /bin/true
+
+DEFAULT $CVSROOT/CVSROOT/activitymail -cgdpSf %{sVv} -m "[cvs]" -w "http://cvs.berlios.de/cgi-bin/viewcvs.cgi/solipsis" -t apitrou.ext@rd.francetelecom.com -u "${USER} <solipsis-commit@lists.berlios.de>"
