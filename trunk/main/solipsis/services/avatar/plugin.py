@@ -35,8 +35,7 @@ class Plugin(ServicePlugin):
         # TODO: smartly discover our own address IP
         # (this is where duplicated code starts to appear...)
         self.host = socket.gethostbyname(socket.gethostname())
-        self.port = random.randrange(7100, 7200)
-        self.hosts = {}
+        self.port = 7780
 
     def GetTitle(self):
         return _("Avatars")

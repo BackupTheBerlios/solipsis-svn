@@ -165,50 +165,59 @@ class World(object):
         return ""
 
     def _CreatePeerLabel(self, item):
+        """
+        Add the peer's pseudo to the viewport.
+        """
         peer = item.peer
         d = drawable.Text(peer.pseudo)
         item.label_id = self.viewport.AddDrawable(peer.id_, d, (0, 20), 1)
 
     def _CreatePeerAvatar(self, item):
+        """
+        Add the peer'savatar to the viewport.
+        """
         peer_id = item.peer.id_
         #~ bitmap = self.repository.GetBitmap(images.IMG_AVATAR)
         
         # Load random PIL image or use existing one
         try:
-            hash = item.avatar_hash
-            pil = self.pil_avatar_cache[hash]
+            hash_ = item.avatar_hash
+            pil = self.pil_avatar_cache[hash_]
         except KeyError:
             pil = None
             while pil is None:
                 data = self._GetRandomAvatarData()
                 print "** image load"
                 pil = self._PILFromData(data)
-            hash = self._HashAvatarData(data)
-            self.pil_avatar_cache[hash] = pil
+            hash_ = self._HashAvatarData(data)
+            self.pil_avatar_cache[hash_] = pil
 
         # Calculate wx.Bitmaps
-        item.avatar_hash = hash
+        item.avatar_hash = hash_
         self._CalculatePeerAvatar(item)
         
         d = drawable.Image(item.processed_avatar)
         item.avatar_id = self.viewport.AddDrawable(peer_id, d, (0, 0), 0)
 
     def _CalculatePeerAvatar(self, item):
-        hash = item.avatar_hash
+        """
+        Make sure the wxBitmap versions of the avatar are up-to-date.
+        """
+        hash_ = item.avatar_hash
         try:
-            original = self.original_avatar_cache[hash]
+            original = self.original_avatar_cache[hash_]
         except KeyError:
-            pil = self.pil_avatar_cache[hash]
+            pil = self.pil_avatar_cache[hash_]
             print "** image convert 1"
             original = self._BitmapFromPIL(pil)
-            self.original_avatar_cache[hash] = original
+            self.original_avatar_cache[hash_] = original
         try:
-            processed = self.processed_avatar_cache[hash]
+            processed = self.processed_avatar_cache[hash_]
         except KeyError:
-            pil = self.pil_avatar_cache[hash]
+            pil = self.pil_avatar_cache[hash_]
             print "** image convert 2"
             processed = self._BitmapFromPIL(self._ProcessAvatar(pil))
-            self.processed_avatar_cache[hash] = processed
+            self.processed_avatar_cache[hash_] = processed
         item.original_avatar = original
         item.processed_avatar = processed
 
@@ -231,6 +240,9 @@ class World(object):
         return im
 
     def _BitmapFromPIL(self, im):
+        """
+        Creates a wxBitmap from a PIL image.
+        """
         bands = im.getbands()
         if bands != ('R', 'G', 'B', 'A'):
             im = im.convert('RGBA')
@@ -244,9 +256,15 @@ class World(object):
         return wx.BitmapFromImage(wxim)
 
     def _HashAvatarData(self, data):
+        """
+        Computes the avatar's hash from its data.
+        """
         return sha.new(data).digest()
 
     def _GetRandomAvatarData(self):
+        """
+        Get a random avatar from the built-in list.
+        """
         return random.choice(self.random_avatars)
 
     def _ProcessAvatar(self, source):

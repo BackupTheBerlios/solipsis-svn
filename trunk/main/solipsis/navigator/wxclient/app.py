@@ -19,7 +19,6 @@
 
 import os
 import gc
-import sys
 import wx
 import wx.xrc
 import bisect
@@ -324,7 +323,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         return False
     
     def _MemDebug(self):
-        import gc
         gc.collect()
         self.memsizer.sizeall()
         print "\n... memdump ...\n"

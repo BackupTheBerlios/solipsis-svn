@@ -159,7 +159,11 @@ def _accept_services_from_string(s):
     services = []
     for l in s.split(','):
         t = l.strip().split(';')
-        id_ = t[0]
+        id_ = t[0].strip()
+        # Don't accept empty service ids
+        # (this also handles the "no services" case)
+        if not id_:
+            continue
         if len(t) > 1 and t[1].startswith('d='):
             type = t[1][2:]
         else:
