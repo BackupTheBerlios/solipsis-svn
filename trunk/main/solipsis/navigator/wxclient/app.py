@@ -586,9 +586,10 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
                 self.progress_max = self.connection_trials
                 self.progress_dialog = wx.ProgressDialog(
                     title=_('Connection progress'),
-                    message=_('Trying to connect to the node...'),
-                    maximum=self.progress_max,
+                    message=_('Connecting to the node...'),
+                    maximum=self.progress_max + 1,
                     style=wx.GA_SMOOTH)
+                self.progress_dialog.SetSizeHintsSz(self.progress_dialog.GetBestVirtualSize())
             else:
                 self.connection_trials -= 1
                 self.progress_dialog.Update(self.progress_max - self.connection_trials)

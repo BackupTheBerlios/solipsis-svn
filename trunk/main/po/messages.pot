@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-02-04 17:28+0100\n"
+"POT-Creation-Date: 2005-02-17 14:55+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,6 +20,9 @@ msgid "Navigator"
 msgstr ""
 
 msgid "&File"
+msgstr ""
+
+msgid "&New node"
 msgstr ""
 
 msgid "&Connect to node"
@@ -92,6 +95,17 @@ msgstr ""
 msgid "&Cancel"
 msgstr ""
 
+msgid "General"
+msgstr ""
+
+msgid "Kill node when exiting"
+msgstr ""
+
+msgid ""
+"Uncheck this box if you want to remain connected to the Solipsis world even "
+"when you exit the navigator."
+msgstr ""
+
 msgid "Proxy"
 msgstr ""
 
@@ -125,77 +139,92 @@ msgstr ""
 msgid "Please enter a valid nickname"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:122
-#: solipsis/navigator/wxclient/app.py:309
-#: solipsis/navigator/wxclient/app.py:343
-#: solipsis/navigator/wxclient/app.py:501
-#: solipsis/navigator/wxclient/app.py:513
-#: solipsis/navigator/wxclient/app.py:523
+#: solipsis/navigator/wxclient/app.py:125
+#: solipsis/navigator/wxclient/app.py:314
+#: solipsis/navigator/wxclient/app.py:402
+#: solipsis/navigator/wxclient/app.py:570
+#: solipsis/navigator/wxclient/app.py:600
+#: solipsis/navigator/wxclient/app.py:612
 msgid "Not connected"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:296
+#: solipsis/navigator/wxclient/app.py:301
 msgid ""
 "This function is not yet implemented.\n"
 "Sorry! Please come back later..."
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:297
+#: solipsis/navigator/wxclient/app.py:302
 msgid "Not implemented"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:308
+#: solipsis/navigator/wxclient/app.py:313
 msgid ""
 "This action cannot be performed, \n"
 "because you are not connected to a node."
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:407
+#: solipsis/navigator/wxclient/app.py:338
 msgid "Connecting"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:429
+#: solipsis/navigator/wxclient/app.py:375
+msgid ""
+"Node creation failed. \n"
+"Please check you have sufficient rights."
+msgstr ""
+
+#: solipsis/navigator/wxclient/app.py:376
+#: solipsis/navigator/wxclient/app.py:624
+msgid "Kill refused"
+msgstr ""
+
+#: solipsis/navigator/wxclient/app.py:498
 #, python-format
 msgid "Peer \"%s\""
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:436
+#: solipsis/navigator/wxclient/app.py:505
 msgid "Disconnect"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:438
+#: solipsis/navigator/wxclient/app.py:507
 msgid "Connect to node"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:439
+#: solipsis/navigator/wxclient/app.py:508
 msgid "About Solipsis"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:491
-#: solipsis/navigator/wxclient/app.py:508
+#: solipsis/navigator/wxclient/app.py:560
+#: solipsis/navigator/wxclient/app.py:579
 msgid "Connected"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:496
+#: solipsis/navigator/wxclient/app.py:565
 msgid "Searching peers"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:514
+#: solipsis/navigator/wxclient/app.py:588
+msgid "Connection progress"
+msgstr ""
+
+#: solipsis/navigator/wxclient/app.py:589
+msgid "Connecting to the node..."
+msgstr ""
+
+#: solipsis/navigator/wxclient/app.py:601
 msgid ""
 "Connection to the node has failed. \n"
 "Please the check the node is running, then retry."
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:515
+#: solipsis/navigator/wxclient/app.py:602
 msgid "Connection error"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:529
+#: solipsis/navigator/wxclient/app.py:623
 msgid "You cannot kill this node."
-msgstr ""
-
-#: solipsis/navigator/wxclient/app.py:530
-msgid "Kill refused"
 msgstr ""
 
 #: solipsis/util/wxutils.py:137
