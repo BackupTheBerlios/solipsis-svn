@@ -151,7 +151,6 @@ class ChatWindow(wx.EvtHandler, XRCLoader, UIProxyReceiver):
         """
         Called on "Send" button event.
         """
-        #~ print evt
         text = self.chat_edit.GetValue().strip()
         self.chat_edit.Clear()
         if len(text):
