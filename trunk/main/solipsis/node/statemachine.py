@@ -1,6 +1,7 @@
 
 import logging
 import math
+import random
 
 from solipsis.util.exception import *
 from solipsis.util.geometry import Position
@@ -25,13 +26,20 @@ class StateMachine(object):
     """
     world_size = 2**128
 
-    teleportation_flood = 3
+    teleportation_flood = 5
     peer_neighbour_ratio = 2.0
 
-    connection_period = 1.0
+    scanning_period = 1.0
+    connecting_period = 1.0
     early_connecting_period = 5.0
     gc_check_period = 2.0
     population_check_period = 4.0
+
+    gc_trials = 3
+    locating_timeout = 3.0
+    locating_trials = 3
+    scanning_trials = 3
+    connecting_trials = 4
 
     # These are all the message types accepted from other peers.
     # Some of them will only be accepted in certain states.
@@ -39,12 +47,12 @@ class StateMachine(object):
     # - we don't want to answer certain queries if our answer may be false
     # - we don't want to process answers to questions we didn't ask
     accepted_peer_messages = {
-        'AROUND':       [states.Scanning],
-        'BEST':         [],
+        'AROUND':       [states.Scanning, states.Connecting],
+        'BEST':         [states.Locating, states.Scanning],
         'CONNECT':      [],
         'CLOSE':        [],
         'DETECT':       [],
-        'FINDNEAREST':  [states.Idle],
+        'FINDNEAREST':  [states.Connecting, states.Idle],
         'FOUND':        [],
         'HEARTBEAT':    [],
         'HELLO':        [],
@@ -74,6 +82,7 @@ class StateMachine(object):
         self.peer_dispatch_cache = {}
         self.state_dispatch = {}
         self.caller = DelayedCaller(self.reactor)
+        self.peer_sender = None
 
         self.Reset()
 
@@ -83,7 +92,6 @@ class StateMachine(object):
 
     def Reset(self):
         self.state = None
-        self.sender = None
         self.peer_dispatch = {}
 
         # Id's of the peers encountered during a FINDNEAREST chain
@@ -98,21 +106,25 @@ class StateMachine(object):
         self.peer_timeouts = {}
         self.caller.Reset()
 
-        self.topology.SetOrigin(self.node.position.getCoords())
+        self.topology.Reset(origin=self.node.position.getCoords())
 
-    def ImmediatelyConnect(self, sender, addresses):
+    def Init(self, sender, bootup_addresses):
+        """
+        Initialize the state machine. This is mandatory.
+        """
+        self.peer_sender = sender
+        self.bootup_addresses = bootup_addresses
+
+    def ImmediatelyConnect(self):
         self.Reset()
-        self.sender = sender
-
         message = self._PeerMessage('HELLO')
-        for address in addresses:
+        for address in self.bootup_addresses:
             self._SendToAddress(address, message)
         self.SetState(states.EarlyConnecting())
 
-    def BootupWithEntities(self, sender, addresses):
+    def TryConnect(self):
         self.Reset()
-        self.sender = sender
-
+        addresses = random.sample(self.bootup_addresses, self.teleportation_flood)
         self._StartFindNearest(addresses)
 
     def SetState(self, state):
@@ -189,67 +201,87 @@ class StateMachine(object):
     def state_Locating(self):
         print "locating"
 
+        def _restart():
+            self.SetState(states.NotConnected())
+            self.TryConnect()
+
+        self.caller.CallLaterWithId('locating_timeout', self.locating_timeout, _restart)
+
     def state_Scanning(self):
         print "scanning"
+        def _restart():
+            self._Jump()
+        def _retry():
+            # Resend a QUERYAROUND message to all future peers
+            message = self._PeerMessage('QUERYAROUND')
+            message.args.best_id = self.best_peer.id_
+            message.args.best_distance = self.best_distance
+            peers = self.topology.PeersSet()
+            for p in self.future_topology.EnumeratePeers():
+                self._SendToPeer(p, message)
+
+        self.caller.CallPeriodically(self.scanning_period, _retry)
+        self.caller.CallLater(self.scanning_period * self.scanning_trials, _restart)
 
     def state_EarlyConnecting(self):
         print "early connecting"
-
-        def check_gc():
+        def _check_gc():
             # Periodically check global connectivity
             if self.topology.HasGlobalConnectivity():
                 self.SetState(states.Idle())
             else:
                 print "(still connecting)"
-        self.caller.CallPeriodically(self.early_connecting_period, check_gc)
+
+        self.caller.CallPeriodically(self.early_connecting_period, _check_gc)
 
     def state_Connecting(self):
         print "connecting"
+        def _restart():
+            self._Jump()
 
-        def check_connecting():
-            if self.topology.GetNumberOfPeers() < 3:
+        def _check():
+            if self.topology.HasGlobalConnectivity():
+                self.future_topology = None
+                self.best_peer = None
+                self.best_distance = 0.0
+                self.SetState(states.Idle())
+            else:
+                # Resend a HELLO message to all future peers
                 print "(still connecting)"
                 peers = self.topology.PeersSet()
                 for p in self.future_topology.EnumeratePeers():
                     if p not in peers:
                         self._SayHello(p.address)
-            else:
-                self.future_topology = None
-                self.best_peer = None
-                self.best_distance = 0.0
-                if self.topology.HasGlobalConnectivity():
-                    self.SetState(states.Idle())
-                else:
-                    self.SetState(states.LostGlobalConnectivity())
 
-        self.caller.CallPeriodically(self.connection_period, check_connecting)
+        self.caller.CallPeriodically(self.connecting_period, _check)
+        self.caller.CallLater(self.connecting_period * self.connecting_trials, _restart)
 
     def state_Idle(self):
         print "idle"
-
-        def jump():
-            import random
+        def _jump():
             x = random.random() * self.world_size
             y = random.random() * self.world_size
             self.node.position = Position(x, y, 0)
             print "jump to %f, %f" % (x, y)
             self._Jump()
 
-        self.caller.CallLater(3.0, jump)
+#         self.caller.CallLater(3.0 * random.random(), _jump)
 
-        def check_gc():
+        def _check_gc():
             # Periodically check global connectivity
             if not self.topology.HasGlobalConnectivity():
                 self.SetState(states.LostGlobalConnectivity())
 
-        self.caller.CallPeriodically(self.gc_check_period, check_gc)
+        self.caller.CallPeriodically(self.gc_check_period, _check_gc)
         self._CheckNumberOfPeers()
         self.caller.CallPeriodically(self.population_check_period, self._CheckNumberOfPeers)
 
     def state_LostGlobalConnectivity(self):
         print "lost global connectivity"
+        def _restart():
+            self._Jump()
 
-        def check_gc():
+        def _check_gc():
             # Periodically check global connectivity
             if self.topology.GetNumberOfPeers() == 0:
                 # TODO: implement this (we need some initial peer addresses...)
@@ -268,8 +300,9 @@ class StateMachine(object):
                 self._SendToPeer(pair[0], message1)
                 self._SendToPeer(pair[1], message2)
 
-        check_gc()
-        self.caller.CallPeriodically(self.gc_check_period, check_gc)
+        _check_gc()
+        self.caller.CallPeriodically(self.gc_check_period, _check_gc)
+        self.caller.CallLater(self.gc_check_period * self.gc_trials, _restart)
 
 
     #
@@ -353,6 +386,8 @@ class StateMachine(object):
         # if a neighbour finds someone closer to us than our current BEST
         if self.InState(states.Scanning):
             self.SetState(states.Locating())
+        # Endly, reinitialize timeout
+        self.caller.RescheduleCall('locating_timeout')
 
     def peer_BEST(self, args):
         """
@@ -442,6 +477,10 @@ class StateMachine(object):
                 self.logger.info("The AROUND peer is already in the future topology, ignoring")
                 return
 
+        # Maybe we don't want to continue the Scanning algorithm
+        if not self.InState(states.Scanning):
+            return
+
         if self.future_topology.HasGlobalConnectivity():
             # Our awareness radius is the distance between us and our closest
             # neighbour, because we are "sure" to know all the entities between us
@@ -449,17 +488,18 @@ class StateMachine(object):
             self.node.awareness_radius = self.best_distance
             self._SwitchTopologies()
             self.SetState(states.Connecting())
+            return
 
-        elif already_best:
-            # TODO: handle this case (hmmm...)
-            self.logger.warning("We came back to our BEST but there is no global connectivity: we have a problem!")
+        if already_best:
+            # Handled by timeouts
+            self.logger.info("AROUND: we came back to our BEST but there is no global connectivity")
+            return
 
-        else:
-            # Send this peer a queryaround message
-            message = self._PeerMessage('QUERYAROUND')
-            message.args.best_id = self.best_peer.id_
-            message.args.best_distance = self.best_distance
-            self._SendToPeer(peer, message)
+        # Send this peer a queryaround message
+        message = self._PeerMessage('QUERYAROUND')
+        message.args.best_id = self.best_peer.id_
+        message.args.best_distance = self.best_distance
+        self._SendToPeer(peer, message)
 
     def peer_QUERYAROUND(self, args):
         """
@@ -489,7 +529,7 @@ class StateMachine(object):
         """
         A peer reminds us it is alive.
         """
-        # TODO: properly manage HEARTBEAT intervals and retries...
+        pass
 
     def peer_UPDATE(self, args):
         """
@@ -604,7 +644,7 @@ class StateMachine(object):
         # Setup heartbeat handling callbacks
         caller = DelayedCaller(self.reactor)
         # Heuristic (a la BGP)
-        keepalive = peer.hold_time / 4.0
+        keepalive = peer.hold_time / 3.0
         caller.CallPeriodicallyWithId('msg_receive_timeout', peer.hold_time, msg_receive_timeout)
         caller.CallPeriodicallyWithId('msg_send_timeout', keepalive, msg_send_timeout)
         self.peer_timeouts[peer.id_] = caller
@@ -632,7 +672,6 @@ class StateMachine(object):
         remove_ids = []
         for p in self.topology.EnumeratePeers():
             if keep_ids is None or p.id_ not in keep_ids:
-                print "CLOSE '%s'" % p.id_
                 self._SendToPeer(p, self._PeerMessage('CLOSE'))
                 remove_ids.append(p.id_)
         for id_ in remove_ids:
@@ -682,8 +721,7 @@ class StateMachine(object):
             topology = self.future_topology or self.topology
         addresses = [peer.address for peer in topology.GetNearestPeers(self.teleportation_flood)]
 
-        # Disconnect from our current peers
-#         self._CloseCurrentConnections()
+        # Start teleportation algorithm
         self._StartFindNearest(addresses)
 
     def _StartFindNearest(self, addresses):
@@ -763,6 +801,7 @@ class StateMachine(object):
         Send detect messages to a peer.
         This is called on the connection initialization.
         """
+        # Hack to speed up world build
         if self.InState(states.EarlyConnecting):
             return
         position = peer.position.getCoords()
@@ -814,7 +853,7 @@ class StateMachine(object):
                 self._CloseConnection(p)
         else:
             return
-        print "ar=%6f, peers=%d, neighbours=%d (min=%d, max=%d)" % (ar, nb_peers, nb_neighbours, self.min_neighbours, self.max_neighbours)
+#         print "ar=%6f, peers=%d, neighbours=%d (min=%d, max=%d)" % (ar, nb_peers, nb_neighbours, self.min_neighbours, self.max_neighbours)
 
 
     #
@@ -875,8 +914,8 @@ class StateMachine(object):
         return message
 
     def _SendToAddress(self, address, message):
-        if self.sender is not None:
-            self.sender(message=message, address=address)
+        if self.peer_sender is not None:
+            self.peer_sender(message=message, address=address)
         else:
             self.logger.warning("Attempting to send message but sender method is not initialized")
 
@@ -886,6 +925,4 @@ class StateMachine(object):
             return
         data = self.parser.BuildMessage(message)
         self._SendToAddress(peer.address, message)
-#         if peer.id_ in self.peer_timeouts:
-#             self.peer_timeouts[peer.id_].RescheduleCall('msg_send_timeout')
 

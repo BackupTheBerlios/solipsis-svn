@@ -38,12 +38,12 @@ class Bootstrap(object):
             sys.exit(1)
 
         # Setup the initial state
+        message_sender = self.node_connector.SendMessage
+        self.state_machine.Init(message_sender, self.bootup_entities)
         if self.params.as_seed:
-            self.state_machine.ImmediatelyConnect(sender=self.node_connector.SendMessage,
-                                                    addresses=self.bootup_entities)
+            self.state_machine.ImmediatelyConnect()
         else:
-            self.state_machine.BootupWithEntities(sender=self.node_connector.SendMessage,
-                                                    addresses=self.bootup_entities)
+            self.state_machine.TryConnect()
 
         # Enter event loop
         self.reactor.run()

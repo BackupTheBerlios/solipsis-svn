@@ -45,7 +45,7 @@ class Locating(State):
     # maximum number of times we will try to connect
     MAX_CONNECTIONS_ATTEMPTS = 5
 
-    expected_peer_messages = ['NEAREST', 'BEST']
+    expected_peer_messages = ['NEAREST', 'BEST', 'HEARTBEAT']
     expected_control_messages = ['MOVE', 'KILL', 'SET']
 
 
@@ -54,7 +54,7 @@ class Scanning(State):
     State Scanning: The node has found its place in the world. It is asking its
     first neighbours to discover other neighbours around its target positions.
     """
-    expected_peer_messages = ['NEAREST', 'AROUND']
+    expected_peer_messages = ['NEAREST', 'BEST', 'AROUND', 'HEARTBEAT']
     expected_control_messages = ['MOVE', 'KILL', 'SET']
 
 
@@ -71,7 +71,7 @@ class EarlyConnecting(State):
     before launching the proper locating procedure.
     This state is a special state only used for the world creation.
     """
-    expected_peer_messages = ['HELLO', 'CONNECT', 'CLOSE']
+    expected_peer_messages = ['HELLO', 'CONNECT', 'CLOSE', 'HEARTBEAT']
     expected_control_messages = ['MOVE', 'KILL', 'SET']
 
 

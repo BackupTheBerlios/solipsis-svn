@@ -61,7 +61,7 @@ def main():
 
             # The child detaches itself from the console
             os.setsid()
-            os.chdir("/")
+            #os.chdir("/")
             os.umask(0)
 
             # Fork and kill the parent proces
