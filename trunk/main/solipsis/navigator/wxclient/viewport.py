@@ -78,6 +78,7 @@ class Viewport(object):
 
         self.dim_dc = None
         self.disabled = True
+        self.auto_rotate = True
 
         self.Reset()
 
@@ -343,7 +344,7 @@ class Viewport(object):
         self._SetFutureCenter((fx,fy))
 
         # Change orientation according to the destination we move towards
-        if abs(x) > 1 or abs(y) > 1:
+        if self.auto_rotate and (abs(x) > 1 or abs(y) > 1):
             d = math.sqrt(x**2 + y**2)
             if abs(x) > abs(y):
                 angle = math.asin(x / d)
@@ -416,6 +417,9 @@ class Viewport(object):
 
     def Enable(self):
         self.disabled = False
+    
+    def AutoRotate(self, flag):
+        self.auto_rotate = flag
 
     #
     # Private methods: object management

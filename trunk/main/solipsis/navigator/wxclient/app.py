@@ -120,8 +120,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         # Putting objects together
         self.main_window.SetMenuBar(self.main_menubar)
         self.statusbar = StatusBar(self.main_window, _("Not connected"))
-        #self.test_panel = XRCCTRL(self.not_implemented_dialog, "test_panel")
-        #b = wx.Button(self.test_panel, label=_("Close"))
 
         # Nicer sizing
         for obj_name in objects:
@@ -185,6 +183,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         wx.EVT_MENU(self, XRCID("menu_kill"), self._Kill)
         wx.EVT_MENU(self, XRCID("menu_preferences"), self._Preferences)
         wx.EVT_MENU(self, XRCID("menu_quit"), self._Quit)
+        wx.EVT_MENU(self, XRCID("menu_autorotate"), self._ToggleAutoRotate)
         wx.EVT_CLOSE(self.main_window, self._Quit)
 
         # UI events in about dialog
@@ -358,6 +357,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     def _Quit(self, evt):
         """ Called on quit event (menu -> File -> Quit, window close box). """
 
+        print evt
         self.alive = False
         # Disable event proxying: as of now, all UI -> network
         # and network -> UI events will be discarded
@@ -375,6 +375,11 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
                 win.Destroy()
             except:
                 pass
+
+    def _ToggleAutoRotate(self, evt):
+        """ Called on autorotate event (menu -> View -> Autorotate). """
+        
+        self.viewport.AutoRotate(evt.IsChecked())
 
 
     #===-----------------------------------------------------------------===#

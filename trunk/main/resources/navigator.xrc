@@ -9,7 +9,7 @@
   </object>
   <object class="wxMenuBar" name="main_menubar">
     <object class="wxMenu" name="file_menu">
-      <label>File</label>
+      <label>&amp;File</label>
       <object class="wxMenuItem" name="menu_connect">
         <label>&amp;Connect to node</label>
         <bitmap stock_id="wxART_FILE_OPEN"></bitmap>
@@ -29,14 +29,22 @@
       </object>
     </object>
     <object class="wxMenu" name="edit_menu">
-      <label>Edit</label>
+      <label>&amp;Edit</label>
       <object class="separator"/>
       <object class="wxMenuItem" name="menu_preferences">
         <label>Preferences</label>
       </object>
     </object>
+    <object class="wxMenu" name="view_menu">
+      <label>&amp;View</label>
+      <object class="wxMenuItem" name="menu_autorotate">
+        <label>Automatic Rotation</label>
+        <checkable>1</checkable>
+        <checked>1</checked>
+      </object>
+    </object>
     <object class="wxMenu" name="help_menu">
-      <label>Help</label>
+      <label>&amp;Help</label>
       <object class="wxMenuItem" name="menu_about">
         <label>About</label>
       </object>

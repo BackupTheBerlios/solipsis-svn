@@ -9,11 +9,11 @@
       <object class="sizeritem">
         <object class="wxSplitterWindow">
           <object class="wxTextCtrl" name="chat_view">
-            <size>200,80</size>
+            <size>230,80</size>
             <style>wxTE_MULTILINE|wxTE_READONLY</style>
           </object>
           <orientation>vertical</orientation>
-          <sashpos>-100</sashpos>
+          <sashpos>-145</sashpos>
           <style>wxSP_3D|wxSP_3DSASH|wxSP_3DBORDER|wxSP_BORDER|wxSP_LIVE_UPDATE</style>
           <object class="wxPanel">
             <style></style>
@@ -34,7 +34,7 @@
         <option>1</option>
         <flag>wxALL|wxEXPAND|wxGROW</flag>
         <border>5</border>
-        <minsize>300,100</minsize>
+        <minsize>380,160</minsize>
       </object>
       <object class="sizeritem">
         <object class="wxBoxSizer">
