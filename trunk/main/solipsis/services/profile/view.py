@@ -4,8 +4,16 @@ workings of documents"""
 
 import wx
 import sys
+import os
 from StringIO import StringIO
-from simpletal import simpleTAL, simpleTALES
+# Search first in system directory, fall back to bundled version if necessary
+try:
+    from simpletal import simpleTAL, simpleTALES
+except ImportError:
+    _simpletal_path = os.sep.join([os.path.curdir, "solipsis", "lib"])
+    sys.path.append(_simpletal_path)
+    from simpletal import simpleTAL, simpleTALES
+    sys.path.remove(_simpletal_path)
 from solipsis.services.profile import ENCODING
 
 
@@ -421,4 +429,3 @@ class HtmlView(AbstractView):
         """peer"""
         self.context.addGlobal("peers",  self.document.get_peers())
         self.update_view()
-        
