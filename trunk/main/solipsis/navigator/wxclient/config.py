@@ -70,8 +70,6 @@ class ConfigData(ManagedData):
         # Test data
         for s in self.services:
             node.AddService(s)
-        #~ node.AddService(Service('chat', address='127.0.0.1:5555'))
-        #~ node.AddService(Service('video', address='127.0.0.1:6543'))
         return node
 
 

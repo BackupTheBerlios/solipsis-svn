@@ -27,7 +27,7 @@ from solipsis.util.exception import *
 from solipsis.util.position import Position
 from solipsis.util.address import Address
 from peer import Peer
-from solipsis.util.entity import Service
+from solipsis.util.entity import Service, ServiceData
 import protocol
 import states
 from topology import Topology
@@ -105,6 +105,7 @@ class StateMachine(object):
         'QUERYMETA':    [],
         'QUERYSERVICE': [],
         'SEARCH':       [states.Idle],
+        'SERVICEDATA':  [],
         'SERVICEINFO':  [],
         'UPDATE':       [],
     }
@@ -477,6 +478,15 @@ class StateMachine(object):
             peer = self.topology.GetPeer(id_)
             self._UpdatePeerService(peer, args)
 
+    def peer_SERVICEDATA(self, args):
+        """
+        A peer sends us some service-specific data.
+        """
+        id_ = args.id_
+        service_id = args.service_id
+        if self.node.GetService(service_id) is not None:
+            self.event_sender.event_ServiceData(id_, service_id, args.payload)
+
     def peer_NEAREST(self, args):
         """
         A peer answers us a NEAREST message.
@@ -785,7 +795,17 @@ class StateMachine(object):
         else:
             # Otherwise, do a full-fledged teleport
             self._Jump()
-
+    
+    def SendServiceData(self, id_, service_id, data):
+        """
+        Send service-specific data to a peer.
+        """
+        if self.topology.HasPeer(id_):
+            peer = self.topology.GetPeer(id_)
+            message = self._PeerMessage('SERVICEDATA')
+            message.args.service_id = service_id
+            message.args.payload = data
+            self._SendToPeer(peer, message)
 
     #
     # Private methods: add / remove peers

@@ -48,6 +48,22 @@ class Service(Marshallable):
         self.known = True
 
 
+class ServiceData(Marshallable):
+    marshallable_fields = {
+        'peer_id':
+            ("", str),
+        'service_id':
+            ("", str),
+        'data':
+            (u"", unicode),
+    }
+    
+    def __init__(self, peer_id="", service_id="", data=u""):
+        self.peer_id = peer_id
+        self.service_id = service_id
+        self.data = data
+
+
 class Entity(Marshallable):
     """
     An entity is a participant in the Solipsis world. It conforms to the

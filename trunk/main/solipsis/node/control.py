@@ -28,7 +28,7 @@ except:
 from twisted.internet import defer
 
 from solipsis.util.exception import *
-from solipsis.util.entity import Entity, Service
+from solipsis.util.entity import Entity, Service, ServiceData
 from delayedcaller import DelayedCaller
 
 
@@ -170,6 +170,15 @@ class RemoteControl(object):
         self.state_machine.ChangeMeta(node)
         return True
 
+    def remote_SendServiceData(self, connect_id, struct_):
+        """
+        Send service data to another peer.
+        """
+        self._CheckConnectId(connect_id)
+        d = ServiceData.FromStruct(struct_)
+        self.state_machine.SendServiceData(d.peer_id, d.service_id, d.data)
+        return True
+
     #
     # Events
     #
@@ -184,6 +193,10 @@ class RemoteControl(object):
 
     def event_StatusChanged(self, status):
         self._AddNotif("STATUS", status)
+
+    def event_ServiceData(self, peer_id, service_id, data):
+        service_data = ServiceData(peer_id, service_id, data)
+        self._AddNotif("SERVICEDATA", service_data.ToStruct())
 
     #
     # Private methods

@@ -144,3 +144,9 @@ class ServicePlugin(object):
         Called when a peer bearing the service disappears.
         """
         raise NotImplementedError
+
+    def GotServiceData(self, peer_id, data):
+        """
+        Called when some service-specific data has been received.
+        """
+        raise NotImplementedError

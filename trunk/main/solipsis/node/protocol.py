@@ -66,6 +66,9 @@ _args = [
     ('ARG_PSEUDO', 'Pseudo', 'pseudo'),
     ('ARG_SERVICE_ADDRESS', 'Service-Address', 'service_address'),
     ('ARG_SERVICE_ID', 'Service-Id', 'service_id'),
+
+    # This special argument is parsed separately
+    ('ARG_PAYLOAD', '', 'payload'),
 ]
 
 def _init_args(args):
@@ -239,6 +242,7 @@ REQUESTS = {
     'QUERYMETA'  : [ ARG_ID, ARG_PSEUDO, ARG_ACCEPT_LANGUAGES, ARG_ACCEPT_SERVICES ],
     'QUERYSERVICE': [ ARG_ID, ARG_SERVICE_ID, ARG_SERVICE_ADDRESS ],
     'SERVICEINFO': [ ARG_ID, ARG_SERVICE_ID, ARG_SERVICE_ADDRESS ],
+    'SERVICEDATA': [ ARG_ID, ARG_SERVICE_ID, ARG_PAYLOAD ],
 }
 
 
@@ -260,6 +264,7 @@ class Parser(object):
     """
     request_syntax = re.compile(r'^\s*(\w+)\s+SOLIPSIS/(\d+\.\d+)\s*$')
     argument_syntax = re.compile(r'^\s*([-\w]+)\s*:\s*(.*?)\s*$')
+    line_separator = "\r\n"
 
     def __init__(self):
         self.logger = logging.getLogger('root')
@@ -279,15 +284,19 @@ class Parser(object):
         """
         lines = []
         args = message.args.__dict__
+        payload = ""
 
         # 1. Request and protocol version
         lines.append(message.request + " " + BANNER)
         # 2. Request arguments
         for k, v in args.iteritems():
             arg_id = ATTRIBUTE_NAMES.get_reverse(k)
-            lines.append('%s: %s' % (PROTOCOL_STRINGS[arg_id], ARGS_TO_STRING[arg_id](v)))
+            if arg_id == ARG_PAYLOAD:
+                payload = v
+            else:
+                lines.append('%s: %s' % (PROTOCOL_STRINGS[arg_id], ARGS_TO_STRING[arg_id](v)))
         # 3. End of message (double CR-LF)
-        data = "\r\n".join(lines) + "\r\n\r\n"
+        data = "\r\n".join(lines) + "\r\n\r\n" + payload
         # In debug mode, parse our own message to check it is well-formed
         assert self.ParseMessage(data, parse_only=True), "Bad generated message: " + data
         return data
@@ -298,7 +307,8 @@ class Parser(object):
         Parse and extract message from protocol data.
         """
         # Parse raw data to construct message (strip empty lines)
-        lines = [line.strip() for line in data.splitlines() if line.strip() != ""]
+        #~ lines = [line.strip() for line in data.splitlines() if line.strip() != ""]
+        lines = data.split(self.line_separator)
         # If message is empty, return false
         if not lines:
             return None
@@ -326,7 +336,10 @@ class Parser(object):
         args = {}
 
         # Now let's parse each parameter line in turn
-        for line in lines[1:]:
+        for nb_line in xrange(1, len(lines)):
+            line = lines[nb_line]
+            if len(line) == 0:
+                break
             # Get arg name and arg value
             t = line.split(':', 1)
             if len(t) != 2:
@@ -358,11 +371,21 @@ class Parser(object):
             else:
                 self.logger.debug("Optional argument '%s' in message '%s'" % (name, request))
 
+        # Is there a payload ?
+        if nb_line + 1 < len(lines):
+            payload = self.line_separator.join(lines[nb_line+1:])
+            if payload:
+                if ARG_PAYLOAD in missing_args:
+                    del missing_args[ARG_PAYLOAD]
+                else:
+                    self.logger.debug("Optional payload in message '%s'" % request)
+                args[ARG_PAYLOAD] = payload
+
         # Check that all required fields have been encountered
         if missing_args:
             raise EventParsingError("Missing arguments (%s) in message '%s'"
                     % (",".join([PROTOCOL_STRINGS[arg] for arg in missing_args]), request))
-
+        
         # Everything's ok
         if not parse_only:
             message = Message()
@@ -378,8 +401,8 @@ if __name__ == '__main__':
     data = ("HEARTBEAT SOLIPSIS/1.0\r\n" +
             "Id: 192.168.0.1\r\n" +
             "Position: 455464, 78785425, 0\r\n" +
-            "Clockwise: -1" +
-            "\r\n")
+            "Clockwise: -1\r\n" +
+            "\r\ntoto")
     parser = Parser()
     message = parser.ParseMessage(data)
     print message.request

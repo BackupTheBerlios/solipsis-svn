@@ -217,6 +217,17 @@ class ServiceCollector(object):
                 pass
             else:
                 plugin.LostPeer(peer_id)
+    
+    def ProcessServiceData(self, peer_id, service_id, data):
+        """
+        Called when service-specific data has been received.
+        """
+        try:
+            plugin = self.plugins[service_id]
+        except KeyError:
+            pass
+        else:
+            plugin.GotServiceData(peer_id, data)
 
     #
     # API callable from service plugins
@@ -238,6 +249,12 @@ class ServiceCollector(object):
         Set service-specific menu in the navigator's menubar.
         """
         self.ui.SetServiceMenu(service_id, title, menu)
+
+    def service_SendData(self, service_id, peer_id, data):
+        """
+        Send service-specific data using the Solipsis network.
+        """
+        self.ui.SendServiceData(peer_id, service_id, data)
 
     #
     # Private methods

@@ -25,6 +25,7 @@ import wx.xrc
 import bisect
 from wx.xrc import XRCCTRL, XRCID
 
+from solipsis.util.entity import ServiceData
 from solipsis.util.uiproxy import TwistedProxy, UIProxyReceiver
 from solipsis.util.wxutils import _
 from solipsis.util.wxutils import *        # '*' doesn't import '_'
@@ -457,6 +458,10 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     def UpdateNode(self, *args, **kargs):
         """ Update node information. """
         self.world.UpdateNode(*args, **kargs)
+    
+    def ProcessServiceData(self, *args, **kargs):
+        """ Process service-specific data. """
+        self.services.ProcessServiceData(*args, **kargs)
 
     def ResetWorld(self, *args, **kargs):
         """ Reset the viewport. """
@@ -511,7 +516,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         dialog.ShowModal()
 
     #===-----------------------------------------------------------------===#
-    # Actions from the network thread(s)
+    # Actions from the services
     #
     def SetServiceMenu(self, service_id, title, menu):
         val = (title, service_id)
@@ -522,3 +527,8 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         else:
             self.main_menubar.Replace(pos + self.service_menu_pos, menu, title)
             self.service_menus[pos] = val
+
+    def SendServiceData(self, peer_id, service_id, data):
+        if self._CheckNodeProxy(False):
+            d = ServiceData(peer_id, service_id, data)
+            self.node_proxy.SendServiceData(d.ToStruct())

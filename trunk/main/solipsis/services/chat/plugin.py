@@ -37,6 +37,7 @@ class Plugin(ServicePlugin):
         self.host = socket.gethostbyname(socket.gethostname())
         self.port = random.randrange(7000, 7100)
         self.hosts = {}
+        self.pseudos = {}
 
     def GetTitle(self):
         return _("Chat")
@@ -85,9 +86,13 @@ class Plugin(ServicePlugin):
     def SendMessage(self, text):
         # This method is called in UI context (i.e. wx Thread)
         self.network.SendMessage(text)
+        #~ data = text
+        #~ for peer_id in self.hosts.keys():
+            #~ self.service_api.SendData(peer_id, data)
 
     def NewPeer(self, peer, service):
         #~ print "chat: NEW %s (%s)" % (peer.id_, service.address)
+        self.pseudos[peer.id_] = peer.pseudo
         try:
             host, port = self._ParseAddress(service.address)
         except ValueError:
@@ -98,6 +103,7 @@ class Plugin(ServicePlugin):
 
     def ChangedPeer(self, peer, service):
         #~ print "chat: CHANGED %s (%s)" % (peer.id_, service.address)
+        self.pseudos[peer.id_] = peer.pseudo
         try:
             host, port = self._ParseAddress(service.address)
         except ValueError:
@@ -114,6 +120,12 @@ class Plugin(ServicePlugin):
             del self.hosts[peer_id]
             self._SetHosts()
 
+    def GotServiceData(self, peer_id, data):
+        # This method is called in network context (i.e. Twisted thread)
+        pseudo = self.pseudos.get(peer_id, '???' + peer_id)
+        text = '[%s]: ' % pseudo + data
+        self.ui.AppendMessage(text)
+    
     def _SetHosts(self):
         # For test purposes, chat with ourselves ;)
         hosts = self.hosts.values()

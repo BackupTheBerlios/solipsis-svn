@@ -19,7 +19,7 @@
 
 import os
 
-from solipsis.util.entity import Entity
+from solipsis.util.entity import Entity, ServiceData
 from solipsis.util.nodeproxy import XMLRPCNode
 
 
@@ -154,3 +154,7 @@ class RemoteConnector(object):
     def event_STATUS(self, status):
         print "STATUS", status
         self.ui.SetStatus(status)
+
+    def event_SERVICEDATA(self, struct_):
+        d = ServiceData.FromStruct(struct_)
+        self.ui.ProcessServiceData(d.peer_id, d.service_id, d.data)
