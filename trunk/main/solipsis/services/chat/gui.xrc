@@ -68,7 +68,10 @@
         <cols>1</cols>
         <growablecols>0</growablecols>
         <growablerows>0</growablerows>
+        <growablerows>1</growablerows>
+        <growablerows>2</growablerows>
       </object>
+      <style>wxTAB_TRAVERSAL</style>
     </object>
   </object>
 </resource>
