@@ -44,10 +44,19 @@ class ChatWindow(wx.EvtHandler, XRCLoader, UIProxyReceiver):
             setattr(self, obj_name, self.Resource(obj_name))
         
         # Shortcuts to objects
-        self.chat_view = XRCCTRL(self.chat_window, "chat_view")
+        self.chat_panel = XRCCTRL(self.chat_window, "chat_panel")
         self.chat_edit = XRCCTRL(self.chat_window, "chat_edit")
         self.chat_users = XRCCTRL(self.chat_window, "chat_users")
-        
+
+        # We must create the TextCtrl and its Sizer manually since XRCed
+        # does not yet support adding the TE_RICH flag to a TextCtrl...
+        # (which is needed to have styles inside the TextCtrl under Windows!)
+        self.chat_view = wx.TextCtrl(parent=self.chat_panel,
+            style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_RICH)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(self.chat_view, flag=wx.EXPAND, proportion=1)
+        self.chat_panel.SetSizer(sizer)
+
         self.chat_users.InsertColumn(0, _("Nickname"))
 
         # Nicer sizing
