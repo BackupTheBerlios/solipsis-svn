@@ -26,10 +26,10 @@ class Plugin(ServicePlugin):
         return _("Discussion")
 
     def GetDescription(self):
-        return _("Talk with the people around you")
+        return _("Talk with the people that are currently around you")
 
     def GetAction(self):
-        return _("Chat with people")
+        return _("Chat with all peers")
 
     def GetPointToPointAction(self):
         return None

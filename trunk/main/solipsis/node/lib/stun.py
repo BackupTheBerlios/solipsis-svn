@@ -16,6 +16,7 @@
 # License along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
+
 # This code comes from Shtoom: http://www.divmod.org/Home/Projects/Shtoom/
 # Licensed under the GNU LGPL.
 # Copyright (C) 2004 Anthony Baxter
@@ -121,4 +122,3 @@ class StunProtocol(DatagramProtocol, object):
         for s in self.servers:
 #             print "sending to", s
             self.sendRequest(s)
-

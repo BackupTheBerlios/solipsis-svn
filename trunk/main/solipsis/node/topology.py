@@ -35,7 +35,8 @@ class Topology(object):
     """
     Manage all the neighbours of a node.
     """
-
+    
+    # TODO: really check the usefulness of the "epsilon" fudge factor below
     world_size = 2 ** 128
     epsilon = 2.0 ** -50
 
