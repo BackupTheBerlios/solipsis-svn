@@ -212,8 +212,12 @@ class PeersManager(object):
         """ Update status of a peer
         id : id of the peer that sent us a HEARTBEAT message
         """
-        peer = self.peers[id_]
-        peer.setActiveTime(time.time())
+        try:
+            peer = self.peers[id_]
+        except KeyError:
+            pass
+        else:
+            peer.setActiveTime(time.time())
 
     def getPeerFromAddress(self, address):
         """ Get the peer with address 'address'

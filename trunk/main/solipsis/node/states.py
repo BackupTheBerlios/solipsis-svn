@@ -16,21 +16,25 @@ import logging
 
 
 class State(object):
-    current_best_peer = None
+    """
+    Base class for all states recognized by the Solipsis state machine.
+    """
+    pass
 
-    def __init__(self, state_machine):
-        self.state_machine = state_machine
-        self.logger = logging.getLogger("root")
+#     def __init__(self, state_machine):
+#         self.state_machine = state_machine
+#         self.logger = logging.getLogger("root")
 
 
 class NotConnected(State):
-    """ NOT CONNECTED: Initial state of the node.
+    """
+    State NotConnected: Initial state of the node.
 
-    The node is not connected to any entity.
-    The only allowed action is to JUMP to an absolute position in the world.
-    The JUMP action will trigger a Solipsis connection to a first peer, and
-    then the find-nearest-neighbour algorithm so as to connect to the right peers
-    according to the desired JUMP position.
+    The node is not connected to any entity, and it has not yet tried to
+    gather any information about the world.
+
+    Thus the only possible action is to to MOVE to an absolute position,
+    which will trigger the Locating - Scanning - Connecting algorithm.
     """
 
     expected_peer_messages = []
@@ -78,10 +82,11 @@ class Locating(State):
 #         self.sendFindNearest(peer.getAddress())
 #         self.startTimer()
 
+
 class Scanning(State):
-    """ SCANNING: The node has found its place in the world. It is asking its
-    neighbours to notify it of other neighbours so as to have a complete
-    knowledge of its the local neighborhood.
+    """
+    State Scanning: The node has found its place in the world. It is asking its
+    first neighbours to discover other neighbours around its target positions.
     """
 
     expected_peer_messages = ['NEAREST', 'AROUND']
@@ -131,7 +136,8 @@ class Scanning(State):
 
 
 class Connecting(State):
-    """ CONNECTING: The node has found all the neigbours around its position.
+    """
+    State Connecting: The node has found all the neigbours around its target position.
     It is now attempting to connect to these peers.
     """
 
@@ -192,13 +198,18 @@ class Connecting(State):
 
 
 class Idle(State):
-    """ IDLE: the node has a stable position and is fully connected to its local neighborhood.
+    """
+    State Idle: the node has a stable position and is fully connected to its local neighborhood.
     """
     pass
 
 
-# class NoGlobalConnectivity(State):
-#     """ Our global connectivity rule is not satisfied """
+class LostGlobalConnectivity(State):
+    """
+    State LostGlobalConnectivity: the node has lost its global connectivity.
+    """
+    pass
+
 #     def __init__(self):
 #         self.expectedMessages = ['FOUND', 'HELLO', 'DETECT', 'ADDSERVICE', 'FINDNEAREST'
 #                                  'QUERYAROUND', 'DELSERVICE']
