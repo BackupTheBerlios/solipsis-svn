@@ -393,6 +393,13 @@ class Viewport(object):
         self.redraw_pending = True
         return r
 
+    def HoveredItem(self):
+        h = self.hovered_area
+        if h is None:
+            return None
+        index, box = h
+        return self.obj_name[index]
+
     def LastRedrawDuration(self):
         return self.last_redraw_duration
 

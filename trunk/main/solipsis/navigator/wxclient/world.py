@@ -91,6 +91,15 @@ class World(object):
         if peer.pseudo != old.pseudo:
             self.viewport.RemoveDrawable(id_, item.label_id)
             self._CreatePeerLabel(item)
+    
+    def GetPeer(self, peer_id):
+        """
+        Returns the peer with the given ID.
+        """
+        try:
+            return self.items[peer_id].peer
+        except KeyError:
+            return None
 
     def _CreatePeerLabel(self, item):
         peer = item.peer

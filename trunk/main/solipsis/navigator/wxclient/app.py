@@ -405,18 +405,22 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
 
     def _RightClickViewport(self, evt):
         """ Called on left click event. """
+        # We display a contextual menu
+        menu = wx.Menu()
         if self._CheckNodeProxy(False):
-            menu = wx.Menu()
-            #~ menu.Append(wx.NewId(), "Nothing")
+            id_ = self.viewport.HoveredItem()
+            if id_ is not None:
+                peer = self.world.GetPeer(id_)
+                # TODO: properly handle the case when the hovered peer
+                # has been removed from the viewport.
+                if peer is not None:
+                    menu.Append(wx.NewId(), _('Peer "%s"') % peer.pseudo)
             menu.AppendSeparator()
-            menu.Append(XRCID("menu_disconnect"), _("Disconnect from node"))
-            menu.Append(XRCID("menu_about"), _("About Solipsis"))
-            self.viewport_panel.PopupMenu(menu)
+            menu.Append(XRCID("menu_disconnect"), _("Disconnect"))
         else:
-            menu = wx.Menu()
             menu.Append(XRCID("menu_connect"), _("Connect to node"))
-            menu.Append(XRCID("menu_about"), _("About Solipsis"))
-            self.viewport_panel.PopupMenu(menu)
+        menu.Append(XRCID("menu_about"), _("About Solipsis"))
+        self.viewport_panel.PopupMenu(menu)
         evt.Skip()
 
     def _HoverViewport(self, evt):

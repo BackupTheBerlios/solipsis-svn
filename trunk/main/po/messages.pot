@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-01-14 17:14+0100\n"
+"POT-Creation-Date: 2005-01-18 18:46+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -64,8 +64,7 @@ msgid ""
 "(c) France Telecom R&&D\n"
 msgstr ""
 
-#: entrée standard:12 standard:18 standard:22 standard:35 standard:41
-#: standard:45
+#: entrée standard:12 standard:18 standard:22 standard:35 standard:45
 msgid "&OK"
 msgstr ""
 
@@ -81,11 +80,11 @@ msgstr ""
 msgid "Node address"
 msgstr ""
 
-#: entrée standard:16 standard:39
+#: entrée standard:16 standard:39 standard:51
 msgid "Host: "
 msgstr ""
 
-#: entrée standard:17 standard:40
+#: entrée standard:17 standard:40 standard:52
 msgid "Port: "
 msgstr ""
 
@@ -93,7 +92,7 @@ msgstr ""
 msgid "&Cancel"
 msgstr ""
 
-#: entrée standard:20 standard:43 solipsis/navigator/wxclient/app.py:249
+#: entrée standard:20 standard:43 solipsis/navigator/wxclient/app.py:296
 msgid "Not implemented"
 msgstr ""
 
@@ -111,6 +110,10 @@ msgstr ""
 msgid "&Kill node"
 msgstr ""
 
+#: entrée standard:41
+msgid "&Ok"
+msgstr ""
+
 #: entrée standard:47
 msgid "Proxy"
 msgstr ""
@@ -119,64 +122,85 @@ msgstr ""
 msgid ""
 "If you want to connect to a remote node\n"
 "instead of running a node on this computer,\n"
-"you may want to adjust the HTTP proxy settings.\n"
+"you might have to adjust the HTTP proxy settings."
 msgstr ""
 
 #: entrée standard:49
-msgid "Automatic"
+msgid "Automatic proxy detection"
 msgstr ""
 
 #: entrée standard:50
-msgid "Manual"
+msgid "Manual configuration"
 msgstr ""
 
-#: solipsis/navigator/wxclient/validators.py:47
+#: entrée standard:53
+msgid "No proxy"
+msgstr ""
+
+#: entrée standard:54
+msgid "&Close"
+msgstr ""
+
+#: solipsis/navigator/wxclient/validators.py:49
 msgid "Port number must be between 1 and 65535"
 msgstr ""
 
-#: solipsis/navigator/wxclient/validators.py:70
+#: solipsis/navigator/wxclient/validators.py:73
 msgid "Please enter a valid hostname or address"
 msgstr ""
 
-#: solipsis/navigator/wxclient/validators.py:80
+#: solipsis/navigator/wxclient/validators.py:84
 msgid "Please enter a valid nickname"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:248
+#: solipsis/navigator/wxclient/app.py:295
 msgid ""
 "This function is not yet implemented.\n"
 "Sorry! Please come back later..."
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:260
+#: solipsis/navigator/wxclient/app.py:307
 msgid ""
 "This action cannot be performed, \n"
 "because you are not connected to a node."
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:261
+#: solipsis/navigator/wxclient/app.py:308
 msgid "Not connected"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:410
+#: solipsis/navigator/wxclient/app.py:417
+#, python-format
+msgid "Peer \"%s\""
+msgstr ""
+
+#: solipsis/navigator/wxclient/app.py:419
+msgid "Disconnect from node"
+msgstr ""
+
+#: solipsis/navigator/wxclient/app.py:421
+msgid "Connect to node"
+msgstr ""
+
+#: solipsis/navigator/wxclient/app.py:422
+msgid "About Solipsis"
+msgstr ""
+
+#: solipsis/navigator/wxclient/app.py:479
 msgid ""
 "Connection to the node has failed. \n"
 "Please the check the node is running, then retry."
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:411
-msgid "For information, here is the error message:"
-msgstr ""
-
-#: solipsis/navigator/wxclient/app.py:413
+#: solipsis/navigator/wxclient/app.py:482
 msgid "Connection error"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:426
+#: solipsis/navigator/wxclient/app.py:495
 msgid "You cannot kill this node."
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:427
+#: solipsis/navigator/wxclient/app.py:496
 msgid "Kill refused"
 msgstr ""
 
@@ -184,10 +208,18 @@ msgstr ""
 msgid "Please fill this form correctly"
 msgstr ""
 
-#: solipsis/util/wxutils.py:118
+#: solipsis/util/wxutils.py:122
 msgid "Error"
 msgstr ""
 
-#: solipsis/services/chat/plugin.py:28
-msgid "Discussions"
+#: solipsis/services/chat/plugin.py:26
+msgid "Discussion"
+msgstr ""
+
+#: solipsis/services/chat/plugin.py:29
+msgid "Talk with the people around you"
+msgstr ""
+
+#: solipsis/services/chat/plugin.py:32
+msgid "Chat with people"
 msgstr ""
