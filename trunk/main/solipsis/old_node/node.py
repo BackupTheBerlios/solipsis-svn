@@ -163,6 +163,10 @@ class Node(Entity):
         hb = periodic.Heartbeat(self)
         self.periodic.append(hb)
         hb.start()
+        if self.params.memdebug:
+            md = periodic.Memdump()
+            self.periodic.append(md)
+            md.start()
 
     def mainLoop(self):
         """ Main loop of the program """

@@ -36,9 +36,6 @@ import sys
 import exceptions
 from optparse import OptionParser
 
-import psyco
-psyco.profile()
-
 # Solipsis Packages
 from solipsis.util.parameter import Parameters
 from solipsis.node.seed import Seed
@@ -76,8 +73,9 @@ def main():
         parser.add_option("-n", "--notification_port", type="int", dest="notif_port",
                           help="notification port for navigator")
         parser.add_option("-f", "--file", dest="config_file", default=config_file,
-                          help="configuration file" )
-
+                          help="configuration file")
+        parser.add_option("-M", "--memdebug", action="store_true", dest="memdebug", default=False,
+                          help="display periodic memory occupation statistics")
         (options, args) = parser.parse_args()
         port = str(options.port)
         defaults = {}
@@ -105,6 +103,9 @@ def main():
 
         # Create node and enter main loop
         try:
+            # See Psyco documentation: http://psyco.sourceforge.net/psycoguide/module-psyco.html
+            import psyco
+            psyco.profile(watermark=0.01, halflife=10, time=600)
             myNode = Seed(params)
             myNode.mainLoop()
         except Exception, e:

@@ -77,6 +77,8 @@ def main():
                           help="configuration file" )
         parser.add_option("-P", "--profile", action="store_true", dest="profile", default=False,
                           help="profile execution to node.prof" )
+        parser.add_option("-M", "--memdebug", action="store_true", dest="memdebug", default=False,
+                          help="display periodic memory occupation statistics")
 
         params = Parameters(parser, config_file=config_file)
 
@@ -100,9 +102,6 @@ def main():
                 os._exit(0)
 
         # Create node and enter main loop
-        import gc
-        DEBUG_LEAK
-        gc.set_debug(gc.DEBUG_LEAK)
         global profile_run
         myNode = Node(params)
         profile_run = lambda: myNode.mainLoop()
