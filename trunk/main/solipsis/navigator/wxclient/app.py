@@ -206,8 +206,9 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         wx.EVT_PAINT(self.viewport_panel, self.OnPaint)
         wx.EVT_SIZE(self.viewport_panel, self.OnResize)
         wx.EVT_LEFT_DOWN(self.viewport_panel, self._LeftClickViewport)
-        wx.EVT_RIGHT_UP(self.viewport_panel, self._RightClickViewport)
+        wx.EVT_RIGHT_DOWN(self.viewport_panel, self._RightClickViewport)
         wx.EVT_MOTION(self.viewport_panel, self._HoverViewport)
+        wx.EVT_CHAR(self.main_window, self._KeyPressViewport)
 
         # Let's go...
         # 1. Show UI on screen
@@ -483,6 +484,25 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     #===-----------------------------------------------------------------===#
     # Event handlers for the world viewport
     #
+    def _KeyPressViewport(self, evt):
+        """ Called when a key is pressed. """
+        if self._CheckNodeProxy(False):
+            dx = 0.0
+            dy = 0.0
+            key = evt.GetKeyCode()
+            if key == wx.WXK_UP:
+                dy -= 0.3
+            elif key == wx.WXK_DOWN:
+                dy += 0.3
+            elif key == wx.WXK_LEFT:
+                dx -= 0.3
+            elif key == wx.WXK_RIGHT:
+                dx += 0.3
+            if dx or dy:
+                x, y = self.viewport.MoveToRelative((dx, dy))
+                self.node_proxy.Move(str(long(x)), str(long(y)), str(0))
+        evt.Skip()
+
     def _LeftClickViewport(self, evt):
         """ Called on left click event. """
         if self._CheckNodeProxy(False):

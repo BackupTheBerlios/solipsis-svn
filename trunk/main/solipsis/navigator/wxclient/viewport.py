@@ -328,7 +328,7 @@ class Viewport(object):
         self._SetFutureCenter(position)
         self._ViewportGeometryChanged()
 
-    def MoveToPixels(self, position):
+    def MoveToPixels(self, position, strafe=False):
         """
         Move to a position in physical (pixel) coordinates.
         """
@@ -344,7 +344,7 @@ class Viewport(object):
         self._SetFutureCenter((fx,fy))
 
         # Change orientation according to the destination we move towards
-        if self.auto_rotate and (abs(x) > 1 or abs(y) > 1):
+        if self.auto_rotate and not strafe and (abs(x) > 1 or abs(y) > 1):
             d = math.sqrt(x**2 + y**2)
             if abs(x) > abs(y):
                 angle = math.asin(x / d)
@@ -365,7 +365,17 @@ class Viewport(object):
         fx = fx % self.world_size
         fy = fy % self.world_size
         return (fx, fy)
-        
+    
+    def MoveToRelative(self, (dx, dy)):
+        """
+        Move to a position relatively to the current one and the viewport size.
+        """
+        w, h = self._WindowSize()
+        w /= 2
+        h /= 2
+        pixels = (w + dx * w, h + dy * h)
+        return self.MoveToPixels(pixels, strafe=True)
+
     def Hover(self, (px, py)):
         """
         Hover a specific pixel in the viewport.
