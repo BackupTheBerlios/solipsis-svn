@@ -65,6 +65,13 @@ class ServiceCollector(object):
         self.charset = GetCharset()
         self.Reset()
 
+    def Finish(self):
+        """
+        Correctly finalize all plugins.
+        """
+        for service_id in self._Services():
+            self.plugins[service_id].Disable()
+
     def Reset(self):
         self.plugins = {}
         self.peers = {}
@@ -200,17 +207,23 @@ class ServiceCollector(object):
     #
     # API callable from service plugins
     #
-    def service_SetMenu(self, service_id, title, menu):
+    def service_GetDirectory(self, service_id):
         """
-        Set service-specific menu in the navigator's menubar.
+        Get the plugin base directory.
         """
-        self.ui.SetServiceMenu(service_id, title, menu)
+        return os.path.join(self.dir, service_id)
 
     def service_GetReactor(self, service_id):
         """
         Get the Twisted reactor object.
         """
         return self.reactor
+
+    def service_SetMenu(self, service_id, title, menu):
+        """
+        Set service-specific menu in the navigator's menubar.
+        """
+        self.ui.SetServiceMenu(service_id, title, menu)
 
     #
     # Private methods

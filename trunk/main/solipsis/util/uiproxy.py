@@ -20,7 +20,7 @@
 import wx
 import wx.lib.newevent
 
-UIProxyEvent, EVT_PROXY = wx.lib.newevent.NewEvent()
+#~ UIProxyEvent, EVT_PROXY = wx.lib.newevent.NewEvent()
 
 class TwistedProxy(object):
     """ This is a Twisted proxy. Delegate method calls to this object and
@@ -32,7 +32,7 @@ class TwistedProxy(object):
         self.enabled = True
 
     def __getattr__(self, name):
-        print "proxying daemon __getattr__", name
+        print "proxying network __getattr__", name
         attr = getattr(self._target, name)
         call = self.reactor.callFromThread
         if callable(attr):
@@ -65,11 +65,12 @@ class UIProxy(object):
         self._methods = {}
 
     def __getattr__(self, name):
-        print "proxying UI __getattr__"
-        attr = self._target.__getattribute__(name)
+        print "proxying UI __getattr__", name
+        attr = getattr(self._target, name)
+        ProxyEvent = self._target._ProxyEvent
         if callable(attr):
             def fun(*args, **kargs):
-                evt = UIProxyEvent(method = lambda: attr(*args, **kargs))
+                evt = ProxyEvent(method = lambda: attr(*args, **kargs))
                 wx.PostEvent(self._target, evt)
             setattr(self, name, fun)
             return fun
@@ -78,14 +79,15 @@ class UIProxy(object):
 
 class UIProxyReceiver(object):
     def __init__(self):
-        self.enabled = True
-        self.Bind(EVT_PROXY, self.DoProxyEvent)
+        self._ProxyEvent, EVT_PROXY = wx.lib.newevent.NewEvent()
+        self._enabled = True
+        self.Bind(EVT_PROXY, self._DoProxyEvent)
 
-    def DoProxyEvent(self, event):
-        if self.enabled:
+    def _DoProxyEvent(self, event):
+        if self._enabled:
             event.method()
         else:
             print "UIProxy disabled, event discarded"
-
+    
     def DisableProxy(self):
-        self.enabled = False
+        self._enabled = False

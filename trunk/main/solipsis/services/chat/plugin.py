@@ -22,18 +22,17 @@ import wx
 import socket
 
 from solipsis.util.wxutils import _
-from solipsis.util.uiproxy import TwistedProxy
+from solipsis.util.uiproxy import TwistedProxy, UIProxy
 from solipsis.services.plugin import ServicePlugin
 
 from network import NetworkLauncher
+from gui import ChatWindow
 
 
 class Plugin(ServicePlugin):
     def Init(self):
         self.reactor = self.service_api.GetReactor()
         self.port = random.randrange(7000, 7100)
-        n = NetworkLauncher(self.reactor, self, self.port)
-        self.network = TwistedProxy(n, self.reactor)
         self.hosts = {}
 
     def GetTitle(self):
@@ -55,16 +54,30 @@ class Plugin(ServicePlugin):
         service.address = "%s:%d" % (host, self.port)
 
     def Enable(self):
-        self.network.Start()
+        window = ChatWindow(self, self.service_api.GetDirectory())
+        self.ui = UIProxy(window)
+        n = NetworkLauncher(self.reactor, self, self.port)
+        self.network = TwistedProxy(n, self.reactor)
+        self.network.Start(self.GotMessage)
         menu = wx.Menu()
         self.service_api.SetMenu('Chat', menu)
 
     def Disable(self):
         self.network.Stop()
         self.network = None
+        self.ui.Destroy()
+        self.ui = None
 
     def DoAction(self):
-        self.network.SendMessage(u"Need some wood?")
+        self.SendMessage(u"Need some wood?")
+    
+    def GotMessage(self, text, (host, port)):
+        # This method is called in network context (i.e. Twisted thread)
+        self.ui.AppendMessage(text)
+    
+    def SendMessage(self, text):
+        # This method is called in UI context (i.e. wx Thread)
+        self.network.SendMessage(text)
 
     def NewPeer(self, peer, service):
         #~ print "chat: NEW %s" % peer.id_

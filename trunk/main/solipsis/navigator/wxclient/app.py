@@ -355,13 +355,13 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.network.DisableProxy()
         # Process the last pending events
         self.ProcessPendingEvents()
+        # Finish running services
+        self.services.Finish()
         # Now we are sure that no more events are pending, kill everything
         self.reactor.crash()
-        #self.network_loop.join()
         for obj_name in self.dialogs + self.windows:
             try:
                 win = getattr(self, obj_name)
-                #~ win.DestroyChildren()
                 win.Destroy()
             except:
                 pass

@@ -22,9 +22,9 @@ from twisted.internet.protocol import DatagramProtocol
 
 
 class Protocol(DatagramProtocol):
-    def __init__(self):
+    def __init__(self, receiver):
         self.hosts = []
-        #~ DatagramProtocol.__init__(self)
+        self.receiver = receiver
 
     def SetHosts(self, hosts):
         self.hosts = list(hosts)
@@ -38,7 +38,7 @@ class Protocol(DatagramProtocol):
 
     def datagramReceived(self, data, (from_host, from_port)):
         text = data.decode('utf-8')
-        print "received %r from %s:%d" % (text, from_host, from_port)
+        self.receiver(text, (from_host, from_port))
 
 
 class NetworkLauncher(object):
@@ -49,11 +49,12 @@ class NetworkLauncher(object):
         self.listening = None
         self.protocol = None
 
-    def Start(self):
+    def Start(self, receiver):
         if self.listening:
             self.Stop()
-        self.protocol = Protocol()
+        self.protocol = Protocol(receiver)
         self.listening = self.reactor.listenUDP(self.port, self.protocol)
+        self.SetHosts([])
 
     def Stop(self):
         self.listening.stopListening()
