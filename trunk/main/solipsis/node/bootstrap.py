@@ -75,7 +75,7 @@ class NodeLauncher(object):
             except IndexError:
                 self.reactor.fireSystemEvent('shutdown')
                 sys.exit(1)
-            discovery = _import('discovery.' + method)
+            discovery = _import('solipsis.node.discovery.' + method)
             d = discovery.DiscoverAddress(self.port, self.reactor, self.params)
             d.addCallback(_succeed)
             d.addErrback(_fail)
@@ -124,7 +124,7 @@ class NodeLauncher(object):
         if not self.params.bot:
             for controller in self.params.controllers:
                 try:
-                    c = _import('controller.' + controller)
+                    c = _import('solipsis.node.controller.' + controller)
                 except ImportError, e:
                     print str(e)
                     self.reactor.stop()
