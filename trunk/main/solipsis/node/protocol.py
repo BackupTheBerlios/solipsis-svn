@@ -119,7 +119,7 @@ _from_string = {
     ARG_BEST_DISTANCE: float,
     ARG_CALIBRE: int,
     ARG_CLOCKWISE: (lambda x: int(x) > 0),
-    ARG_ID: str,
+    ARG_ID: intern,
     ARG_ORIENTATION: int,
     ARG_POSITION: (lambda s: Position(strPosition=s)),
     ARG_PSEUDO: str,

@@ -46,6 +46,7 @@ class NodeLauncher(object):
 
         # Local address discovery
         discovery_module = 'local'
+#         discovery_module = 'stun'
         discovery = _import('discovery.' + discovery_module)
         d = discovery.DiscoverAddress(self.port, self.reactor, self.params)
         def _succeed(address):

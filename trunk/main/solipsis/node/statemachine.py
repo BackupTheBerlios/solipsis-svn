@@ -681,7 +681,6 @@ class StateMachine(object):
         """
         Add a peer and send the necessary notification messages.
         """
-        peer.id_ = intern(peer.id_)
         if not self.topology.AddPeer(peer):
             print "topology refused peer '%s'" % peer.id_
             return
