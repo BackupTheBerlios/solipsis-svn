@@ -759,4 +759,4 @@ class Viewport(object):
 
 # We optimize the whole object.
 # If problematic, we could just optimize selected methods.
-_optimize(Viewport)
+#~ _optimize(Viewport)

@@ -16,25 +16,25 @@
 # License along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
-"""
-Simple module size estimator
-** derived from http://manatee.mojam.com/~skip/python/sizer.py **
-
-Working from the modules present in sys.modules, the Sizer class makes a
-reasonable estimate of the number of global objects reachable from each
-loaded module without traversing into other modules (more-or-less).
-
-Usage is simple:
-
-    s = Sizer()
-    s.sizeall()
-    for item in s.get_deltas():
-        print item
-"""
 
 import sys, types
 
-class MemSizer:
+class MemSizer(object):
+    """
+    Simple module size estimator
+    ** derived from http://manatee.mojam.com/~skip/python/sizer.py **
+    
+    Working from the modules present in sys.modules, the Sizer class makes a
+    reasonable estimate of the number of global objects reachable from each
+    loaded module without traversing into other modules (more-or-less).
+    
+    Usage is simple:
+    
+        s = MemSizer()
+        s.sizeall()
+        for item in s.get_deltas():
+            print item
+    """
     dispatch = {}
 
     def __init__(self):
@@ -48,6 +48,9 @@ class MemSizer:
         self.seen = {}
         self.seenids = {}
         for k in sys.modules.keys():
+            if k.startswith('wx'):
+                continue
+            #~ print k
             self.seen[k] = self.rlen_module(sys.modules[k])
 
     def get_sizes(self):
@@ -87,6 +90,9 @@ class MemSizer:
                     #self.unknown[type(obj)] = 1
                     #print "MemSizer: unknown type %s" % str(type(obj))
                     total = 1
+                except:
+                    print obj
+                    raise
             self.seenids[id(obj)] = total
             return total
 
@@ -134,4 +140,3 @@ class MemSizer:
     dispatch[dict] = rlen_dict
     dispatch[list] = rlen_seq
     dispatch[tuple] = rlen_seq
-

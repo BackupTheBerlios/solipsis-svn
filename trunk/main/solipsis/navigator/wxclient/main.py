@@ -30,6 +30,8 @@ def main():
     parser = OptionParser(usage)
     parser.add_option("-f", "--file", dest="config_file", default=config_file,
                         help="configuration file")
+    parser.add_option("-M", "--memdebug", dest="memdebug", action="store_true", default=False,
+                        help="dump memory occupation statistics")
     params = Parameters(parser, config_file=config_file)
 
     application = NavigatorApp(redirect=False, parameters=params)

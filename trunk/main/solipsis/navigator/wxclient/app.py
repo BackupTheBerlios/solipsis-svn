@@ -18,6 +18,7 @@
 # </copyright>
 
 import os
+import gc
 import sys
 import wx
 import wx.xrc
@@ -26,6 +27,7 @@ from wx.xrc import XRCCTRL, XRCID
 from solipsis.util.uiproxy import TwistedProxy, UIProxyReceiver
 from solipsis.util.wxutils import _
 from solipsis.util.wxutils import *        # '*' doesn't import '_'
+from solipsis.util.memdebug import MemSizer
 
 from validators import *
 from viewport import Viewport
@@ -45,6 +47,11 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.redraw_pending = False
         self.config_data = ConfigData()
         self.node_proxy = None
+        if self.params.memdebug:
+            self.memsizer = MemSizer()
+            gc.set_debug(gc.DEBUG_LEAK)
+        else:
+            self.memsizer = None
         
         self.dialogs = None
         self.windows = None
@@ -197,6 +204,9 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             self.x11 = True
         else:
             self.x11 = False
+        
+        if self.memsizer:
+            self._MemDebug()
         return True
 
 
@@ -275,6 +285,15 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             dialog = wx.MessageDialog(None, msg, caption=_("Not connected"), style=wx.OK | wx.ICON_ERROR)
             dialog.ShowModal()
         return False
+    
+    def _MemDebug(self):
+        self.memsizer.sizeall()
+        print "\n... memdump ...\n"
+        items = self.memsizer.get_deltas()
+        print "\n".join(items)
+        wx.FutureCall(1000.0 * 10, self._MemDebug)
+        #~ print "\ngarbage:", gc.garbage
+        print "\n\n"
 
     #===-----------------------------------------------------------------===#
     # Event handlers for the main window
