@@ -1,5 +1,7 @@
 
-import sys, random
+import os, os.path
+import sys
+import random
 from ConfigParser import ConfigParser
 import logging, logging.config
 
@@ -27,7 +29,7 @@ class Parameters(object):
     }
 
     navigator_section = {
-        'translation_dir': ('translation_dir', str, None),
+        'translation_dir': ('translation_dir', os.path.normcase, None),
         'pseudo': ('pseudo', unicode, u"anonymous"),
     }
 
