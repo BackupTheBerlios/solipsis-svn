@@ -23,12 +23,12 @@ try:
 except:
     from sets import Set as set
 
-from solipsis.util.geometry import Position
+from solipsis.util.position import Position
+from solipsis.util.address import Address
 from solipsis.util.marshal import Marshallable
 
 
 class Service(Marshallable):
-
     marshallable_fields = {
         'id_':
             ("", str),
@@ -51,20 +51,19 @@ class Entity(Marshallable):
     Solipsis protocol, maintaining a number of properties useful to the
     global coherency of the world.
     """
-
     marshallable_fields = {
         'id_':
             ("", str),
         'pseudo':
             (u"", unicode),
         'address':
-            ("", lambda a: Address(strAddress=a)),
+            ("", lambda a: Address.FromStruct(a)),
         'awareness_radius':
             (0.0, float),
         'position':
-            ((0.0, 0.0, 0.0), lambda p: map(float, p)),
+            (Position(), lambda p: Position(tuple(p))),
         'services':
-            ([], lambda l: [Service.FromStruct(s) for s in l]),
+            ({}, lambda d: dict([(k, Service.FromStruct(s)) for k, s in d.items()])),
         'languages':
             ([], list),
     }
@@ -183,11 +182,3 @@ class Entity(Marshallable):
                 if (service.type, my_service.type) in self.service_matches:
                     matched.append(service)
         return matched
-
-    def __str__(self):
-        ent = 'Id:' + str(self.id_) + '\n'
-        ent += 'Position:' +  str(self.position)+ '\n'
-        ent += 'ar:' + str(self.awareness_radius)+ '\n'
-        ent += 'Pseudo:' + str(self.pseudo)   + '\n'
-        ent += 'Address:' + str(self.address)+ '\n'
-        return ent

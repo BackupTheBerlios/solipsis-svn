@@ -20,6 +20,7 @@
 import random
 import math
 
+from solipsis.util.entity import Entity
 from solipsis.util.timer import AutoTimer
 from delayedcaller import DelayedCaller
 
@@ -29,7 +30,7 @@ class Controller(object):
     walker.Controller is a special controller that periodically moves the
     node in the world by a random amount.
     """
-    update_period = 60.0
+    update_period = 10.0
     decide_period_avg = 60.0
 
     def __init__(self, reactor, params, remote_control):
@@ -63,7 +64,6 @@ class Controller(object):
 
     def _Decide(self):
         if self.ready:
-            node_info = self.remote_control.remote_GetNodeInfo(self.connect_id)
             speed = random.expovariate(3.0)
             angle = random.uniform(0.0, 2.0 * math.pi)
             self.speed = (speed * math.cos(angle), speed * math.sin(angle))
@@ -77,9 +77,9 @@ class Controller(object):
         We only move if the node is in a stable state.
         """
         if self.ready:
-            node_info = self.remote_control.remote_GetNodeInfo(self.connect_id)
-            ar = node_info.awareness_radius
-            (x, y, z) = node_info.position
+            node = Entity.FromStruct(self.remote_control.remote_GetNodeInfo(self.connect_id))
+            ar = node.awareness_radius
+            (x, y, z) = node.position.GetXYZ()
             (vx, vy) = self.speed
             (tick, elapsed) = self.timer.Read()
             x += vx * ar

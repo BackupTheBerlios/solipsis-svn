@@ -366,7 +366,7 @@ class Topology(object):
         id_ = p.id_
 
         # Relative position
-        x, y = p.position.getCoords()
+        x, y = p.position.GetXY()
         x = self.normalize(x - xc)
         y = self.normalize(y - yc)
 
@@ -439,4 +439,3 @@ class Topology(object):
             angle, id_ = next_angle, next_id
 
         return result
-

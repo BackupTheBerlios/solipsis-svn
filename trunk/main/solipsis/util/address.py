@@ -17,56 +17,40 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
 
-from autohash import Autohash
+from solipsis.util.marshal import Marshallable
+from solipsis.util.autohash import Autohash
 
 
-class Address(object):
+class Address(Marshallable):
     """
     Represents a Solipsis Address.
     """
     __metaclass__ = Autohash(('host', 'port'))
 
-    SEPARATOR = ':'
+    marshallable_fields = {
+        'host':
+            ("", str),
+        'port':
+            (0, int),
+    }
 
-    def __init__(self, host='', port=0, strAddress=''):
-        """ Constructor. Create a new Address object
-        host : host name or IP address
-        port : port number
-        strAddress : a string representing the network address
+    def __init__(self, host="", port=0):
+        """
+        Create a new Address object from hostname, port number.
         """
         self.host = host
         self.port = int(port)
 
-        # override host, port value if strAddress is not null
-        if strAddress <> '':
-            self.setValueFromString(strAddress)
+    def ToString(self):
+        return "%s:%d" % (self.host, self.port)
 
-    def toString(self):
-        return str(self.host) + Address.SEPARATOR + str(self.port)
-
-    def getHost(self):
-        return self.host
-
-    def getPort(self):
-        return self.port
-
-    def setValueFromString(self, strAddress):
-        """ Set the new address of this Address object.
-        strAddress: a string representing the address '192.235.22.32:8978'
-        """
-        if strAddress <> '':
-            strHost, strPort = strAddress.split(Address.SEPARATOR)
-            if strHost <> '':
-                self.host = strHost
-            if strPort <> '':
-                self.port = int(strPort)
+    def FromString(cls, s):
+        t = s.split(':')
+        assert len(t) == 2, "Wrong address format: '%s'" % s
+        obj = cls(t[0].strip(), t[1])
+        return obj
+        
+    FromString = classmethod(FromString)
 
     def __eq__(self, other):
-        return ( self.getHost() == other.getHost() ) and \
-               ( self.getPort() == other.getPort() )
-
-    def __str__(self):
-        return self.toString()
-
-    #~ def __hash__(self):
-        #~ return hash(self.host) ^ hash(self.port)
+        return self.host == other.host and self.port == other.port

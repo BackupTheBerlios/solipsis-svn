@@ -27,10 +27,10 @@ except:
     from sets import Set as set
 
 from solipsis.util.exception import *
-from solipsis.util.geometry import Position
+from solipsis.util.position import Position
 from solipsis.util.address import Address
 from solipsis.util.bidict import bidict
-from entity import Service
+from solipsis.util.entity import Service
 
 VERSION = 1.0
 BANNER = "SOLIPSIS/" + `VERSION`
@@ -165,13 +165,13 @@ def _accept_services_to_string(services):
 _from_string = {
     ARG_ACCEPT_LANGUAGES:   _accept_languages_from_string,
     ARG_ACCEPT_SERVICES:    _accept_services_from_string,
-    ARG_ADDRESS:            (lambda s: Address(strAddress=s)),
+    ARG_ADDRESS:            (lambda s: Address.FromString(s)),
     ARG_AWARENESS_RADIUS:   float,
     ARG_BEST_DISTANCE:      float,
     ARG_CLOCKWISE:          (lambda c: int(c) > 0),
     ARG_HOLD_TIME:          int,
     ARG_ID:                 intern,
-    ARG_POSITION:           (lambda s: Position(strPosition=s)),
+    ARG_POSITION:           (lambda s: Position.FromString(s)),
     ARG_PSEUDO:             (lambda s: unicode(s.decode(CHARSET))),
     ARG_SEND_DETECTS:       (lambda s: s == 'now'),
     ARG_SERVICE_ID:         str,
@@ -181,14 +181,14 @@ _from_string = {
 _to_string = {
     ARG_ACCEPT_LANGUAGES:   _accept_languages_to_string,
     ARG_ACCEPT_SERVICES:    _accept_services_to_string,
-    ARG_ADDRESS:            str,
+    ARG_ADDRESS:            (lambda a: a.ToString()),
     # TODO: change all coord and distance types to float
     ARG_AWARENESS_RADIUS:   (lambda x: str(long(x))),
     ARG_BEST_DISTANCE:      (lambda x: str(long(x))),
     ARG_CLOCKWISE:          (lambda c: c and "+1" or "-1"),
     ARG_HOLD_TIME:          str,
     ARG_ID:                 str,
-    ARG_POSITION:           str,
+    ARG_POSITION:           (lambda p: p.ToString()),
     ARG_PSEUDO:             (lambda u: u.encode(CHARSET)),
     ARG_SEND_DETECTS:       (lambda x: x and "now" or "later"),
     ARG_SERVICE_ID:         str,

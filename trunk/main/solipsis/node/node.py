@@ -16,15 +16,16 @@
 # License along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
+
 import sys
 import logging
 
 from solipsis.util.parameter import Parameters
-from solipsis.util.geometry import Position
+from solipsis.util.position import Position
 from solipsis.util.address import Address
 from solipsis.util.exception import *
 
-from entity import Entity
+from solipsis.util.entity import Entity
 
 
 class Node(Entity):
@@ -34,12 +35,8 @@ class Node(Entity):
         self.reactor = reactor
         self.params = params
 
-        if not params.bot:
-            # TODO: initialize XMLRPC
-            pass
-
         id_ = self.CreateId()
-        position = Position(params.pos_x, params.pos_y)
+        position = Position((params.pos_x, params.pos_y, 0))
         address = Address(params.host, params.port)
 
         # call parent class constructor
@@ -48,13 +45,9 @@ class Node(Entity):
         # maximum expected number of neighbours.
         self.expected_peers = params.expected_neighbours
 
-        # our IP address or 'localhost' if not specified in config file
-        self.host = params.host
-
+        #~ # our IP address or 'localhost' if not specified in config file
+        #~ self.host = params.host
         self.alive = True
-        self.logger = logging.getLogger('root')
-        self.logger.debug('node started')
-
 
     def CreateId(self):
         # TODO: reasonable ID generation and attribution

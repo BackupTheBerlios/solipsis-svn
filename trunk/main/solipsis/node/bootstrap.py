@@ -23,7 +23,7 @@ import random
 
 import twisted.internet.defer as defer
 
-from solipsis.util.geometry import Position
+from solipsis.util.position import Position
 from solipsis.util.address import Address
 from node import Node
 from nodeconnector import NodeConnector
@@ -55,9 +55,9 @@ class NodeLauncher(object):
         self.port = self.params.port + pool_num
         node = Node(self.reactor, self.params)
         if self.params.pool:
-            node.position = Position(random.random() * 2**128, random.random() * 2**128, 0)
+            node.position = Position((random.random() * 2**128, random.random() * 2**128, 0))
         else:
-            node.position = Position(self.params.pos_x, self.params.pos_y, 0)
+            node.position = Position((self.params.pos_x, self.params.pos_y, 0))
         self.state_machine = StateMachine(self.reactor, self.params, node)
         self.node_connector = NodeConnector(self.reactor, self.params, self.state_machine)
         self.remote_control = RemoteControl(self.reactor, self.params, self.state_machine)
@@ -227,4 +227,3 @@ class Bootstrap(object):
                 entities.append((host, port))
         entities.reverse() # a bit of fun
         return entities
-

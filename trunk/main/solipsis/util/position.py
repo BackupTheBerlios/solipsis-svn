@@ -17,15 +17,17 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
 
+from solipsis.util.marshal import Marshallable
 
-class Position(object):
+
+class Position(Marshallable):
     """
     Represents a Solipsis position.
     """
     def __init__(self, (x, y, z) = (0, 0, 0)):
-        self.x = x
-        self.y = y
-        self.z = z
+        self.x = long(x)
+        self.y = long(y)
+        self.z = long(z)
 
     def GetXY(self):
         return (self.x, self.y)
@@ -33,11 +35,14 @@ class Position(object):
     def GetXYZ(self):
         return (self.x, self.y, self.z)
 
-    def ToString(self):
-        """
-        String representation of the position.
-        """
-        return ", ".join((self.x, self.y, self.z))
+    def FromStruct(cls, struct_):
+        obj = cls(tuple(struct_))
+        return obj
+    
+    FromStruct = classmethod(FromStruct)
+    
+    def ToStruct(self):
+        return (str(self.x), str(self.y), str(self.z))
 
     def FromString(cls, s):
         """
@@ -52,5 +57,12 @@ class Position(object):
             obj.z = long(coords[2])
         except:
             raise Exception("Wrong string '%s' for Position" % s)
+        return obj
     
     FromString = classmethod(FromString)
+
+    def ToString(self):
+        """
+        String representation of the position.
+        """
+        return ", ".join((str(self.x), str(self.y), str(self.z)))

@@ -18,40 +18,12 @@
 # </copyright>
 
 
-from solipsis.util.address import Address
-
-# TODO: unify Peer and PeerInfo, as well as Service and ServiceInfo,
-# and get rid of all this duplication
-
-
 class Marshallable(object):
     """
     Marshallable is the base class for classes that are to be marshallable
     by simple protocols like XMLRPC. It means Marshallable objects can be
     converted to/from a dictionnary (which can be nested).
     """
-
-    #~ def __init__(self, struct=None):
-        #~ """
-        #~ Create a Marshallable from struct (dictionnary).
-        #~ """
-        #~ if struct is None:
-            #~ for name, (default, cons) in self.fields.iteritems():
-                #~ setattr(self, name, default)
-        #~ else:
-            #~ for name, (default, cons) in self.fields.iteritems():
-                #~ setattr(self, name, cons(struct[name]))
-
-    #~ def FromStruct(self, struct_):
-        #~ """
-        #~ Create a Marshallable from struct (dictionnary).
-        #~ """
-        #~ if struct_ is None:
-            #~ for name, (default, cons) in self.marshallable_fields.iteritems():
-                #~ setattr(self, name, default)
-        #~ else:
-            #~ for name, (default, cons) in self.marshallable_fields.iteritems():
-                #~ setattr(self, name, cons(struct_[name]))
 
     def FromStruct(cls, struct_):
         """
@@ -72,69 +44,19 @@ class Marshallable(object):
         """
         Return struct (dictionnary) from Marshallable.
         """
-        d = {}
-        for k in self.marshallable_fields:
-            v = getattr(self, k)
+        def _MarshalValue(v):
             assert v is not None, "Cannot marshal None!"
             if isinstance(v, Marshallable):
-                d[k] = v.ToStruct()
+                return v.ToStruct()
             elif isinstance(v, list):
-                d[k] = [w.ToStruct() for w in v]
+                return [_MarshalValue(w) for w in v]
+            elif isinstance(v, dict):
+                return dict([(k, _MarshalValue(w)) for k, w in v.items()])
             else:
-                d[k] = v
+                return v
+
+        d = {}
+        for k in self.marshallable_fields:
+            d[k] = _MarshalValue(getattr(self, k))
         #~ print d
         return d
-
-
-#~ class ServiceInfo(Marshallable):
-    #~ fields = {
-        #~ 'id_':
-            #~ ("", str),
-        #~ 'type':
-            #~ ("bidir", str),
-        #~ 'address':
-            #~ ("", str),
-    #~ }
-    
-    #~ def FromService(self, service):
-        #~ self.id_ = service.id_
-        #~ self.type = service.type
-        #~ self.address = service.address
-
-
-#~ class PeerInfo(Marshallable):
-    #~ """
-    #~ This is a container class used to send node information to/from a navigator.
-    #~ """
-    #~ fields = {
-        #~ 'id_':
-            #~ ("", str),
-        #~ 'pseudo':
-            #~ (u"", unicode),
-        #~ 'address':
-            #~ ("", lambda a: Address(strAddress=a)),
-        #~ 'awareness_radius':
-            #~ (0.0, float),
-        #~ 'position':
-            #~ ((0.0, 0.0, 0.0), lambda p: map(float, p)),
-        #~ 'services':
-            #~ ([], lambda l: [ServiceInfo(s) for s in l]),
-        #~ 'languages':
-            #~ ([], list),
-    #~ }
-
-    #~ def FromPeer(self, peer):
-        #~ """
-        #~ Fill PeerInfo from peer.
-        #~ """
-        #~ self.id_ = peer.id_
-        #~ x, y = peer.position.getCoords()
-        #~ self.position = (float(x), float(y), float(peer.position.getPosZ()))
-        #~ self.pseudo = unicode(peer.pseudo)
-        #~ self.address = peer.address.toString()
-        #~ self.awareness_radius = float(peer.awareness_radius)
-        #~ self.services = []
-        #~ for s in peer.GetServices():
-            #~ service = ServiceInfo()
-            #~ service.FromService(s)
-            #~ self.services.append(service)

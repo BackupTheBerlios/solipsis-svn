@@ -24,10 +24,10 @@ import random
 import time
 
 from solipsis.util.exception import *
-from solipsis.util.geometry import Position
+from solipsis.util.position import Position
 from solipsis.util.address import Address
 from peer import Peer
-from entity import Service
+from solipsis.util.entity import Service
 import protocol
 import states
 from topology import Topology
@@ -155,7 +155,7 @@ class StateMachine(object):
         # For each address, this is the timestamp of the last HELLO attempt
         self.last_hellos = {}
 
-        self.topology.Reset(origin=self.node.position.getCoords())
+        self.topology.Reset(origin=self.node.position.GetXY())
 
     def Init(self, peer_sender, event_sender, bootup_addresses):
         """
@@ -487,7 +487,7 @@ class StateMachine(object):
             if id_ == self.best_peer.id_:
                 self.logger.info("NEAREST received, but proposed is already our best")
                 return
-            elif (self.best_distance <= self.topology.RelativeDistance(args.remote_position.getCoords())):
+            elif (self.best_distance <= self.topology.RelativeDistance(args.remote_position.GetXY())):
                 self.logger.info("NEAREST received, but proposed peer is farther than our current best")
                 return
 
@@ -511,7 +511,7 @@ class StateMachine(object):
         # The fudge factor helps avoid infinite loops
         # (BEST->QUERYAROUND->NEAREST->FINDNEAREST->BEST->QUERYAROUND->...)
         # due to precision loss
-        distance = self.future_topology.RelativeDistance(peer.position.getCoords())
+        distance = self.future_topology.RelativeDistance(peer.position.GetXY())
 
         # Store the best peer
         if self.best_peer is not None:
@@ -540,7 +540,7 @@ class StateMachine(object):
         A peer sends us a FINDNEAREST query.
         """
         id_ = args.id_
-        target = args.position.getCoords()
+        target = args.position.GetXY()
         address = args.address
         (nearest, nearest_distance) = self.topology.GetClosestPeer(target, id_)
         if nearest is None:
@@ -569,7 +569,7 @@ class StateMachine(object):
         if id_ == self.node.id_:
             return
         # Filter 2: don't connect with someone too far from us
-        distance = self.topology.RelativeDistance(peer.position.getCoords())
+        distance = self.topology.RelativeDistance(peer.position.GetXY())
         if distance > self.node.awareness_radius:
             return
 
@@ -627,7 +627,7 @@ class StateMachine(object):
         peer_id = args.id_
         best_id = args.best_id
         best_distance = args.best_distance
-        target = args.position.getCoords()
+        target = args.position.GetXY()
         (nearest, nearest_distance) = self.topology.GetClosestPeer(target, peer_id)
         if nearest is None:
             return
@@ -645,7 +645,7 @@ class StateMachine(object):
             if around is not None:
                 self._SendToAddress(args.address, self._PeerMessage('AROUND', remote_peer=around))
             else:
-                self.logger.info('QUERYAROUND received, but no peer around position: %s' % str(target))
+                self.logger.info('QUERYAROUND received, but no peer around position: %s' % target.ToString())
 
     def peer_HEARTBEAT(self, args):
         """
@@ -691,7 +691,7 @@ class StateMachine(object):
             self.logger.warning("Error, reception of SEARCH message from unknown peer '%s'" % str(id_))
             return
 
-        around = self.topology.GetPeerAround(peer.position.getCoords(), id_, clockwise)
+        around = self.topology.GetPeerAround(peer.position.GetXY(), id_, clockwise)
 
         # Send message if an entity has been found
         if around is not None:
@@ -759,7 +759,7 @@ class StateMachine(object):
         # Change position
         x %= self.world_size
         y %= self.world_size
-        position = Position(x, y, z)
+        position = Position((x, y, z))
         self.node.position = position
         self.topology.SetOrigin((x, y))
         self.moved = True
@@ -879,7 +879,7 @@ class StateMachine(object):
 
         # Create future topology and jump into state "locating"
         self.future_topology = Topology()
-        self.future_topology.SetOrigin(self.node.position.getCoords())
+        self.future_topology.SetOrigin(self.node.position.GetXY())
         self.SetState(states.Locating())
 
 
@@ -895,8 +895,8 @@ class StateMachine(object):
         # Save old peer value and update
         peer = topology.GetPeer(new_peer.id_)
 
-        old_pos = peer.position.getCoords()
-        new_pos = new_peer.position.getCoords()
+        old_pos = peer.position.GetXY()
+        new_pos = new_peer.position.GetXY()
         old_ar = peer.awareness_radius
         new_ar = new_peer.awareness_radius
 
@@ -913,7 +913,7 @@ class StateMachine(object):
             for entity in topology.EnumeratePeers():
                 if entity.id_ == peer.id_:
                     continue
-                its_pos = entity.position.getCoords()
+                its_pos = entity.position.GetXY()
                 its_ar = entity.awareness_radius
 
                 our_dist = topology.RelativeDistance(its_pos)
@@ -948,7 +948,7 @@ class StateMachine(object):
         This is called on the connection initialization.
         """
         # Hack to speed up world build
-        position = peer.position.getCoords()
+        position = peer.position.GetXY()
         radius = peer.awareness_radius
         for remote_peer in self.topology.GetPeersInCircle(position, radius):
             message = self._PeerMessage('DETECT', remote_peer=remote_peer)

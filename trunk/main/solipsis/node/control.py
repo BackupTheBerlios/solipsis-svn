@@ -28,7 +28,7 @@ except:
 from twisted.internet import defer
 
 from solipsis.util.exception import *
-from solipsis.util import marshal
+from solipsis.util.entity import Entity, Service
 from delayedcaller import DelayedCaller
 
 
@@ -112,12 +112,7 @@ class RemoteControl(object):
         """
         self._CheckConnectId(connect_id)
         peers = self.state_machine.GetAllPeers()
-        result = []
-        for p in peers:
-            peer_info = marshal.PeerInfo()
-            peer_info.FromPeer(p)
-            result.append(peer_info)
-        return result
+        return [p.ToStruct() for p in peers]
 
     def remote_GetNodeInfo(self, connect_id):
         """
@@ -125,9 +120,7 @@ class RemoteControl(object):
         """
         self._CheckConnectId(connect_id)
         node = self.state_machine.node
-        node_info = marshal.PeerInfo()
-        node_info.FromPeer(node)
-        return node_info
+        return node.ToStruct()
 
     def remote_GetStatus(self, connect_id):
         """
@@ -153,22 +146,18 @@ class RemoteControl(object):
         Change node information (only for metadata, the rest is ignored).
         """
         self._CheckConnectId(connect_id)
-        node_info = marshal.PeerInfo(node_info)
-        self.state_machine.ChangeMeta(node_info)
+        node = Entity.ToStruct(node_info)
+        self.state_machine.ChangeMeta(node)
         return True
 
     #
     # Events
     #
     def event_ChangedPeer(self, peer):
-        peer_info = marshal.PeerInfo()
-        peer_info.FromPeer(peer)
-        self._AddNotif("CHANGED", peer_info.ToStruct())
+        self._AddNotif("CHANGED", peer.ToStruct())
 
     def event_NewPeer(self, peer):
-        peer_info = marshal.PeerInfo()
-        peer_info.FromPeer(peer)
-        self._AddNotif("NEW", peer_info.ToStruct())
+        self._AddNotif("NEW", peer.ToStruct())
 
     def event_LostPeer(self, peer_id):
         self._AddNotif("LOST", peer_id)
