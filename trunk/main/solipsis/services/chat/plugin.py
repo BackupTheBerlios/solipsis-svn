@@ -19,6 +19,7 @@
 
 import random
 import wx
+import socket
 
 from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import TwistedProxy
@@ -29,10 +30,11 @@ from network import NetworkLauncher
 
 class Plugin(ServicePlugin):
     def Init(self):
-        reactor = self.service_api.GetReactor()
-        port = random.randrange(7000, 7100)
-        n = NetworkLauncher(reactor, self, port)
-        self.network = TwistedProxy(n, reactor)
+        self.reactor = self.service_api.GetReactor()
+        self.port = random.randrange(7000, 7100)
+        n = NetworkLauncher(self.reactor, self, self.port)
+        self.network = TwistedProxy(n, self.reactor)
+        self.hosts = {}
 
     def GetTitle(self):
         return _("Chat")
@@ -45,6 +47,12 @@ class Plugin(ServicePlugin):
 
     def GetPointToPointAction(self):
         return None
+    
+    def DescribeService(self, service):
+        # TODO: smartly discover our own address IP
+        # (this is where duplicated code starts to appear...)
+        host = socket.gethostbyname(socket.gethostname())
+        service.address = "%s:%d" % (host, self.port)
 
     def Enable(self):
         self.network.Start()
@@ -59,10 +67,45 @@ class Plugin(ServicePlugin):
         self.network.SendMessage(u"Need some wood?")
 
     def NewPeer(self, peer, service):
-        print "chat: NEW %s" % peer.id_
+        #~ print "chat: NEW %s" % peer.id_
+        try:
+            host, port = self._ParseAddress(service.address)
+        except ValueError:
+            pass
+        else:
+            self.hosts[peer.id_] = host, port
+            self.network.SetHosts(self.hosts.values())
 
     def ChangedPeer(self, peer, service):
-        print "chat: CHANGED %s" % peer.id_
+        #~ print "chat: CHANGED %s" % peer.id_
+        try:
+            host, port = self._ParseAddress(service.address)
+        except ValueError:
+            if peer.id_ in self.hosts:
+                del self.hosts[peer.id_]
+                self.network.SetHosts(self.hosts.values())
+        else:
+            self.hosts[peer.id_] = host, port
+            self.network.SetHosts(self.hosts.values())
 
     def LostPeer(self, peer_id):
-        print "chat: LOST %s" % peer_id
+        #~ print "chat: LOST %s" % peer_id
+        if peer_id in self.hosts:
+            del self.hosts[peer_id]
+            self.network.SetHosts(self.hosts.values())
+
+    def _ParseAddress(self, address):
+        try:
+            t = address.split(':')
+            if len(t) != 2:
+                raise ValueError
+            host = str(t[0]).strip()
+            port = int(t[1])
+            if not host:
+                raise ValueError
+            if port < 1 or port > 65535:
+                raise ValueError
+            return host, port
+        except ValueError:
+            print "Wrong chat address '%s'" % address
+            raise

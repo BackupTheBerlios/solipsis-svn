@@ -24,6 +24,7 @@ class ServicePlugin(object):
     communicates with the navigator core.
     Each plugin should subclass this class and implement the required methods.
     """
+
     def __init__(self, service_api):
         """
         Builds the plugin object.
@@ -78,6 +79,12 @@ class ServicePlugin(object):
         """
         Returns the file name of an icon representing the plugin.
         There should be at least a 16x16 icon (for pop-up menus).
+        """
+        raise NotImplementedError
+    
+    def DescribeService(self, service):
+        """
+        Fills the Service object used to describe the service to other peers.
         """
         raise NotImplementedError
 

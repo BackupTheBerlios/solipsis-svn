@@ -89,7 +89,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         except AttributeError:
             print "No translation dir specified"
             pass
-        print self.locale.AddCatalog("solipsis")
+        self.locale.AddCatalog("solipsis")
         # Workaround for buggy Python behaviour with floats
         system_locale.setlocale(system_locale.LC_NUMERIC, "C")
 
@@ -106,7 +106,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.menubars = ["main_menubar"]
         objects = self.dialogs + self.windows + self.menubars
 
-        print sys.path
         self.LoadResource("resources/navigator.xrc")
         for obj_name in objects:
             self.__setattr__(obj_name, self.Resource(obj_name))
@@ -159,6 +158,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.service_menus = []
         self.service_menu_pos = self.main_menubar.GetMenuCount() - 1
         self.services.ReadServices()
+        self.config_data.SetServices(self.services.GetServices())
 
 
     def OnInit(self):
@@ -223,7 +223,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         
         # 4. Other tasks are launched after the window is drawn
         self.services = ServiceCollector(self.params, self, self.reactor)
-        wx.FutureCall(100, self.InitServices)
+        wx.FutureCall(500, self.InitServices)
         
         return True
 

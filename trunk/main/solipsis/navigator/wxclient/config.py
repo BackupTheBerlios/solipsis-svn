@@ -44,6 +44,7 @@ class ConfigData(ManagedData):
         self.proxy_host = ""
         self.proxy_port = 0
         self.proxy_autodetect_done = False
+        self.services = []
 
     def Autocomplete(self):
         self.proxy_mode = self.proxymode_auto and "auto" or (
@@ -55,6 +56,9 @@ class ConfigData(ManagedData):
             self.proxy_port = proxy_port or 0
             #~ print "detected proxy (%s, %d)" % (self.proxy_host, self.proxy_port)
 
+    def SetServices(self, services):
+        self.services = list(services)
+
     def GetNode(self):
         node = Entity()
         node.pseudo = self.pseudo
@@ -64,8 +68,10 @@ class ConfigData(ManagedData):
         # Dummy value to avoid None-marshaling
         node.address = Address()
         # Test data
-        node.AddService(Service('chat', address='127.0.0.1:5555'))
-        node.AddService(Service('video', address='127.0.0.1:6543'))
+        for s in self.services:
+            node.AddService(s)
+        #~ node.AddService(Service('chat', address='127.0.0.1:5555'))
+        #~ node.AddService(Service('video', address='127.0.0.1:6543'))
         return node
 
 

@@ -29,14 +29,16 @@ class Protocol(DatagramProtocol):
     def SetHosts(self, hosts):
         self.hosts = list(hosts)
     
-    def SendMessage(self, data, exclude_addr=None):
+    def SendMessage(self, text, exclude_addr=None):
+        data = text.encode('utf-8')
         for to_host, to_port in self.hosts:
             if exclude_addr is not None and (to_host, to_port) != exclude_addr:
                 continue
             self.transport.write(data, (to_host, to_port))
 
     def datagramReceived(self, data, (from_host, from_port)):
-        print "received %r from %s:%d" % (data, from_host, from_port)
+        text = data.decode('utf-8')
+        print "received %r from %s:%d" % (text, from_host, from_port)
 
 
 class NetworkLauncher(object):
@@ -52,9 +54,6 @@ class NetworkLauncher(object):
             self.Stop()
         self.protocol = Protocol()
         self.listening = self.reactor.listenUDP(self.port, self.protocol)
-        # For test purposes, chat with ourselves ;)
-        host = self.listening.getHost().host
-        self.protocol.SetHosts([(host, self.port)])
 
     def Stop(self):
         self.listening.stopListening()
@@ -64,3 +63,8 @@ class NetworkLauncher(object):
     def SendMessage(self, data):
         assert self.protocol is not None, "Tried to send message but protocol is disabled"
         self.protocol.SendMessage(data)
+
+    def SetHosts(self, hosts):
+        # For test purposes, chat with ourselves ;)
+        hosts.append((self.listening.getHost().host, self.port))
+        self.protocol.SetHosts(hosts)

@@ -26,6 +26,7 @@ try:
 except:
     from sets import Set as set
 
+from solipsis.util.entity import Service
 from solipsis.util.uiproxy import UIProxy
 from solipsis.util.wxutils import _, GetCharset, IdPool
 
@@ -71,7 +72,7 @@ class ServiceCollector(object):
 
     def ReadServices(self):
         """
-        Read available services from the service directory.
+        Read and load available services from the service directory.
         """
         l = os.listdir(self.dir)
         for f in l:
@@ -97,6 +98,17 @@ class ServiceCollector(object):
         # properly initialized for the plugin to interact with it.
         plugin.Init()
         plugin.Enable()
+
+    def GetServices(self):
+        """
+        Get a list of supported services and their properties.
+        """
+        l = []
+        for service_id in self._Services():
+            s = Service(id_=service_id)
+            self.plugins[service_id].DescribeService(s)
+            l.append(s)
+        return l
 
     def GetPopupMenuItems(self, menu):
         """
@@ -192,7 +204,6 @@ class ServiceCollector(object):
         """
         Set service-specific menu in the navigator's menubar.
         """
-        print "setting menu '%s' for service '%s'" % (title, service_id)
         self.ui.SetServiceMenu(service_id, title, menu)
 
     def service_GetReactor(self, service_id):
