@@ -64,7 +64,7 @@ class ChatWindow(wx.EvtHandler, XRCLoader, UIProxyReceiver):
         message = message.strip()
         if message:
             self.chat_view.AppendText(message + "\n")
-    
+
     def Destroy(self):
         """
         Destroy chat interface.
