@@ -100,7 +100,7 @@ class NodeLauncher(object):
         else:
             self.state_machine.TryConnect()
         self.reactor.addSystemEventTrigger('before', 'shutdown', self.state_machine.Close)
-        self.reactor.addSystemEventTrigger('after', 'shutdown', self.state_machine.DumpStats)
+#         self.reactor.addSystemEventTrigger('after', 'shutdown', self.state_machine.DumpStats)
 
         # Start remote controller
         if not self.params.bot:
@@ -153,9 +153,10 @@ class Bootstrap(object):
         def _succeed(results):
             # Build the list of local addresses once they are known
             addresses = []
-            for r in results:
-                host, port = r[1]
-                addresses.append((host, port))
+            for ok, result in results:
+                if ok:
+                    host, port = result
+                    addresses.append((host, port))
             for p in self.pool:
                 self.reactor.callLater(0, p.Launch, bootup_entities or addresses)
 
