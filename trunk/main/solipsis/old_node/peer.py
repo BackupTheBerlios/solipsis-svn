@@ -230,4 +230,199 @@ class PeersManager(object):
                 return p
 
         # no peer with this address was found
-     
+        return None
+
+
+    def getClosestPeer(self, target):
+        """ Return the peer that is the closest to a target position
+        target : a Position object
+        """
+        closestPeer = self.peers.values()[0]
+        for p in self.peers.values():
+            if p.isCloser(closestPeer, target):
+                closestPeer = p
+
+        return closestPeer
+
+
+    def getPeerAround(self, targetPosition, isClockWise=True):
+        """ Return the peer that is the closest to a target position and that
+        is in the right half plane.
+        targetPosition : target position which we are looking around
+        isClockWise : boolean indicating if we we searching in the right or the
+        left half-plane - optional
+        Return : a peer or None if there is no peer in the half plane
+        """
+        found = False
+        around = None
+        distClosest = 0
+        nodePosition = self.node.getPosition()
+        for p in self.peers.values():
+            if Geometry.inHalfPlane(nodePosition, targetPosition,
+                                    p.getPosition()) == isClockWise:
+                # first entity in right half-plane
+                if not found:
+                    found = True
+                    around = p
+                    distClosest = Geometry.distance(targetPosition, p.getPosition())
+                else:
+                    dist = Geometry.distance(targetPosition, p.getPosition())
+                    # this peer is closer
+                    if dist < distClosest:
+                        around = p
+                        distClosest = dist
+
+        return around
+
+    def getMedianAwarenessRadius(self):
+        """ Return the median value of the awareness radius of all our peers.
+
+        This is needed during the connection phasis when we to guess a reasonnable
+        value for our AR
+        """
+        arList = []
+        for p in self.enumeratePeers():
+            arList.append(p.getAwarenessRadius())
+        arList.sort()
+        return arList[len(arList)//2]
+
+    def getNumberOfPeers(self):
+        return len(self.peers)
+
+    def hasTooFewPeers(self):
+        """ Check if we have too few neighbours
+        Return True if we have too few peers"""
+        return self.getNumberOfPeers() < self.minPeers
+
+    def hasTooManyPeers(self):
+        """ Check if we have too many neighbours
+        Return True if we have too many peers"""
+        return self.getNumberOfPeers() > self.maxPeers
+
+    def isWorstPeer(self, peer):
+        """ Check, if a peer is the worst peer.
+
+        """
+        if self.hasPeer(peer.getId()):
+            worst = self.getWorstPeer()
+        else:
+            self.addPeer(peer)
+            worst = self.getWorstPeer()
+            self.removePeer(peer.getId())
+
+        if worst is not None:
+            return worst.getId() == peer.getId()
+        else:
+            return False
+
+    def getWorstPeer(self):
+        """ Choose a peer for removal. Removing this must NOT break the global
+        connectivity rule.
+        Return the worst or None if we cannot remove a peer
+        """
+        worstList = self.getWorstPeers()
+        worst = None
+        # there is a posibility to remove any entity in FilterList.
+        # By default, we decide to remove the farthest entity.
+        # In article presented at RESH'02, we proposed several other possibilities
+        # for more efficient choice.
+        if len(worstList) > 0:
+            worst = worstList[0]
+
+        return worst
+
+    def getWorstPeers(self):
+        """ Return a list of peers with which we should disconnect. Removing these
+        peers must NOT break the global connectivity rule.
+        Return a list of peers or [] if we cannot remove a peer
+        """
+        if not self.hasTooManyPeers():
+            return []
+
+        # filter list of neighbors
+        # keep only entities not in Awareness Area which do not provoke mis-respect
+        # of Global Connectivity Rule
+
+        FilterList = []
+        endFilter = True
+        indexFilter = len(self.distPeers) - 1
+        nodePos = self.node.getPosition()
+
+        while endFilter and indexFilter > 0:
+            ent = self.distPeers.ll[indexFilter]
+            distEnt = Geometry.distance(ent.getPosition(), nodePos)
+
+            # first, verify that ent is not in Awareness Area
+            if distEnt > self.node.getAwarenessRadius() :
+                # and that we are not in its AR
+                if distEnt > ent.getAwarenessRadius():
+
+                    indInCcw = self.ccwPeers.ll.index(ent)
+                    successor = self.ccwPeers.ll[(indInCcw + 1) % len(self.ccwPeers)]
+                    predecessor = self.ccwPeers.ll[indInCcw - 1]
+
+                    # then verify that ent is not mandatory for Rule respect
+                    if Geometry.inHalfPlane(predecessor.getPosition(), nodePos,
+                                            successor.getPosition()):
+                        FilterList.append(ent)
+
+            else:
+                # stop iteration because all following entities are in Awareness
+                # Radius
+                endFilter = False
+
+            indexFilter -= 1
+
+        return FilterList
+
+
+
+    def enumeratePeers(self):
+        """ return a list with all peers """
+        return self.peers.values()
+        
+    def getBadGlobalConnectivityPeers(self):
+        """ Check if global connectivity is ensured
+
+        Return a pair of entities not respecting property or an empty set.
+        First entity should be used to search clockwise and the second one ccw"""
+        result = []
+
+        nodePos = self.node.getPosition()
+        length = self.getNumberOfPeers()
+        # three or more entities,
+        if length >= 2:
+            for index in range(length) :
+                ent = self.ccwPeers.ll[index]
+                nextEnt = self.ccwPeers.ll[ (index+1) % length ]
+                entPos = ent.getPosition()
+                nextEntPos = nextEnt.getPosition()
+                if not Geometry.inHalfPlane(entPos, nodePos, nextEntPos) :
+                    result = [ent, nextEnt]
+
+        return result
+
+    def hasGlobalConnectivity(self):
+        """ Return True if Global connectivity rule is respected"""
+        return self.getBadGlobalConnectivityPeers() == []
+
+    def computeAwarenessRadius(self):
+        """ Based on curent the repartition of our peers (number, position),
+        compute what should be our awareness radius
+        Return an awareness radius (integer)
+        """
+        if self.hasTooManyPeers():
+            offset = self.getNumberOfPeers() - self.maxPeers
+            # get the awareness radius of the last peer that is inside our AR
+            # in distance order
+            index = len(self.distPeers) - offset -1
+            return self.distPeers.ll[index].getAwarenessRadius()
+        elif self.hasTooFewPeers():
+            fartherPeerPos = self.distPeers.ll[len(self.distPeers) - 1].getPosition()
+            maxDist = Geometry.distance(self.node.getPosition(), fartherPeerPos)
+            density = maxDist / self.getNumberOfPeers()
+            return self.expectedPeers / density
+        else:
+            fartherPeerPos = self.distPeers.ll[len(self.distPeers) - 1].getPosition()
+            return Geometry.distance(self.node.getPosition(), fartherPeerPos)
+

@@ -213,4 +213,53 @@ class PeerEventFactory(EventFactory):
         'Remote-AwarenessRadius', 'Remote-Calibre', 'Remote-Orientation', 'Remote-Pseudo'
         """
         evt = PeerEvent('FOUND')
-      
+        self._addRemoteEntityInfosArgs(evt, peer)
+        return evt
+
+    def createSEARCH(self, isClockwise):
+        """ Create a SEARCH message. We need to search a new neighbour because our
+        global connectivity rule isn't respected.
+        isClockwise : if true search in clockwise direction
+        Args: 'Id', 'Clockwise'
+        """
+        evt = PeerEvent('SEARCH')
+        evt.addArg(protocol.ARG_ID, self.node.getId())
+        evt.addArg(protocol.ARG_CLOCKWISE, isClockwise)
+        return evt
+
+    def createQUERYAROUND(self, idBest, distBest):
+        """ Create a QUERYAROUND message. We around looking for all the peers that are
+        located around a target position.
+        idBest: Id of the peer that is the closest to target position
+        distBest: distance of the best peer to target position
+        Args: 'Position', 'Best-Id', Best-Distance'
+        """
+        evt = PeerEvent('QUERYAROUND')
+        evt.addArg(protocol.ARG_POSITION, self.node.getPosition())
+        evt.addArg(protocol.ARG_BEST_ID, idBest)
+        evt.addArg(protocol.ARG_BEST_DISTANCE,str(distBest))
+        return evt
+
+    def createNEAREST(self, peer):
+        """ Create a NEAREST message
+        This is the reply to a FINDNEAREST message. Send information on the peer that
+        is the nearest to a target position.
+        Args: 'Remote-Address', 'Remote-Position'
+        """
+        evt = PeerEvent('NEAREST')
+        evt.addArg(protocol.ARG_REMOTE_ADDRESS, peer.getAddress())
+        evt.addArg(protocol.ARG_REMOTE_POSITION, peer.getPosition())
+        return evt
+
+    def createAROUND(self, peer):
+        """ Create a AROUND message. This the reply to a QUERYAROUND message.
+        Send information on a peer that is around a target position.
+        Args: 'Remote-Address', 'Remote-Id', 'Remote-Position',
+        'Remote-AwarenessRadius', 'Remote-Calibre', 'Remote-Orientation', 'Remote-Pseudo'
+        """
+        evt = PeerEvent('AROUND')
+        self._addRemoteEntityInfosArgs(evt, peer)
+        return evt
+
+
+

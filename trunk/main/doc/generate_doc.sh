@@ -2,16 +2,16 @@
 export PYTHONPATH=..
 
 pydoc -w solipsis
-pydoc -w solipsis.core
-pydoc -w solipsis.core.entity
-pydoc -w solipsis.core.peer
-pydoc -w solipsis.core.connector
-pydoc -w solipsis.core.main
-pydoc -w solipsis.core.node
-pydoc -w solipsis.core.state
-pydoc -w solipsis.core.event
-pydoc -w solipsis.core.controlevent
-pydoc -w solipsis.core.peerevent
+pydoc -w solipsis.node
+pydoc -w solipsis.node.entity
+pydoc -w solipsis.node.peer
+pydoc -w solipsis.node.connector
+pydoc -w solipsis.node.main
+pydoc -w solipsis.node.node
+pydoc -w solipsis.node.state
+pydoc -w solipsis.node.event
+pydoc -w solipsis.node.controlevent
+pydoc -w solipsis.node.peerevent
 
 pydoc -w solipsis.util
 pydoc -w solipsis.util.util

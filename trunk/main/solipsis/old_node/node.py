@@ -35,7 +35,6 @@ from solipsis.node.entity import Entity
 from solipsis.node.peer import PeersManager
 from solipsis.node.peerevent import PeerEvent, PeerEventParser
 from solipsis.node.controlevent import ControlEvent, ControlEventParser
-from solipsis.node.internalevent import InternalEvent, InternalEventParser
 from solipsis.node.xmlrpcconnector import XMLRPCConnector
 from solipsis.node.udpconnector import UDPConnector
 from solipsis.node.event import EventFactory
