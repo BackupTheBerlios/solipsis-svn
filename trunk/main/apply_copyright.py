@@ -4,7 +4,6 @@ import os
 import sys
 import re
 
-
 def comment_copyright(copyright):
     sys.stdout.write('# <copyright>\n')
     lines = list(copyright)
