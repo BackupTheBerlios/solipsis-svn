@@ -26,6 +26,7 @@ import bisect
 from wx.xrc import XRCCTRL, XRCID
 
 from solipsis.util.entity import ServiceData
+from solipsis.util.address import Address
 from solipsis.util.uiproxy import TwistedProxy, UIProxyReceiver
 from solipsis.util.wxutils import _
 from solipsis.util.wxutils import *        # '*' doesn't import '_'
@@ -198,6 +199,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         wx.EVT_MENU(self, XRCID("menu_connect"), self._OpenConnect)
         wx.EVT_MENU(self, XRCID("menu_disconnect"), self._Disconnect)
         wx.EVT_MENU(self, XRCID("menu_kill"), self._Kill)
+        wx.EVT_MENU(self, XRCID("menu_jumpnear"), self._JumpNear)
         wx.EVT_MENU(self, XRCID("menu_preferences"), self._Preferences)
         wx.EVT_MENU(self, XRCID("menu_quit"), self._Quit)
         wx.EVT_MENU(self, XRCID("menu_autorotate"), self._ToggleAutoRotate)
@@ -409,6 +411,12 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             self.statusbar.SetText(_("Not connected"))
             self.services.RemoveAllPeers()
 
+    def _JumpNear(self, evt):
+        """ Called on "jump near" event (menu -> Edit -> Jump Near). """
+        if self._CheckNodeProxy():
+            address = Address('10.193.167.67', 5010)
+            self.node_proxy.JumpNear(address.ToStruct())
+
     def _Kill(self, evt):
         """ Called on "kill" event (menu -> File -> Kill). """
         if self._CheckNodeProxy():
@@ -505,7 +513,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             if dx or dy:
                 x, y = self.viewport.MoveToRelative((dx, dy))
                 self.node_proxy.Move(str(long(x)), str(long(y)), str(0))
-        evt.Skip()
+        #~ evt.Skip()
 
     def _LeftClickViewport(self, evt):
         """ Called on left click event. """

@@ -9,13 +9,13 @@
   </object>
   <object class="wxMenuBar" name="main_menubar">
     <object class="wxMenu" name="file_menu">
-      <label>&amp;File</label>
+      <label>&amp;Node</label>
       <object class="wxMenuItem" name="menu_create">
         <label>&amp;New node</label>
         <accel>Ctrl-N</accel>
       </object>
       <object class="wxMenuItem" name="menu_connect">
-        <label>&amp;Connect to node</label>
+        <label>&amp;Connect to existing node</label>
         <bitmap stock_id="wxART_FILE_OPEN"></bitmap>
         <accel>Ctrl-O</accel>
       </object>
@@ -25,6 +25,7 @@
       </object>
       <object class="wxMenuItem" name="menu_kill">
         <label>&amp;Kill node</label>
+        <accel>Ctrl+K</accel>
       </object>
       <object class="separator"/>
       <object class="wxMenuItem" name="menu_quit">
@@ -33,6 +34,11 @@
     </object>
     <object class="wxMenu" name="edit_menu">
       <label>&amp;Edit</label>
+      <object class="wxMenuItem" name="menu_jumpnear">
+        <label>&amp;Jump near...</label>
+        <bitmap stock_id="wxART_GO_FORWARD"></bitmap>
+        <accel>Ctrl+G</accel>
+      </object>
       <object class="separator"/>
       <object class="wxMenuItem" name="menu_preferences">
         <label>Preferences</label>

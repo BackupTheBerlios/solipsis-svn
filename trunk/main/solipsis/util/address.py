@@ -38,7 +38,7 @@ class Address(Marshallable):
         """
         Create a new Address object from hostname, port number.
         """
-        self.host = host
+        self.host = str(host)
         self.port = int(port)
 
     def ToString(self):
@@ -49,8 +49,11 @@ class Address(Marshallable):
         assert len(t) == 2, "Wrong address format: '%s'" % s
         obj = cls(t[0].strip(), t[1])
         return obj
-        
+
     FromString = classmethod(FromString)
 
     def __eq__(self, other):
         return self.host == other.host and self.port == other.port
+
+    def __ne__(self, other):
+        return self.host != other.host or self.port != other.port

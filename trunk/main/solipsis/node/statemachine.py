@@ -51,7 +51,7 @@ class StateMachine(object):
     # It is safer not to set this greater than 1
     teleportation_flood = 1
     neighbour_tolerance = 0.3
-    peer_neighbour_ratio = 2.0
+    peer_neighbour_ratio = 1.8
 
     # Various retry delays
     scanning_period = 4.0
@@ -149,8 +149,9 @@ class StateMachine(object):
         self.moved = False
         # Id's of the peers encountered during a FINDNEAREST chain
         self.nearest_peers = set()
-        # Peers discovered during a QUERYAROUND chain
+        # "Future" values used when executing a far jump (FINDNEAREST)
         self.future_topology = None
+        self.future_position = None
         # BEST peer discovered at the end of a FINDNEAREST chain
         self.best_peer = None
         self.best_distance = 0.0
@@ -283,10 +284,10 @@ class StateMachine(object):
         self._Verbose("scanning")
 
         def _restart():
-            self._Jump()
+            self._Jump(self.future_position)
         def _retry():
             # Resend a QUERYAROUND message to all future peers
-            message = self._PeerMessage('QUERYAROUND')
+            message = self._PeerMessage('QUERYAROUND', future=True)
             message.args.best_id = self.best_peer.id_
             message.args.best_distance = self.best_distance
             for p in self.future_topology.EnumeratePeers():
@@ -316,11 +317,12 @@ class StateMachine(object):
         self._Verbose("connecting")
 
         def _restart():
-            self._Jump()
+            self._Jump(self.future_position)
 
         def _check():
             if self.topology.HasGlobalConnectivity():
                 self.future_topology = None
+                self.future_position = None
                 self.best_peer = None
                 self.best_distance = 0.0
                 self.SetState(states.Idle())
@@ -506,13 +508,13 @@ class StateMachine(object):
             if id_ == self.best_peer.id_:
                 self.logger.info("NEAREST received, but proposed is already our best")
                 return
-            elif (self.best_distance <= self.topology.RelativeDistance(args.remote_position.GetXY())):
+            elif (self.best_distance <= self.future_topology.RelativeDistance(args.remote_position.GetXY())):
                 self.logger.info("NEAREST received, but proposed peer is farther than our current best")
                 return
 
         self.nearest_peers.add(id_)
         address = args.remote_address
-        self._SendToAddress(address, self._PeerMessage('FINDNEAREST'))
+        self._SendToAddress(address, self._PeerMessage('FINDNEAREST', future=True))
         # We could come here from the Scanning procedure,
         # if a neighbour finds someone closer to us than our current BEST
         if self.InState(states.Scanning):
@@ -527,9 +529,6 @@ class StateMachine(object):
         # Instantiate the best peer
         peer = self._Peer(args)
         assert self.future_topology is not None, "BEST received but we have no future topology!"
-        # The fudge factor helps avoid infinite loops
-        # (BEST->QUERYAROUND->NEAREST->FINDNEAREST->BEST->QUERYAROUND->...)
-        # due to precision loss
         distance = self.future_topology.RelativeDistance(peer.position.GetXY())
 
         # Store the best peer
@@ -546,7 +545,7 @@ class StateMachine(object):
         self.future_topology.AddPeer(peer)
 
         # Send a queryaround message
-        message = self._PeerMessage('QUERYAROUND')
+        message = self._PeerMessage('QUERYAROUND', future=True)
         message.args.best_id = peer.id_
         message.args.best_distance = distance
         self._SendToPeer(peer, message)
@@ -624,7 +623,9 @@ class StateMachine(object):
             # neighbour, because we are "sure" to know all the entities between us
             # and the best.
             self.node.awareness_radius = self.best_distance
+            self.node.position = self.future_position
             self._SwitchTopologies()
+            self.topology.SetOrigin(self.node.position.GetXY())
             self.SetState(states.Connecting())
             return
 
@@ -634,7 +635,7 @@ class StateMachine(object):
             return
 
         # Send this peer a queryaround message
-        message = self._PeerMessage('QUERYAROUND')
+        message = self._PeerMessage('QUERYAROUND', future=True)
         message.args.best_id = self.best_peer.id_
         message.args.best_distance = self.best_distance
         self._SendToPeer(peer, message)
@@ -730,17 +731,18 @@ class StateMachine(object):
         A peer answers a position suggestion in response to a JUMPNEAR message.
         """
         # Instantiate the target peer
-        if not self.jump_near_address or self.jump_near_address != args.address:
-            self.logger.warning("Error, reception of unexpected SUGGEST message from peer '%s'"
-                % str(args.id_))
+        if self.jump_near_address is None or self.jump_near_address != args.address:
+            self.logger.warning("Error, reception of unexpected SUGGEST message from peer '%s':\n%s != %s"
+                % (str(args.id_), self.jump_near_address.ToString(), args.address.ToString()))
             return
         peer = self._Peer(args)
         self.jump_near_address = None
 
         # Really jump near the target peer
-        self.future_topology.Reset()
+        self.future_topology = Topology()
+        self.future_position = args.remote_position
+        self.future_topology.SetOrigin(self.future_position.GetXY())
         self.future_topology.AddPeer(peer)
-        self._ChangePosition(args.remote_position)
         self._Jump()
 
 
@@ -807,21 +809,34 @@ class StateMachine(object):
         x %= self.world_size
         y %= self.world_size
         position = Position((x, y, z))
-        self._ChangePosition(position)
+        old_position = self.node.position
 
+        # Hackish: we first change the position to check the global connectivity,
+        # then possibly set it back to its former value
+        self.topology.SetOrigin((x, y))
+
+        if self.topology.HasGlobalConnectivity():
+            # We still have the global connectivity,
+            # so we simply notify our peers of the position change
+            self.node.position = position
+            self.future_position = None
+            # This handles the case when the user continues moving
+            # while we are changing topologies
+            if self.future_topology is not None:
+                self.future_topology.SetOrigin((x, y))
+            self._SendUpdates()
+        else:
+            # Otherwise, do a full-fledged teleport from the current position
+            self.topology.SetOrigin(old_position.GetXY())
+            self._Jump(position)
+
+        # "self.moved" will be True during a few seconds
+        self.moved = True
         def _finish():
             self.moved = False
         caller = DelayedCaller(self.reactor)
         caller.CallLater(self.move_duration, _finish)
 
-        if self.topology.HasGlobalConnectivity():
-            # We still have the global connectivity,
-            # so we simply notify our peers of the position change
-            self._SendUpdates()
-        else:
-            # Otherwise, do a full-fledged teleport
-            self._Jump()
-    
     def JumpNear(self, address):
         """
         Try to jump near an existing entity.
@@ -932,43 +947,35 @@ class StateMachine(object):
             if p not in old_peers:
                 self._SayHello(p.address)
 
-    def _ChangePosition(self, position):
-        """
-        Low-level function to cleanly change the node position.
-        """
-        self.node.position = position
-        self.topology.SetOrigin((position.x, position.y))
-        # Important: this handles the case when the user continues moving
-        # while we are changing topologies
-        if self.future_topology is not None:
-            self.future_topology.SetOrigin((position.x, position.y))
-        self.moved = True
-
-    def _Jump(self, topology=None):
+    def _Jump(self, position=None):
         """
         Jump to the node's current position. This triggers
         the recursive teleportation algorithm.
         """
-        # If nothing asked, prefer future topology over current one
-        if topology is None:
-            topology = self.future_topology or self.topology
+        # Prefer future topology over current one
+        topology = self.future_topology or self.topology
         addresses = [peer.address for peer in topology.GetNearestPeers(self.teleportation_flood)]
 
         # Start teleportation algorithm
         if addresses:
-            self._StartFindNearest(addresses)
+            self._StartFindNearest(addresses, position=position)
         else:
             self.TryConnect()
 
-    def _StartFindNearest(self, addresses):
+    def _StartFindNearest(self, addresses, position=None):
+        # Create future topology
+        if position is None:
+            position = self.node.position
+        self.future_topology = Topology()
+        self.future_topology.SetOrigin(position.GetXY())
+        self.future_position = position
+
         # Send FINDNEAREST to all selected addresses
-        message = self._PeerMessage('FINDNEAREST')
+        message = self._PeerMessage('FINDNEAREST', future=True)
         for address in addresses:
             self._SendToAddress(address, message)
 
-        # Create future topology and jump into state "locating"
-        self.future_topology = Topology()
-        self.future_topology.SetOrigin(self.node.position.GetXY())
+        # Jump into the proper state
         self.SetState(states.Locating())
 
 
@@ -1138,7 +1145,11 @@ class StateMachine(object):
             position = args.remote_position,
             )
 
-    def _PeerMessage(self, request, peer=None, remote_peer=None):
+    def _PeerMessage(self, request, peer=None, remote_peer=None, future=False):
+        """
+        Builds a protocol message from the given peer(s).
+        If 'future' is True, the future_position will be used instead of the current one.
+        """
         if peer is None:
             peer = self.node
         message = protocol.Message(request)
@@ -1149,7 +1160,10 @@ class StateMachine(object):
         a.address = p.address
         a.awareness_radius = p.awareness_radius
         a.id_ = p.id_
-        a.position = p.position
+        if future:
+            a.position = self.future_position
+        else:
+            a.position = p.position
         if remote_peer:
             r = remote_peer
             a.remote_address = r.address
@@ -1185,6 +1199,7 @@ class StateMachine(object):
         now = time.time()
         if now - last > self.hello_dampening:
             self.last_hellos[address] = now
+            #~ msg = self._PeerMessage('HELLO', future=self.future_position is not None)
             msg = self._PeerMessage('HELLO')
             msg.args.send_detects = send_detects
             msg.args.hold_time = self._HoldTime(address)
@@ -1199,8 +1214,8 @@ class StateMachine(object):
         # TODO: manage repeted connection failures and
         # optionally cancel request (sending CLOSE and
         # returning False)
+        #~ msg = self._PeerMessage('CONNECT', future=self.future_position is not None)
         msg = self._PeerMessage('CONNECT')
-        #~ msg.args.hold_time = self._HoldTime((peer.address.host, peer.address.host))
         msg.args.hold_time = self._HoldTime(peer.address)
         self._SendToPeer(peer, msg)
         return True

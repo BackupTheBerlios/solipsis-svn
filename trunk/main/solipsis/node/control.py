@@ -29,6 +29,7 @@ from twisted.internet import defer
 
 from solipsis.util.exception import *
 from solipsis.util.entity import Entity, Service, ServiceData
+from solipsis.util.address import Address
 from delayedcaller import DelayedCaller
 
 
@@ -142,6 +143,15 @@ class RemoteControl(object):
         """
         self._CheckConnectId(connect_id)
         return self.state_machine.GetStatus()
+
+    def remote_JumpNear(self, connect_id, addr_info):
+        """
+        Move to another position in the world.
+        """
+        self._CheckConnectId(connect_id)
+        address = Address.FromStruct(addr_info)
+        self.state_machine.JumpNear(address)
+        return True
 
     def remote_Move(self, connect_id, x, y, z):
         """
