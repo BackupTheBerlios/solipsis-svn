@@ -2,9 +2,9 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "Solipsis"
-!define PRODUCT_VERSION "0.1SE"
+!define PRODUCT_VERSION "0.7"
 !define PRODUCT_PUBLISHER "France Telecom R&D"
-!define PRODUCT_WEB_SITE "http://solipsis.rd.francetelecom.fr"
+!define PRODUCT_WEB_SITE "http://solipsis.netofpeers.net"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\navigator.exe"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
@@ -43,7 +43,7 @@ var ICONS_GROUP
 !insertmacro MUI_PAGE_INSTFILES
 ; Finish page
 !define MUI_FINISHPAGE_RUN "$INSTDIR\navigator.exe"
-!define MUI_FINISHPAGE_SHOWREADME "$INSTDIR\faq.txt"
+!define MUI_FINISHPAGE_SHOWREADME "$INSTDIR\README.txt"
 !insertmacro MUI_PAGE_FINISH
 
 ; Uninstaller pages
@@ -59,7 +59,7 @@ var ICONS_GROUP
 ; MUI end ------
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "Install_solipsis.exe"
+OutFile "Install.exe"
 InstallDir "$PROGRAMFILES\Solipsis"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
@@ -75,8 +75,6 @@ Section "Solipsis" SEC01
   File "dist\bz2.pyd"
   File "dist\cBanana.pyd"
   SetOutPath "$INSTDIR\conf"
-  File "dist\conf\seed.conf"
-  File "dist\conf\seed.met"
   File "dist\conf\solipsis.conf"
   SetOutPath "$INSTDIR"
   File "dist\entities.met"
@@ -114,6 +112,7 @@ Section "Solipsis" SEC01
   File "dist\library.zip"
   File "dist\LICENSE"
   SetOutPath "$INSTDIR\log"
+  File "dist\log\solipsis.log"
   SetOutPath "$INSTDIR"
   File "dist\msvcr71.dll"
   File "dist\navigator.exe"
@@ -123,11 +122,11 @@ Section "Solipsis" SEC01
   SetOutPath "$INSTDIR\po"
   File "dist\po\messages.pot"
   SetOutPath "$INSTDIR"
-  File "dist\py2exe_util.pyd"
   File "dist\pyexpat.pyd"
   File "dist\python24.dll"
   File "dist\pythoncom24.dll"
   File "dist\pywintypes24.dll"
+  File "dist\README.txt"
   SetOutPath "$INSTDIR\resources"
   File "dist\resources\navigator.xrc"
   SetOutPath "$INSTDIR"
@@ -192,16 +191,18 @@ Section "Solipsis" SEC01
   File "dist\_socket.pyd"
   File "dist\_ssl.pyd"
   File "dist\_stc.pyd"
-  File "dist\_tkinter.pyd"
   File "dist\_windows_.pyd"
   File "dist\_wizard.pyd"
   File "dist\_xrc.pyd"
+
 ; Shortcuts
-  CreateDirectory "$SMPROGRAMS\Solipsis"
-  CreateShortCut "$SMPROGRAMS\Solipsis\Solipsis.lnk" "$INSTDIR\navigator.exe"
-  CreateShortCut "$DESKTOP\Solipsis.lnk" "$INSTDIR\navigator.exe"
-  CreateShortCut "$SMPROGRAMS\Solipsis\Navigator.lnk" "$INSTDIR\navigator.exe"
-  CreateShortCut "$SMPROGRAMS\Solipsis\Node.lnk" "$INSTDIR\twistednode.exe"
+  !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
+  CreateDirectory "$SMPROGRAMS\$ICONS_GROUP"
+  CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\Navigator.lnk" "$INSTDIR\navigator.exe"
+  CreateShortCut "$DESKTOP\Navigator.lnk" "$INSTDIR\navigator.exe"
+  CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\Node.lnk" "$INSTDIR\twistednode.exe"
+  CreateShortCut "$DESKTOP\Node.lnk" "$INSTDIR\twistednode.exe"
+  !insertmacro MUI_STARTMENU_WRITE_END
 SectionEnd
 
 Section -AdditionalIcons
@@ -237,20 +238,27 @@ FunctionEnd
 
 Section Uninstall
   !insertmacro MUI_STARTMENU_GETFOLDER "Application" $ICONS_GROUP
-  Delete "$INSTDIR\${PRODUCT_NAME}.url"
-
   RMDir /r "$INSTDIR\"
-
   Delete "$SMPROGRAMS\$ICONS_GROUP\Uninstall.lnk"
   Delete "$SMPROGRAMS\$ICONS_GROUP\Website.lnk"
+  Delete "$DESKTOP\Node.lnk"
   Delete "$SMPROGRAMS\$ICONS_GROUP\Node.lnk"
+  Delete "$DESKTOP\Navigator.lnk"
   Delete "$SMPROGRAMS\$ICONS_GROUP\Navigator.lnk"
-  Delete "$DESKTOP\Solipsis.lnk"
-  Delete "$SMPROGRAMS\$ICONS_GROUP\Solipsis.lnk"
-  Delete "$SMPROGRAMS\$ICONS_GROUP\faq.lnk"
 
   RMDir "$SMPROGRAMS\$ICONS_GROUP"
-  
+  RMDir "$INSTDIR\solipsis\services\chat\po\fr\LC_MESSAGES"
+  RMDir "$INSTDIR\solipsis\services\chat\po"
+  RMDir "$INSTDIR\solipsis\services\chat"
+  RMDir "$INSTDIR\solipsis\services"
+  RMDir "$INSTDIR\resources"
+  RMDir "$INSTDIR\po\fr\LC_MESSAGES"
+  RMDir "$INSTDIR\po"
+  RMDir "$INSTDIR\log"
+  RMDir "$INSTDIR\img"
+  RMDir "$INSTDIR\conf"
+  RMDir "$INSTDIR"
+
   DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
   DeleteRegKey HKLM "${PRODUCT_DIR_REGKEY}"
   SetAutoClose true

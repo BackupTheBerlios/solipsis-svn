@@ -2,22 +2,24 @@ import os
 import sys
 import distutils.core
 import glob
-"""How to build win32 Solipsis binaries :Download Python2.4
+"""
+How to build win32 Solipsis binaries :
+Download Python2.4
 wxPython
 Twisted (source)
 py2exe
 build win32 twisted
     it requires MSVC 7.1 and .NET framework 1.1
-    issue the command $python setup.py install in the twisted source directory
+    issue the command $python winsetup.py install in the twisted source directory
 Edit this script to insert desired services (see data_files)
 (services can be added in the solipsis/services distribution directory later)  
 Then  issue the command $python setup.py py2exe
 """
 name="Solipsis"
-version="0.1"
+version="0.7"
 description="Solipsis, A peer-to-peer system for a massively multi-participant virtual world"
 author="France Telecom R&D"
-author_email=""
+author_email="solipsis-tech@lists.berlios.de"
 url="http://solipsis.rd.francetelecom.fr"
 
 class Target:
@@ -32,13 +34,10 @@ sys.path.append("solipsis/node")
 sys.path.append("solipsis/navigator")
 
 data_files=[
-    ("",["entities.met", "LICENSE"]),
+    ("",["entities.met", "LICENSE", "README.txt"]),
     ("",["msvcr71.dll"]),
     ("img", glob.glob("img/*.*")),
-    ("conf", 
-        ["conf/seed.conf",
-        "conf/seed.met",
-        "conf/solipsis.conf"]),
+    ("conf", ["conf/solipsis.conf"]),
 # Insert services files here
     ("solipsis/services", glob.glob("solipsis/services/*.*")),
     ("solipsis/services/chat", glob.glob("solipsis/services/chat/*.*")),
