@@ -27,11 +27,13 @@ from solipsis.services.plugin import ServicePlugin
 
 from gui import ConfigDialog
 from network import NetworkLauncher
+from repository import AvatarRepository
 
 
 class Plugin(ServicePlugin):
 
     def Init(self):
+        self.avatars = AvatarRepository()
         self.reactor = self.service_api.GetReactor()
         # TODO: smartly discover our own address IP
         # (this is where duplicated code starts to appear...)
@@ -104,8 +106,15 @@ class Plugin(ServicePlugin):
     def ChangedNode(self, node):
         pass
     
-    def _Configure(self, evt):
-        self.ui.Configure()
+    #
+    # Private methods
+    #
+
+    def _Configure(self, evt=None):
+        # The result of the Configure() method will be passed
+        # to the callback, if successful.
+        # This is because self.ui goes through an asynchronous proxy.
+        self.ui.Configure(callback=self.network.SetFile)
 
     def _ParseAddress(self, address):
         try:

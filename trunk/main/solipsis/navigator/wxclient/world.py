@@ -23,7 +23,7 @@ from solipsis.util.wxutils import GetCharset
 import drawable
 import images
 
-# TODO: ask the avatar plugin to the app instead
+# This is ugly, but hey, we need it :(
 from solipsis.services.avatar.repository import AvatarRepository
 
 
@@ -40,13 +40,11 @@ class World(object):
             # drawable ids in viewport
             self.label_id = None
             self.avatar_id = None
-            # avatar hash
-            #~ self.avatar_hash = ""
-            # wx.Bitmaps
-            #~ self.original_avatar = None
-            #~ self.processed_avatar = None
     
     def __init__(self, viewport):
+        """
+        Constructor.
+        """
         self.charset = GetCharset()
         self.viewport = viewport
         self.repository = images.ImageRepository()
@@ -54,6 +52,9 @@ class World(object):
         self.Reset()
 
     def Reset(self):
+        """
+        Reset the world (removing all peers).
+        """
         self.items = {}
         self.item_cache = {}
         self.viewport.Reset()
@@ -137,6 +138,10 @@ class World(object):
             return peer.pseudo.encode(self.charset)
         return ""
 
+    #
+    # Private methods
+    #
+
     def _CreatePeerLabel(self, item):
         """
         Add the peer's pseudo to the viewport.
@@ -147,29 +152,12 @@ class World(object):
 
     def _CreatePeerAvatar(self, item):
         """
-        Add the peer'savatar to the viewport.
+        Add the peer's avatar to the viewport.
         """
         peer_id = item.peer.id_
-        
-        #~ # Load random PIL image or use existing one
-        #~ try:
-            #~ hash_ = item.avatar_hash
-            #~ pil = self.pil_avatar_cache[hash_]
-        #~ except KeyError:
-            #~ pil = None
-            #~ while pil is None:
-                #~ data = self._GetRandomAvatarData()
-                #~ print "** image load"
-                #~ pil = self._PILFromData(data)
-            #~ hash_ = self._HashAvatarData(data)
-            #~ self.pil_avatar_cache[hash_] = pil
-
-        #~ # Calculate wx.Bitmaps
-        #~ item.avatar_hash = hash_
-        #~ self._CalculatePeerAvatar(item)
-
-        #~ d = drawable.Image(item.processed_avatar)
+        # Try to get an existing bitmap for the peer
         bitmap = self.avatars.GetProcessedAvatarBitmap(peer_id)
+        # Test code: choose random avatar if no other is available
         if bitmap is None:
             hash_ = self.avatars.GetRandomAvatarHash()
             self.avatars.BindHashToPeer(hash_, peer_id)

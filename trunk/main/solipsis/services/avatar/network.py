@@ -24,6 +24,14 @@ from twisted.web import resource, server, static
 
 
 class NetworkLauncher(object):
+    """
+    This class sets up a minimal HTTP server
+    which sends the avatar file when called on the correct URL.
+    
+    To test, configure the avatar and then do:
+    curl -x "" -I http://localhost:7780/avatar
+    """
+
     def __init__(self, reactor, plugin, port):
         self.reactor = reactor
         self.plugin = plugin
@@ -31,21 +39,29 @@ class NetworkLauncher(object):
         self.listening = None
         self.root_resource = resource.Resource()
         self.server_site = server.Site(self.root_resource)
-        #~ self.SetFile('img/avat_gh.png')
-        #~ self.SetFile('COPYRIGHT')
 
     def Start(self):
+        """
+        Start the HTTP server.
+        """
         if self.listening:
             self.Stop()
         self.listening = self.reactor.listenTCP(self.port, self.server_site)
 
     def Stop(self):
+        """
+        Stop the HTTP server.
+        """
         if self.listening:
             self.listening.stopListening()
         self.listening = None
 
     def SetFile(self, filename):
+        """
+        Sets which file will be sent by the HTTP server.
+        """
         path = os.path.realpath(os.path.normcase(filename))
+        print filename, path
         resource = static.File(path)
         resource.isLeaf = 1
         self.root_resource.putChild('avatar', resource)

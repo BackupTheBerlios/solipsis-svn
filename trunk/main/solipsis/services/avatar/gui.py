@@ -43,10 +43,11 @@ class ConfigDialog(wx.EvtHandler, XRCLoader, UIProxyReceiver):
         wx.EvtHandler.__init__(self)
         UIProxyReceiver.__init__(self)
 
-    def Configure(self):
+    def Configure(self, callback=None):
         """
         Launches the configuration GUI.
         When done, returns the chosen file path, or None.
+        (optionally invokes a callback if successful)
         """
         file_spec = "%s (PNG, JPEG, GIF)|*.gif;*.png;*.jpg;*.jpeg|%s (*.*)|*.*" \
             % (_("Images"), _("All files"))
@@ -83,6 +84,8 @@ class ConfigDialog(wx.EvtHandler, XRCLoader, UIProxyReceiver):
                             _("Avatar configured"),
                             style=wx.OK | wx.ICON_INFORMATION)
                         ok_dialog.ShowModal()
+                        if callback is not None:
+                            callback(filename)
                         return filename
                 msg = _("The file you chose does not belong to the \nsupported image types (%s).") \
                     % ", ".join(self.allowed_formats)
