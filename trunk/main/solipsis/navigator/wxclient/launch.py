@@ -38,8 +38,9 @@ class Launcher(object):
     def Launch(self):
         prog_name = os.path.normcase('.' + os.sep + self.launcher_name)
         args = [prog_name]
-        args +=  ['-q', '-d', '-p', str(port)]
-        args += custom_args
+        args +=  ['-q', '-d', '-p', str(self.port)]
+        #~ args +=  ['-d', '-p', str(self.port)]
+        args += self.custom_args
         cmdline = " ".join(args)
         print "Executing '%s'..." % cmdline
         # Here we use subprocess for portability, but in case it doesn't exist

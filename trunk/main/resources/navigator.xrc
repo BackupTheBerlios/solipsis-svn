@@ -10,6 +10,10 @@
   <object class="wxMenuBar" name="main_menubar">
     <object class="wxMenu" name="file_menu">
       <label>&amp;File</label>
+      <object class="wxMenuItem" name="menu_create">
+        <label>&amp;New node</label>
+        <accel>Ctrl-N</accel>
+      </object>
       <object class="wxMenuItem" name="menu_connect">
         <label>&amp;Connect to node</label>
         <bitmap stock_id="wxART_FILE_OPEN"></bitmap>

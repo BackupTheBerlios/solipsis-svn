@@ -37,6 +37,7 @@ from world import World
 from statusbar import StatusBar
 from network import NetworkLoop
 from config import ConfigUI, ConfigData
+from launch import Launcher
 
 from solipsis.services.collector import ServiceCollector
 
@@ -61,7 +62,9 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.dialogs = None
         self.windows = None
         self.menubars = None
-        
+
+        self.progress_dialog = None
+
         # Caution : wx.App.__init__ automatically calls OnInit(),
         # thus all data must be initialized before
         wx.App.__init__(self, *args, **kargs)
@@ -178,6 +181,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
 
         # UI events in main window
         wx.EVT_MENU(self, XRCID("menu_about"), self._About)
+        wx.EVT_MENU(self, XRCID("menu_create"), self._CreateNode)
         wx.EVT_MENU(self, XRCID("menu_connect"), self._OpenConnect)
         wx.EVT_MENU(self, XRCID("menu_disconnect"), self._Disconnect)
         wx.EVT_MENU(self, XRCID("menu_kill"), self._Kill)
@@ -320,6 +324,28 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         wx.FutureCall(1000.0 * 10, self._MemDebug)
         #~ print "\ngarbage:", gc.garbage
         print "\n\n"
+    
+    def _TryConnect(self):
+        """
+        Tries to connect to the configured node.
+        """
+        if self._CheckNodeProxy(False):
+            self.network.DisconnectFromNode()
+        self.viewport_panel.SetCursor(wx.StockCursor(wx.CURSOR_ARROWWAIT))
+        self.viewport.Reset()
+        self.network.ConnectToNode(self.config_data)
+        self.statusbar.SetText(_("Connecting"))
+        self.services.RemoveAllPeers()
+        self.services.SetNode(self.config_data.GetNode())
+    
+    def _DestroyProgress(self):
+        """
+        Destroy progress dialog if necessary.
+        """
+        if self.progress_dialog is not None:
+            self.progress_dialog.Destroy()
+            self.progress_dialog = None
+
 
     #===-----------------------------------------------------------------===#
     # Event handlers for the main window
@@ -329,12 +355,33 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """ Called on "about" event (menu -> Help -> About). """
         self.about_dialog.ShowModal()
 
+    def _CreateNode(self, evt):
+        """ Called on "create node" event (menu -> File -> New node). """
+        l = Launcher(port=self.config_data.solipsis_port)
+        # First try to spawn the node
+        if not l.Launch():
+            self.viewport.Disable()
+            msg = _("Node creation failed. \nPlease check you have sufficient rights.")
+            dialog = wx.MessageDialog(None, msg, caption=_("Kill refused"), style=wx.OK | wx.ICON_ERROR)
+            dialog.ShowModal()
+            return
+        # Then connect using its XMLRPC daemon
+        self.config_data.host = 'localhost'
+        self.config_data.port = 8550
+        self.config_data.proxymode_auto = False
+        self.config_data.proxymode_manual = False
+        self.config_data.Autocomplete()
+        # Hack so that the node has the time to launch
+        self.connection_trials = 5
+        self._TryConnect()
+
     def _OpenConnect(self, evt):
         """ Called on "connect" event (menu -> File -> Connect). """
         self.connect_dialog.ShowModal()
 
     def _Disconnect(self, evt):
         """ Called on "disconnect" event (menu -> File -> Disconnect). """
+        self._DestroyProgress()
         if self._CheckNodeProxy():
             self.network.DisconnectFromNode()
             self.node_proxy = None
@@ -358,6 +405,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """ Called on quit event (menu -> File -> Quit, window close box). """
 
         self.alive = False
+        self._DestroyProgress()
         # Disable event proxying: as of now, all UI -> network
         # and network -> UI events will be discarded
         self.DisableProxy()
@@ -401,11 +449,8 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         if (self.connect_dialog.Validate()):
             self.connect_dialog.Hide()
             self.config_data.Autocomplete()
-            self.network.ConnectToNode(self.config_data)
-            self.viewport.Reset()
-            self.statusbar.SetText(_("Connecting"))
-            self.services.RemoveAllPeers()
-            self.services.SetNode(self.config_data.GetNode())
+            self.connection_trials = 0
+            self._TryConnect()
 
 
     #===-----------------------------------------------------------------===#
@@ -502,17 +547,34 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     def NodeConnectionSucceeded(self, node_proxy):
         """ We managed to connect to the node. """
         # We must call the node proxy from the Twisted thread!
+        self._DestroyProgress()
         self.node_proxy = TwistedProxy(node_proxy, self.reactor)
         self.node_proxy.SetNodeInfo(self.config_data.GetNode().ToStruct())
         self.statusbar.SetText(_("Connected"))
 
     def NodeConnectionFailed(self, error):
         """ Failed connecting to the node. """
-        self.node_proxy = None
-        self.statusbar.SetText(_("Not connected"))
-        msg = _("Connection to the node has failed. \nPlease the check the node is running, then retry.")
-        dialog = wx.MessageDialog(None, msg, caption=_("Connection error"), style=wx.OK | wx.ICON_ERROR)
-        dialog.ShowModal()
+        # Allow for some leeway in certain cases
+        if self.connection_trials > 0:
+            if not self.progress_dialog:
+                self.progress_max = self.connection_trials
+                self.progress_dialog = wx.ProgressDialog(
+                    title=_('Connection progress'),
+                    message=_('Trying to connect to the node...'),
+                    maximum=self.progress_max,
+                    style=wx.GA_SMOOTH)
+            else:
+                self.connection_trials -= 1
+                self.progress_dialog.Update(self.progress_max - self.connection_trials)
+            wx.FutureCall(1000, self._TryConnect)
+        else:
+            self._DestroyProgress()
+            self.viewport_panel.SetCursor(wx.StockCursor(wx.CURSOR_DEFAULT))
+            self.node_proxy = None
+            self.statusbar.SetText(_("Not connected"))
+            msg = _("Connection to the node has failed. \nPlease the check the node is running, then retry.")
+            dialog = wx.MessageDialog(None, msg, caption=_("Connection error"), style=wx.OK | wx.ICON_ERROR)
+            dialog.ShowModal()
 
     def NodeKillSucceeded(self):
         """ We managed to kill the (remote/local) node. """

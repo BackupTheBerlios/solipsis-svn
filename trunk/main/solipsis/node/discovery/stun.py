@@ -24,6 +24,8 @@ import solipsis.node.lib.stun as stun
 stun_section = {
     'servers': ('stun_servers', str, ""),
 }
+stun_timeout = 2.0
+
 
 class _StunDiscovery(stun.StunProtocol):
     def __init__(self, *args, **kargs):
@@ -67,7 +69,7 @@ def DiscoverAddress(port, reactor, params):
     def _timeout():
         stun.Stop()
         d.errback(Exception("timed out with servers %s" % servers))
-    timeout = reactor.callLater(3.0, _timeout)
+    timeout = reactor.callLater(stun_timeout, _timeout)
     # Define intermediary succeed callback
     def _succeed(value):
         stun.Stop()
