@@ -91,6 +91,22 @@ class ServicePlugin(object):
         raise NotImplementedError
 
     #
+    # UI event responses
+    #
+    
+    def DoAction(self):
+        """
+        Called when the general action is invoked, if available.
+        """
+        raise NotImplementedError
+
+    def DoPointToPointAction(self, peer):
+        """
+        Called when a point-to-point action is invoked, if available.
+        """
+        raise NotImplementedError
+
+    #
     # Peer management
     #
 

@@ -42,15 +42,15 @@ class Plugin(ServicePlugin):
 
     def Disable(self):
         pass
+    
+    def DoAction(self):
+        print "Need some wood ?"
 
     def NewPeer(self, peer):
         print "chat: NEW %s" % peer.id_
-        pass
 
     def ChangedPeer(self, peer):
         print "chat: CHANGED %s" % peer.id_
-        pass
 
     def LostPeer(self, peer_id):
         print "chat: LOST %s" % peer_id
-        pass

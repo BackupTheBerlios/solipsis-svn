@@ -19,8 +19,11 @@
 
 import os
 import os.path
+import wx
 
 from solipsis.util.uiproxy import UIProxy
+from solipsis.util.wxutils import _, GetCharset
+
 
 # Helper (see Python documentation for built-in function __import__)
 def _import(name):
@@ -29,6 +32,28 @@ def _import(name):
     for comp in components[1:]:
         mod = getattr(mod, comp)
     return mod
+
+
+class IdPool(object):
+    """
+    Autogrowing pool of wxWidgets IDs.
+    (why do we need them in the first place ? sigh)
+    """
+    def __init__(self):
+        self.ids = []
+        self.Begin()
+    
+    def Begin(self):
+        self.cursor = 0
+    
+    def GetId(self):
+        if self.cursor == len(self.ids):
+            new_id = wx.NewId()
+            self.ids.append(new_id)
+        else:
+            new_id = self.ids[self.cursor]
+            self.cursor += 1
+        return new_id
 
 
 class ServiceCollector(object):
@@ -47,14 +72,18 @@ class ServiceCollector(object):
             setattr(self, name, fun)
             return fun
 
-    def __init__(self, params, ui):
+    def __init__(self, params, ui, reactor):
         self.params = params
+        self.wxApp = ui
         self.ui = UIProxy(ui)
+        self.reactor = reactor
         self.dir = self.params.services_dir
+        self.charset = GetCharset()
         self.Reset()
 
     def Reset(self):
         self.plugins = {}
+        self.action_ids = IdPool()
 
     def ReadServices(self):
         l = os.listdir(self.dir)
@@ -76,6 +105,21 @@ class ServiceCollector(object):
         plugin.Enable()
         self.plugins[name] = plugin
 
+    def GetPopupMenuItems(self):
+        l = []
+        self.action_ids.Begin()
+        for service_id in self._Services():
+            plugin = self.plugins[service_id]
+            title = plugin.GetAction()
+            if title is not None:
+                item_id = self.action_ids.GetId()
+                item = wx.MenuItem(None, item_id, title.encode(self.charset))
+                def _clicked(evt):
+                    plugin.DoAction()
+                wx.EVT_MENU(self.wxApp, item_id, _clicked)
+                l.append(item)
+        return l
+
     def NewPeer(self, peer):
         pass
 
@@ -84,10 +128,18 @@ class ServiceCollector(object):
     
     def LostPeer(self, peer_id):
         pass
-    
+
+    def _Services(self):
+        l = self.plugins.keys()
+        l.sort()
+        return l
+
     #
     # API callable from service plugins
     #
     def service_SetMenu(self, service_id, title, menu):
         print "setting menu '%s' for service '%s'" % (title, service_id)
         self.ui.SetServiceMenu(service_id, title, menu)
+
+    def service_GetReactor(self, service_id):
+        return self.reactor

@@ -60,8 +60,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.windows = None
         self.menubars = None
         
-        self.services = ServiceCollector(params, self)
-
         # Caution : wx.App.__init__ automatically calls OnInit(),
         # thus all data must be initialized before
         wx.App.__init__(self, *args, **kargs)
@@ -224,6 +222,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             self._MemDebug()
         
         # 4. Other tasks are launched after the window is drawn
+        self.services = ServiceCollector(self.params, self, self.reactor)
         wx.FutureCall(1000, self.InitServices)
         
         return True
@@ -234,7 +233,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         Redraw the world view.
         """
         self.viewport.Draw(onPaint=False)
-        
+
     def AskRedraw(self):
         """
         This method tries hard to schedule redraws of the world view in a smart way.
@@ -412,7 +411,12 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
                 # has been removed from the viewport.
                 if peer is not None:
                     menu.Append(wx.NewId(), _('Peer "%s"') % peer.pseudo)
-            menu.AppendSeparator()
+                menu.AppendSeparator()
+            l = self.services.GetPopupMenuItems()
+            if len(l) > 0:
+                for item in l:
+                    menu.AppendItem(item)
+                menu.AppendSeparator()
             menu.Append(XRCID("menu_disconnect"), _("Disconnect"))
         else:
             menu.Append(XRCID("menu_connect"), _("Connect to node"))

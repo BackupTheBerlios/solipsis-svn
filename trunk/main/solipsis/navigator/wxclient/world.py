@@ -19,6 +19,7 @@
 
 import wx
 
+from solipsis.util.wxutils import GetCharset
 import drawable
 import images
 
@@ -36,7 +37,7 @@ class World(object):
             self.avatar_id = None
     
     def __init__(self, viewport):
-        self.charset = str(wx.GetLocale().GetSystemEncodingName())
+        self.charset = GetCharset()
         self.viewport = viewport
         self.Reset()
 
@@ -87,11 +88,10 @@ class World(object):
         if new_pos != old_pos:
             x, y, z = new_pos
             self.viewport.MoveObject(id_, position=(x, y))
-        #~ print "%s => %s" % (old.pseudo, peer.pseudo)
         if peer.pseudo != old.pseudo:
             self.viewport.RemoveDrawable(id_, item.label_id)
             self._CreatePeerLabel(item)
-    
+
     def GetPeer(self, peer_id):
         """
         Returns the peer with the given ID.
@@ -103,7 +103,7 @@ class World(object):
 
     def _CreatePeerLabel(self, item):
         peer = item.peer
-        d = drawable.Text(peer.pseudo.encode(self.charset))
+        d = drawable.Text(peer.pseudo.encode(GetCharset()))
         item.label_id = self.viewport.AddDrawable(peer.id_, d, (0, 20), 1)
 
     def _CreatePeerAvatar(self, item):

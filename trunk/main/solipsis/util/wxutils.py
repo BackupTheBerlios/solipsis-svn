@@ -17,42 +17,61 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
 
+
+# TODO: can we force the charset to UTF-8 ?
+
 import wx
 import wx.xrc
 
 locale = None
 
-def _(orig_string):
-    """ Translation function for wxWidgets. Automatically manages locale initialization. """
-
-    global locale
+def InitLocale():
+    """
+    Locale initialization.
+    """
+    global locale, charset
+    print "Getting locale:",
+    locale = wx.GetLocale()
     if locale is None:
-        print "Getting locale:",
-        locale = wx.GetLocale()
-        if locale is None:
-            print "Failed to get locale!"
-        else:
-            print locale.GetName()
+        print "Failed to get locale!"
+    else:
+        print locale.GetName()
+
+def _(orig_string):
+    """
+    Translation function for wxWidgets.
+    """
+    if locale is None:
+        InitLocale()
     if locale is None:
         return orig_string
     return wx.GetTranslation(orig_string)
 
+def GetCharset():
+    """
+    Get the name of the current charset.
+    """
+    return str(wx.Locale.GetSystemEncodingName())
+
 
 class XRCLoader(object):
-    """ This class is a mix-in that allows loading resources from an XRC file. """
-
+    """
+    This class is a mix-in that allows loading resources from an XRC file.
+    """
     _resource = None
 
     def LoadResource(self, file_name):
-        """ Load resource tree from the specified resource file. """
-
+        """
+        Load resource tree from the specified resource file.
+        """
         self._resource = wx.xrc.XmlResource.Get()
         self._resource.InitAllHandlers()
         self._resource.Load(file_name)
 
     def Resource(self, name):
-        """ Get a specific object from its resource ID. """
-
+        """
+        Get a specific object from its resource ID.
+        """
         if self._resource is None:
             raise RuntimeError("XRC resource not initialized")
         print "loading XRC object: %s" % name
@@ -63,8 +82,9 @@ class XRCLoader(object):
 
 
 class ManagedData(object):
-    """ Derive this class to create Managed data for use with validators. """
-
+    """
+    Derive this class to create Managed data for use with validators.
+    """
     def __init__(self):
         object.__setattr__(self, '_dict', {})
 
@@ -83,8 +103,10 @@ class ManagedData(object):
 
 
 class Validator(wx.PyValidator):
-    """ This class holds the basic primitives for writing validators,
-    with optional handling of a data reference where to copy the value from/to. """
+    """
+    This class holds the basic primitives for writing validators,
+    with optional handling of a data reference where to copy the value from/to.
+    """
 
     def __init__(self, list_ref=None):
         wx.PyValidator.__init__(self)
