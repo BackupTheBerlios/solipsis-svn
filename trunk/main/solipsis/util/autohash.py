@@ -11,7 +11,6 @@ class Autohash1(type):
             l = d['_hash_attributes']
         except KeyError:
             raise KeyError("class '%s' must have the '_hash_attributes' attribute" % name)
-            #~ l = [k for k, v in d.items() if not callable(v)]
         _hash = hash
         _xor = int.__xor__
         _reduce = reduce
@@ -52,12 +51,10 @@ class Metametaclass(type):
     def __new__(cls, name, bases, dict_):
         d = { '__new__': dict_['class_new'] }
         def meta_new(cls, *args, **kargs):
-            #~ print "New metaclass"
             name = '__private'
             bases = (type,)
             return super(Metametaclass, cls).__new__(cls, name, bases, d)
         dict_['__new__'] = meta_new
-        #~ print "New metametaclass", name
         return type.__new__(cls, name, bases, dict_)
 
 class Autohash(type):
@@ -67,7 +64,6 @@ class Autohash(type):
         cls.hash_attributes = hash_attributes
 
     def class_new(cls, name, bases, d):
-        #~ print "New class", name
         l = cls.hash_attributes
         _hash = hash
         _tuple = tuple
