@@ -182,10 +182,6 @@ class StateMachine(object):
         print "idle"
         # TODO: add periodic handler for increasing / decreasing the number of peers
 
-        def count(i=[0]):
-            i[0] += 1
-            if i[0] % 50 == 0:
-                print i[0]
         def check_gc():
             # Periodically check global connectivity
             if not self.topology.HasGlobalConnectivity():
@@ -193,8 +189,7 @@ class StateMachine(object):
 
         self._CallPeriodically(2, check_gc)
         self._CheckNumberOfPeers()
-        self._CallPeriodically(5, self._CheckNumberOfPeers)
-        #self._CallPeriodically(0, count)
+        self._CallPeriodically(2, self._CheckNumberOfPeers)
 
     def state_LostGlobalConnectivity(self):
         print "lost global connectivity"
@@ -242,6 +237,7 @@ class StateMachine(object):
                 self.logger.info("HELLO from '%s', but we are already connected" % peer.id_)
             if self._SayConnect(peer):
                 self._AddPeer(peer)
+                # TODO: detect peers within the new peer's awareness radius ?
 
     def peer_CONNECT(self, args):
         """
@@ -252,6 +248,7 @@ class StateMachine(object):
 
         if not self.topology.HasPeer(peer.id_):
             self._AddPeer(peer)
+            # TODO: detect peers within the new peer's awareness radius ?
             # TODO: exchange service info and other stuff
             # TODO: notify
 
@@ -687,7 +684,7 @@ class StateMachine(object):
             # This case is handled by the global connectivity check
             return
 
-        # Not enough neighbours in our awareness radius
+        # 1. Not enough neighbours in our awareness radius
         if nb_neighbours < self.min_neighbours:
             if nb_peers >= self.min_neighbours:
                 # +1% to avoid boundary/imprecision issues
@@ -695,14 +692,14 @@ class StateMachine(object):
             else:
                 # We assume areal density is roughly constant
                 d = topology.GetEnclosingDistance(nb_peers)
-                new_ar = d * math.sqrt(float(self.min_neighbours) / nb_peers)
+                new_ar = max(d, ar) * math.sqrt(float(self.min_neighbours) / nb_peers)
             new_ar = min(new_ar, self.world_size)
             if new_ar != ar:
                 self._UpdateAwarenessRadius(new_ar)
-        # Too many neighbours in our awareness radius
+        # 2. Too many neighbours in our awareness radius
         elif nb_neighbours > self.max_neighbours:
-            self._UpdateAwarenessRadius(topology.GetEnclosingDistance(self.min_neighbours))
-        # Too many connected peers outside of our awareness radius
+            self._UpdateAwarenessRadius(topology.GetEnclosingDistance(self.min_neighbours) * 1.01)
+        # 3. Too many connected peers outside of our awareness radius
         elif nb_peers > self.max_connections:
             peers = self.GetWorstPeers(self.max_connections - self.max_neighbours, ar)
             for p in peers:

@@ -21,7 +21,7 @@ class NodeConnector(DatagramProtocol):
         host, port = address
         try:
             message = self.parser.ParseMessage(data)
-            logging.debug("received from %s:%d\n%s" % (host, port, data))
+            logging.debug("received from <<<< %s:%d\n%s" % (host, port, data))
         except Exception, e:
             print str(e)
         else:
@@ -41,6 +41,6 @@ class NodeConnector(DatagramProtocol):
             host = "127.0.0.1"
 
         data = self.parser.BuildMessage(message)
-        logging.debug("sending to %s:%d\n%s" % (host, port, data))
+        logging.debug("sending to >>>> %s:%d\n%s" % (host, port, data))
         self.transport.write(data, (host, port))
 
