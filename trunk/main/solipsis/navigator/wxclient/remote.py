@@ -9,19 +9,59 @@ from solipsis.util import marshal
 def discover_proxy():
     """
     Returns a (host, port) tuple if a proxy is found in the
-    current user configuration, (None, None) otherwise.
+    current machine configuration, (None, None) otherwise.
     """
+
+    host_port = None
+
+    # Un*x et al.
     if 'http_proxy' in os.environ:
         parts = urlparse.urlparse(os.environ['http_proxy'])
         if not parts[0] or parts[0] == 'http':
-            t = parts[1].split(':')
-            host = t[0]
-            try:
-                port = int(t[1])
-            except:
-                port = 80
-            return host, port
+            host_port = parts[1]
+
+    # Windows
+    try:
+        import _winreg as winreg
+    except ImportError:
+        pass
+    else:
+        try:
+            # Try to grab current proxy settings from the registry
+            regkey = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                'Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings')
+            regval = winreg.QueryValueEx(regkey, 'ProxyServer')
+            regkey.Close()
+            regval = str(regval[0])
+            # Regval can be of two types:
+            # - 'myproxy:3128' if one proxy for all protocols
+            # - 'ftp=myftpproxy:3128;http=myhttpproxy:3128;...' if several different proxies
+            values = regval.split(';')
+            if len(values) > 1:
+                for s in values:
+                    scheme, p = s.split('=')
+                    if scheme == 'http':
+                        host_port = p
+                        break
+            else:
+                host_port = values[0]
+
+        except Exception, e:
+            print str(e)
+            pass
+
+    # Split host and port
+    if host_port is not None:
+        t = host_port.split(':')
+        host = t[0]
+        try:
+            port = int(t[1])
+        except:
+            port = 80
+        return host, port
+
     return None, None
+
 
 class ProxiedXMLRPC:
     """
