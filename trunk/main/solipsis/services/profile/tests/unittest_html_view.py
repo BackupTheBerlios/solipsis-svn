@@ -138,7 +138,7 @@ class PrintTest(unittest.TestCase):
       <td>%s</td>
       <td>%s</td>
       <td>%s</td>
-    </tr>"""% (key, doc and doc.name or "no data", desc.state)
+    </tr>"""% (key, doc and doc.get_firstname() or "no data", desc.state)
                 for key, (desc, doc) in self.document.get_peers().iteritems()]
         return ''.join(html)
         
