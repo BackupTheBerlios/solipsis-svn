@@ -22,7 +22,7 @@
               <orient>wxHORIZONTAL</orient>
               <object class="sizeritem">
                 <object class="wxListCtrl" name="chat_users">
-                  <style>wxRAISED_BORDER|wxSTATIC_BORDER</style>
+                  <style>wxLC_REPORT|wxRAISED_BORDER|wxSTATIC_BORDER</style>
                 </object>
                 <option>1</option>
                 <flag>wxEXPAND|wxGROW</flag>

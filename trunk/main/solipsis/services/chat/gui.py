@@ -43,6 +43,9 @@ class ChatWindow(wx.EvtHandler, XRCLoader, UIProxyReceiver):
         # Shortcuts to objects
         self.chat_view = XRCCTRL(self.chat_window, "chat_view")
         self.chat_edit = XRCCTRL(self.chat_window, "chat_edit")
+        self.chat_users = XRCCTRL(self.chat_window, "chat_users")
+        
+        self.chat_users.InsertColumn(0, _("Nickname"))
 
         # Nicer sizing
         for obj_name in objects:
