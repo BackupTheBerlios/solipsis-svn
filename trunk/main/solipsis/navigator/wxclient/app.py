@@ -471,7 +471,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
 
     def NodeConnectionSucceeded(self, node_proxy):
         """ We managed to connect to the node. """
-        self.node_proxy = node_proxy
+        self.node_proxy = TwistedProxy(node_proxy, self.reactor)
 
     def NodeConnectionFailed(self, error):
         """ Failed connecting to the node. """

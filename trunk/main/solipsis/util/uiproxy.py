@@ -32,7 +32,7 @@ class TwistedProxy(object):
         self.enabled = True
 
     def __getattr__(self, name):
-        print "proxying daemon __getattr__"
+        print "proxying daemon __getattr__", name
         attr = getattr(self._target, name)
         call = self.reactor.callFromThread
         if callable(attr):
