@@ -20,6 +20,7 @@ def discover_http_proxy():
         if not parts[0] or parts[0] == 'http':
             host_port = parts[1]
 
+
     # Windows
     try:
         import _winreg as winreg
