@@ -70,7 +70,7 @@ class ChatWindow(wx.EvtHandler, XRCLoader, UIProxyReceiver):
         wx.EVT_BUTTON(self.chat_window, XRCID("chat_send"), self._Send)
         wx.EVT_BUTTON(self.chat_window, XRCID("chat_close"), self._Close)
         wx.EVT_CLOSE(self.chat_window, self._Close)
-        wx.EVT_COMMAND_ENTER(self.chat_view, id_, self._Send)
+        wx.EVT_TEXT_ENTER(self.chat_view, id_, self._Send)
 
 
     def AppendMessage(self, peer_id, message, our_message=False):
