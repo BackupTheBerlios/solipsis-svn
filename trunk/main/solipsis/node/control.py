@@ -117,6 +117,16 @@ class RemoteControl(object):
             result.append(peer_info)
         return result
 
+    def remote_GetNodeInfo(self, connect_id):
+        """
+        Get information about the node.
+        """
+        self._CheckConnectId(connect_id)
+        node = self.state_machine.node
+        node_info = marshal.PeerInfo()
+        node_info.FromPeer(node)
+        return node_info
+
     def remote_Move(self, connect_id, x, y, z):
         """
         Move to another position in the world.

@@ -27,6 +27,7 @@ class RemoteConnector(object):
             self.xmlrpc_control = xmlrpc_control
             self.connect_id = connect_id
             print "connect_id:", connect_id
+            self.Call('GetNodeInfo')
             self.Call('GetAllPeers')
             self._AskEvents()
         def _failure(error):
@@ -70,7 +71,7 @@ class RemoteConnector(object):
         """
         Transmit all peer information to the viewport.
         """
-        self.ui.ClearViewport()
+        self.ui.ResetWorld()
         for struct in reply:
             peer_info = marshal.PeerInfo(struct)
             print "PEER", peer_info.id_
@@ -90,6 +91,14 @@ class RemoteConnector(object):
             else:
                 attr(payload)
         self._AskEvents()
+
+    def success_GetNodeInfo(self, reply):
+        """
+        Transmit node information to the viewport.
+        """
+        node_info = marshal.PeerInfo(reply)
+        print "NODE", node_info.id_
+        self.ui.UpdateNode(node_info)
 
     #
     # Notification handlers

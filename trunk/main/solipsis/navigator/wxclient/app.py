@@ -310,7 +310,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     #
     def AddPeer(self, *args, **kargs):
         """ Add an object to the viewport. """
-        #self.viewport.Add(*args, **kargs)
         self.world.AddPeer(*args, **kargs)
 
     def MovePeer(self, *args, **kargs):
@@ -320,9 +319,12 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     def RemovePeer(self, *args, **kargs):
         """ Remove an object from the viewport. """
         self.world.RemovePeer(*args, **kargs)
-#         self.viewport.Remove(*args, **kargs)
 
-    def ClearViewport(self, *args, **kargs):
+    def UpdateNode(self, *args, **kargs):
+        """ Update node information. """
+        self.world.UpdateNode(*args, **kargs)
+
+    def ResetWorld(self, *args, **kargs):
         """ Reset the viewport. """
-#         self.viewport.Reset(*args, **kargs)
+        self.world.Reset(*args, **kargs)
 

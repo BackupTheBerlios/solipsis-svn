@@ -154,7 +154,7 @@ class Topology(object):
         """
         if len(self.peers) < 3:
             return False
-        return not self.GetBadGlobalConnectivityPeers()
+        return not self.GetBadGlobalConnectivityPeers(max_angle)
 
     def GetBadGlobalConnectivityPeers(self, max_angle=None):
         """
@@ -268,7 +268,6 @@ class Topology(object):
         last = bisect.bisect_right(_distances, (distance + radius, None))
 
         _p = self.relative_positions
-        ids = []
         r2 = radius ** 2
         result = []
         for id_, (x, y) in [(id_, _p[id_]) for (d, id_) in _distances[first:last]]:
@@ -281,8 +280,6 @@ class Topology(object):
         Selects the peer that is the closest to a target position.
         Returns (peer, distance) tuple.
         """
-        closest_id = None
-        closest_distance = 0.0
         xc, yc = self.origin
         xt, yt = target
         _norm = self.normalize
@@ -412,7 +409,7 @@ class Topology(object):
         pi2 = 2.0 * math.pi
 
         result = set()
-        prev_angle, prev_id = _angles[-2]
+        prev_angle, _ = _angles[-2]
         angle, id_ = _angles[-1]
         # For each peer, we check the angle between the predecessor and
         # the successor. If the angle is greater than the desired max angle,
@@ -420,7 +417,7 @@ class Topology(object):
         for next_angle, next_id in _angles:
             if (next_angle - prev_angle) % pi2 >= max_angle:
                 result.add(id_)
-            prev_angle, prev_id = angle, id_
+            prev_angle = angle
             angle, id_ = next_angle, next_id
 
         return result

@@ -133,7 +133,9 @@ class Viewport(object):
         positions = self._ConvertPositions(indices)
         cpu_time += cpu_timer.Read()[0]
         nb_blits += len(indices)
+        # First we traverse the radix list in Z order
         for z_order, d in self.radix_list:
+            # Then we select the drawables for each painter at the same Z
             for painter, items in d.iteritems():
                 l = []
                 p = []

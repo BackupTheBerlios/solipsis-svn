@@ -237,7 +237,6 @@ class StateMachine(object):
             message = self._PeerMessage('QUERYAROUND')
             message.args.best_id = self.best_peer.id_
             message.args.best_distance = self.best_distance
-            peers = self.topology.PeersSet()
             for p in self.future_topology.EnumeratePeers():
                 self._SendToPeer(p, message)
 
@@ -258,7 +257,7 @@ class StateMachine(object):
                 print "(still connecting)"
 
         self.caller.CallPeriodically(self.early_connecting_period, _check_gc)
-        self.caller.CallPeriodically(self.early_connecting_period * self.early_connecting_trials, _check_gc)
+        self.caller.CallPeriodically(self.early_connecting_period * self.early_connecting_trials, _restart)
 
     def state_Connecting(self):
         print "connecting"
@@ -801,7 +800,6 @@ class StateMachine(object):
 
         old_pos = old.position.getCoords()
         new_pos = peer.position.getCoords()
-        our_pos = self.node.position
 
         old_ar = old.awareness_radius
         new_ar = peer.awareness_radius
@@ -969,7 +967,6 @@ class StateMachine(object):
         if peer.id_ == self.node.id_:
             self.logger.error("we tried to send a message (%s) to ourselves" % message.request)
             return
-        data = self.parser.BuildMessage(message)
         self._SendToAddress(peer.address, message)
         # Heartbeat handling
         try:

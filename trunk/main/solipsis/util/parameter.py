@@ -81,12 +81,12 @@ class Parameters(object):
             if self.config.has_option("general", "position_x"):
                 params['pos_x'] = long(self.config.get("general", "position_x"))
             else:
-                params['pos_x'] = long(random.random() * self.world_size)
+                params['pos_x'] = 0
 
             if self.config.has_option("general", "position_y"):
                 params['pos_y'] = long(self.config.get("general", "position_y"))
             else:
-                params['pos_y'] = long(random.random() * self.world_size)
+                params['pos_y'] = 0
 
             params['calibre'] = int(self.config.get("general", "calibre"))
             params['orientation'] = int(self.config.get("general", "orientation"))

@@ -64,7 +64,7 @@ class DelayedCaller(object):
         """
         try:
             self.calls[id_].cancel()
-        except:
+        except Exception, e:
             # This should never happen...
             print "CancelCall:", id_, str(e)
         self._RemoveCall(id_)

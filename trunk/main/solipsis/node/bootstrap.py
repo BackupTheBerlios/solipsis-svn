@@ -1,10 +1,7 @@
 
 import sys
 import logging
-import re
 import random
-
-import twisted.web
 
 from solipsis.util.geometry import Position
 from solipsis.util.address import Address
@@ -35,7 +32,6 @@ class Bootstrap(object):
         if self.params.pool:
             # Prepare a pool of nodes
             entities = []
-            state_machines = []
             for i in range(self.params.pool):
                 port = self.params.port + i
                 entities.append((self.params.host, port))
@@ -101,26 +97,6 @@ class Bootstrap(object):
     #
     # Private methods
     #
-    def _SimpleHello(self, address):
-        import protocol
-        message = protocol.Message("HELLO")
-        message.args.id_ = "toto"
-        message.args.pseudo = "Antoine"
-        message.args.position = self.dummy_position
-        message.args.calibre = 0
-        message.args.orientation = 0
-        message.args.address = "127.0.0.1:%d" % self.params.port
-        message.args.awareness_radius = 500000
-        self.node_connector.SendMessage(message, address)
-
-    def _SimpleBoot(self):
-        for address in self.bootup_entities:
-            self._SimpleHello(address)
-
-    def _SimpleFlood(self):
-        self._SimpleBoot()
-        self.reactor.callLater(5.0, self._SimpleFlood)
-
     def _ParseSeedsFile(self, filename):
         f = file(filename)
         seeds = []

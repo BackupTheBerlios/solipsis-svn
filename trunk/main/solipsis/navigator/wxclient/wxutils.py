@@ -36,7 +36,7 @@ class XRCLoader(object):
         """ Get a specific object from its resource ID. """
 
         if self._resource is None:
-            raise RunTimeError("XRC resource not initialized")
+            raise RuntimeError("XRC resource not initialized")
         print "loading XRC object: %s" % name
         attr = self._resource.LoadObject(None, name, "")
         if attr is None:
