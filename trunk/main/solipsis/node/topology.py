@@ -2,6 +2,8 @@
 import logging
 import math
 import bisect
+
+# Python 2.3 compatibility
 try:
     set
 except:
@@ -10,19 +12,14 @@ except:
 from solipsis.util.exception import *
 
 
-# class MockTopology(object):
-#     def __init__(self, topology, manager):
-#         self.topology = topology
-#         self.manager = manager
-#
-#     def addPeer(self, peer)
 
 class Topology(object):
     """
     Manage all the neighbours of a node.
     """
 
-    world_size = 2**128
+    world_size = 2 ** 128
+    epsilon = 2.0 ** -50
 
     def __init__(self):
         """
@@ -235,7 +232,7 @@ class Topology(object):
         """
         Returns the peers within a given distance (in distance order).
         """
-        last = bisect.bisect(self.distance_peers, (distance, None))
+        last = bisect.bisect(self.distance_peers, (distance * (1.0 + self.epsilon), None))
         return [self.peers[id_] for (distance, id_) in self.distance_peers[:last]]
 
     def GetEnclosingDistance(self, n):
@@ -246,7 +243,7 @@ class Topology(object):
         if n == len(self.distance_peers):
             return dist_in
         dist_out = self.distance_peers[n][0]
-        return math.sqrt(dist_in * dist_out)
+        return math.sqrt(dist_in * dist_out) * (1.0 + self.epsilon)
 
     #
     # Methods depending on a "target" position
@@ -328,7 +325,7 @@ class Topology(object):
         y = self.normalize(y - yc)
 
         # Distance
-        d = math.sqrt(x**2 + y**2)
+        d = math.sqrt(x**2 + y**2) * (1.0 + self.epsilon)
         if d == 0.0:
             self.logger.warning("Null distance for peer '%s', cannot insert" % str(id_))
             return False
@@ -336,7 +333,12 @@ class Topology(object):
         # Angle relatively to the [Ox) oriented axis
         # The result is between 0 and 2*PI
         if abs(x) > abs(y):
-            angle = math.acos(x / d)
+            try:
+                angle = math.acos(x / d)
+            except:
+                print "acos x=%f, d=%f, x/d=%f" %(x, d, x/d)
+                raise
+
             if y < 0.0:
                 angle = 2.0 * math.pi - angle
         else:
@@ -396,68 +398,4 @@ class Topology(object):
             angle, id_ = next_angle, next_id
 
         return result
-
-    #
-    # Obsolete ??
-    #
-    def getMedianAwarenessRadius(self):
-        """ Return the median value of the awareness radius of all our peers.
-
-        This is needed during the connection phasis when we to guess a reasonnable
-        value for our AR
-        """
-        arList = []
-        for p in self.enumeratePeers():
-            arList.append(p.awareness_radius)
-        arList.sort()
-        return arList[len(arList)//2]
-
-    def getBadGlobalConnectivityPeers(self):
-        """ Check if global connectivity is ensured
-
-        Return a pair of entities not respecting property or an empty set.
-        First entity should be used to search clockwise and the second one ccw"""
-        result = []
-
-        nodePos = self.node.position
-        length = self.getNumberOfPeers()
-
-        if length == 0:
-            return []
-
-        if length == 1:
-            (peer,) = self.peers.values()
-            return [peer, peer]
-
-        for index in range(length):
-            ent = self.ccwPeers.ll[index]
-            nextEnt = self.ccwPeers.ll[ (index+1) % length ]
-            entPos = ent.position
-            nextEntPos = nextEnt.position
-            if not Geometry.inHalfPlane(entPos, nodePos, nextEntPos):
-                return [ent, nextEnt]
-        return []
-
-    def computeAwarenessRadius(self):
-        """ Based on curent the repartition of our peers (number, position),
-        compute what should be our awareness radius
-        Return an awareness radius (integer)
-        """
-        if self.hasTooManyPeers():
-            offset = self.getNumberOfPeers() - self.maxPeers
-            index = len(self.distPeers) - offset - 1
-            # Get the average between the max inside distance and the min outside distance
-            pos_outside = self.distPeers.ll[index].position
-            pos_inside = self.distPeers.ll[index - 1].position
-            dist_outside = Geometry.distance(self.node.position, pos_outside)
-            dist_inside = Geometry.distance(self.node.position, pos_inside)
-            return (dist_outside + dist_inside) // 2
-        if self.hasTooFewPeers():
-            fartherPeerPos = self.distPeers.ll[len(self.distPeers) - 1].position
-            maxDist = Geometry.distance(self.node.position, fartherPeerPos)
-            # Areal density
-            return maxDist * math.sqrt(self.expectedPeers / self.getNumberOfPeers())
-        else:
-            fartherPeerPos = self.distPeers.ll[len(self.distPeers) - 1].position
-            return Geometry.distance(self.node.position, fartherPeerPos)
 

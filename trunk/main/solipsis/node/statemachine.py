@@ -153,8 +153,6 @@ class StateMachine(object):
                 pass
             else:
                 pass
-                #manager = self.peers
-                #manager.heartbeat(id_)
 
 
     #
@@ -301,18 +299,21 @@ class StateMachine(object):
         # Instantiate the best peer
         peer = self._Peer(args)
 
-        # Send a queryaround message
-        message = self._PeerMessage('QUERYAROUND')
-        message.args.best_id = peer.id_
-        message.args.best_distance = Geometry.distance(self.node.position, peer.position)
-        self._SendToPeer(peer, message)
-
-        # Store the best peer and launch the scanning procedure
+        # Store the best peer
         self.best_peer = peer
         self.nearest_peers.clear()
         self.future_topology = Topology()
         self.future_topology.SetOrigin(self.node.position.getCoords())
         self.future_topology.AddPeer(peer)
+
+        # Send a queryaround message
+        message = self._PeerMessage('QUERYAROUND')
+        message.args.best_id = peer.id_
+        #message.args.best_distance = Geometry.distance(self.node.position, peer.position)
+        message.args.best_distance = self.future_topology.RelativeDistance(peer.position.getCoords())
+        self._SendToPeer(peer, message)
+
+        #  We are now in the Scanning state
         self.SetState(states.Scanning())
 
     def peer_FINDNEAREST(self, args):

@@ -11,7 +11,8 @@ import states
 
 class Bootstrap(object):
     from solipsis.util.geometry import Position
-    dummy_position = Position(2**127 - 2**125 - 30000000000, 2000000000, 0)
+#     dummy_position = Position(2**127 - 2**125 - 30000000000, 2000000000, 0)
+    dummy_position = Position(2**127 - 2**125 - 30000000000, 2**127 - 2**125 - 30000000000, 0)
 #     dummy_position = Position(123456789, 2000000000, 0)
 
     def __init__(self, reactor, params):

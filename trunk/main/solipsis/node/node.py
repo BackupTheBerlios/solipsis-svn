@@ -7,7 +7,6 @@ from solipsis.util.address import Address
 from solipsis.util.exception import *
 
 from entity import Entity
-from peer import PeersManager
 
 
 class Node(Entity):
@@ -38,10 +37,7 @@ class Node(Entity):
         self.logger = logging.getLogger('root')
         self.logger.debug('node started')
 
-        # manage all peers
-        self.peersManager = PeersManager(self, params)
-
-        # set world size in Geometry class
+        # Set world size in Geometry class
         Geometry.SIZE = params.world_size
 
 
@@ -49,9 +45,7 @@ class Node(Entity):
         # TODO: reasonable ID generation and attribution
         return "%s:%d" % (self.params.host, self.params.port)
 
-    def SetPosition(self, position):
-        super(Node, self).setPosition(position)
-        self.peersManager.recalculate()
+#     def SetPosition(self, position):
+#         super(Node, self).setPosition(position)
+#         self.peersManager.recalculate()
 
-    def MainLoop(self):
-        self.reactor.run()
