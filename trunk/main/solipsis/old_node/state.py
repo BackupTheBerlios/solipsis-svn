@@ -124,6 +124,9 @@ class State(object):
                 srvEvt = factory.createADDSERVICE(s.getId())
                 srvEvt.setRecipientAddress(event.getSenderAddress())
                 self.node.dispatch(srvEvt)
+        else:
+            self.logger.debug('reception of CONNECT but we are already connected to'
+                              + peer.getId())
 
     def DETECT(self, event):
         """ Notification that a peer is moving towards us"""
@@ -475,8 +478,6 @@ class Scanning(State):
             # register these peers with the peerManager and connect !
             manager = self.node.getPeersManager()
             for p in self.neighbours:
-                # FIXME : should we add the peer upon receiving the CONNECT msg?
-                manager.addPeer(p)
                 factory = EventFactory.getInstance(PeerEvent.TYPE)
                 hello = factory.createHELLO()
                 hello.setRecipientAddress(p.getAddress())
