@@ -44,17 +44,13 @@ class CacheTest(unittest.TestCase):
         
     def setUp(self):
         """override one in unittest.TestCase"""
-        self.view = SimpleView(StringIO())
-#         self.view = SimpleView(sys.stdout)
-        self.container = SharingContainer(self.view.append_item,
-                                          self.view.delete_item,
-                                          self.view.display)
+        self.container = SharingContainer()
 
     def test_repository(self):
         """add and remove repo"""
-        self.container.add_repository("data", 0)
-        self.container.add_repository("data/subdir1/subsubdir", 0)
-        self.container.add_repository("data/emptydir", 0)
+        self.container.add_repository("data")
+        self.container.add_repository("data/subdir1/subsubdir")
+        self.container.add_repository("data/emptydir")
         self.assert_(self.container.data.has_key("data"))
         self.assert_(self.container.data.has_key("data/subdir1/subsubdir"))
         self.assert_(self.container.data.has_key("data/emptydir"))
@@ -67,7 +63,7 @@ class CacheTest(unittest.TestCase):
 
     def test_expanding(self):
         """good completion of dirs on expanding command"""
-        self.container.add_repository("data", 0)
+        self.container.add_repository("data")
         self.container.expand_dir("data")
         self.assert_(self.container.data.has_key("data"))
         self.assert_(self.container.data.has_key("data/subdir1"))
@@ -79,7 +75,7 @@ class CacheTest(unittest.TestCase):
         
     def test_sharing(self):
         """share/unshare file and dirs"""
-        self.container.add_repository("data", 0)
+        self.container.add_repository("data")
         self.container.expand_dir("data")
         self.container.expand_dir("data/subdir1")
         self.assertEquals(self.container.data["data"].nb_shared(), 0)
@@ -94,7 +90,7 @@ class CacheTest(unittest.TestCase):
 
     def test_tagging(self):
         """coherent listing of content"""
-        self.container.add_repository("data", 0)
+        self.container.add_repository("data")
         self.container.tag_files("data", ["routage", "date.txt"], u"tag1")
         self.assertEquals(self.container.data["data"].content["routage"]._tag, u"tag1")
         self.assertEquals(self.container.data["data"].content["date.txt"]._tag, u"tag1")
@@ -103,7 +99,7 @@ class CacheTest(unittest.TestCase):
 
     def test_listing(self):
         """coherent listing of content"""
-        self.container.add_repository("data", 0)
+        self.container.add_repository("data")
         self.container.expand_dir("data")
         self.container.share_files("data", [".path", "date.txt"])
         self.container.tag_files("data", ["routage", "date.txt"], u"tag1")

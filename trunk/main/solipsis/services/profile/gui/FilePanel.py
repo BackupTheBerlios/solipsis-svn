@@ -3,8 +3,9 @@
 
 import os, os.path
 import wx, wx.gizmos
-from os.path import isfile
+from os.path import isfile, isdir
 from solipsis.services.profile.facade import get_facade
+from solipsis.services.profile.data import SharingContainer
 
 # begin wxGlade: dependencies
 # end wxGlade
@@ -14,12 +15,16 @@ class FilePanel(wx.Panel):
         # begin wxGlade: FilePanel.__init__
         kwds["style"] = wx.TAB_TRAVERSAL
         wx.Panel.__init__(self, *args, **kwds)
+        self.window_1 = wx.SplitterWindow(self, -1, style=wx.SP_3D|wx.SP_BORDER)
+        self.window_1_pane_2 = wx.Panel(self.window_1, -1)
+        self.window_1_pane_1 = wx.Panel(self.window_1, -1)
         self.actions_sizer_staticbox = wx.StaticBox(self, -1, _("Actions"))
         self.browse_button = wx.BitmapButton(self, -1, wx.Bitmap("/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/browse.jpeg", wx.BITMAP_TYPE_ANY))
         self.add_button = wx.BitmapButton(self, -1, wx.Bitmap("/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/add_file.jpeg", wx.BITMAP_TYPE_ANY))
         self.del_button = wx.BitmapButton(self, -1, wx.Bitmap("/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/del_file.jpeg", wx.BITMAP_TYPE_ANY))
         self.tag_value = wx.TextCtrl(self, -1, "")
-        self.tree_list_ctrl = wx.gizmos.TreeListCtrl(self, -1)
+        self.tree_list = wx.gizmos.TreeListCtrl(self.window_1_pane_1, -1)
+        self.dir_list = wx.ListCtrl(self.window_1_pane_2, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
 
         self.__set_properties()
         self.__do_layout()
@@ -30,57 +35,28 @@ class FilePanel(wx.Panel):
         self.fldridx     = il.Add(wx.ArtProvider_GetBitmap(wx.ART_FOLDER,      wx.ART_OTHER, isz))
         self.fldropenidx = il.Add(wx.ArtProvider_GetBitmap(wx.ART_FILE_OPEN,   wx.ART_OTHER, isz))
         self.fileidx     = il.Add(wx.ArtProvider_GetBitmap(wx.ART_REPORT_VIEW, wx.ART_OTHER, isz))
-        self.tree_list_ctrl.SetImageList(il)
+        self.tree_list.SetImageList(il)
+        self.dir_list.SetImageList(il, wx.IMAGE_LIST_SMALL)
         self.il = il
+
+        # build tree list view
+        self.tree_list.AddColumn(_("Explorer"))
+        self.tree_list.AddColumn(_("# Shared"))
+        self.tree_list.AddColumn(_("Path"))
+        self.tree_list.SetMainColumn(0) # the one with the tree in it...
+        self.tree_list.SetColumnWidth(0, 175)
+        self.root = self.tree_list.AddRoot(_("File System..."))
+        self.tree_data = SharingContainer(self.tree_list.AppendItem,
+                                          self.tree_list.DeleteItem,
+                                          self._display_dir)
         
-        self.tree_list_ctrl.AddColumn(_("Explorer"))
-        self.tree_list_ctrl.AddColumn(_("Tags"))
-        self.tree_list_ctrl.AddColumn(_("Path"))
-        self.tree_list_ctrl.SetMainColumn(0) # the one with the tree in it...
-        self.tree_list_ctrl.SetColumnWidth(0, 175)
-        self.root = self.tree_list_ctrl.AddRoot(_("File System..."))
-        
+        # build dir list view
+        self.dir_list.InsertColumn(0, "Name")
+        self.dir_list.InsertColumn(1, "Tag")
+        self.dir_list.InsertColumn(2, "Shared", wx.LIST_FORMAT_RIGHT)
+
         self.facade = get_facade()
         self.bind_controls()
-
-    def build_tree(self, root_path):
-        # create root
-        if self.root:
-            self.tree_list_ctrl.DeleteChildren(self.root)
-        self.tree_data = {}
-        # create first child
-        child_dir = self.tree_list_ctrl.AppendItem(self.root, root_path.split(os.path.sep)[-1])
-        self.tree_data[root_path] = child_dir
-        self.tree_list_ctrl.SetItemImage(child_dir, self.fldridx, which = wx.TreeItemIcon_Normal)
-        self.tree_list_ctrl.SetItemImage(child_dir, self.fldropenidx, which = wx.TreeItemIcon_Expanded)
-        self.tree_list_ctrl.SetItemText(child_dir, root_path, 2)
-        # walk through dirs
-        for (dirname, dirnames, names) in os.walk(root_path):
-            for dir_name in dirnames:
-                self.fill_dir(dir_name, dirname)
-            for file_name in names:
-                self.fill_file(file_name, dirname)
-
-    def fill_dir(self, dir_name, full_path):
-        # get father
-        tree_item = self.tree_data[full_path]
-        # create child
-        child_dir = self.tree_list_ctrl.AppendItem(tree_item, dir_name)
-        self.tree_data[os.path.join(full_path, dir_name)] = child_dir
-        self.tree_list_ctrl.SetItemImage(child_dir, self.fldridx, which = wx.TreeItemIcon_Normal)
-        self.tree_list_ctrl.SetItemImage(child_dir, self.fldropenidx, which = wx.TreeItemIcon_Expanded)
-        self.tree_list_ctrl.SetItemText(child_dir, os.path.join(full_path, dir_name), 2)
-
-    def fill_file(self, file_name, full_path):
-        # get father
-        tree_item = self.tree_data[full_path]
-        # create child
-        child = self.tree_list_ctrl.AppendItem(tree_item, file_name)
-        self.tree_data[os.path.join(full_path, file_name)] = child
-        self.tree_list_ctrl.SetItemImage(child, self.fileidx, which = wx.TreeItemIcon_Normal)
-        self.tree_list_ctrl.SetItemImage(child, self.fileidx, which = wx.TreeItemIcon_Selected)
-        self.tree_list_ctrl.SetItemText(child, os.path.join(full_path, file_name), 2)
-
         
     # EVENTS
     
@@ -90,9 +66,12 @@ class FilePanel(wx.Panel):
         self.add_button.Bind(wx.EVT_BUTTON, self.on_add)
         self.del_button.Bind(wx.EVT_BUTTON, self.on_del)
         self.tag_value.Bind(wx.EVT_KILL_FOCUS, self.on_tag)
-        #self.tree_list_ctrl
+        
+        self.tree_list.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_select_tree)
+        self.dir_list.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_select_dir)
 
     def on_browse(self, evt):
+        """add shared directory to list"""
         dlg = wx.DirDialog(self, message=_("Choose your repository"),
             style=wx.DD_DEFAULT_STYLE|wx.DD_NEW_DIR_BUTTON)
         
@@ -101,17 +80,55 @@ class FilePanel(wx.Panel):
             self.facade.change_repository(path)
             
         dlg.Destroy()
+        self.tree_data.add_repository(full_path, self.root)
         
     def on_add(self, evt):
-        self.tree_list_ctrl.GetSelection()
+        self.tree_list.GetSelection()
         
     def on_del(self, evt):
-        self.tree_list_ctrl.GetSelection()
+        self.tree_list.GetSelection()
         
     def on_tag(self, evt):
-        self.tree_list_ctrl.GetSelection()
+        self.tree_list.GetSelection()
 
-    
+    def on_selec_tree(self, evt):
+        """new shared directory selecetd"""
+        dir_name = evt.GetItem().GetText()
+
+    def on_selec_dir(self, evt):
+        """new shared directory selecetd"""
+        dir_name = evt.GetItem().GetText()
+
+    def expand_dir(self, full_path):
+        """put into cache new information when dir expanded in tree"""
+        dir_container = self.data[full_path]
+        # add each dir of browsed dir
+        for dir_name in [os.path.join(dir_container.path, name) for name in os.listdir(dir_container.path)]:
+            if isdir(dir_name):
+                self._add_dir(dir_name, dir_container.item)
+            else:
+                # not a dir, do nothing
+                pass
+            
+    def _display_dir(self, dir_container):
+        """format item in tree view"""
+        # display info
+        self.tree_list.SetItemImage(dir_container.item, self.fldridx, which = wx.TreeItemIcon_Normal)
+        self.tree_list.SetItemImage(dir_container.item, self.fldropenidx, which = wx.TreeItemIcon_Expanded)
+        self.tree_list.SetItemText(dir_container.item, dir_container.nb_shared, 1)
+        self.tree_list.SetItemText(dir_container.item, dir_container.path, 2)
+
+    def display_dir_content(self, full_path):
+        """format item in tree view"""
+        self.dir_list.ClearAll()
+        file_content = self.tree_data.get_dir_content(full_path)
+        for file_name, file_container in file_content.iteritems():
+            #add to file list
+            index = self.dir_list.InsertImageStringItem(sys.maxint, file_name, self.fileidx)
+            self.dir_list.SetStringItem(index, 1, file_container.tag)
+            self.dir_list.SetStringItem(index, 2, file_container.shared)
+            self.dir_list.SetItemData(index, file_container)
+            
     def __set_properties(self):
         # begin wxGlade: FilePanel.__set_properties
         self.browse_button.SetSize(self.browse_button.GetBestSize())
@@ -123,13 +140,26 @@ class FilePanel(wx.Panel):
     def __do_layout(self):
         # begin wxGlade: FilePanel.__do_layout
         file_sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_1 = wx.BoxSizer(wx.HORIZONTAL)
         actions_sizer = wx.StaticBoxSizer(self.actions_sizer_staticbox, wx.HORIZONTAL)
         actions_sizer.Add(self.browse_button, 0, wx.FIXED_MINSIZE, 0)
         actions_sizer.Add(self.add_button, 0, wx.FIXED_MINSIZE, 0)
         actions_sizer.Add(self.del_button, 0, wx.FIXED_MINSIZE, 0)
         actions_sizer.Add(self.tag_value, 1, wx.LEFT|wx.EXPAND|wx.FIXED_MINSIZE, 3)
         file_sizer.Add(actions_sizer, 0, wx.ALL|wx.EXPAND, 3)
-        file_sizer.Add(self.tree_list_ctrl, 1, wx.ALL|wx.EXPAND, 3)
+        sizer_1.Add(self.tree_list, 1, wx.ALL|wx.EXPAND, 3)
+        self.window_1_pane_1.SetAutoLayout(True)
+        self.window_1_pane_1.SetSizer(sizer_1)
+        sizer_1.Fit(self.window_1_pane_1)
+        sizer_1.SetSizeHints(self.window_1_pane_1)
+        sizer_2.Add(self.dir_list, 1, wx.EXPAND, 0)
+        self.window_1_pane_2.SetAutoLayout(True)
+        self.window_1_pane_2.SetSizer(sizer_2)
+        sizer_2.Fit(self.window_1_pane_2)
+        sizer_2.SetSizeHints(self.window_1_pane_2)
+        self.window_1.SplitVertically(self.window_1_pane_1, self.window_1_pane_2)
+        file_sizer.Add(self.window_1, 1, wx.EXPAND, 0)
         self.SetAutoLayout(True)
         self.SetSizer(file_sizer)
         file_sizer.Fit(self)

@@ -29,6 +29,7 @@ def run():
     facade.add_document(cache_doc)
     facade.add_view(gui_view)
     facade.add_view(html_view)
+    facade.refresh_html_preview()
 
     #launch gui
     app.SetTopWindow(profile_frame)

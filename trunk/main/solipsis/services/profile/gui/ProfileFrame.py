@@ -38,7 +38,7 @@ class ProfileFrame(wx.Frame):
         self.profile_item.AppendItem(self.quit_item)
         self.profile_menu.Append(self.profile_item, _("Profile"))
         self.peers_item = wx.Menu()
-        self.addpeer_item = wx.MenuItem(self.peers_item, wx.NewId(), _("&Add...\tCtrl+A"), _("Add saved peer to dedicated tab"), wx.ITEM_NORMAL)
+        self.addpeer_item = wx.MenuItem(self.peers_item, wx.NewId(), _("&Add...\tCtrl+A"), "", wx.ITEM_NORMAL)
         self.peers_item.AppendItem(self.addpeer_item)
         self.peers_item.AppendSeparator()
         self.anonymous_item = wx.MenuItem(self.peers_item, wx.NewId(), _("Anonymous"), "", wx.ITEM_RADIO)
@@ -53,6 +53,12 @@ class ProfileFrame(wx.Frame):
         self.filters_item = wx.MenuItem(self.peers_item, wx.NewId(), _("Filters...\tCtrl+H"), _("Create active filters to get notified on peers approach"), wx.ITEM_NORMAL)
         self.peers_item.AppendItem(self.filters_item)
         self.profile_menu.Append(self.peers_item, _("Peers"))
+        self.display_item = wx.Menu()
+        self.refresh_item = wx.MenuItem(self.display_item, wx.NewId(), _("&Refresh\tCtrl+R"), "", wx.ITEM_NORMAL)
+        self.display_item.AppendItem(self.refresh_item)
+        self.profile_menu.Append(self.display_item, _("Display"))
+        self.about_item = wx.Menu()
+        self.profile_menu.Append(self.about_item, _("About"))
         # Menu Bar end
         self.profile_statusbar = self.CreateStatusBar(1, 0)
         self.preview_tab = PreviewPanel(self.profile_book, -1)
@@ -81,6 +87,8 @@ class ProfileFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_make_friend, id=self.friend_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_blacklist, id=self.blacklisted_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_anonymous, id=self.anonymous_item.GetId())
+        
+        self.Bind(wx.EVT_MENU, self.on_refresh, id=self.refresh_item.GetId())
 
     def on_add(self, evt):
         """save .profile.solipsis"""
@@ -155,6 +163,10 @@ class ProfileFrame(wx.Frame):
         pseudo = self.other_tab.peers_list.get_peer_selected()
         if pseudo:
             self.facade.unmark_peer(pseudo)
+
+    def on_refresh(self, evt):
+        """refresh HTML preview"""
+        self.facade.refresh_html_preview()
         
     def __set_properties(self):
         # begin wxGlade: ProfileFrame.__set_properties

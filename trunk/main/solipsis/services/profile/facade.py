@@ -1,3 +1,21 @@
+# <copyright>
+# Solipsis, a peer-to-peer serverless virtual world.
+# Copyright (C) 2002-2005 France Telecom R&D
+# 
+# This software is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+# 
+# This software is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+# 
+# You should have received a copy of the GNU Lesser General Public
+# License along with this software; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# </copyright>
 """Design pattern Facade: presents working API for all actions of GUI
 available. This facade will be used both by GUI and unittests."""
 
@@ -177,17 +195,39 @@ class Facade:
         return self._try_change(value,
                                "set_repository",
                                "update_repository")
-
-    def add_file(self, value):
-        """sets new value for unshared file"""
+    
+    def remove_repository(self, value):
+        """sets new value for repositor"""
         return self._try_change(value,
-                               "add_file",
+                               "remove_repository",
+                               "update_repository")
+
+    def expand_dir(self, value):
+        """put into cache new information when dir expanded in tree"""
+        for document in self.documents.values():
+            try:
+                added_dirs = document.expand_dir(value)
+            except TypeError, error:
+                print >> stderr, "%s: %s"% (document.name, str(error))
+        for view in self.views.values():
+            view.new_files(added_dirs)
+    
+    def share_dir(self, pair):
+        """forward command to cache"""
+        return self._try_change(value,
+                               "share_dir",
                                "update_files")
 
-    def change_file_tag(self, value):
-        """sets new value for tagged file"""
+    def share_files(self, triplet):
+        """forward command to cache"""
         return self._try_change(value,
-                               "tag_file",
+                               "share_files",
+                               "update_files")
+
+    def tag_files(self, triplet):
+        """forward command to cache"""
+        return self._try_change(value,
+                               "tag_files",
                                "update_files")
 
     # OTHERS TAB
@@ -231,4 +271,9 @@ class Facade:
         """sets new preview for peer"""
         if "gui" in self.views:
             self.views["gui"].update_peer_preview(pseudo)
+    
+    def refresh_html_preview(self):
+        """sets new preview for peer"""
+        if "gui" in self.views:
+            self.views["html"].update_view()
 

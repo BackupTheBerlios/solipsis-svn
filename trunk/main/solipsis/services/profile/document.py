@@ -1,3 +1,21 @@
+# <copyright>
+# Solipsis, a peer-to-peer serverless virtual world.
+# Copyright (C) 2002-2005 France Telecom R&D
+# 
+# This software is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+# 
+# This software is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+# 
+# You should have received a copy of the GNU Lesser General Public
+# License along with this software; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# </copyright>
 """Represents data used in model. It has been split from Views
 gathared in views.py. Documents are to be seen as completely
 independant from views"""
@@ -7,6 +25,7 @@ import ConfigParser
 import os.path
 import sys
 from os.path import isfile, isdir
+from solipsis.services.profile.services.profile.data import SharingContainer
 from solipsis.services.profile import ENCODING, \
      PROFILE_DIR, PROFILE_FILE
 from solipsis.services.profile.images import DEFAULT_PIC
@@ -254,27 +273,52 @@ class AbstractDocument:
         """sets new value for repository"""
         if not isdir(value):
             raise TypeError("repository directory must exist")
+        
+    def remove_repository(self, value):
+        """sets new value for repository"""
+        if not isdir(value):
+            raise TypeError("repository directory must exist")
+        
     def get_repository(self):
         """returns value of repository"""
         raise NotImplementedError
-        
-    def add_file(self, file_path):
-        """stores File object"""
-        if not isfile(file_path):
-            raise TypeError("file must exist")
-        
-    def get_files(self):
-        """returns value of files"""
-        raise NotImplementedError
-        
-    def tag_file(self, pair):
-        """sets new value for tagged file"""
+
+    def share_dir(self, pair):
+        """forward command to cache"""
         if not isinstance(pair, list) and not isinstance(pair, tuple):
             raise TypeError("argument of tag_file expected as list or tuple")
         elif len(pair) != 2:
             raise TypeError("argument of  expected as couple (file_path, tag)")
         if not isinstance(pair[1], unicode):
             raise TypeError("tag expected as unicode")
+
+    def share_files(self, triplet):
+        """forward command to cache"""
+        if not isinstance(triplet, list) and not isinstance(triplet, tuple):
+            raise TypeError("argument of tag_file expected as list or tuple")
+        elif len(triplet) != 3:
+            raise TypeError("argument of  expected as couple (file_path, tag)")
+        if not isinstance(triplet[0], unicode):
+            raise TypeError("tag expected as unicode")
+        if not isinstance(triplet[1], unicode):
+            raise TypeError("tag expected as unicode")
+        
+    def tag_files(self, triplet):
+        """sets new value for tagged file"""
+        if not isinstance(triplet, list) and not isinstance(triplet, tuple):
+            raise TypeError("argument of tag_file expected as list or tuple")
+        elif len(triplet) != 3:
+            raise TypeError("argument of  expected as couple (file_path, tag)")
+        if not isinstance(triplet[0], unicode):
+            raise TypeError("tag expected as unicode")
+        if not isinstance(triplet[1], unicode):
+            raise TypeError("tag expected as unicode")
+        if not isinstance(triplet[2], unicode):
+            raise TypeError("tag expected as unicode")
+        
+    def get_files(self):
+        """returns value of files"""
+        raise NotImplementedError
             
     # OTHERS TAB
     def add_peer(self, pseudo):
@@ -342,7 +386,7 @@ class CacheDocument(AbstractDocument):
         self.custom_attributes = {}
         self.repository = u""
         # dictionary of file. {fullpath : FileDescriptor}
-        self.files = {}
+        self.files = SharingContainer()
         # dictionary of peers. {pseudo : PeerDescriptor}
         self.peers = {}
     
@@ -483,27 +527,29 @@ class CacheDocument(AbstractDocument):
         """sets new value for repositor"""
         AbstractDocument.set_repository(self, value)
         self.repository = value
+        
+    def remove_repository(self, value):
+        """sets new value for repository"""
+        AbstractDocument.remove_repository(self, value)
+        
     def get_repository(self):
         """returns value of repository"""
-        return self.repository
+        raise NotImplementedError
+
+    def share_dir(self, pair):
+        """forward command to cache"""
+        AbstractDocument.share_dir(self, pair)
+
+    def share_files(self, triplet):
+        """forward command to cache"""
+        AbstractDocument.share_files(self, triplet)
         
-    def add_file(self, file_path):
-        """stores File object"""
-        AbstractDocument.add_file(self, file_path)
-        self.files[file_path] = FileDescriptor(file_path)
+    def tag_files(self, triplet):
+        """sets new value for tagged file"""
+        AbstractDocument.tag_files(self, triplet)
         
     def get_files(self):
         """returns value of files"""
-        return self.files
-        
-    def tag_file(self, pair):
-        """sets new value for tagged file"""
-        AbstractDocument.tag_file(self, pair)
-        file_path, tag = pair
-        if not self.files.has_key(file_path):
-            self.add_file(file_path)
-        file_obj = self.files[file_path]
-        file_obj.tag = tag
 
     # OTHERS TAB
     def add_peer(self, pseudo):
@@ -800,40 +846,31 @@ class FileDocument(AbstractDocument):
     def set_repository(self, value):
         """sets new value for repositor"""
         AbstractDocument.set_repository(self, value)
-        self.config.set(SECTION_FILE, "repository", value.encode(self.encoding))
+        self.repository = value
+        
+    def remove_repository(self, value):
+        """sets new value for repository"""
+        AbstractDocument.(self, value)
+        
     def get_repository(self):
         """returns value of repository"""
-        try:
-            return unicode(self.config.get(SECTION_FILE, "repository"),
-                           self.encoding)
-        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-            return unicode(os.path.expanduser('~'))
+        raise NotImplementedError
+
+    def share_dir(self, pair):
+        """forward command to cache"""
+        AbstractDocument.(self, pair)
+
+    def share_files(self, triplet):
+        """forward command to cache"""
+        AbstractDocument.(self, triplet)
         
-    def add_file(self, file_path):
-        """stores File object"""
-        AbstractDocument.add_file(self, file_path)
-        self.config.set(SECTION_FILE, file_path, "")
+    def tag_files(self, triplet):
+        """sets new value for tagged file"""
+        AbstractDocument.(self, triplet)
         
     def get_files(self):
         """returns value of files"""
-        result = {}
-        try:
-            options = self.config.options(SECTION_FILE)
-            for option in options:
-                if option != "repository":
-                    repo = unicode(self.config.get(SECTION_FILE, option),
-                                   self.encoding)
-                    result[option] = FileDescriptor(option, repo)
-            return result
-        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-            return result
         
-    def tag_file(self, pair):
-        """sets new value for tagged file"""
-        AbstractDocument.tag_file(self, pair)
-        file_path, tag = pair
-        self.config.set(SECTION_FILE, file_path, tag.encode(self.encoding))
-
     # OTHERS TAB
     def add_peer(self, pseudo):
         """stores Peer object"""
