@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-01-26 13:51+0100\n"
+"POT-Creation-Date: 2005-02-04 17:28+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,7 +19,7 @@ msgstr ""
 msgid "Navigator"
 msgstr ""
 
-msgid "File"
+msgid "&File"
 msgstr ""
 
 msgid "&Connect to node"
@@ -34,13 +34,19 @@ msgstr ""
 msgid "Quit"
 msgstr ""
 
-msgid "Edit"
+msgid "&Edit"
 msgstr ""
 
 msgid "Preferences"
 msgstr ""
 
-msgid "Help"
+msgid "&View"
+msgstr ""
+
+msgid "Automatic Rotation"
+msgstr ""
+
+msgid "&Help"
 msgstr ""
 
 msgid "About"
@@ -69,6 +75,12 @@ msgid "Node address"
 msgstr ""
 
 msgid "Host: "
+msgstr ""
+
+msgid "bots.netofpeers.net"
+msgstr ""
+
+msgid "localhost"
 msgstr ""
 
 msgid "Port: "
@@ -101,88 +113,88 @@ msgstr ""
 msgid "&Close"
 msgstr ""
 
-#: solipsis/navigator/wxclient/validators.py:49
+#: solipsis/navigator/wxclient/validators.py:51
 msgid "Port number must be between 1 and 65535"
 msgstr ""
 
-#: solipsis/navigator/wxclient/validators.py:73
+#: solipsis/navigator/wxclient/validators.py:75
 msgid "Please enter a valid hostname or address"
 msgstr ""
 
-#: solipsis/navigator/wxclient/validators.py:84
+#: solipsis/navigator/wxclient/validators.py:87
 msgid "Please enter a valid nickname"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:120
-#: solipsis/navigator/wxclient/app.py:304
-#: solipsis/navigator/wxclient/app.py:336
-#: solipsis/navigator/wxclient/app.py:480
-#: solipsis/navigator/wxclient/app.py:492
-#: solipsis/navigator/wxclient/app.py:502
+#: solipsis/navigator/wxclient/app.py:122
+#: solipsis/navigator/wxclient/app.py:309
+#: solipsis/navigator/wxclient/app.py:343
+#: solipsis/navigator/wxclient/app.py:501
+#: solipsis/navigator/wxclient/app.py:513
+#: solipsis/navigator/wxclient/app.py:523
 msgid "Not connected"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:291
+#: solipsis/navigator/wxclient/app.py:296
 msgid ""
 "This function is not yet implemented.\n"
 "Sorry! Please come back later..."
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:292
+#: solipsis/navigator/wxclient/app.py:297
 msgid "Not implemented"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:303
+#: solipsis/navigator/wxclient/app.py:308
 msgid ""
 "This action cannot be performed, \n"
 "because you are not connected to a node."
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:392
+#: solipsis/navigator/wxclient/app.py:407
 msgid "Connecting"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:412
+#: solipsis/navigator/wxclient/app.py:429
 #, python-format
 msgid "Peer \"%s\""
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:419
+#: solipsis/navigator/wxclient/app.py:436
 msgid "Disconnect"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:421
+#: solipsis/navigator/wxclient/app.py:438
 msgid "Connect to node"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:422
+#: solipsis/navigator/wxclient/app.py:439
 msgid "About Solipsis"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:470
-#: solipsis/navigator/wxclient/app.py:487
+#: solipsis/navigator/wxclient/app.py:491
+#: solipsis/navigator/wxclient/app.py:508
 msgid "Connected"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:475
+#: solipsis/navigator/wxclient/app.py:496
 msgid "Searching peers"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:493
+#: solipsis/navigator/wxclient/app.py:514
 msgid ""
 "Connection to the node has failed. \n"
 "Please the check the node is running, then retry."
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:494
+#: solipsis/navigator/wxclient/app.py:515
 msgid "Connection error"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:508
+#: solipsis/navigator/wxclient/app.py:529
 msgid "You cannot kill this node."
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:509
+#: solipsis/navigator/wxclient/app.py:530
 msgid "Kill refused"
 msgstr ""
 

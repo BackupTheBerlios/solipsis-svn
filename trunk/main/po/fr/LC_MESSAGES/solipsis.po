@@ -8,9 +8,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Solipsis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-01-26 13:51+0100\n"
-"PO-Revision-Date: 2005-01-26 13:50+0100\n"
-"Last-Translator: Antoine Pitrou <antoine@pitrou.net>\n"
+"POT-Creation-Date: 2005-02-04 17:28+0100\n"
+"PO-Revision-Date: 2005-02-04 17:27+0100\n"
+"Last-Translator: Antoine Pitrou <solipsis@pitrou.net>\n"
 "Language-Team: Solipsis translators <antoine@pitrou.net>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
@@ -28,6 +28,15 @@ msgstr "Se &connecter à un nœud"
 msgid "&Disconnect"
 msgstr "Se &déconnecter"
 
+msgid "&Edit"
+msgstr "&Edition"
+
+msgid "&File"
+msgstr "&Fichier"
+
+msgid "&Help"
+msgstr "&Aide"
+
 msgid "&Kill node"
 msgstr "&Tuer le noeud"
 
@@ -37,15 +46,21 @@ msgstr "&Valider"
 msgid "&Ok"
 msgstr "&Valider"
 
+msgid "&View"
+msgstr "&Affichage"
+
 msgid "About"
 msgstr "À propos"
 
-#: solipsis/navigator/wxclient/app.py:422
+#: solipsis/navigator/wxclient/app.py:439
 msgid "About Solipsis"
 msgstr "À propos de Solipsis"
 
 msgid "About..."
 msgstr "À propos..."
+
+msgid "Automatic Rotation"
+msgstr "Rotation automatique"
 
 msgid "Automatic proxy detection"
 msgstr "Détection automatique"
@@ -53,24 +68,24 @@ msgstr "Détection automatique"
 msgid "Connect to Solipsis"
 msgstr "Connexion à Solipsis"
 
-#: solipsis/navigator/wxclient/app.py:421
+#: solipsis/navigator/wxclient/app.py:438
 msgid "Connect to node"
 msgstr "Se connecter à un nœud"
 
-#: solipsis/navigator/wxclient/app.py:470
-#: solipsis/navigator/wxclient/app.py:487
+#: solipsis/navigator/wxclient/app.py:491
+#: solipsis/navigator/wxclient/app.py:508
 msgid "Connected"
 msgstr "Connecté"
 
-#: solipsis/navigator/wxclient/app.py:392
+#: solipsis/navigator/wxclient/app.py:407
 msgid "Connecting"
 msgstr "Connexion en cours"
 
-#: solipsis/navigator/wxclient/app.py:494
+#: solipsis/navigator/wxclient/app.py:515
 msgid "Connection error"
 msgstr "Erreur de connexion"
 
-#: solipsis/navigator/wxclient/app.py:493
+#: solipsis/navigator/wxclient/app.py:514
 msgid ""
 "Connection to the node has failed. \n"
 "Please the check the node is running, then retry."
@@ -79,22 +94,13 @@ msgstr ""
 "Veuillez vérifiez que le nœud est lancé \n"
 "et réessayez de vous connecter."
 
-#: solipsis/navigator/wxclient/app.py:419
+#: solipsis/navigator/wxclient/app.py:436
 msgid "Disconnect"
 msgstr "Se déconnecter"
-
-msgid "Edit"
-msgstr "Édition"
 
 #: solipsis/util/wxutils.py:166
 msgid "Error"
 msgstr "Erreur"
-
-msgid "File"
-msgstr "Fichier"
-
-msgid "Help"
-msgstr "Aide"
 
 msgid "Host: "
 msgstr "Hôte:"
@@ -108,7 +114,7 @@ msgstr ""
 "autre machine, il vous sera peut-être nécessaire\n"
 "de changer les réglages du proxy HTTP."
 
-#: solipsis/navigator/wxclient/app.py:509
+#: solipsis/navigator/wxclient/app.py:530
 msgid "Kill refused"
 msgstr "Opération refusée"
 
@@ -127,29 +133,29 @@ msgstr "Aucun serveur proxy"
 msgid "Node address"
 msgstr "Adresse du noeud"
 
-#: solipsis/navigator/wxclient/app.py:120
-#: solipsis/navigator/wxclient/app.py:304
-#: solipsis/navigator/wxclient/app.py:336
-#: solipsis/navigator/wxclient/app.py:480
-#: solipsis/navigator/wxclient/app.py:492
-#: solipsis/navigator/wxclient/app.py:502
+#: solipsis/navigator/wxclient/app.py:122
+#: solipsis/navigator/wxclient/app.py:309
+#: solipsis/navigator/wxclient/app.py:343
+#: solipsis/navigator/wxclient/app.py:501
+#: solipsis/navigator/wxclient/app.py:513
+#: solipsis/navigator/wxclient/app.py:523
 msgid "Not connected"
 msgstr "Déconnecté"
 
-#: solipsis/navigator/wxclient/app.py:292
+#: solipsis/navigator/wxclient/app.py:297
 msgid "Not implemented"
 msgstr "Non disponible"
 
-#: solipsis/navigator/wxclient/app.py:412
+#: solipsis/navigator/wxclient/app.py:429
 #, python-format
 msgid "Peer \"%s\""
 msgstr "Nœud \"%s\""
 
-#: solipsis/navigator/wxclient/validators.py:73
+#: solipsis/navigator/wxclient/validators.py:75
 msgid "Please enter a valid hostname or address"
 msgstr "Veuillez entrer une addresse correcte"
 
-#: solipsis/navigator/wxclient/validators.py:84
+#: solipsis/navigator/wxclient/validators.py:87
 msgid "Please enter a valid nickname"
 msgstr "Veuillez entrer un nom ou un pseudo valide"
 
@@ -157,7 +163,7 @@ msgstr "Veuillez entrer un nom ou un pseudo valide"
 msgid "Please fill this form correctly"
 msgstr "Veuillez remplir le formulaire correctement"
 
-#: solipsis/navigator/wxclient/validators.py:49
+#: solipsis/navigator/wxclient/validators.py:51
 msgid "Port number must be between 1 and 65535"
 msgstr ""
 "Le numéro de port doit être compris\n"
@@ -175,9 +181,9 @@ msgstr "Serveur proxy"
 msgid "Quit"
 msgstr "Quitter"
 
-#: solipsis/navigator/wxclient/app.py:475
+#: solipsis/navigator/wxclient/app.py:496
 msgid "Searching peers"
-msgstr ""
+msgstr "Recherche des voisins"
 
 msgid ""
 "Solipsis Navigator 0.1\n"
@@ -190,7 +196,7 @@ msgstr ""
 "Distribué sous licence GNU LGPL.\n"
 "(c) France Telecom R&&D"
 
-#: solipsis/navigator/wxclient/app.py:303
+#: solipsis/navigator/wxclient/app.py:308
 msgid ""
 "This action cannot be performed, \n"
 "because you are not connected to a node."
@@ -198,15 +204,21 @@ msgstr ""
 "Cette action n'est pas disponible \n"
 "car vous n'êtes pas connecté."
 
-#: solipsis/navigator/wxclient/app.py:291
+#: solipsis/navigator/wxclient/app.py:296
 msgid ""
 "This function is not yet implemented.\n"
 "Sorry! Please come back later..."
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:508
+#: solipsis/navigator/wxclient/app.py:529
 msgid "You cannot kill this node."
 msgstr "Vous ne pouvez pas tuer ce nœud."
+
+msgid "bots.netofpeers.net"
+msgstr ""
+
+msgid "localhost"
+msgstr ""
 
 #~ msgid "Disconnect from node"
 #~ msgstr "Se déconnecter du nœud"
