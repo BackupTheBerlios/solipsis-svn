@@ -1,34 +1,56 @@
 #!/bin/sh
 
-PO_DOMAIN=solipsis
-PO_DIR=./po
-PO_TEMPLATE=$PO_DIR/messages.pot
-PO_FILES=$PO_DIR/*/LC_MESSAGES/$PO_DOMAIN.po
+function do_po() {
+	PO_DOMAIN=$1
+	PO_DIR=./po
+	PO_TEMPLATE=$PO_DIR/messages.pot
+	MSG_DIRS=$PO_DIR/*/LC_MESSAGES
 
+	# 1. Build message template from source code and resource files
 
-# 1. Build message template from source code and resource files
+	echo "extracting strings"
 
-echo "extracting strings"
+	GETTEXT_OPTIONS="-L python -o $PO_TEMPLATE --from-code utf-8 --force-po"
+	GETTEXT_FIRST="xgettext $GETTEXT_OPTIONS"
+	GETTEXT="xgettext -j $GETTEXT_OPTIONS"
 
-GETTEXT_OPTIONS="-L python -o $PO_TEMPLATE --from-code utf-8 --force-po"
-GETTEXT_FIRST="xgettext $GETTEXT_OPTIONS"
-GETTEXT="xgettext -j $GETTEXT_OPTIONS"
+	#FIND_OPTIONS='-not -path "*/services/*/*"'
+	XRC_FILES=`find -name '*.xrc' -not -path "*/services/*/*"`
+	PY_FILES=`find -name '*.py' -not -path "*/services/*/*"`
 
-echo "" | $GETTEXT_FIRST -
-wxrc -g `find -name "*.xrc"` | $GETTEXT -
-$GETTEXT `find -name "*.py"`
+	echo "" | $GETTEXT_FIRST -
+	wxrc -g $XRC_FILES | $GETTEXT -
+	$GETTEXT $PY_FILES
 
-# 2. Update already existing PO files
+	# 2. Create or update PO files
 
-for po in $PO_FILES ; do
-	echo "updating $po"
-	msgmerge -s -U $po $PO_TEMPLATE
+	for msgdir in $MSG_DIRS ; do
+		po=$msgdir/$PO_DOMAIN.po
+		echo "updating $po"
+		touch $po
+		msgmerge -s -U $po $PO_TEMPLATE
+	done
+
+	# 3. Compile PO files
+
+	for msgdir in $MSG_DIRS ; do
+		po=$msgdir/$PO_DOMAIN.po
+		mo=`echo "$po" | sed 's/\.po$/.mo/'`
+		echo "compiling $mo"
+		msgfmt -o $mo $po
+	done
+}
+
+echo "** Main program **"
+MAIN_DIR=`pwd`
+do_po solipsis
+
+PLUGIN_DIR=solipsis/services
+PLUGINS=`find $PLUGIN_DIR -type d -regex "$PLUGIN_DIR/[^./]*" -printf %f`
+for plugin in $PLUGINS ; do
+	echo "** Plugin '$plugin' **"
+	cd $PLUGIN_DIR/$plugin
+	mkdir -p po/fr/LC_MESSAGES
+	do_po solipsis_$plugin
 done
-
-# 3. Compile PO files
-
-for po in $PO_FILES ; do
-	mo=`echo "$po" | sed 's/\.po$/.mo/'`
-	echo "compiling $mo"
-	msgfmt -o $mo $po
-done
+cd $MAIN_DIR
