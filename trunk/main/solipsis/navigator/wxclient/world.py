@@ -82,7 +82,7 @@ class World(object):
             return
         old = item.peer
         item.peer = peer
-        old_pos = peer.position.GetXYZ()
+        old_pos = old.position.GetXYZ()
         new_pos = peer.position.GetXYZ()
         if new_pos != old_pos:
             x, y, z = new_pos
