@@ -48,11 +48,7 @@ from solipsis.node.node import Node
 
 #-----Step 0: Initialize my informations
 
-global run
-
-def run(params):
-    myNode = Node(params)
-    myNode.mainLoop()
+#_module_name == __name__
 
 def main():
     try:
@@ -80,8 +76,8 @@ def main():
         parser.add_option("-f", "--file", dest="config_file", default=config_file,
                           help="configuration file" )
         parser.add_option("-P", "--profile", action="store_true", dest="profile", default=False,
-                          help="profile execution to runnode.prof" )
-        global params
+                          help="profile execution to node.prof" )
+
         params = Parameters(parser, config_file=config_file)
 
         if (params.detach):
@@ -104,9 +100,16 @@ def main():
                 os._exit(0)
 
         # Create node and enter main loop
+        global profile_run
+        myNode = Node(params)
+        profile_run = lambda: myNode.mainLoop()
+#         def run(params):
+#             myNode.mainLoop()
+
         if (params.profile):
             import profile
-            profile.run("solipsis.node.main.run(solipsis.node.main.params)")
+            #profile.run("solipsis.node.main.run(solipsis.node.main.params)")
+            profile.run(__name__ + ".profile_run()", "node.prof")
         else:
             import psyco
             psyco.profile()

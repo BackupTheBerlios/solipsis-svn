@@ -162,7 +162,7 @@ class NetworkLoop(threading.Thread):
         self.node_connector.CallControl('move', 500, 2000, 0)
 
     def DisconnectFromNode(self, *args, **kargs):
-        self.node_connector.CallControl('move', str(2**127+12), str(2**127+325), 0)
+        self.node_connector.CallControl('kill')
         #self.node_connector.Disconnect(*args, **kargs)
 
     def MoveTo(self, (x, y)):
