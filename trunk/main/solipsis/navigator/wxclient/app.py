@@ -194,7 +194,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
                 if self.x11:
                     t = 5.0 + 5 * 1000 * self.viewport.LastRedrawDuration()
                 else:
-                    t = 2.0
+                    t = 5.0
                 wx.FutureCall(t, self.Redraw)
                 return True
         return False
@@ -222,7 +222,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """
         Called on repaint request.
         """
-        self.AskRedraw()
+        self.Redraw()
 
     #===-----------------------------------------------------------------===#
     # Event handlers for the main window
