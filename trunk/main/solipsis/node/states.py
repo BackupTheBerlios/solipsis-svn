@@ -85,7 +85,7 @@ class EarlyConnecting(State):
     before launching the proper locating procedure.
     This state is a special state only used for the world creation.
     """
-    expected_peer_messages = ['HELLO', 'CONNECT', 'CLOSE', 'HEARTBEAT']
+    expected_peer_messages = ['HELLO', 'CONNECT', 'CLOSE', 'HEARTBEAT', 'META', 'QUERYMETA']
     expected_control_messages = ['MOVE', 'KILL', 'SET']
 
 
@@ -99,4 +99,3 @@ class LostGlobalConnectivity(State):
     """
     State LostGlobalConnectivity: the node has lost its global connectivity.
     """
-

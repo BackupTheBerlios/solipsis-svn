@@ -100,7 +100,7 @@ class Entity(object):
         """
         self.services.clear()
         for service in services:
-            self.services[service.service_id] = service
+            self.services[service.id_] = service
     
     def MatchServices(self, entity):
         """

@@ -84,8 +84,10 @@ class StateMachine(object):
         'FOUND':        [],
         'HEARTBEAT':    [],
         'HELLO':        [],
+        'META':         [],
         'NEAREST':      [states.Locating, states.Scanning],
         'QUERYAROUND':  [states.Idle],
+        'QUERYMETA':    [],
         'SEARCH':       [states.Idle],
         'UPDATE':       [],
     }
@@ -389,6 +391,7 @@ class StateMachine(object):
         if not topology.HasPeer(peer.id_):
             self._AddPeer(peer)
             # TODO: exchange service info and other stuff
+            self._QueryMeta(peer)
 
         else:
             self.logger.info("reception of CONNECT but we are already connected to '%s'" % peer.id_)
@@ -405,6 +408,27 @@ class StateMachine(object):
             return
 
         self._RemovePeer(id_)
+
+    def peer_QUERYMETA(self, args):
+        """
+        A peer queries our metadata and sends its own.
+        """
+        id_ = args.id_
+        if self.topology.HasPeer(id_):
+            peer = self.topology.GetPeer(id_)
+            peer.pseudo = args.pseudo
+            peer.UpdateServices(args.accept_services)
+            self._SendMeta(peer)
+
+    def peer_META(self, args):
+        """
+        A peer sends or updates its metadata.
+        """
+        id_ = args.id_
+        if self.topology.HasPeer(id_):
+            peer = self.topology.GetPeer(id_)
+            peer.pseudo = args.pseudo
+            peer.UpdateServices(args.accept_services)
 
     def peer_NEAREST(self, args):
         """
@@ -709,7 +733,7 @@ class StateMachine(object):
         Add a peer and send the necessary notification messages.
         """
         if not self.topology.AddPeer(peer):
-            self.logger.warning("topology refused peer '%s'" % peer.id_)
+            self.logger.warning("sed peer '%s'" % peer.id_)
             return
 
         def msg_receive_timeout():
@@ -760,30 +784,6 @@ class StateMachine(object):
     def _CloseConnection(self, peer):
         self._SendToPeer(peer, self._PeerMessage('CLOSE'))
         self._RemovePeer(peer.id_)
-
-    def _SayHello(self, address, send_detects=False):
-        """
-        Say HELLO to a peer.
-        """
-        # TODO: manage repeted connection failures and
-        # optionally cancel request (returning False)
-        msg = self._PeerMessage('HELLO')
-        #~ msg.args.pseudo = self.node.pseudo
-        msg.args.send_detects = send_detects
-        self._SendToAddress(address, msg)
-        return True
-
-    def _SayConnect(self, peer):
-        """
-        Answer CONNECT to a peer.
-        """
-        # TODO: manage repeted connection failures and
-        # optionally cancel request (sending CLOSE and
-        # returning False)
-        msg = self._PeerMessage('CONNECT')
-        #~ msg.args.pseudo = self.node.pseudo
-        self._SendToPeer(peer, msg)
-        return True
 
 
     #
@@ -988,6 +988,51 @@ class StateMachine(object):
         # Then remove unnecessary fields
         self.parser.StripMessage(message)
         return message
+
+    def _FillMeta(self, message):
+        a = message.args
+        a.pseudo = self.node.pseudo
+        a.accept_services = self.node.GetServices()
+
+    def _SayHello(self, address, send_detects=False):
+        """
+        Say HELLO to a peer.
+        """
+        # TODO: manage repeted connection failures and
+        # optionally cancel request (returning False)
+        msg = self._PeerMessage('HELLO')
+        msg.args.send_detects = send_detects
+        self._SendToAddress(address, msg)
+        return True
+
+    def _SayConnect(self, peer):
+        """
+        Answer CONNECT to a peer.
+        """
+        # TODO: manage repeted connection failures and
+        # optionally cancel request (sending CLOSE and
+        # returning False)
+        msg = self._PeerMessage('CONNECT')
+        self._SendToPeer(peer, msg)
+        return True
+
+    def _QueryMeta(self, peer):
+        """
+        Send our metadata to a peer.
+        """
+        msg = self._PeerMessage('QUERYMETA')
+        self._FillMeta(msg)
+        self._SendToPeer(peer, msg)
+        return True
+
+    def _SendMeta(self, peer):
+        """
+        Send our metadata to a peer.
+        """
+        msg = self._PeerMessage('META')
+        self._FillMeta(msg)
+        self._SendToPeer(peer, msg)
+        return True
 
     def _SendToAddress(self, address, message):
         """

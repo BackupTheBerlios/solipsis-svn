@@ -17,6 +17,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
 
+import wx
+
 import drawable
 import images
 
@@ -40,10 +42,11 @@ class World(object):
         Called when a new peer is discovered.
         """
         self.peers[peer.id_] = peer
+        charset = str(wx.GetLocale().GetSystemEncodingName())
         x, y, z = peer.position
         self.viewport.AddObject(peer.id_, None, position=(x, y))
         self.viewport.AddDrawable(peer.id_, drawable.Image(images.IMG_AVATAR), (0, 0), 0)
-        self.viewport.AddDrawable(peer.id_, drawable.Text(peer.pseudo), (0, 20), 1)
+        self.viewport.AddDrawable(peer.id_, drawable.Text(peer.pseudo.encode(charset)), (0, 20), 1)
 
     def RemovePeer(self, peer_id):
         """
@@ -68,4 +71,3 @@ class World(object):
             self.peers[peer.id_] = peer
             x, y, z = peer.position
             self.viewport.MoveObject(peer.id_, position=(x, y))
-

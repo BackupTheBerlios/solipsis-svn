@@ -108,15 +108,15 @@ def _init_table(table_name, table, aliases=_aliases, transform=(lambda x: x)):
 # This is mandatory.
 #
 _syntax_table = {
-    ARG_ACCEPT_SERVICES  : '[-_/\w\d]+(;d=\w+)?(\s*,\s*[-_/\w\d]+(;d=\w+)?)',
-    ARG_ADDRESS          : '\s*.*:\d+\s*',
-    ARG_AWARENESS_RADIUS : '\d+',
-    ARG_CLOCKWISE        : '[-+]1',
-    ARG_BEST_DISTANCE    : '\d+',
-    ARG_ID               : '[^\s]*',
-    ARG_POSITION         : '\s*\d+\s*,\s*\d+\s*,\s*\d+\s*',
-    ARG_PSEUDO           : '.*',
-    ARG_SEND_DETECTS     : '(now|later)',
+    ARG_ACCEPT_SERVICES  : r'[-_/\w\d]+(;d=\w+)?(\s*,\s*[-_/\w\d]+(;d=\w+)?)*',
+    ARG_ADDRESS          : r'\s*.*:\d+\s*',
+    ARG_AWARENESS_RADIUS : r'\d+',
+    ARG_CLOCKWISE        : r'[-+]1',
+    ARG_BEST_DISTANCE    : r'\d+',
+    ARG_ID               : r'[^\s]*',
+    ARG_POSITION         : r'\s*\d+\s*,\s*\d+\s*,\s*\d+\s*',
+    ARG_PSEUDO           : r'.*',
+    ARG_SEND_DETECTS     : r'(now|later)',
 }
 
 _init_table('ARGS_SYNTAX', _syntax_table, transform=(lambda x: re.compile('^' + x + '$')))
@@ -137,6 +137,7 @@ def _accept_services_from_string(s):
         else:
             type = 'bidir'
         services.append(Service(id_, type))
+    return services
 
 def _accept_services_to_string(services):
     s = []
@@ -217,6 +218,9 @@ REQUESTS = {
 
 
 class Message(object):
+    """
+    This structure is a simple representation of a Solipsis message.
+    """
     class Args(object):
         pass
 
@@ -227,9 +231,8 @@ class Message(object):
 
 class Parser(object):
     """
-    This class represents a Solipsis message.
+    This class parses and builds Solipsis messages.
     """
-
     request_syntax = re.compile(r'^\s*(\w+)\s+SOLIPSIS/(\d+\.\d+)\s*$')
     argument_syntax = re.compile(r'^\s*([-\w]+)\s*:\s*(.*?)\s*$')
 
