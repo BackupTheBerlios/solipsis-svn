@@ -39,7 +39,7 @@ from network import NetworkLoop
 from config import ConfigUI, ConfigData
 from launch import Launcher
 
-from solipsis.services.collector import ServiceCollector
+from solipsis.services.wxcollector import WxServiceCollector
 
 
 class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
@@ -169,7 +169,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """
         Initialize all services.
         """
-        self.services = ServiceCollector(self.params, self, self.reactor)
+        self.services = WxServiceCollector(self.params, self, self.reactor)
         # Service-specific menus in the menubar: We will insert service menus
         # just before the last menu, which is the "Help" menu
         self.service_menus = []
@@ -185,7 +185,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         Main initialization handler.
         """
 
-        #~ self.InitTwisted()
         self.InitWx()
         self.InitResources()
         self.InitValidators()
@@ -241,7 +240,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         # 3. Other tasks are launched after the window is drawn
         wx.CallAfter(self.InitTwisted)
         wx.CallAfter(self.InitNetwork)
-        #~ wx.FutureCall(500, self.InitServices)
         wx.CallAfter(self.InitServices)
         
         return True
@@ -270,8 +268,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
                     self.redraw_pending = False
                     self.Redraw()
                 wx.FutureCall(t, _redraw)
-                #~ wx.FutureCall(t, self.Redraw)
-                #~ wx.CallAfter(self.Redraw)
                 return True
         return False
 

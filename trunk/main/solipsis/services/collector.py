@@ -19,7 +19,6 @@
 
 import os
 import os.path
-import wx
 
 try:
     set
@@ -27,8 +26,6 @@ except:
     from sets import Set as set
 
 from solipsis.util.entity import Service
-from solipsis.util.uiproxy import UIProxy
-from solipsis.util.wxutils import GetCharset, IdPool
 
 
 # Helper (see Python documentation for built-in function __import__)
@@ -56,14 +53,10 @@ class ServiceCollector(object):
             setattr(self, name, fun)
             return fun
 
-    def __init__(self, params, ui, reactor):
+    def __init__(self, params, reactor):
         self.params = params
-        self.app = ui
-        self.main_window = ui.main_window
-        self.ui = UIProxy(ui)
         self.reactor = reactor
         self.dir = self.params.services_dir
-        self.charset = GetCharset()
         self.node = None
         self.Reset()
 
@@ -85,7 +78,6 @@ class ServiceCollector(object):
         self.plugins = {}
         self.peers = {}
         self.enabled_services = set()
-        self.action_ids = IdPool()
 
     def ReadServices(self):
         """
@@ -98,11 +90,13 @@ class ServiceCollector(object):
             path = os.path.join(self.dir, f)
             if not os.path.isdir(path):
                 continue
-            self.LoadService(path, f)
+            service_id, plugin = self.LoadService(path, f)
+            self.InitService(service_id, plugin)
 
     def LoadService(self, path, name):
         """
         Load a service plugin and register it.
+        Returns (service_id, plugin) as a tuple
         """
         # Get main plugin file
         plugin_file = os.path.join(path, 'plugin.py')
@@ -114,17 +108,12 @@ class ServiceCollector(object):
         api = self.ServiceAPI(self, name)
         plugin = plugin_module.Plugin(api)
         self.plugins[name] = plugin
+        return name, plugin
 
-        # Initialize plugin-specific localization files
-        translation_dir = os.path.join(path, 'po')
-        if os.path.isdir(translation_dir):
-            locale = wx.GetLocale()
-            locale.AddCatalogLookupPathPrefix(translation_dir)
-            if not locale.AddCatalog("solipsis_%s" % name):
-                print "Warning: failed to load translations for plugin '%s'" % name
-        else:
-            print "Warning: plugin \"%s\" has no translation directory" % name
-    
+    def InitService(self, service_id, plugin):
+        """
+        Initialize a given service.
+        """
         # Note: when plugin.Init() is called, everything else should have been
         # properly initialized for the plugin to interact with it.
         plugin.Init()
@@ -146,33 +135,6 @@ class ServiceCollector(object):
             s = Service(id_=service_id)
             self.plugins[service_id].DescribeService(s)
             l.append(s)
-        return l
-
-    def GetPopupMenuItems(self, menu, id_):
-        """
-        Get specific service items for the UI pop-up menu.
-        """
-        l = []
-        self.action_ids.Begin()
-        for service_id in self._Services():
-            plugin = self.plugins[service_id]
-            if id_ is not None:
-                if self.peers[id_].GetService(service_id) is not None:
-                    title = plugin.GetPointToPointAction()
-                else:
-                    title = None
-            else:
-                title = plugin.GetAction()
-            if title is not None:
-                item_id = self.action_ids.GetId()
-                item = wx.MenuItem(menu, item_id, title.encode(self.charset))
-                def _clicked(evt, p=plugin):
-                    if id_ is not None:
-                        p.DoPointToPointAction(self.peers[id_])
-                    else:
-                        p.DoAction()
-                wx.EVT_MENU(self.main_window, item_id, _clicked)
-                l.append(item)
         return l
 
     def AddPeer(self, peer):
@@ -276,13 +238,7 @@ class ServiceCollector(object):
         """
         Get the plugin base directory.
         """
-        return os.path.join(self.dir, service_id)
-
-    def service_GetMainWindow(self, service_id):
-        """
-        Get the navigator main window (wxWindow object).
-        """
-        return self.main_window
+        return self._ServiceDirectory(service_id)
 
     def service_GetNode(self, service_id):
         """
@@ -302,17 +258,11 @@ class ServiceCollector(object):
         """
         return self.reactor
 
-    def service_SetMenu(self, service_id, title, menu):
-        """
-        Set service-specific menu in the navigator's menubar.
-        """
-        self.ui.SetServiceMenu(service_id, title, menu)
-
     def service_SendData(self, service_id, peer_id, data):
         """
         Send service-specific data using the Solipsis network.
         """
-        self.ui.SendServiceData(peer_id, service_id, data)
+        raise NotImplementedError
 
     #
     # Private methods
@@ -324,3 +274,9 @@ class ServiceCollector(object):
         l = list(self.enabled_services)
         l.sort()
         return l
+
+    def _ServiceDirectory(self, service_id):
+        """
+        Returns the service directory given its id.
+        """
+        return os.path.join(self.dir, service_id)
