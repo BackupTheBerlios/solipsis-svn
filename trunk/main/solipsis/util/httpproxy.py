@@ -1,6 +1,9 @@
 
 import os
+import re
 import urlparse
+from urllib2 import urlopen
+
 import twisted.web.xmlrpc as xmlrpc
 
 def discover_http_proxy():
@@ -8,18 +11,18 @@ def discover_http_proxy():
     Returns a (host, port) tuple if an HTTP proxy is found in the
     current machine configuration, (None, None) otherwise.
     
-    Note: it currently doesn't handle automatic proxy configuration files (*.pac).
+    Note: automatic proxy configuration file (*.pac) handling is braindead.
     """
 
     host_port = None
     host = port = None
+    pac_url = None
 
     # Un*x et al.
     if 'http_proxy' in os.environ:
         parts = urlparse.urlparse(os.environ['http_proxy'])
         if not parts[0] or parts[0] == 'http':
             host_port = parts[1]
-
 
     # Windows
     try:
@@ -29,23 +32,31 @@ def discover_http_proxy():
     else:
         try:
             # Try to grab current proxy settings from the registry
-            regkey = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
-                'Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings')
-            regval = winreg.QueryValueEx(regkey, 'ProxyServer')
-            regkey.Close()
-            regval = str(regval[0])
-            # Regval can be of two types:
-            # - 'myproxy:3128' if one proxy for all protocols
-            # - 'ftp=myftpproxy:3128;http=myhttpproxy:3128;...' if several different proxies
-            values = regval.split(';')
-            if len(values) > 1:
-                for s in values:
-                    scheme, p = s.split('=')
-                    if scheme == 'http':
-                        host_port = p
-                        break
+            k = winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                r'Software\Microsoft\Windows\CurrentVersion\Internet Settings')
+            # Manual proxy configuration
+            if winreg.QueryValueEx(k, 'ProxyEnable')[0]:
+                regval = winreg.QueryValueEx(k, 'ProxyServer')
+                regval = str(regval[0])
+                # Regval can be of two types:
+                # - 'myproxy:3128' if one proxy for all protocols
+                # - 'ftp=myftpproxy:3128;http=myhttpproxy:3128;...' if several different proxies
+                values = regval.split(';')
+                if len(values) > 1:
+                    for s in values:
+                        scheme, p = s.split('=')
+                        if scheme == 'http':
+                            host_port = p
+                            break
+                else:
+                    host_port = values[0]
+            # Automatic proxy configuration
+            try:
+                regval = winreg.QueryValueEx(k, 'AutoConfigURL')
+            except WindowsError:
+                pass
             else:
-                host_port = values[0]
+                pac_url = str(regval[0])
 
         except Exception, e:
             print str(e)
@@ -58,9 +69,31 @@ def discover_http_proxy():
     except:
         pass
     else:
-        if client.get_bool('/system/http_proxy/use_http_proxy'):
-            host = client.get_string('/system/http_proxy/host')
-            port = client.get_int('/system/http_proxy/port')
+        mode = client.get_string('/system/proxy/mode')
+        if mode == 'auto':
+            pac_url = client.get_string('/system/proxy/autoconfig_url')
+        elif mode == 'manual':
+            if client.get_bool('/system/http_proxy/use_http_proxy'):
+                host = client.get_string('/system/http_proxy/host')
+                port = client.get_int('/system/http_proxy/port')
+
+    # Read PAC file if necessary
+    # Yes, we could use Twisted, but we don't need asynchronicity here
+    if pac_url and not host and not host_port:
+        try:
+            f = urlopen(pac_url)
+        except Exception, e:
+            print str(e)
+            pass
+        else:
+            print pac_url
+            # A hack until someone embeds a Javascript interpreter in Python...
+            regex = re.compile(r'PROXY\s(\d+.\d+.\d+.\d+:\d+)')
+            for l in f:
+                m = regex.search(l)
+                if m is not None:
+                    host_port = m.group(1)
+                    break
 
     # Split host and port if necessary
     if host_port and not host:
