@@ -63,11 +63,21 @@
   </div>
 
   <h2 class="header">Personal Files</h2>
-  <table>
-    <tr tal:repeat ="file files/values">
-      <td tal:content="file/path">path</td>
-      <td tal:content="file/tag">tag</td>
-    </tr>
+  <table tal:repeat ="dir files/values">
+    <thead>
+      <tr>
+	<th tal:content="python:dir.path">path</th>
+	<th>shared</th>
+	<th>tag</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr tal:repeat ="file dir/content/values">
+	<td tal:content="python: file.name">name</td>
+	<td tal:content="python: file.shared">shared</td>
+	<td tal:content="python: file._tag">tag</td>
+      </tr>
+    </tbody>
   </table>
 
   <h2 class="header">Known Neighbors</h2>

@@ -67,9 +67,7 @@ TEMPLATE = """<html>
   </div>
 
   <h2 class="header">Personal Files</h2>
-  <table>
     %s
-  </table>
 
   <h2 class="header">Known Neighbors</h2>
   <table>
@@ -79,7 +77,7 @@ TEMPLATE = """<html>
 </html>
 """
    
-class PrintTest(unittest.TestCase):
+class HtmlTest(unittest.TestCase):
     """test that all fields are correctly validated"""
 
     def setUp(self):
@@ -90,8 +88,8 @@ class PrintTest(unittest.TestCase):
     def assert_template(self):
         """diff result from view with expeceted template"""
         self.view.import_document()
-        result = difflib.ndiff(self.print_template().splitlines(),
-                               self.view.get_view().splitlines(),
+        result = difflib.ndiff([line.strip() for line in self.print_template().splitlines()],
+                               [line.strip() for line in self.view.get_view().splitlines()],
                                charjunk=lambda x: x in [' ', '\t'])
         result = list(result)
         for index, line in enumerate(result):
@@ -131,7 +129,29 @@ class PrintTest(unittest.TestCase):
         return ''.join(html)
 
     def print_files(self):
-        return str(self.document.get_files() or "")
+        html = []
+        for dir_container in self.document.get_files().values():
+            files_str = ''.join(["""<tr>
+	<td>%s</td>
+	<td>%s</td>
+	<td>%s</td>
+      </tr>"""% (f_container.name, f_container.shared, f_container._tag)
+                         for f_container in dir_container.content.values()])
+            
+            html.append("""<table>
+    <thead>
+      <tr>
+	<th>%s</th>
+	<th>shared</th>
+	<th>tag</th>
+      </tr>
+    </thead>
+    <tbody>
+%s
+    </tbody>
+  </table>"""% (dir_container.path, files_str))
+        # concatenate all description of directories & return result
+        return ''.join(html)
 
     def print_peers(self):
         html = ["""<tr>
@@ -144,7 +164,7 @@ class PrintTest(unittest.TestCase):
         
     
     # PERSONAL TAB
-    def test_personal_info(self):
+    def test_personal(self):
         """personal info"""
         self.document.set_title(u"Mr")
         self.document.set_firstname(u"Bruce")
@@ -167,22 +187,24 @@ class PrintTest(unittest.TestCase):
         self.document.set_hobbies([u"cinema", u"theatre", u"cop", u"action"])
         self.assert_template()
         
-    def test_custom_attributes(self):
+    def test_custom(self):
         """custom_attributes as pair of key/unicode-value"""
         self.document.add_custom_attributes([u"zic", u"jazz"])
         self.document.add_custom_attributes([u"cinema", u"Die Hard"])
         self.assert_template()
         
     # FILE TAB       
-    def test_adding_file(self):
+    def test_files(self):
         """file_path as valid file"""
-        # self.document.add_file("")
-        pass
-        
-    def test_tag_file(self):
-        """tagged file as unicode"""
-        pass
-#         self.document.tag_file(])
+        self.document.add_dir(u"data")
+        self.document.expand_dir(u"data")
+        self.document.share_files((u"data", ["routage"], True))
+        self.document.share_dir((u"data/emptydir", True))
+        self.document.add_dir(u"data/subdir1/subsubdir")
+        self.document.share_files((u"data/subdir1/subsubdir", ["null", "dummy.txt"], True))
+        self.document.tag_files((u"data", ["date.txt"], u"Error: doc not shared"))
+        self.document.tag_files((u"data/subdir1/subsubdir", ["null", "dummy.txt"], u"empty"))
+        self.assert_template()
             
     # OTHERS TAB
     def test_adding_peer(self):

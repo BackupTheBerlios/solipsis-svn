@@ -69,6 +69,10 @@ class DirContainer:
     def __repr__(self):
         return "%s %s"% (str(self), str(self.content))
 
+    def set_item(self, item):
+        """setter for view item corresonding to this container"""
+        self.item = item
+        
     def share_content(self, share=True):
         """(un)share all files of directory"""
         self.share_files([name for name in os.listdir(self.path)

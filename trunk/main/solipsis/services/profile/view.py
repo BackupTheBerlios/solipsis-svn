@@ -67,7 +67,7 @@ class AbstractView:
         self.update_hobbies()
         self.update_custom_attributes()
         # FILE TAB
-        self.update_repository()
+        self.update_dirs()
         self.update_files()
         # OTHERS TAB
         self.update_peers()
@@ -135,7 +135,7 @@ class AbstractView:
         raise NotImplementedError
 
     # FILE TAB
-    def update_repository(self):
+    def update_dirs(self):
         """repository"""
         raise NotImplementedError
 
@@ -222,7 +222,7 @@ class PrintView(AbstractView):
         print self.document.get_custom_attributes()
         
     # FILE TAB
-    def update_repository(self):
+    def update_dirs(self):
         """repository"""
         print self.document.get_dirs()
         
@@ -328,7 +328,7 @@ class GuiView(AbstractView):
             self.frame.custom_tab.custom_list.SetStringItem(index, 1, value)
         
     # FILE TAB : frame.file_tab
-    def update_repository(self):
+    def update_dirs(self):
         """repository"""
         #TODO        
         
@@ -388,6 +388,7 @@ class HtmlView(AbstractView):
 
     def get_view(self):
         """returns HTLM String"""
+        self.update_view()
         return unicode(self.view.getvalue(), ENCODING)
 
     # PERSONAL TAB: frame.personal_tab
@@ -454,19 +455,16 @@ class HtmlView(AbstractView):
                                self.document.get_custom_attributes())
         
     # FILE TAB : frame.file_tab
-    def update_repository(self):
-        """repository"""
-        self.context.addGlobal("repository", self.document.get_dirs())
-        #TODO
+    def update_dirs(self):
+        """nothing to change in HTML view when dir added in file structure"""
+        pass
         
     def update_files(self):
         """file"""
         self.context.addGlobal("files", self.document.get_files())
-        files = self.document.get_files()
-        #TODO
 
     def new_files(self, files):
-        """nothing to change in HTML view when files expanded since they are not shared by default"""
+        """nothing to change in HTML view when files expanded"""
         pass
         
     # OTHERS TAB : frame.other_tab  

@@ -207,13 +207,13 @@ class Facade:
         """sets new value for repositor"""
         return self._try_change(value,
                                "add_dir",
-                               "update_repository")
+                               "update_dirs")
     
     def remove_dir(self, value):
         """sets new value for repositor"""
         return self._try_change(value,
                                "remove_dir",
-                               "update_repository")
+                               "update_dirs")
 
     def expand_dir(self, value):
         """update doc when dir expanded"""
