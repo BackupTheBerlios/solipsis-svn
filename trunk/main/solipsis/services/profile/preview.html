@@ -1,0 +1,67 @@
+<html>
+<head>
+  <title>user preview</title>
+  <link href="preview.css" type="text/css" rel="stylesheet"/>
+</head>
+<body>
+  <h2 class="header">Personal Information</h2>
+  <img class="personal" id="photo" 
+       tal:attributes="src photo" 
+       src="images/question_mark.gif"/>
+  <div class="personal" id="title" 
+       tal:contents="title">Mr 
+    <span id="firstname"
+       tal:content="firstname">Emmanuel</span>
+    <span id="lastname"
+       tal:content="lastname">Bréton</span>
+  </div>
+  <div class="personal" id="contact"
+       tal:content="pseudo">emb
+    <span id="email"
+       tal:content="email">manu@logilab.fr</span>
+  </div>
+  <div class="personal" id="birthday"
+       tal:content="birthday">12/01/2005
+    <span id="language"
+       tal:content="language">(fr)</span>
+  </div>
+  <div class="personal" id="address"
+       tal:content="address">12 r V Hugo
+    <span id="postcode"
+       tal:content="postcode">92</span>
+    <span id="city"
+       tal:content="city">Suresnes</span>
+    <span id="country"
+       tal:content="country">France</span>
+  </div>
+  <div class="personal" id="description"
+       tal:content="description">Anything</div>
+
+  <h2 class="header">Special Interests</h2>
+  <div class="custom" id="hobbies"
+       tal:repeat:"hobby hobbies">
+    <span tal:content="hobby">list of hobbies</span> | 
+  </div>
+  <div class="custom" id="attributes"
+       tal:repeat:"att attributes">
+    <b tal:content="att[0]">name</b>: <span tal:content="att[1]">value</span><br/>
+  </div>
+
+  <h2 class="header">Personal Files</h2>
+  <table>
+    <tr class="files" tal:repeat:"file files">list of shared file
+      <td tal:content="file/name">name</td>
+      <td tal:content="file/tag">tag</td>
+      <td tal:content="file/path">path</td>
+    </tr>
+  </table>
+
+  <h2 class="header">Known Neighbors</h2>
+  <table>
+    <tr class="peers" tal:repeat:"peer peers">list of friends
+      <td tal:content="peer/pseudo">pseudo</td>
+      <td tal:content="peer/state">state</td>
+    </tr>
+  </table>
+</body>
+</html>

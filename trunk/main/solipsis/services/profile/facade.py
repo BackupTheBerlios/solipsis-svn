@@ -3,6 +3,7 @@ available. This facade will be used both by GUI and unittests."""
 
 from sys import stderr
 
+#TODO: add state pattern when doc modified => prompt to save
 
 def get_facade(doc=None, view=None):
     """implements pattern singleton on Facade. User may specify

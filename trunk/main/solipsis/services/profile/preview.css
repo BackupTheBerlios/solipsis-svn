@@ -1,0 +1,9 @@
+#photo { 
+         float: right;
+ }
+
+.header { 
+          font-weight: bold;
+          border-bottom: thin solid black;
+          margin-top: .5em;
+ }
