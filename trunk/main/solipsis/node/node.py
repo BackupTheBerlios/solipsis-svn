@@ -25,8 +25,7 @@ class Node(Entity):
         address = Address(params.host, params.port)
 
         # call parent class constructor
-        Entity.__init__(self, id_=id_, position=position, orientation=params.orientation,
-                        calibre=params.calibre, pseudo=params.pseudo, address=address)
+        Entity.__init__(self, id_=id_, position=position, pseudo=params.pseudo, address=address)
 
         # maximum expected number of neighbours.
         self.expected_peers = params.expected_neighbours
@@ -38,17 +37,9 @@ class Node(Entity):
         self.logger = logging.getLogger('root')
         self.logger.debug('node started')
 
-        # Set world size in Geometry class
-#         Geometry.SIZE = params.world_size
-
 
     def CreateId(self):
         # TODO: reasonable ID generation and attribution
         id_ = "%s:%d_%d" % (self.params.host, self.params.port, Node.count)
         Node.count += 1
         return id_
-
-#     def SetPosition(self, position):
-#         super(Node, self).setPosition(position)
-#         self.peersManager.recalculate()
-

@@ -1,7 +1,7 @@
 # This code comes from Shtoom: http://www.divmod.org/Home/Projects/Shtoom/
 # Licensed under the GNU LGPL.
 # Copyright (C) 2004 Anthony Baxter
-# $Id: stun.py,v 1.1 2004/12/20 13:46:25 antoine Exp $
+# $Id: stun.py,v 1.2 2004/12/20 18:06:47 antoine Exp $
 
 import struct, socket, time, logging
 
@@ -101,6 +101,6 @@ class StunProtocol(DatagramProtocol, object):
 
     def blatServers(self):
         for s in self.servers:
-            print "sending to", s
+#             print "sending to", s
             self.sendRequest(s)
 

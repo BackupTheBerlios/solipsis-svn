@@ -735,18 +735,27 @@ class StateMachine(object):
         self._RemovePeer(peer.id_)
 
     def _SayHello(self, address, send_detects=False):
+        """
+        Say HELLO to a peer.
+        """
         # TODO: manage repeted connection failures and
         # optionally cancel request (returning False)
         msg = self._PeerMessage('HELLO')
+        msg.args.pseudo = self.node.pseudo
         msg.args.send_detects = send_detects
         self._SendToAddress(address, msg)
         return True
 
     def _SayConnect(self, peer):
+        """
+        Answer CONNECT to a peer.
+        """
         # TODO: manage repeted connection failures and
         # optionally cancel request (sending CLOSE and
         # returning False)
-        self._SendToPeer(peer, self._PeerMessage('CONNECT'))
+        msg = self._PeerMessage('CONNECT')
+        msg.args.pseudo = self.node.pseudo
+        self._SendToPeer(peer, msg)
         return True
 
 
@@ -920,11 +929,10 @@ class StateMachine(object):
         return Peer(
             address = args.address,
             awareness_radius = args.awareness_radius,
-            calibre = args.calibre,
             id_ = args.id_,
-            orientation = args.orientation,
             position = args.position,
-            pseudo = args.pseudo)
+            pseudo = getattr(args, 'pseudo', u""),
+            )
 
     def _RemotePeer(self, args):
         """
@@ -933,11 +941,10 @@ class StateMachine(object):
         return Peer(
             address = args.remote_address,
             awareness_radius = args.remote_awareness_radius,
-            calibre = args.remote_calibre,
             id_ = args.remote_id,
-            orientation = args.remote_orientation,
             position = args.remote_position,
-            pseudo = args.remote_pseudo)
+            pseudo = getattr(args, 'remote_pseudo', u""),
+            )
 
     def _PeerMessage(self, request, peer=None, remote_peer=None):
         if peer is None:
@@ -949,25 +956,22 @@ class StateMachine(object):
         p = peer
         a.address = p.address
         a.awareness_radius = p.awareness_radius
-        a.calibre = p.calibre
         a.id_ = p.id_
-        a.orientation = p.orientation
         a.position = p.position
-        a.pseudo = p.pseudo
         if remote_peer:
             r = remote_peer
             a.remote_address = r.address
             a.remote_awareness_radius = r.awareness_radius
-            a.remote_calibre = r.calibre
             a.remote_id = r.id_
-            a.remote_orientation = r.orientation
             a.remote_position = r.position
-            a.remote_pseudo = r.pseudo
         # Then remove unnecessary fields
         self.parser.StripMessage(message)
         return message
 
     def _SendToAddress(self, address, message):
+        """
+        Send a Solipsis message to a given address.
+        """
         if self.peer_sender is None:
             self.logger.error("Attempting to send message but sender method is not initialized")
             return
@@ -978,6 +982,9 @@ class StateMachine(object):
             self.sent_messages[message.request] = 1
 
     def _SendToPeer(self, peer, message):
+        """
+        Send a Solipsis message to a known peer.
+        """
         if peer.id_ == self.node.id_:
             self.logger.error("we tried to send a message (%s) to ourselves" % message.request)
             return

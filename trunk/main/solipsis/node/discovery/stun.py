@@ -3,6 +3,9 @@ import twisted.internet.defer as defer
 
 import solipsis.node.lib.stun as stun
 
+stun_section = {
+    'servers': ('stun_servers', str, ""),
+}
 
 class _StunDiscovery(stun.StunProtocol):
     def __init__(self, *args, **kargs):
@@ -14,7 +17,14 @@ class _StunDiscovery(stun.StunProtocol):
         """
         self.deferred = deferred
         self.listening = reactor.listenUDP(port, self)
-        self.blatServers()
+        for host, port in self.servers:
+            def _resolved(host, port):
+                self.sendRequest((host, port))
+            def _unresolved(failure):
+                print failure.getErrorMessage()
+            d = reactor.resolve(host)
+            d.addCallback(_resolved, port)
+            d.addErrback(_unresolved)
 
     def Stop(self):
         """
@@ -29,15 +39,16 @@ class _StunDiscovery(stun.StunProtocol):
         if not self.deferred.called:
             self.deferred.callback((addr, int(port)))
 
-
 def DiscoverAddress(port, reactor, params):
-    print "STUN discovery..."
     d = defer.Deferred()
-    stun = _StunDiscovery(servers=[('127.0.0.1', 3478)])
+    params.LoadSection('stun', stun_section)
+    servers = params.stun_servers or '127.0.0.1'
+    serv_list = [(s.strip(), 3478) for s in servers.split(',')]
+    stun = _StunDiscovery(servers=serv_list)
     # Define timeout callback
     def _timeout():
         stun.Stop()
-        d.errback(Exception("STUN timed out"))
+        d.errback(Exception("timed out with servers %s" % servers))
     timeout = reactor.callLater(3.0, _timeout)
     # Define intermediary succeed callback
     def _succeed(value):

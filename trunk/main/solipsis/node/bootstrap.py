@@ -44,21 +44,40 @@ class NodeLauncher(object):
         self.node_connector = NodeConnector(self.reactor, self.params, self.state_machine)
         self.remote_control = RemoteControl(self.reactor, self.params, self.state_machine)
 
-        # Local address discovery
-        discovery_module = 'local'
-#         discovery_module = 'stun'
-        discovery = _import('discovery.' + discovery_module)
-        d = discovery.DiscoverAddress(self.port, self.reactor, self.params)
+        # IP address discovery:
+        # the successive discovery methods are specified in the configuration file.
+        # Each is handled by a given file in the discovery/ subdirectory.
+        discovery_methods = [s.strip() for s in self.params.discovery_methods.split(',')]
+        discovery_deferred = defer.Deferred()
+
+        def _try_next(failure=None):
+            # Try next discovery method
+            try:
+                method = discovery_methods[0]
+            except IndexError:
+                self.reactor.fireSystemEvent('shutdown')
+                sys.exit(1)
+            discovery = _import('discovery.' + method)
+            d = discovery.DiscoverAddress(self.port, self.reactor, self.params)
+            d.addCallback(_succeed)
+            d.addErrback(_fail)
+
         def _succeed(address):
+            # Discovery succeeded
             self.host, self.port = address
             node.address = Address(self.host, self.port)
-            return self.host, self.port
+            discovery_deferred.callback((self.host, self.port))
+            print discovery_methods[0], "discovery found address %s:%d" % (self.host, self.port)
+
         def _fail(failure):
-            print "Address discovery failed:", str(failure)
-            sys.exit(1)
-        d.addCallback(_succeed)
-        d.addErrback(_fail)
-        return d
+            # Discovery failed => try next discovery method
+            print discovery_methods[0], "discovery failed:", failure.getErrorMessage()
+            discovery_methods.pop(0)
+            _try_next()
+
+        _try_next()
+        return discovery_deferred
+
 
     def Launch(self, bootup_entities):
         """
@@ -125,7 +144,7 @@ class Bootstrap(object):
             self.pool.append(p)
             deferreds.append(p.Prepare())
 
-        # Startup entities are saved in a file
+        # Startup entities are loaded from a file
         if not self.params.as_seed:
             bootup_entities = self._ParseEntitiesFile(self.params.entities_file)
         else:
@@ -136,7 +155,6 @@ class Bootstrap(object):
             addresses = []
             for r in results:
                 host, port = r[1]
-                print "local address is %s:%d" % (host, port)
                 addresses.append((host, port))
             for p in self.pool:
                 self.reactor.callLater(0, p.Launch, bootup_entities or addresses)

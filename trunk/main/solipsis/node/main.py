@@ -27,7 +27,7 @@ def main():
                         help="port number for all Solipsis connections")
     parser.add_option("-b", "--robot", action="store_true", dest="bot", default=False,
                         help="bot mode (don't listen for navigator)")
-    parser.add_option("-d", "--detach", action="store_true", dest="detach", default=False,
+    parser.add_option("-d", "--daemon", action="store_true", dest="daemon", default=False,
                         help="run in the background")
     parser.add_option("-x", type="long", dest="pos_x",
                         help="X start value")
@@ -51,7 +51,7 @@ def main():
                         help="launch node as seed")
     params = Parameters(parser, config_file=config_file)
 
-    if (params.detach):
+    if (params.daemon):
         # Create background process for daemon-like operation
         import os
         try:
