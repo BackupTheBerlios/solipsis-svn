@@ -21,8 +21,7 @@ import random
 import string, time, logging, math
 
 from solipsis.util.exception import *
-
-from entity import Entity
+from solipsis.util.entity import Entity
 
 
 class Peer(Entity):

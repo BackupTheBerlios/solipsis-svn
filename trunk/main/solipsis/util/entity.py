@@ -24,22 +24,50 @@ except:
     from sets import Set as set
 
 from solipsis.util.geometry import Position
+from solipsis.util.marshal import Marshallable
 
 
-class Service(object):
-    def __init__(self, id_, type='bidir', address=""):
+class Service(Marshallable):
+
+    marshallable_fields = {
+        'id_':
+            ("", str),
+        'type':
+            ("bidir", str),
+        'address':
+            ("", str),
+    }
+
+    def __init__(self, id_="", type='bidir', address=""):
         assert type in ('in', 'out', 'bidir'), "Wrong service type"
         self.id_ = id_
         self.type = type
         self.address = address
 
 
-class Entity(object):
+class Entity(Marshallable):
     """
     An entity is a participant is the Solipsis world. It conforms to the
     Solipsis protocol, maintaining a number of properties useful to the
     global coherency of the world.
     """
+
+    marshallable_fields = {
+        'id_':
+            ("", str),
+        'pseudo':
+            (u"", unicode),
+        'address':
+            ("", lambda a: Address(strAddress=a)),
+        'awareness_radius':
+            (0.0, float),
+        'position':
+            ((0.0, 0.0, 0.0), lambda p: map(float, p)),
+        'services':
+            ([], lambda l: [Service.FromStruct(s) for s in l]),
+        'languages':
+            ([], list),
+    }
 
     service_matches = set([
         ('in', 'out'),
