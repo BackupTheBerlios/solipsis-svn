@@ -50,7 +50,7 @@ class RemoteControl(object):
 
     min_notif_delay = 0.050
     max_notif_delay = 4.0
-    connection_timeout = 10.0
+    connection_timeout = 60.0
 
     def __init__(self, reactor, params, state_machine):
         self.reactor = reactor
