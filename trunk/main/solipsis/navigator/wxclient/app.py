@@ -357,7 +357,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     def _Quit(self, evt):
         """ Called on quit event (menu -> File -> Quit, window close box). """
 
-        print evt
         self.alive = False
         # Disable event proxying: as of now, all UI -> network
         # and network -> UI events will be discarded

@@ -8,11 +8,9 @@
       <object class="wxFlexGridSizer">
         <object class="sizeritem">
           <object class="wxSplitterWindow">
-            <object class="wxPanel" name="chat_panel">
-              <style></style>
-            </object>
+            <object class="wxPanel" name="chat_panel"/>
             <orientation>vertical</orientation>
-            <sashpos>-145</sashpos>
+            <sashpos>-130</sashpos>
             <style>wxSP_3D|wxSP_3DSASH|wxSP_3DBORDER|wxSP_BORDER|wxSP_LIVE_UPDATE</style>
             <object class="wxPanel">
               <object class="wxStaticBoxSizer">
