@@ -64,7 +64,7 @@ _init_args(_args)
 
 #
 # Syntax definition for each protocol argument.
-# This is mandatory
+# This is mandatory.
 #
 _syntax_table = {
     ARG_ADDRESS          : '\s*.*:\d+\s*',
@@ -98,6 +98,34 @@ def _init_syntax(syntaxes, syntax_aliases):
         ARGS_SYNTAX[alias] = ARGS_SYNTAX[arg]
 
 _init_syntax(_syntax_table, _aliases)
+
+
+#
+# Constructor function for each argument
+# This is mandatory.
+#
+_constructor_table = {
+    ARG_CLOCKWISE : (lambda x: int(x) > 0),
+    ARG_POSITION : (lambda s: Position(strPosition=s)),
+    ARG_ADDRESS : (lambda s: Address(strAddress=s)),
+    ARG_CALIBRE : int,
+    ARG_ORIENTATION : int,
+    ARG_PSEUDO : str,
+    ARG_AWARENESS_RADIUS : long,
+    ARG_BEST_DISTANCE : long,
+    ARG_ID : str,
+}
+
+def _init_constructor(constructors, constructor_aliases):
+    global ARGS_CONSTRUCTOR
+    ARGS_CONSTRUCTOR = {}
+
+    for arg, fun in constructors.items():
+        ARGS_CONSTRUCTOR[arg] = fun
+    for alias, arg in constructor_aliases.items():
+        ARGS_CONSTRUCTOR[alias] = ARGS_CONSTRUCTOR[arg]
+
+_init_constructor(_constructor_table, _aliases)
 
 
 #
@@ -140,33 +168,6 @@ REQUESTS = {
     'SERVICE'    : [ ARG_ID, ARG_SERVICE_ID, ARG_SERVICE_DESC, ARG_SERVICE_ADDRESS ],
     'UPDATE'     : ALL_NODE_ARGS,
 }
-
-
-#
-# Constructor function for each argument
-#
-_constructor_table = {
-    ARG_CLOCKWISE : (lambda x: int(x) > 0),
-    ARG_POSITION : (lambda s: Position(strPosition=s)),
-    ARG_ADDRESS : (lambda s: Address(strAddress=s)),
-    ARG_CALIBRE : int,
-    ARG_ORIENTATION : int,
-    ARG_PSEUDO : str,
-    ARG_AWARENESS_RADIUS : long,
-    ARG_BEST_DISTANCE : long,
-    ARG_ID : str,
-}
-
-def _init_constructor(constructors, constructor_aliases):
-    global ARGS_CONSTRUCTOR
-    ARGS_CONSTRUCTOR = {}
-
-    for arg, fun in constructors.items():
-        ARGS_CONSTRUCTOR[arg] = fun
-    for alias, arg in constructor_aliases.items():
-        ARGS_CONSTRUCTOR[alias] = ARGS_CONSTRUCTOR[arg]
-
-_init_constructor(_constructor_table, _aliases)
 
 
 def checkMessage(data):
