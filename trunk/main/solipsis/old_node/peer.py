@@ -302,10 +302,13 @@ class PeersManager(object):
         Return True if we have too many peers"""
         return self.getNumberOfPeers() > self.maxPeers
 
-    def isWorstPeer(self, peer):
+    def isPeerAccepted(self, peer):
         """ Check, if a peer is the worst peer.
 
         """
+        if not self.hasTooManyPeers():
+            return True
+
         if self.hasPeer(peer.getId()):
             worst = self.getWorstPeer()
         else:
@@ -313,72 +316,95 @@ class PeersManager(object):
             worst = self.getWorstPeer()
             self.removePeer(peer.getId())
 
-        if worst is not None:
-            return worst.getId() == peer.getId()
-        else:
-            return False
+        return worst is not peer
 
     def getWorstPeer(self):
         """ Choose a peer for removal. Removing this must NOT break the global
         connectivity rule.
         Return the worst or None if we cannot remove a peer
         """
-        worstList = self.getWorstPeers()
-        worst = None
+
+        filter_list = self.necessaryPeers()
+        i = len(self.distPeers) - 1
+        while i >= 0:
+            peer = self.distPeers.ll[i]
+            if peer not in filter_list:
+                return peer
+            i -= 1
+        return None
+
+#         worstList = self.getWorstPeers()
+#         worst = None
         # there is a posibility to remove any entity in FilterList.
         # By default, we decide to remove the farthest entity.
         # In article presented at RESH'02, we proposed several other possibilities
         # for more efficient choice.
-        if len(worstList) > 0:
-            worst = worstList[0]
-
-        return worst
-
-    def getWorstPeers(self):
-        """ Return a list of peers with which we should disconnect. Removing these
-        peers must NOT break the global connectivity rule.
-        Return a list of peers or [] if we cannot remove a peer
-        """
-        if not self.hasTooManyPeers():
-            return []
-
-        # filter list of neighbors
-        # keep only entities not in Awareness Area which do not provoke mis-respect
-        # of Global Connectivity Rule
-
-        FilterList = []
-        endFilter = True
-        indexFilter = len(self.distPeers) - 1
-        nodePos = self.node.getPosition()
-
-        while endFilter and indexFilter > 0:
-            ent = self.distPeers.ll[indexFilter]
-            distEnt = Geometry.distance(ent.getPosition(), nodePos)
-
-            # first, verify that ent is not in Awareness Area
-            if distEnt > self.node.getAwarenessRadius() :
-                # and that we are not in its AR
-                if distEnt > ent.getAwarenessRadius():
-
-                    indInCcw = self.ccwPeers.ll.index(ent)
-                    successor = self.ccwPeers.ll[(indInCcw + 1) % len(self.ccwPeers)]
-                    predecessor = self.ccwPeers.ll[indInCcw - 1]
-
-                    # then verify that ent is not mandatory for Rule respect
-                    if Geometry.inHalfPlane(predecessor.getPosition(), nodePos,
-                                            successor.getPosition()):
-                        FilterList.append(ent)
-
-            else:
-                # stop iteration because all following entities are in Awareness
-                # Radius
-                endFilter = False
-
-            indexFilter -= 1
-
-        return FilterList
+#         if len(worstList) > 0:
+#             worst = worstList[0]
+#
+#         return worst
 
 
+#     def getWorstPeers(self):
+#         """ Return a list of peers with which we should disconnect. Removing these
+#         peers must NOT break the global connectivity rule.
+#         Return a list of peers or [] if we cannot remove a peer
+#         """
+#         if not self.hasTooManyPeers():
+#             return []
+#
+#         # filter list of neighbors
+#         # keep only entities not in Awareness Area which do not provoke mis-respect
+#         # of Global Connectivity Rule
+#
+#         FilterList = []
+#         endFilter = True
+#         indexFilter = len(self.distPeers) - 1
+#         nodePos = self.node.getPosition()
+#
+#         while endFilter and indexFilter > 0:
+#             ent = self.distPeers.ll[indexFilter]
+#             distEnt = Geometry.distance(ent.getPosition(), nodePos)
+#
+#             # first, verify that ent is not in Awareness Area
+#             if distEnt > self.node.getAwarenessRadius():
+#                 # and that we are not in its AR
+#                 if distEnt > ent.getAwarenessRadius():
+#
+#                     indInCcw = self.ccwPeers.ll.index(ent)
+#                     successor = self.ccwPeers.ll[(indInCcw + 1) % len(self.ccwPeers)]
+#                     predecessor = self.ccwPeers.ll[indInCcw - 1]
+#
+#                     # then verify that ent is not mandatory for Rule respect
+#                     if Geometry.inHalfPlane(predecessor.getPosition(), nodePos,
+#                                             successor.getPosition()):
+#                         FilterList.append(ent)
+#
+#             else:
+#                 # stop iteration because all following entities are in Awareness
+#                 # Radius
+#                 endFilter = False
+#
+#             indexFilter -= 1
+#
+#         return FilterList
+
+
+    def necessaryPeers(self):
+        """ Returns the list of peers that are necessary for our global connectivity. """
+
+        n = len(self.ccwPeers)
+        if n < 4:
+            return self.enumeratePeers()
+        result = []
+        for i in xrange(n):
+            pred_pos = self.ccwPeers.ll[i - 2].getPosition()
+            pos = self.node.getPosition()
+            succ_pos = self.ccwPeers.ll[i].getPosition()
+            if not Geometry.inHalfPlane(pred_pos, pos, succ_pos):
+                result.append(self.ccwPeers.ll[i - 1])
+
+        return result
 
     def enumeratePeers(self):
         """ return a list with all peers """

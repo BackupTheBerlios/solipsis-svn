@@ -72,7 +72,7 @@ class State(object):
         factory = EventFactory.getInstance(PeerEvent.TYPE)
 
         # We have now too many peers and this is the worst one
-        if manager.isWorstPeer(peer):
+        if not manager.isPeerAccepted(peer):
             # refuse connection
             close = factory.createCLOSE()
             close.setRecipientAddress(peer.getAddress())
@@ -84,24 +84,18 @@ class State(object):
                 manager.removePeer(id_)
                 self.logger.debug('HELLO from %s, but we are already connected',
                                   peer.getId())
-            manager.addPeer(peer)
+            self.addPeer(peer)
             connect = factory.createCONNECT()
             connect.setRecipientAddress(peer.getAddress())
             self.node.dispatch(connect)
-            control_factory = EventFactory.getInstance(ControlEvent.TYPE)
-            newPeerEvent = control_factory.createNEW(peer)
-            self.node.dispatch(newPeerEvent)
 
     def CONNECT(self, event):
         """ reception of a connect message """
         # TODO :check that we sent a HELLO message to this peer
         peer = event.createPeer()
         mng = self.node.getPeersManager()
-        if  not mng.hasPeer(peer.getId()):
-            mng.addPeer(peer)
-            factory = EventFactory.getInstance(ControlEvent.TYPE)
-            newPeerEvent = factory.createNEW(peer)
-            self.node.dispatch(newPeerEvent)
+        if not mng.hasPeer(peer.getId()):
+            self.addPeer(peer)
 
             # Give the list of our services to the peer
             for s in self.node.enumerateServices():
@@ -121,13 +115,8 @@ class State(object):
             self.logger.debug('CLOSE from %s, but we are not connected',
                 peer.getId())
             return
-        manager.removePeer(id_)
 
-        # notify controler that we lost connection with a peer
-        factory = EventFactory.getInstance(ControlEvent.TYPE)
-        dead = factory.createDEAD(id_)
-        self.node.dispatch(dead)
-
+        self.removePeer(manager.getPeer(id_))
         # check what is our state
         if manager.hasTooFewPeers():
             self.increaseAr()
@@ -144,7 +133,7 @@ class State(object):
             # but we don't have our GC
             if not manager.hasGlobalConnectity():
                 self.searchPeers()
-                self.node.setState(NotEnoughPeersAndNoGlobalConnectivity())
+                self.node.setState(NoGlobalConnectivity())
 
     def GETNODEINFO(self, event):
         factory = EventFactory.getInstance(ControlEvent.TYPE)
@@ -192,15 +181,15 @@ class State(object):
     def DETECT(self, event):
         """ Notification that a peer is moving towards us"""
         peer = event.createRemotePeer()
+        id_ = peer.getId()
         manager = self.node.getPeersManager()
-        # we are only interested by entities that are not yet in our peer list
-        if not manager.hasPeer(peer.getId()):
+        if id_ == self.node.getId():
+            return
 
-            # with this new peer, we now have too many peers
-            # and the newly added peer is in fact our worst neighbour
-            # so we remove this peer, and we don't contact this peer
-            if manager.isWorstPeer(peer): pass
-            else:
+        # we are only interested by entities that are not yet in our peer list
+        if not manager.hasPeer(id_):
+            # Check we don't have too many peers, or have worse peers than this one
+            if manager.isPeerAccepted(peer):
                 # Connect to this peer
                 factory = EventFactory.getInstance(PeerEvent.TYPE)
                 hello = factory.createHELLO()
@@ -408,7 +397,7 @@ class State(object):
             evt = peerFct.createCLOSE()
             evt.setRecipientAddress(peer.getAddress())
             self.node.dispatch(evt)
-            manager.removePeer(peer.getId())
+            self.removePeer(peer)
 
         # go to the tracking state
         self.node.setState(Locating())
@@ -448,6 +437,28 @@ class State(object):
     #
     # Private methods
     #
+
+    def addPeer(self, peer):
+        """ Add a peer and send the necessary notification messages. """
+        manager = self.node.getPeersManager()
+        manager.addPeer(peer)
+        factory = EventFactory.getInstance(ControlEvent.TYPE)
+        newPeerEvent = factory.createNEW(peer)
+        self.node.dispatch(newPeerEvent)
+        if type(self) == Idle:
+            if manager.hasTooManyPeers():
+                self.node.setState(TooManyPeers())
+
+    def removePeer(self, peer):
+        """ Remove a peer and send the necessary notification messages. """
+        manager = self.node.getPeersManager()
+        id_ = peer.getId()
+        manager.removePeer(id_)
+
+        # notify controler that we lost connection with a peer
+        factory = EventFactory.getInstance(ControlEvent.TYPE)
+        dead = factory.createDEAD(id_)
+        self.node.dispatch(dead)
 
     def sendFindNearest(self, peerAddress):
         """ Send a FINNEAREST event and return the timer object assocoiated
@@ -871,15 +882,15 @@ class TooManyPeers(State):
         manager = self.node.getPeersManager()
         factory = EventFactory.getInstance(PeerEvent.TYPE)
 
-        for p in manager.getWorstPeers():
+        while manager.hasTooManyPeers():
+            peer = manager.getWorstPeer()
             close = factory.createCLOSE()
-            close.setRecipientAddress(p.getAddress())
-            manager.removePeer(p.getId())
+            close.setRecipientAddress(peer.getAddress())
             self.node.dispatch(close)
+            self.removePeer(peer)
 
         self.node.setAwarenessRadius(manager.computeAwarenessRadius())
         self.sendUpdates()
 
-        self.setState(Idle())
-
+        self.node.setState(Idle())
 
