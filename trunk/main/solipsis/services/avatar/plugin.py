@@ -39,7 +39,7 @@ class Plugin(ServicePlugin):
         # TODO: smartly discover our own address IP
         # (this is where duplicated code starts to appear...)
         self.host = socket.gethostbyname(socket.gethostname())
-        self.port = 7780 + random.randrange(0,100)
+        self.port = 7780 + random.randrange(0, 100)
         self.hosts = {}
         self.node_avatar_hash = None
 

@@ -25,7 +25,6 @@ from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import TwistedProxy, UIProxy
 from solipsis.services.plugin import ServicePlugin
 
-from network import NetworkLauncher
 from gui import ChatWindow
 
 
@@ -39,6 +38,7 @@ class Plugin(ServicePlugin):
         self.port = random.randrange(7000, 7100)
         self.hosts = {}
         self.str_action = _("Chat with all peers")
+        self.node_id = None
 
     def GetTitle(self):
         return _("Chat")
@@ -63,12 +63,6 @@ class Plugin(ServicePlugin):
         window = ChatWindow(self, self.service_api.GetDirectory())
         main_window = self.service_api.GetMainWindow()
         self.ui = UIProxy(window)
-        #~ self.ui.AddPeer(self.service_api.GetNode())
-        # Set up network connection
-        #~ n = NetworkLauncher(self.reactor, self, self.port)
-        #~ self.network = TwistedProxy(n, self.reactor)
-        #~ self.network.Start(self.GotMessage)
-        self._SetHosts()
         # Set up main GUI hooks
         menu = wx.Menu()
         item_id = wx.NewId()
@@ -77,21 +71,14 @@ class Plugin(ServicePlugin):
         self.service_api.SetMenu(_("Chat"), menu)
 
     def Disable(self):
-        #~ self.network.Stop()
-        #~ self.network = None
         self.ui.Destroy()
         self.ui = None
 
     def DoAction(self, it):
         self.ui.Show()
     
-    #~ def GotMessage(self, text, (host, port)):
-        #~ # This method is called in network context (i.e. Twisted thread)
-        #~ self.ui.AppendMessage(text)
-    
     def SendMessage(self, text):
         # This method is called in UI context (i.e. wx Thread)
-        #~ self.network.SendMessage(text)
         data = text
         for peer_id in self.hosts.keys():
             self.service_api.SendData(peer_id, data)
@@ -109,7 +96,6 @@ class Plugin(ServicePlugin):
         else:
             self.ui.AddPeer(peer)
             self.hosts[peer.id_] = host, port
-            self._SetHosts()
 
     def ChangedPeer(self, peer, service):
         try:
@@ -118,27 +104,22 @@ class Plugin(ServicePlugin):
             if peer.id_ in self.hosts:
                 del self.hosts[peer.id_]
                 self.ui.RemovePeer(peer.id_)
-                self._SetHosts()
         else:
             self.ui.UpdatePeer(peer)
             self.hosts[peer.id_] = host, port
-            self._SetHosts()
 
     def LostPeer(self, peer_id):
         if peer_id in self.hosts:
             del self.hosts[peer_id]
             self.ui.RemovePeer(peer_id)
-            self._SetHosts()
     
     def ChangedNode(self, node):
-        self.ui.RemovePeer(node.id_)
+        # Explicitely testing against None is mandatory, since the ID can be
+        # the empty string when we are not connected
+        if self.node_id is not None:
+            self.ui.RemovePeer(self.node_id)
+        self.node_id = node.id_
         self.ui.AddPeer(node)
-
-    def _SetHosts(self):
-        # For test purposes, chat with ourselves ;)
-        hosts = self.hosts.values()
-        hosts.append((self.host, self.port))
-        #~ self.network.SetHosts(hosts)
 
     def _ParseAddress(self, address):
         try:

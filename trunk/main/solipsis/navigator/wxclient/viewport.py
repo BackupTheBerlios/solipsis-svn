@@ -183,6 +183,7 @@ class Viewport(object):
                     # Transform relative drawable position into an absolute position
                     index = it.index
                     x, y = it.rel_pos
+                    #~ print index, positions[index]
                     x = int(x + positions[index][0])
                     y = int(y + positions[index][1])
                     if isinstance(x, int) and isinstance(y, int):

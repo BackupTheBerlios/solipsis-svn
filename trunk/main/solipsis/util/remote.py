@@ -46,6 +46,7 @@ class RemoteConnector(object):
             proxy.GetStatus()
             proxy.GetAllPeers()
             proxy.GetEvents()
+            proxy.SetNodeInfo(config_data.GetNode().ToStruct())
             self.ui.NodeConnectionSucceeded(proxy)
         def _failure(error):
             self.proxy = None
@@ -113,8 +114,14 @@ class RemoteConnector(object):
         Transmit node information to the viewport.
         """
         node = Entity.FromStruct(reply)
-        print "update node '%s" % node.id_
         self.ui.UpdateNode(node)
+
+    def success_SetNodeInfo(self, reply):
+        """
+        Now the node info has been successfully updated on the node side,
+        we ask the node to send us back the full info.
+        """
+        self.proxy.GetNodeInfo()
 
     def success_GetStatus(self, reply):
         """
@@ -146,7 +153,7 @@ class RemoteConnector(object):
 
     def event_JUMPED(self, struct_):
         position = Position.FromStruct(struct_)
-        self.ui.UpdateNodePosition(position)
+        self.ui.UpdateNodePosition(position, jump=True)
         self.ui.AskRedraw()
 
     def event_SERVICEDATA(self, struct_):

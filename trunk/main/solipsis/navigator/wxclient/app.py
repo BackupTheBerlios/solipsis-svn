@@ -26,6 +26,7 @@ from wx.xrc import XRCCTRL, XRCID
 
 from solipsis.util.entity import ServiceData
 from solipsis.util.address import Address
+from solipsis.util.position import Position
 from solipsis.util.uiproxy import TwistedProxy, UIProxyReceiver
 from solipsis.util.wxutils import _
 from solipsis.util.wxutils import *        # '*' doesn't import '_'
@@ -369,11 +370,15 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     # (in alphabetical order)
     #
     def _About(self, evt):
-        """ Called on "about" event (menu -> Help -> About). """
+        """
+        Called on "about" event (menu -> Help -> About).
+        """
         self.about_dialog.ShowModal()
 
     def _CreateNode(self, evt):
-        """ Called on "create node" event (menu -> File -> New node). """
+        """
+        Called on "create node" event (menu -> File -> New node).
+        """
         dialog = wx.TextEntryDialog(self.main_window,
             message=_("Please choose your nickname"),
             caption=_("Nickname"),
@@ -402,11 +407,15 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self._TryConnect()
 
     def _OpenConnect(self, evt):
-        """ Called on "connect" event (menu -> File -> Connect). """
+        """
+        Called on "connect" event (menu -> File -> Connect).
+        """
         self.connect_dialog.ShowModal()
 
     def _Disconnect(self, evt):
-        """ Called on "disconnect" event (menu -> File -> Disconnect). """
+        """
+        Called on "disconnect" event (menu -> File -> Disconnect).
+        """
         self._DestroyProgress()
         self._SetWaiting(False)
         if self._CheckNodeProxy():
@@ -418,7 +427,9 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             self.services.RemoveAllPeers()
 
     def _JumpNear(self, evt):
-        """ Called on "jump near" event (menu -> Edit -> Jump Near). """
+        """
+        Called on "jump near" event (menu -> Edit -> Jump Near).
+        """
         if self._CheckNodeProxy():
             dialog = wx.TextEntryDialog(self.main_window,
                 message=_("Please enter the address to jump to"),
@@ -434,19 +445,24 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
                     self.node_proxy.JumpNear(address.ToStruct())
 
     def _Kill(self, evt):
-        """ Called on "kill" event (menu -> File -> Kill). """
+        """
+        Called on "kill" event (menu -> File -> Kill).
+        """
         if self._CheckNodeProxy():
             self.network.KillNode()
             self.services.RemoveAllPeers()
 
     def _Preferences(self, evt):
-        """ Called on "preferences" event (menu -> File -> Preferences). """
+        """
+        Called on "preferences" event (menu -> File -> Preferences).
+        """
         self.config_data.Autocomplete()
         self.prefs_dialog.Show()
 
     def _Quit(self, evt):
-        """ Called on quit event (menu -> File -> Quit, window close box). """
-
+        """
+        Called on quit event (menu -> File -> Quit, window close box).
+        """
         self.alive = False
         self._DestroyProgress()
         # Kill the node if necessary
@@ -480,8 +496,9 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
                 pass
 
     def _ToggleAutoRotate(self, evt):
-        """ Called on autorotate event (menu -> View -> Autorotate). """
-        
+        """
+        Called on autorotate event (menu -> View -> Autorotate).
+        """
         self.viewport.AutoRotate(evt.IsChecked())
 
 
@@ -489,7 +506,9 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     # Event handlers for the about dialog
     #
     def _CloseAbout(self, evt):
-        """ Called on close "about dialog" event (Ok button, window close box). """
+        """
+        Called on close "about dialog" event (Ok button, window close box).
+        """
         self.about_dialog.Hide()
 
 
@@ -497,11 +516,15 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     # Event handlers for the connect dialog
     #
     def _CloseConnect(self, evt):
-        """ Called on close "connect dialog" event (Cancel button, window close box). """
+        """
+        Called on close "connect dialog" event (Cancel button, window close box).
+        """
         self.connect_dialog.Hide()
 
     def _ConnectOk(self, evt):
-        """ Called on connect submit event (Ok button). """
+        """
+        Called on connect submit event (Ok button).
+        """
         if (self.connect_dialog.Validate()):
             self.connect_dialog.Hide()
             self.config_data.Autocomplete()
@@ -513,7 +536,9 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     # Event handlers for the world viewport
     #
     def _KeyPressViewport(self, evt):
-        """ Called when a key is pressed. """
+        """
+        Called when a key is pressed.
+        """
         if self._CheckNodeProxy(False):
             dx = 0.0
             dy = 0.0
@@ -526,20 +551,29 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
                 dx -= 0.3
             elif key == wx.WXK_RIGHT:
                 dx += 0.3
+            else:
+                evt.Skip()
             if dx or dy:
                 x, y = self.viewport.MoveToRelative((dx, dy))
+                self.world.UpdateNodePosition(Position((x, y, 0)))
                 self.node_proxy.Move(str(long(x)), str(long(y)), str(0))
-        #~ evt.Skip()
+        else:
+            evt.Skip()
 
     def _LeftClickViewport(self, evt):
-        """ Called on left click event. """
+        """
+        Called on left click event.
+        """
         if self._CheckNodeProxy(False):
             x, y = self.viewport.MoveToPixels(evt.GetPositionTuple())
+            self.world.UpdateNodePosition(Position((x, y, 0)))
             self.node_proxy.Move(str(long(x)), str(long(y)), str(0))
         evt.Skip()
 
     def _RightClickViewport(self, evt):
-        """ Called on left click event. """
+        """
+        Called on right click event.
+        """
         # We display a contextual menu
         menu = wx.Menu()
         if self._CheckNodeProxy(False):
@@ -560,7 +594,9 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         evt.Skip()
 
     def _HoverViewport(self, evt):
-        """ Called on mouse movement. """
+        """
+        Called on mouse movement in the viewport.
+        """
         if self._CheckNodeProxy(False):
             x, y = evt.GetPositionTuple()
             changed, id_ = self.viewport.Hover((x, y))
@@ -575,39 +611,55 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     # Actions from the network thread(s)
     #
     def AddPeer(self, *args, **kargs):
-        """ Add an object to the viewport. """
+        """
+        Add an object to the viewport.
+        """
         self.world.AddPeer(*args, **kargs)
         self.services.AddPeer(*args, **kargs)
 
     def RemovePeer(self, *args, **kargs):
-        """ Remove an object from the viewport. """
+        """
+        Remove an object from the viewport.
+        """
         self.world.RemovePeer(*args, **kargs)
         self.services.RemovePeer(*args, **kargs)
 
     def UpdatePeer(self, *args, **kargs):
-        """ Update an object. """
+        """
+        Update an object.
+        """
         self.world.UpdatePeer(*args, **kargs)
         self.services.UpdatePeer(*args, **kargs)
 
     def UpdateNode(self, *args, **kargs):
-        """ Update node information. """
+        """
+        Update node information.
+        """
         self.services.SetNode(*args, **kargs)
         self.world.UpdateNode(*args, **kargs)
     
     def UpdateNodePosition(self, *args, **kargs):
-        """ Update node position. """
+        """
+        Update node position.
+        """
         self.world.UpdateNodePosition(*args, **kargs)
     
     def ProcessServiceData(self, *args, **kargs):
-        """ Process service-specific data. """
+        """
+        Process service-specific data.
+        """
         self.services.ProcessServiceData(*args, **kargs)
 
     def ResetWorld(self, *args, **kargs):
-        """ Reset the viewport. """
+        """
+        Reset the world and the viewport.
+        """
         self.world.Reset(*args, **kargs)
 
     def SetStatus(self, status):
-        """ Change connection status. """
+        """
+        Change connection status.
+        """
         if status == 'READY':
             self._SetWaiting(False)
             self.viewport.Enable()
@@ -625,16 +677,20 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             self.statusbar.SetText(_("Not connected"))
 
     def NodeConnectionSucceeded(self, node_proxy):
-        """ We managed to connect to the node. """
+        """
+        We managed to connect to the node.
+        """
         # We must call the node proxy from the Twisted thread!
         self._DestroyProgress()
         self._SetWaiting(False)
         self.node_proxy = TwistedProxy(node_proxy, self.reactor)
-        self.node_proxy.SetNodeInfo(self.config_data.GetNode().ToStruct())
+        #~ self.node_proxy.SetNodeInfo(self.config_data.GetNode().ToStruct())
         self.statusbar.SetText(_("Connected"))
 
     def NodeConnectionFailed(self, error):
-        """ Failed connecting to the node. """
+        """
+        Failed connecting to the node.
+        """
         # Allow for some leeway in certain cases
         if self.connection_trials > 0:
             if not self.progress_dialog:
@@ -650,6 +706,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
                 self.progress_dialog.Update(self.progress_max - self.connection_trials)
             wx.FutureCall(1000, self._TryConnect)
         else:
+            # Connection failed
             self._DestroyProgress()
             self._SetWaiting(False)
             self.node_proxy = None
@@ -659,7 +716,9 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             dialog.ShowModal()
 
     def NodeKillSucceeded(self):
-        """ We managed to kill the (remote/local) node. """
+        """
+        We managed to kill the (remote/local) node.
+        """
         if self.alive:
             self.node_proxy = None
             self._SetWaiting(False)
@@ -671,7 +730,9 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             self._Quit2()
 
     def NodeKillFailed(self):
-        """ The node refused to kill itself. """
+        """
+        The node refused to kill itself.
+        """
         if self.alive:
             self.node_proxy = None
             self._SetWaiting(False)
@@ -687,8 +748,10 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     # Actions from the services
     #
     def SetServiceMenu(self, service_id, title, menu):
-        """allow a service to change the title of its entry in the
-        main menu bar"""
+        """
+        Allow a service to change the title of its entry in the
+        main menu bar.
+        """
         val = (title, service_id)
         pos = bisect.bisect_right(self.service_menus, val)
         if pos == len(self.service_menus) or self.service_menus[pos][1] != service_id:

@@ -41,6 +41,9 @@ class World(UIProxyReceiver):
         """
         def __init__(self, peer):
             self.peer = peer
+            self.Reset()
+        
+        def Reset(self):
             # Drawable ids in viewport
             self.label_id = None
             self.avatar_id = None
@@ -59,6 +62,8 @@ class World(UIProxyReceiver):
         self.repository = images.ImageRepository()
         self.avatars = AvatarRepository()
         self.avatars.AskNotify(UIProxy(self).UpdateAvatars)
+        # Cache of all encountered peers (useful for labels, avatars, etc.)
+        self.item_cache = {}
         self.Reset()
 
     def Reset(self):
@@ -67,9 +72,9 @@ class World(UIProxyReceiver):
         """
         # Dictionnary of peer ID -> world item
         self.items = {}
-        # Cache of all encountered peers (useful for labels, avatars, etc.)
-        self.item_cache = {}
         self.viewport.Reset()
+        if self.node_item:
+            self.UpdateNode(self.node_item.peer)
 
     def AddPeer(self, peer):
         """
@@ -91,25 +96,50 @@ class World(UIProxyReceiver):
         """
         Called when a peer disappears.
         """
-        if peer_id in self.items:
-            self.item_cache[peer_id] = self.items[peer_id]
-            del self.items[peer_id]
-            self.viewport.RemoveObject(peer_id)
+        try:
+            item = self.items.pop(peer_id)
+        except KeyError:
+            return
+        item.Reset()
+        self.item_cache[peer_id] = item
+        self.viewport.RemoveObject(peer_id)
 
     def UpdateNode(self, node):
         """
         Called when the node's characteristics are updated.
         """
+        print "node update: ", node.pseudo
+        # Reinitialize in case the node ID has changed
+        if self.node_id == node.id_:
+            self.viewport.RemoveObject(self.node_id)
+            self._InitNode(node)
+        elif self.node_item is None:
+            self._InitNode(node)
         self.node_id = node.id_
-        x, y, z = node.position.GetXYZ()
-        self.viewport.JumpTo((x, y))
+        item = self.node_item
+        item.peer = node
+        # Update node pseudo
+        if item.label_id:
+            self.viewport.RemoveDrawable(node.id_, item.label_id)
+            item.label_id = None
+        self._CreatePeerLabel(item)
+        # Create avatar if necessary
+        if item.avatar_id:
+            self.viewport.RemoveDrawable(peer_id, item.avatar_id)
+            item.avatar_id = None
+        self._CreatePeerAvatar(item)
+        # Update node position
+        self.UpdateNodePosition(node.position)
 
-    def UpdateNodePosition(self, position):
+    def UpdateNodePosition(self, position, jump=False):
         """
         Called when the node's position is updated.
         """
-        x, y, z = position.GetXYZ()
-        self.viewport.JumpTo((x, y))
+        x, y = position.GetXY()
+        if self.node_id is not None:
+            self.viewport.MoveObject(self.node_id, position=(x, y))
+        if jump:
+            self.viewport.JumpTo((x, y))
 
     def UpdatePeer(self, peer):
         """
@@ -134,11 +164,14 @@ class World(UIProxyReceiver):
     def UpdateAvatars(self, peer_list):
         """
         Called when some peers' avatars have changed.
+        This function also handles the special case of the node itself.
         """
         for peer_id in peer_list:
-            try:
+            if peer_id == self.node_id:
+                item = self.node_item
+            elif peer_id in self.items:
                 item = self.items[peer_id]
-            except KeyError:
+            else:
                 continue
             if item.avatar_id:
                 self.viewport.RemoveDrawable(peer_id, item.avatar_id)
@@ -149,9 +182,11 @@ class World(UIProxyReceiver):
         """
         Returns the peer with the given ID.
         """
-        try:
+        if peer_id == self.node_id:
+            return self.node_item.peer
+        elif peer_id in self.items:
             return self.items[peer_id].peer
-        except KeyError:
+        else:
             return None
 
     def GetItemPseudo(self, id_):
@@ -168,6 +203,15 @@ class World(UIProxyReceiver):
     #
     # Private methods
     #
+    
+    def _InitNode(self, node):
+        """
+        Initialize the node and add it to the viewport.
+        """
+        self.node_item = self.Item(node)
+        x, y = node.position.GetXY()
+        print "node index = ", self.viewport.AddObject(node.id_, None, position=(x, y))
+        self.UpdateNodePosition(node.position, jump=True)
 
     def _CreatePeerLabel(self, item):
         """
