@@ -28,7 +28,7 @@ class bidict(dict):
 
     def get_reverse(self, value, default=None):
         """ Get the key corresponding to the given value. """
-        return self._rev.get(key, default)
+        return self._rev.get(value, default)
 
     def reversed(self):
         return self._rev

@@ -315,9 +315,3 @@ if __name__ == '__main__':
     message = parser.ParseMessage(data)
     print message.args.__dict__
 
-#     message = Message()
-#     print message.fromData(data)
-#     print message.toData()
-#     print message.fromData(message.toData())
-
-
