@@ -49,6 +49,10 @@ hobbies = blabla,bla bla bla,
     def setUp(self):
         """override one in unittest.TestCase"""
         self.document = FileDocument()
+        # first test to call must write test file to get correct
+        # execution of the others
+        if not os.path.exists(TEST_PROFILE):
+            self.test_save()
 
     # PERSONAL TAB
     def test_save(self):
@@ -136,6 +140,35 @@ hobbies = blabla,bla bla bla,
         peers = new_doc.get_peers()
         self.assertEquals('[nico (%s), None]'% PeerDescriptor.FRIEND, str(peers['nico']))
 
+    def test_default_data(self):
+        """import file document into printView"""
+        self.document.load("dummy")
+        sav_stdout = sys.stdout
+        result = StringIO()
+        sys.stdout = result
+        view = PrintView(self.document)
+        self.assertEquals(result.getvalue(), unicode("""Mr
+Emmanuel
+Bréton
+emb
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/question_mark.gif
+emb@logilab.fr
+01/04/2005
+fr
+
+75
+
+
+Developer/Designer of this handful plugin
+[]
+{}
+/home/emb
+{}
+{}
+""", "iso-8859-1"))
+        result.close()
+        sys.stdout = sav_stdout
+        
     def test_view(self):
         """import file document into printView"""
         self.document.load(TEST_PROFILE)

@@ -16,6 +16,7 @@
 # License along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
+"""main class for plugin. Allow 'plug&Play' into navigator"""
 
 import socket
 import random
@@ -23,9 +24,6 @@ import wx
 
 from solipsis.util.wxutils import _
 from solipsis.services.plugin import ServicePlugin
-from solipsis.services.profile.facade import get_facade
-from solipsis.services.profile.document import CacheDocument, FileDocument
-from solipsis.services.profile.view import GuiView
 
 class Plugin(ServicePlugin):
     """
@@ -59,15 +57,15 @@ class Plugin(ServicePlugin):
 
     def GetDescription(self):
         """
-        Returns a short description of the plugin.
-        (e.g. 'talk with people around you', 'send or receive files and documents')
+        Returns a short description of the plugin.  (e.g. 'talk with
+        people around you', 'send or receive files and documents')
         """
         return _("Manage personal information and share it with people")
 
     def GetActions(self):
         """
-        Returns an array of strings advertising possible actions with all peers,
-        or None if no such action is allowed.
+        Returns an array of strings advertising possible actions with
+        all peers, or None if no such action is allowed.
         """
         # TODO: what about a dictionary mapping function to be
         # called. This would easier DoAction...  Drawback: what about
@@ -105,9 +103,9 @@ class Plugin(ServicePlugin):
 
     def Enable(self):
         """
-        All real actions involved in initializing the service should be
-        defined here, not in the constructor.
-        This includes e.g. opening sockets, collecting data from directories, etc.
+        All real actions involved in initializing the service should
+        be defined here, not in the constructor.  This includes
+        e.g. opening sockets, collecting data from directories, etc.
         """
         # Set up main GUI hooks
         main_window = self.service_api.GetMainWindow()
@@ -125,8 +123,9 @@ class Plugin(ServicePlugin):
     
     def Disable(self):
         """
-        This routine should invalidate all actions take in the Enable() method.
-        It is called when the user chooses to disable the service.
+        This routine should invalidate all actions take in the
+        Enable() method.  It is called when the user chooses to
+        disable the service.
         """
         print "Profile: Disable"
 

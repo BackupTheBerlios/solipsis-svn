@@ -8,7 +8,8 @@ from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile.document import CacheDocument, FileDocument
 from solipsis.services.profile.view import GuiView, HtmlView
 
-if __name__ == "__main__":
+def run():
+    """launch gui of profile"""
     #set up GUI
     import gettext
     gettext.install("app") # replace with the appropriate catalog name
@@ -33,3 +34,7 @@ if __name__ == "__main__":
     app.SetTopWindow(profile_frame)
     profile_frame.Show()
     app.MainLoop()
+
+    
+if __name__ == "__main__":
+    run()

@@ -47,7 +47,8 @@ class PeerDescriptor:
 
     def html(self):
         """render peer in HTML"""
-        return "<font color=%s>%s</font>"% (PeerDescriptor.COLORS[self.state], self.pseudo)
+        return "<font color=%s>%s</font>"% (PeerDescriptor.COLORS[self.state],
+                                            self.pseudo)
         
 class AbstractDocument:
     """Base class for data container. Acts as validator.
@@ -105,11 +106,11 @@ class AbstractDocument:
                 print >> sys.stderr, "state %s not recognised"% peer_desc.state
     
     # MENU
-    def save(self):
+    def save(self, path=None):
         """fill document with information from .profile file"""
         pass
 
-    def load(self):
+    def load(self, path=None):
         """fill document with information from .profile file"""
         pass
     
@@ -165,7 +166,7 @@ class AbstractDocument:
     def set_birthday(self, value):
         """sets new value for birthday"""
         try:
-            birthday = mx.DateTime.strptime(value, DATE_FORMAT)
+            mx.DateTime.strptime(value, DATE_FORMAT)
         except mx.DateTime.Error, error:
             raise TypeError("birthday expected in format %s. %s"\
                             % (DATE_FORMAT, str(error)))
@@ -192,7 +193,7 @@ class AbstractDocument:
     def set_postcode(self, value):
         """sets new value for postcode"""
         try:
-            postcode = int(value)
+            int(value)
         except ValueError, error:
             raise TypeError("postcode expected as int. "+ str(error))
     def get_postcode(self):
@@ -242,7 +243,8 @@ class AbstractDocument:
             raise TypeError("tag expected as unicode")
     def remove_custom_attributes(self, value):
         """sets new value for custom_attributes"""
-        raise NotImplementedError
+        if not isinstance(value, unicode):
+            raise TypeError("attribute expected as unicode")
     def get_custom_attributes(self):
         """returns value of custom_attributes"""
         raise NotImplementedError
@@ -469,6 +471,7 @@ class CacheDocument(AbstractDocument):
         self.custom_attributes[key] = value
     def remove_custom_attributes(self, value):
         """sets new value for custom_attributes"""
+        AbstractDocument.remove_custom_attributes(self, value)
         if self.custom_attributes.has_key(value):
             del self.custom_attributes[value]
     def get_custom_attributes(self):
@@ -590,158 +593,184 @@ class FileDocument(AbstractDocument):
     def set_title(self, value):
         """sets new value for title"""
         AbstractDocument.set_firstname(self, value)
-        self.config.set(SECTION_PERSONAL, "title", value.encode(self.encoding))
+        self.config.set(SECTION_PERSONAL, "title",
+                        value.encode(self.encoding))
     def get_title(self):
         """returns value of title"""
         try:
-            return unicode(self.config.get(SECTION_PERSONAL, "title"), self.encoding)
-        except:
+            return unicode(self.config.get(SECTION_PERSONAL, "title"),
+                           self.encoding)
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
             return u"Mr"
         
     def set_firstname(self, value):
         """sets new value for firstname"""
         AbstractDocument.set_firstname(self, value)
-        self.config.set(SECTION_PERSONAL, "firstname", value.encode(self.encoding))
+        self.config.set(SECTION_PERSONAL, "firstname",
+                        value.encode(self.encoding))
     def get_firstname(self):
         """returns value of firstname"""
         try:
-            return unicode(self.config.get(SECTION_PERSONAL, "firstname", "Emmanuel"), self.encoding)
-        except:
+            return unicode(self.config.get(SECTION_PERSONAL, "firstname",
+                                           "Emmanuel"), self.encoding)
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
             return u"Emmanuel"
 
     def set_lastname(self, value):
         """sets new value for lastname"""
         AbstractDocument.set_lastname(self, value)
-        self.config.set(SECTION_PERSONAL, "lastname", value.encode(self.encoding))
+        self.config.set(SECTION_PERSONAL, "lastname",
+                        value.encode(self.encoding))
     def get_lastname(self):
         """returns value of lastname"""
         try:
-            return unicode(self.config.get(SECTION_PERSONAL, "lastname"), self.encoding)
-        except:
+            return unicode(self.config.get(SECTION_PERSONAL, "lastname"),
+                           self.encoding)
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
             return u"Bréton"
 
     def set_pseudo(self, value):
         """sets new value for pseudo"""
         AbstractDocument.set_pseudo(self, value)
-        self.config.set(SECTION_PERSONAL, "pseudo", value.encode(self.encoding))
+        self.config.set(SECTION_PERSONAL, "pseudo",
+                        value.encode(self.encoding))
     def get_pseudo(self):
         """returns value of pseudo"""
         try:
-            return unicode(self.config.get(SECTION_PERSONAL, "pseudo"), self.encoding)
-        except:
+            return unicode(self.config.get(SECTION_PERSONAL, "pseudo"),
+                           self.encoding)
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
             return u"emb"
 
     def set_photo(self, value):
         """sets new value for photo"""
         AbstractDocument.set_photo(self, value)
-        self.config.set(SECTION_PERSONAL, "photo", value.encode(self.encoding))
+        self.config.set(SECTION_PERSONAL, "photo",
+                        value.encode(self.encoding))
     def get_photo(self):
         """returns value of photo"""
         try:
             return self.config.get(SECTION_PERSONAL, "photo")
-        except:
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
             return DEFAULT_PIC
 
     def set_email(self, value):
         """sets new value for email"""
         AbstractDocument.set_email(self, value)
-        self.config.set(SECTION_PERSONAL, "email", value.encode(self.encoding))
+        self.config.set(SECTION_PERSONAL, "email",
+                        value.encode(self.encoding))
     def get_email(self):
         """returns value of email"""
         try:
-            return unicode(self.config.get(SECTION_PERSONAL, "email"), self.encoding)
-        except:
+            return unicode(self.config.get(SECTION_PERSONAL, "email"),
+                           self.encoding)
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
             return u"emb@logilab.fr"
 
     def set_birthday(self, value):
         """sets new value for birthday"""
         AbstractDocument.set_birthday(self, value)
-        self.config.set(SECTION_PERSONAL, "birthday", value.encode(self.encoding))
+        self.config.set(SECTION_PERSONAL, "birthday",
+                        value.encode(self.encoding))
     def get_birthday(self):
         """returns value of birthday"""
         try:
-            return unicode(self.config.get(SECTION_PERSONAL, "birthday"), self.encoding)
-        except:
+            return unicode(self.config.get(SECTION_PERSONAL, "birthday"),
+                           self.encoding)
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
             return u"01/04/2005"
             
 
     def set_language(self, value):
         """sets new value for language"""
         AbstractDocument.set_language(self, value)
-        self.config.set(SECTION_PERSONAL, "language", value.encode(self.encoding))
+        self.config.set(SECTION_PERSONAL, "language",
+                        value.encode(self.encoding))
     def get_language(self):
         """returns value of language"""
         try:
-            return unicode(self.config.get(SECTION_PERSONAL, "language"), self.encoding)
-        except:
+            return unicode(self.config.get(SECTION_PERSONAL, "language"),
+                           self.encoding)
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
             return u"fr"
 
     def set_address(self, value):
         """sets new value for """
         AbstractDocument.set_address(self, value)
-        self.config.set(SECTION_PERSONAL, "address", value.encode(self.encoding))
+        self.config.set(SECTION_PERSONAL, "address",
+                        value.encode(self.encoding))
     def get_address(self):
         """returns value of address"""
         try:
-            return unicode(self.config.get(SECTION_PERSONAL, "address"), self.encoding)
-        except:
+            return unicode(self.config.get(SECTION_PERSONAL, "address"),
+                           self.encoding)
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
             return u""
 
     def set_postcode(self, value):
         """sets new value for postcode"""
         AbstractDocument.set_postcode(self, value)
-        self.config.set(SECTION_PERSONAL, "postcode", value.encode(self.encoding))
+        self.config.set(SECTION_PERSONAL, "postcode",
+                        value.encode(self.encoding))
     def get_postcode(self):
         """returns value of postcode"""
         try:
-            return unicode(self.config.get(SECTION_PERSONAL, "postcode"), self.encoding)
-        except:
+            return unicode(self.config.get(SECTION_PERSONAL, "postcode"),
+                           self.encoding)
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
             return u"75"
 
     def set_city(self, value):
         """sets new value for city"""
         AbstractDocument.set_city(self, value)
-        self.config.set(SECTION_PERSONAL, "city", value.encode(self.encoding))
+        self.config.set(SECTION_PERSONAL, "city",
+                        value.encode(self.encoding))
     def get_city(self):
         """returns value of city"""
         try:
-            return unicode(self.config.get(SECTION_PERSONAL, "city"), self.encoding)
-        except:
+            return unicode(self.config.get(SECTION_PERSONAL, "city"),
+                           self.encoding)
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
             return u""
 
     def set_country(self, value):
         """sets new value for country"""
         AbstractDocument.set_country(self, value)
-        self.config.set(SECTION_PERSONAL, "country", value.encode(self.encoding))
+        self.config.set(SECTION_PERSONAL, "country",
+                        value.encode(self.encoding))
     def get_country(self):
         """returns value of country"""
         try:
-            return unicode(self.config.get(SECTION_PERSONAL, "country"), self.encoding)
-        except:
+            return unicode(self.config.get(SECTION_PERSONAL, "country"),
+                           self.encoding)
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
             return u""
 
     def set_description(self, value):
         """sets new value for description"""
         AbstractDocument.set_description(self, value)
-        self.config.set(SECTION_PERSONAL, "description", value.encode(self.encoding))
+        self.config.set(SECTION_PERSONAL, "description",
+                        value.encode(self.encoding))
     def get_description(self):
         """returns value of description"""
         try:
-            return unicode(self.config.get(SECTION_PERSONAL, "description"), self.encoding)
-        except:
+            return unicode(self.config.get(SECTION_PERSONAL, "description"),
+                           self.encoding)
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
             return u"Developer/Designer of this handful plugin"
 
     # CUSTOM TAB
     def set_hobbies(self, value):
         """sets new value for hobbies"""
         AbstractDocument.set_hobbies(self, value)
-        self.config.set(SECTION_CUSTOM, "hobbies", ",".join(value).encode(self.encoding))
+        self.config.set(SECTION_CUSTOM, "hobbies",
+                        ",".join(value).encode(self.encoding))
     def get_hobbies(self):
         """returns value of hobbies"""
         try:
             return [unicode(hobby, self.encoding) for hobby 
                     in self.config.get(SECTION_CUSTOM, "hobbies").split( ',')]
-        except:
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
             return []
 
     def add_custom_attributes(self, pair):
@@ -751,6 +780,7 @@ class FileDocument(AbstractDocument):
         self.config.set(SECTION_CUSTOM, key, value.encode(self.encoding))
     def remove_custom_attributes(self, value):
         """sets new value for custom_attributes"""
+        AbstractDocument.remove_custom_attributes(self, value)
         if self.config.has_option(SECTION_CUSTOM, value):
             self.config.remove_option(SECTION_CUSTOM, value)
     def get_custom_attributes(self):
@@ -760,7 +790,9 @@ class FileDocument(AbstractDocument):
             options = self.config.options(SECTION_CUSTOM)
             for option in options:
                 if option != "hobbies":
-                    result[option] = unicode(self.config.get(SECTION_CUSTOM, option), self.encoding)
+                    result[option] = unicode(self.config.get(SECTION_CUSTOM,
+                                                             option),
+                                             self.encoding)
         finally:
             return result
 
@@ -772,8 +804,9 @@ class FileDocument(AbstractDocument):
     def get_repository(self):
         """returns value of repository"""
         try:
-            return unicode(self.config.get(SECTION_FILE, "repository"), self.encoding)
-        except:
+            return unicode(self.config.get(SECTION_FILE, "repository"),
+                           self.encoding)
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
             return unicode(os.path.expanduser('~'))
         
     def add_file(self, file_path):
@@ -788,9 +821,11 @@ class FileDocument(AbstractDocument):
             options = self.config.options(SECTION_FILE)
             for option in options:
                 if option != "repository":
-                    result[option] = FileDescriptor(option,
-                                                    unicode(self.config.get(SECTION_FILE, option), self.encoding))
-        finally:
+                    repo = unicode(self.config.get(SECTION_FILE, option),
+                                   self.encoding)
+                    result[option] = FileDescriptor(option, repo)
+            return result
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
             return result
         
     def tag_file(self, pair):
@@ -819,11 +854,12 @@ class FileDocument(AbstractDocument):
             for opt in options:
                 if isinstance(opt, str):
                     opt = unicode(opt, self.encoding)
-                result[opt] = [PeerDescriptor(opt, self.config.get(SECTION_OTHERS, opt)), None]
+                friend = self.config.get(SECTION_OTHERS, opt)
+                result[opt] = [PeerDescriptor(opt, friend), None]
                 #TODO: load FileDocument corresponding to  other peer
-        except Exception, err:
-            print >> sys.stderr, err
-        return result
+            return result
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+            return result
         
 
     def fill_data(self, pair):
