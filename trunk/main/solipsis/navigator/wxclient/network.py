@@ -5,11 +5,64 @@ import twisted.web.xmlrpc as xmlrpc
 from proxy import UIProxy
 
 
+class NotificationHandler(object):
+    def __init__(self, reactor, ui):
+        super(NotificationHandler, self).__init__()
+
+        self.parsers = {
+            'position': self._ParsePosition,
+        }
+        self.reactor = reactor
+        self.ui = ui
+
+    def Receive(self, request, properties):
+        try:
+            attr = getattr(self, request)
+        except:
+            print "Unhandled notification '%s'" % request
+        else:
+            self._ParseProperties(properties)
+            attr(properties)
+
+    #
+    # Notification handlers
+    #
+    def NEW(self, properties):
+        print "NEW", properties['id'], properties['position']
+        self.ui.AddObject(properties['id'], None, position=properties['position'])
+
+    def DEAD(self, properties):
+        print "DEAD", properties['id']
+        self.ui.RemoveObject(properties['id'])
+
+
+    #
+    # Private methods
+    #
+    def _ParseProperties(self, properties):
+        for p, parser in self.parsers.items():
+            if p in properties:
+                try:
+                    properties[p] = parser(properties[p])
+                except:
+                    print "Wrong syntax for '%s' in notification: %s" % (p, properties[p])
+
+    def _ParsePosition(self, position):
+        x, y, z = position.split(",")
+        return (float(x), float(y), float(z))
+        #return (float(x)/2**128, float(y)/2**128, float(z))
+
+
 class XMLRPCConnector(object):
-    def __init__(self, reactor):
+    """
+    XMLRPCConnector builds the socket-based connection to the Solipsis node.
+    It handles sending and receiving data from the node.
+    """
+    def __init__(self, reactor, notification_receiver):
         super(XMLRPCConnector, self).__init__()
 
         self.reactor = reactor
+        self.notification_receiver = notification_receiver
         self.xmlrpc_control = None
         self.xmlrpc_notif = None
 
@@ -30,32 +83,50 @@ class XMLRPCConnector(object):
             d = self.xmlrpc_control.callRemote(method, *args)
             d.addCallbacks(self.ControlResponse, self.ControlError)
 
+    #
+    # XML RPC callbacks
+    #
     def ControlResponse(self, value):
-        print value
+        pass
 
     def NotifResponse(self, value):
-        print value
         self._AskNotif()
+        message = None
+        try:
+            request = value['request']
+            items = [(k, v) for (k, v) in value.items() if k != 'request']
+        except AttributeError:
+            print "Bad notification:", str(value)
+        else:
+            self.notification_receiver(request, dict(items))
 
-    def ControlError(self, error):
-        print "Control error:", error
+    def ControlError(self, failure):
+        print "Control error:", str(failure)
         self.xmlrpc_control = None
         self.xmlrpc_notif = None
+        raise failure
 
-    def NotifError(self, error):
-        print "Notification error:", error
+    def NotifError(self, failure):
+        print "Notification error:", str(failure)
         self.xmlrpc_control = None
         self.xmlrpc_notif = None
+        raise failure
 
+    #
+    # Private methods
+    #
     def _AskNotif(self):
         if self.xmlrpc_notif is not None:
-            print 'Get'
             d = self.xmlrpc_notif.callRemote('get')
             d.addCallbacks(self.NotifResponse, self.NotifError)
 
 
-
 class NetworkLoop(threading.Thread):
+    """
+    NetworkLoop is an event loop running in its own thread.
+    It manages socket-based communication with the Solipsis node
+    and event-based communication with the User Interface (UI).
+    """
     def __init__(self, reactor, wxEvtHandler):
         """ Builds a network loop from a Twisted reactor and a Wx event handler """
 
@@ -66,24 +137,16 @@ class NetworkLoop(threading.Thread):
         self.reactor = reactor
 
         self.angle = 0.0
-        self._AnimCircle(init=True)
-        self.node_connector = XMLRPCConnector(self.reactor)
+        self.notification_handler = NotificationHandler(reactor=self.reactor, ui=self.ui)
+        self.node_connector = XMLRPCConnector(reactor=self.reactor, notification_receiver=self.notification_handler.Receive)
 
     def run(self):
         # Dummy demo stuff
-        self.reactor.callLater(3, self._HelloWorld)
-        self.reactor.callLater(1, self._AnimCircle)
+        #self._AnimCircle(init=True)
+        #self.reactor.callLater(3, self._HelloWorld)
 
         # Run reactor
         self.reactor.run(installSignalHandlers=0)
-
-    def UI_dump(self, s):
-        print s
-
-    def SetRepeat(self, value):
-        if not self.repeat_hello and value:
-            self.reactor.callLater(1, self._HelloWorld)
-        self.repeat_hello = value
 
 
     #

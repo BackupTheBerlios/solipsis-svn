@@ -24,7 +24,7 @@ class Viewport(object):
     glide_duration = 0.8
     destination_radius = 20.0
 
-    def __init__(self, window):
+    def __init__(self, window, world_size = 2**128):
         self.window = window
         self.images = ImageRepository()
         self.draw_buffer = None
@@ -34,6 +34,10 @@ class Viewport(object):
         self.need_further_redraw = True
         self.redraw_pending = False
         self.last_redraw_duration = 0.01
+        self.world_size = world_size
+        #self.world_size = 1.0
+        self.fmod = (lambda x, lim=float(self.world_size) / 2.0, fmod=math.fmod:
+                        x >= 0.0 and fmod(x + lim, lim + lim) - lim or lim - fmod(lim - x, lim + lim))
 
         self.fps_timer = AutoTimer()
         self.center_glider = ExpEvolver(duration = self.glide_duration)
@@ -116,7 +120,11 @@ class Viewport(object):
         positions = self._ConvertPositions(indices)
         cpu_time += cpu_timer.Read()[0]
         for i, pos in izip(indices, positions):
-            dc.DrawBitmapPoint(bmp_avatar, (pos[0] - w, pos[1] - h), True)
+            x = int(pos[0] - w)
+            y = int(pos[1] - h)
+            # Safety guard against too big coordinates
+            if isinstance(x, int) and isinstance(y, int):
+                dc.DrawBitmapPoint(bmp_avatar, (pos[0] - w, pos[1] - h), True)
         nb_blits += len(indices)
 
         # End drawing
@@ -139,14 +147,17 @@ class Viewport(object):
     def Add(self, name, obj, position=None):
         """ Add a drawable object to this viewport. """
 
-        # First add the object to the directory
+        # First add the object to the dictionary
         if name in self.obj_dict:
-            raise NameError, "An object named '%s' already exists in viewport" % name
+            print "Cannot add already existing object '%s' to viewport" % name
+            return self.obj_dict[name]
+
         index = len(self.obj_list)
         self.obj_dict[name] = index
         for a in self.obj_arrays:
             a.append(None)
-        self.obj_list[index] = object
+        self.obj_list[index] = obj
+
         # Then initialize the object's properties
         self.obj_name[index] = name
         # (It may be better to replace this code
@@ -155,6 +166,7 @@ class Viewport(object):
             self.positions[index] = position
         self.obj_visible[index] = True
         self._ObjectsGeometryChanged()
+
         return index
 
     def RemoveByIndex(self, index):
@@ -163,6 +175,9 @@ class Viewport(object):
         for a in self.obj_arrays:
             del a[index]
         del self.obj_dict[name]
+        # Re-arrange moved objects in dictionary
+        for i in xrange(index, len(self.obj_name)):
+            self.obj_dict[self.obj_name[i]] = i
         self._ObjectsGeometryChanged()
 
     def Remove(self, name):
@@ -170,7 +185,8 @@ class Viewport(object):
         try:
             index = self.obj_dict[name]
         except:
-            raise NameError, "No object named '%s' in viewport" % name
+            print "Cannot remove unknown object '%s' from viewport" % name
+            return
         self.RemoveByIndex(index)
 
     def MoveObject(self, name, position):
@@ -178,7 +194,8 @@ class Viewport(object):
         try:
             index = self.obj_dict[name]
         except:
-            raise NameError, "No object named '%s' in viewport" % name
+            print "Cannot move unknown object '%s' in viewport" % name
+            return
         self.positions[index] = position
         self._ObjectsGeometryChanged()
 
@@ -197,14 +214,16 @@ class Viewport(object):
         """ Move to a position in physical (pixel) coordinates. """
         w, h = self._WindowSize()
         cx, cy = self.center
-        x = position[0] - w / 2
-        y = h / 2 - position[1]
+        x = float(position[0]) - w / 2
+        y = h / 2 - float(position[1])
         print x, y
         cs = math.cos(-self.angle)
         sn = math.sin(-self.angle)
-        fx = (x * cs - y * sn) / self.ratio + cx
-        fy = (y * cs + x * sn) / self.ratio + cy
-        print fx, fy
+        fx = self.fmod((x * cs - y * sn) / self.ratio) + cx
+        fy = self.fmod((y * cs + x * sn) / self.ratio) + cy
+#         fx = ((x * cs - y * sn) / self.ratio) + cx
+#         fy = ((y * cs + x * sn) / self.ratio) + cy
+        print x, y, "=", fx, fy
         self._SetFutureCenter((fx,fy))
 
         # Change orientation according to the destination we move towards
@@ -361,7 +380,6 @@ class Viewport(object):
             diff += pi2
         elif diff > pi:
             diff -= pi2
-        print diff
         # Normalize the current angle so as to correctly
         # "glide" to the future angle
         self.angle = angle - diff
@@ -374,16 +392,27 @@ class Viewport(object):
         v = self.obj_visible
         return [i for i in xrange(len(v)) if v[i] == True]
 
+    def _RelativePositions(self, positions, indices=None):
+        if indices is None:
+            indices = xrange(len(positions))
+        xc, yc = self.center
+        fmod = self.fmod
+        p = positions
+        relative_positions = [(fmod(p[i][0] - xc), fmod(p[i][1] - yc)) for i in indices]
+        return relative_positions
+
     def _RelativeBBox(self, indices):
         """ Returns a tuple containing the upper left and the bottom right
         of the objects' bounding box relatively to the center of the viewport. """
 
-        p = self.positions
         cs = math.cos(self.angle)
         sn = math.sin(self.angle)
         xc, yc = self.center
-        xs = [(p[i][0] - xc) * cs - (p[i][1] - yc) * sn for i in indices] or [0.0]
-        ys = [(p[i][1] - yc) * cs + (p[i][0] - xc) * sn for i in indices] or [0.0]
+        p = self._RelativePositions(self.positions, indices)
+        xs = [x * cs - y * sn for (x, y) in p] or [0.0]
+        ys = [y * cs + x * sn for (x, y) in p] or [0.0]
+#         xs = [(p[i][0] - xc) * cs - (p[i][1] - yc) * sn for i in indices] or [0.0]
+#         ys = [(p[i][1] - yc) * cs + (p[i][0] - xc) * sn for i in indices] or [0.0]
         r = (min(xs), min(ys)), (max(xs), max(ys))
         return r
 
@@ -404,8 +433,16 @@ class Viewport(object):
         sn = math.sin(self.angle)
         w /= 2.0
         h /= 2.0
-        display_positions = [(w + ratio * (cs * (p[i][0] - xc) - sn * (p[i][1] - yc)), \
-                            h - ratio * (cs * (p[i][1] - yc) + sn * (p[i][0] - xc))) for i in indices]
+        lim = float(self.world_size)
+        # These lines do several things at once:
+        # - center view
+        # - warp accross world borders
+        # - rotate view
+        # - scale view
+        relative_positions = self._RelativePositions(p, indices)
+        display_positions = [(w + ratio * (cs * x - sn * y), h - ratio * (sn * x + cs * y)) for (x, y) in relative_positions]
+#         print p
+#         print relative_positions
         return display_positions
 
     def _OptimalRatio(self, indices):

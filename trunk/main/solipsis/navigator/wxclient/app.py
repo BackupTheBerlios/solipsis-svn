@@ -252,7 +252,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.ProcessPendingEvents()
         # Now we are sure that no more events are pending, kill everything
         self.reactor.crash()
-        self.network_loop.join()
+        #self.network_loop.join()
         for obj_name in self.dialogs + self.windows:
             try:
                 win = getattr(self, obj_name)
@@ -309,6 +309,10 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.viewport.Add(*args, **kargs)
 
     def MoveObject(self, *args, **kargs):
-        """ Add an object to the viewport. """
+        """ Move an object in the viewport. """
         self.viewport.MoveObject(*args, **kargs)
+
+    def RemoveObject(self, *args, **kargs):
+        """ Remove an object from the viewport. """
+        self.viewport.Remove(*args, **kargs)
 
