@@ -129,7 +129,9 @@ class Geometry(object):
                 relativePeerPosition.getPosY() - origin.getPosY())
 
     def inHalfPlane(p1, p2, pos):
-        """ compute if pos belongs to half-plane delimited by (p1, p2)
+        """ TRUE if (pos,p1,p2) is a positive angle
+
+        compute if pos belongs to half-plane delimited by (p1, p2)
         p2 is the central point for ccw
         return boolean TRUE if pos belongs to half-plane"""
         rp1  = Geometry.relativePosition(p1,p2)

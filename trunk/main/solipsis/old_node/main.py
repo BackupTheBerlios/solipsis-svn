@@ -100,19 +100,19 @@ def main():
                 os._exit(0)
 
         # Create node and enter main loop
+        import gc
+        DEBUG_LEAK
+        gc.set_debug(gc.DEBUG_LEAK)
         global profile_run
         myNode = Node(params)
         profile_run = lambda: myNode.mainLoop()
-#         def run(params):
-#             myNode.mainLoop()
 
         if (params.profile):
             import profile
-            #profile.run("solipsis.node.main.run(solipsis.node.main.params)")
             profile.run(__name__ + ".profile_run()", "node.prof")
         else:
             import psyco
-            psyco.profile()
+            #psyco.profile()
             profile_run()
 
     except:

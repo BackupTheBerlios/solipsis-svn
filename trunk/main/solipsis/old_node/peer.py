@@ -416,8 +416,7 @@ class PeersManager(object):
             fartherPeerPos = self.distPeers.ll[len(self.distPeers) - 1].getPosition()
             maxDist = Geometry.distance(self.node.getPosition(), fartherPeerPos)
             # Areal density
-            density = self.getNumberOfPeers() / (maxDist ** 2)
-            return math.sqrt(self.expectedPeers / density)
+            return maxDist * math.sqrt(self.expectedPeers / self.getNumberOfPeers())
         else:
             fartherPeerPos = self.distPeers.ll[len(self.distPeers) - 1].getPosition()
             return Geometry.distance(self.node.getPosition(), fartherPeerPos)

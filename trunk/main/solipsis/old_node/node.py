@@ -208,6 +208,9 @@ class Node(Entity):
                         self.logger.debug(value)
                         stack_trace = traceback.format_tb(tb)
                         self.logger.debug(stack_trace)
+                        del tb
+                        del value
+                        sys.exc_clear()
 
         except Exception, e:
             print e
