@@ -12,8 +12,8 @@ from solipsis.twistednode.node import Node
 
 
 def run_loop(params):
-    myNode = Node(reactor, params)
-    reactor.run()
+    bootstrap = Bootstrap(reactor, params)
+    bootstrap.Run()
 
 
 def main():
