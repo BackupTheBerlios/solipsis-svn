@@ -3,7 +3,7 @@
   <object class="wxFrame" name="chat_window">
     <title>Chat</title>
     <centered>1</centered>
-    <style>wxDEFAULT_FRAME_STYLE|wxSYSTEM_MENU|wxRESIZE_BORDER|wxRESIZE_BOX|wxMINIMIZE_BOX|wxMAXIMIZE_BOX|wxTAB_TRAVERSAL|wxCLIP_CHILDREN</style>
+    <style>wxDEFAULT_FRAME_STYLE</style>
     <object class="wxFlexGridSizer">
       <object class="sizeritem">
         <object class="wxSplitterWindow">
