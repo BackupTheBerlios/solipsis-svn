@@ -36,6 +36,7 @@ class Plugin(ServicePlugin):
         # (this is where duplicated code starts to appear...)
         self.host = socket.gethostbyname(socket.gethostname())
         self.port = 7780
+        self.hosts = {}
 
     def GetTitle(self):
         return _("Avatars")

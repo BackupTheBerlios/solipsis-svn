@@ -114,8 +114,12 @@ class ChatWindow(wx.EvtHandler, XRCLoader, UIProxyReceiver):
 
     def RemovePeer(self, peer_id):
         index = self.chat_users.FindItemData(0, self._PeerData(peer_id))
-        print index
-        self.chat_users.DeleteItem(index)
+        try:
+            # TODO: Antoine knows where the bug is and will be happy to
+            # fix it
+            self.chat_users.DeleteItem(index)
+        except Exception, e:
+            print "FIXME:", str(e)
     
     def UpdatePeer(self, peer):
         self.RemovePeer(peer.id_)
