@@ -17,7 +17,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
 
-
+import cPickle as pickle
 import wx
 from wx.xrc import XRCCTRL, XRCID
 
@@ -33,6 +33,7 @@ class ConfigData(ManagedData):
     """
     def __init__(self, host=None, port=None, pseudo=None):
         ManagedData.__init__(self)
+        # Initialize all values
         self.pseudo = pseudo or u"Guest"
         self.host = host or "bots.netofpeers.net"
         self.port = port or 8550
@@ -57,9 +58,22 @@ class ConfigData(ManagedData):
             proxy_host, proxy_port = discover_http_proxy()
             self.proxy_host = proxy_host or ""
             self.proxy_port = proxy_port or 0
+        #~ d = self.GetDict()
+        #~ print d
+        #~ self.UpdateDict(pickle.loads(pickle.dumps(d, protocol=-1)))
+        #~ d = self.GetDict()
+        #~ print d
 
     def SetServices(self, services):
         self.services = list(services)
+    
+    def Load(self, infile):
+        d = pickle.load(infile)
+        self.UpdateDict(d)
+    
+    def Save(self, outfile):
+        d = self.GetDict()
+        pickle.dump(d, outfile, protocol=-1)
 
     def GetNode(self):
         node = Entity()

@@ -47,6 +47,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     """
     Main application class. Derived from wxPython "wx.App".
     """
+    config_file = os.sep.join(["state", "config.bin"])
 
     def __init__(self, params, *args, **kargs):
         self.params = params
@@ -226,6 +227,15 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         wx.EVT_CHAR(self.viewport_panel, self._KeyPressViewport)
 
         # Let's go...
+        # 0. Load last saved config
+        try:
+            f = file(self.config_file, "rb")
+            self.config_data.Load(f)
+        except IOError:
+            if os.path.exists(self.config_file):
+                print "Config file '%s' broken, erasing"
+                os.remove(self.config_file)
+
         # 1. Show UI on screen
         self.main_window.Show()
         self.SetTopWindow(self.main_window)
@@ -464,6 +474,14 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         Called on quit event (menu -> File -> Quit, window close box).
         """
         self.alive = False
+        # Save current configuration
+        try:
+            f = file(self.config_file, "wb")
+            self.config_data.Save(f)
+            f.close()
+        except IOError, e:
+            print str(e)
+        # Kill progress window
         self._DestroyProgress()
         # Kill the node if necessary
         if self.config_data.node_autokill and self._CheckNodeProxy(False):

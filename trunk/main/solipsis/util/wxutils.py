@@ -113,14 +113,38 @@ class ManagedData(object):
     def __setattr__(self, name, value):
         try:
             self._dict[name][0] = value
-        except:
+        except KeyError:
             self._dict[name] = [value]
 
     def __getattr__(self, name):
         assert name != "_dict"
         return self._dict[name][0]
 
+    def GetDict(self):
+        """
+        Returns a dict contain managed datas in an unmanaged way.
+        Changes to this dict will not be propagated to the object attributes.
+        """
+        d = {}
+        for k, v in self._dict.iteritems():
+            d[k] = v[0]
+        return d
+
+    def UpdateDict(self, d):
+        """
+        Update the attributes with a dictionnary containing values.
+        """
+        for k, v in d.iteritems():
+            try:
+                self._dict[k][0] = v
+            except KeyError:
+                self._dict[k] = [v]
+
     def Ref(self, name):
+        """
+        Returns a reference to an attribute, i.e. the list that contains
+        the attribute as sole element.
+        """
         return self._dict[name]
 
 
