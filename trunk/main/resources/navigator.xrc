@@ -227,6 +227,11 @@ you might have to adjust the HTTP proxy settings.</label>
                   </object>
                 </object>
                 <object class="sizeritem">
+                  <object class="wxRadioButton" name="proxymode_none">
+                    <label>No proxy</label>
+                  </object>
+                </object>
+                <object class="sizeritem">
                   <object class="wxRadioButton" name="proxymode_manual">
                     <label>Manual configuration</label>
                   </object>
@@ -262,11 +267,6 @@ you might have to adjust the HTTP proxy settings.</label>
                     </object>
                   </object>
                   <flag>wxEXPAND|wxGROW</flag>
-                </object>
-                <object class="sizeritem">
-                  <object class="wxRadioButton" name="proxymode_none">
-                    <label>No proxy</label>
-                  </object>
                 </object>
                 <growablecols>0</growablecols>
               </object>
