@@ -166,8 +166,11 @@ class ServiceCollector(object):
             if title is not None:
                 item_id = self.action_ids.GetId()
                 item = wx.MenuItem(menu, item_id, title.encode(self.charset))
-                def _clicked(evt):
-                    plugin.DoAction()
+                def _clicked(evt, p=plugin):
+                    if id_ is not None:
+                        p.DoPointToPointAction(self.peers[id_])
+                    else:
+                        p.DoAction()
                 wx.EVT_MENU(self.main_window, item_id, _clicked)
                 l.append(item)
         return l
