@@ -14,6 +14,9 @@ class FileDescriptor:
         self.path = path
         self.tag = None
 
+    def __repr__(self):
+        return "%s (%s)"% (self.path, self.tag)
+
 class PeerDescriptor:
     """contains information relative to peer of neioboourhood"""
 
@@ -24,13 +27,27 @@ class PeerDescriptor:
     def __init__(self, pseudo):
         self.pseudo = pseudo
         self.state = PeerDescriptor.ANONYMOUS
+
+    def __repr__(self):
+        return "%s (%s)"% (self.pseudo, self.state)
         
 class AbstractDocument:
     """Base class for data container. Acts as validator.
 
     Setters check input type. Getters are abstract"""
+
+    def __init__(self, name="abstract"):
+        self.name = name
     
     # PERSONAL TAB
+    def set_title(self, value):
+        """sets new value for title"""
+        if not isinstance(value, unicode):
+            raise TypeError("title expected as unicode")
+    def get_title(self):
+        """returns value of firstname"""
+        raise NotImplementedError
+        
     def set_firstname(self, value):
         """sets new value for firstname"""
         if not isinstance(value, unicode):
@@ -53,6 +70,14 @@ class AbstractDocument:
             raise TypeError("pseudo expected as unicode")
     def get_pseudo(self):
         """returns value of pseudo"""
+        raise NotImplementedError
+    
+    def set_photo(self, value):
+        """sets new value for photo"""
+        if not isfile(value):
+            raise TypeError("photo must exist")
+    def get_photo(self):
+        """returns value of photo"""
         raise NotImplementedError
         
     def set_email(self, value):
@@ -201,10 +226,13 @@ class AbstractDocument:
 class CacheDocument(AbstractDocument):
     """data container on cache"""
 
-    def __init__(self):
+    def __init__(self, name="cache"):
+        AbstractDocument.__init__(self, name)
+        self.title = u""
         self.firstname = u""
         self.lastname = u""
         self.pseudo = u""
+        self.photo = ""
         self.email = u""
         self.birthday = mx.DateTime.now()
         self.language = u""
@@ -223,6 +251,14 @@ class CacheDocument(AbstractDocument):
 
         
     # PERSONAL TAB
+    def set_title(self, value):
+        """sets new value for title"""
+        AbstractDocument.set_firstname(self, value)
+        self.title = value
+    def get_title(self):
+        """returns value of title"""
+        return self.title
+        
     def set_firstname(self, value):
         """sets new value for firstname"""
         AbstractDocument.set_firstname(self, value)
@@ -246,6 +282,14 @@ class CacheDocument(AbstractDocument):
     def get_pseudo(self):
         """returns value of pseudo"""
         return self.pseudo
+
+    def set_photo(self, value):
+        """sets new value for photo"""
+        AbstractDocument.set_photo(self, value)
+        self.photo = value
+    def get_photo(self):
+        """returns value of photo"""
+        return self.photo
 
     def set_email(self, value):
         """sets new value for email"""

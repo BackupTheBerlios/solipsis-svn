@@ -4,10 +4,20 @@
 
 import wx
 from ProfileFrame import ProfileFrame
+from solipsis.services.profile.facade import get_facade
+from solipsis.services.profile.document import CacheDocument
+from solipsis.services.profile.view import PrintView
 
 if __name__ == "__main__":
     import gettext
     gettext.install("app") # replace with the appropriate catalog name
+
+    #set up facade
+    facade = get_facade()
+    doc = CacheDocument()
+    view = PrintView(doc)
+    facade.add_document(doc)
+    facade.add_view(view)
 
     app = wx.PySimpleApp(0)
     wx.InitAllImageHandlers()

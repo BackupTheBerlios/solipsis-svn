@@ -5,10 +5,15 @@ workings of documents"""
 class AbstractView:
     """Base class for all views"""
 
-    def __init__(self, document):
+    def __init__(self, document, name="abstract"):
         self.document = document
+        self.name = name
 
     # PERSONAL TAB
+    def update_title(self):
+        """display title in view"""
+        raise NotImplementedError
+
     def update_firstname(self):
         """display firstname in view"""
         raise NotImplementedError
@@ -19,6 +24,10 @@ class AbstractView:
 
     def update_pseudo(self):
         """pseudo"""
+        raise NotImplementedError
+
+    def update_photo(self):
+        """photo"""
         raise NotImplementedError
 
     def update_email(self):
@@ -84,10 +93,14 @@ class AbstractView:
 class PrintView(AbstractView):
     """synthetises information and renders it in HTML"""
 
-    def __init__(self, document):
-        AbstractView.__init__(self, document)
+    def __init__(self, document, name="print"):
+        AbstractView.__init__(self, document, name)
 
     # PERSONAL TAB
+    def update_title(self):
+        """title"""
+        print  self.document.get_title()
+
     def update_firstname(self):
         """firstname"""
         print self.document.get_firstname()
@@ -98,7 +111,11 @@ class PrintView(AbstractView):
 
     def update_pseudo(self):
         """pseudo"""
-        print self.document.get_pseudo()       
+        print self.document.get_pseudo()  
+
+    def update_photo(self):
+        """photo"""
+        print self.document.get_photo()      
 
     def update_email(self):
         """email"""

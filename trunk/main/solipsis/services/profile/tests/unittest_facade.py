@@ -7,7 +7,7 @@ from StringIO import StringIO
 
 from solipsis.services.profile.document import CacheDocument
 from solipsis.services.profile.view import PrintView
-from solipsis.services.profile.facade import Facade
+from solipsis.services.profile.facade import get_facade
 from mx.DateTime import DateTime
 
 class FacadeTest(unittest.TestCase):
@@ -16,7 +16,7 @@ class FacadeTest(unittest.TestCase):
     def setUp(self):
         """override one in unittest.TestCase"""
         doc = CacheDocument()
-        self.facade = Facade(doc, PrintView(doc))
+        self.facade = get_facade(doc, PrintView(doc))
         self.sys_stdout = sys.stdout
         self.sys_stderr = sys.stderr
         sys.stdout = StringIO()
@@ -30,6 +30,12 @@ class FacadeTest(unittest.TestCase):
         sys.stderr = self.sys_stderr
 
     # PERSONAL TAB
+    def test_change_title(self):
+        """sets new value for title"""
+        self.facade.change_title(u'Mr')
+        self.assertEquals("Mr\n", sys.stdout.getvalue())
+        self.assertEquals("", sys.stderr.getvalue())
+        
     def test_change_firstname(self):
         """sets new value for firstname"""
         self.facade.change_firstname(u'manu')
@@ -46,6 +52,12 @@ class FacadeTest(unittest.TestCase):
         """sets new value for pseudo"""
         self.facade.change_pseudo(u'emb')
         self.assertEquals("emb\n", sys.stdout.getvalue())
+        self.assertEquals("", sys.stderr.getvalue())
+
+    def test_change_photo(self):
+        """sets new value for photo"""
+        self.facade.change_photo(unittest.__file__)
+        self.assertEquals("%s\n"% unittest.__file__, sys.stdout.getvalue())
         self.assertEquals("", sys.stderr.getvalue())
 
     def test_change_email(self):
@@ -135,21 +147,25 @@ class FacadeTest(unittest.TestCase):
         """sets peer as friend """
         self.facade.add_peer(u"emb")
         self.assertEquals("{u'emb': emb (0)}\n", sys.stdout.getvalue())
+        self.assertEquals("", sys.stderr.getvalue())
         
     def test_friend(self):
         """sets peer as friend """
         self.facade.make_friend(u"emb")
         self.assertEquals("{u'emb': emb (1)}\n", sys.stdout.getvalue())
+        self.assertEquals("", sys.stderr.getvalue())
         
     def test_blacklisted(self):
         """sets peer as friend """
         self.facade.blacklist_peer(u"emb")
         self.assertEquals("{u'emb': emb (2)}\n", sys.stdout.getvalue())
+        self.assertEquals("", sys.stderr.getvalue())
         
     def test_unmarked(self):
         """sets peer as friend """
         self.facade.unmark_peer(u"emb")
         self.assertEquals("{u'emb': emb (0)}\n", sys.stdout.getvalue())
+        self.assertEquals("", sys.stderr.getvalue())
 
 
 if __name__ == '__main__':

@@ -14,6 +14,12 @@ class ValidatorTest(unittest.TestCase):
         self.document = CacheDocument()
 
     # PERSONAL TAB
+    def test_title(self):
+        """title as unicode"""
+        self.assertRaises(TypeError, self.document.set_title, "Mr")
+        self.assertRaises(TypeError, self.document.set_title, [u"Mr", ])
+        self.document.set_title(u"Mr")
+        
     def test_firstname(self):
         """firstname as unicode"""
         self.assertRaises(TypeError, self.document.set_firstname, "manu")
@@ -31,6 +37,11 @@ class ValidatorTest(unittest.TestCase):
         self.assertRaises(TypeError, self.document.set_pseudo, "emb")
         self.assertRaises(TypeError, self.document.set_pseudo, [u"manu", u"emb"])
         self.document.set_pseudo(u"emb")
+    
+    def test_photo(self):
+        """photo as unicode"""
+        self.assertRaises(TypeError, self.document.set_photo, "./dummy/dummy.jpg")
+        self.document.set_photo(unittest.__file__)
         
     def test_email(self):
         """email as unicode"""
