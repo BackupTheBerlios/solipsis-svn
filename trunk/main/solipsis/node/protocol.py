@@ -3,6 +3,11 @@ import re
 import new
 import logging
 
+try:
+    set
+except:
+    from sets import Set as set
+
 from solipsis.util.exception import *
 from solipsis.util.geometry import Position
 from solipsis.util.address import Address
@@ -201,11 +206,12 @@ class Parser(object):
         """
         Strip unnecessary parameters from message.
         """
-        d = dict.fromkeys([ATTRIBUTE_NAMES[arg_id] for arg_id in REQUESTS[message.request]])
+#         print message.request
+#         print REQUESTS[message.request]
+        required_args = set([ATTRIBUTE_NAMES[arg_id] for arg_id in REQUESTS[message.request]])
         args = message.args
-        for k in args.__dict__:
-            if k not in d:
-                delattr(args, k)
+        for k in set(args.__dict__) - required_args:
+            delattr(args, k)
 
     def BuildMessage(self, message):
         """

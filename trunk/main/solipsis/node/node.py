@@ -11,10 +11,9 @@ from peer import PeersManager
 
 
 class Node(Entity):
-    def __init__(self, reactor, params, node_connector=None):
+    def __init__(self, reactor, params):
         self.reactor = reactor
         self.params = params
-        self.node_connector = node_connector
 
         if not params.bot:
             # TODO: initialize XMLRPC
@@ -45,8 +44,6 @@ class Node(Entity):
         # set world size in Geometry class
         Geometry.SIZE = params.world_size
 
-#         self.state = None
-#         self.setState(state.NotConnected())
 
     def CreateId(self):
         # TODO: reasonable ID generation and attribution

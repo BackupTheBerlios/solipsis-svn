@@ -252,6 +252,7 @@ class PeerEventFactory(EventFactory):
         Args: 'Remote-Address', 'Remote-Position'
         """
         evt = PeerEvent('NEAREST')
+        evt.addArg(protocol.ARG_REMOTE_ID, peer.getId())
         evt.addArg(protocol.ARG_REMOTE_ADDRESS, peer.getAddress())
         evt.addArg(protocol.ARG_REMOTE_POSITION, peer.getPosition())
         return evt

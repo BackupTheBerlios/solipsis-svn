@@ -3,21 +3,31 @@ import sys
 import logging
 import re
 
+from node import Node
 from nodeconnector import NodeConnector
+from statemachine import StateMachine
+import states
 
 
 class Bootstrap(object):
+    from solipsis.util.geometry import Position
+    dummy_position = Position(1000, 200000, 0)
+
     def __init__(self, reactor, params):
         self.reactor = reactor
         self.params = params
-        self.node_connector = NodeConnector(reactor, params)
-        self.node = self.node_connector.node
+        self.node = Node(reactor, params)
+        self.state_machine = StateMachine(reactor, self.node)
+        self.node_connector = NodeConnector(reactor, params, self.state_machine)
 
         self.bootup_entities = self._ParseEntitiesFile(self.params.entities_file)
 
     def Run(self):
+        self.node.position = self.dummy_position
         self.reactor.listenUDP(self.params.port, self.node_connector)
-        self._SimpleFlood()
+        #self._SimpleFlood()
+        self.state_machine.ConnectWithEntities(sender=self.node_connector.SendMessage,
+                                                addresses=self.bootup_entities)
         self.reactor.run()
 
     #
@@ -25,11 +35,10 @@ class Bootstrap(object):
     #
     def _SimpleHello(self, address):
         import protocol
-        from solipsis.util.geometry import Position
         message = protocol.Message("HELLO")
         message.args.id_ = "toto"
         message.args.pseudo = "Antoine"
-        message.args.position = Position(1000,200,0)
+        message.args.position = self.dummy_position
         message.args.calibre = 0
         message.args.orientation = 0
         message.args.address = "127.0.0.1:%d" % self.params.port
@@ -42,7 +51,7 @@ class Bootstrap(object):
 
     def _SimpleFlood(self):
         self._SimpleBoot()
-        self.reactor.callLater(0, self._SimpleFlood)
+        self.reactor.callLater(5.0, self._SimpleFlood)
 
     def _ParseEntitiesFile(self, filename):
         f = file(filename)

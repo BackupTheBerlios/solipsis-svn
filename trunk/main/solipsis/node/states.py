@@ -109,9 +109,6 @@ class Connecting(State):
     It is now attempting to connect to these peers.
     """
 
-    expected_peer_messages = ['HELLO', 'CONNECT']
-    expected_control_messages = ['MOVE', 'KILL', 'SET']
-
     # in the connecting state we increase our awareness radius in a linear way
     PERCENTAGE_AR_INCREASE = 0.3
     # maximum number of times we will try to incerease our awareness radius

@@ -12,7 +12,7 @@ import states
 try:
     set
 except:
-    from Sets import Set as set
+    from sets import Set as set
 
 
 class StateMachine(object):
@@ -45,16 +45,20 @@ class StateMachine(object):
         """
         self.reactor = reactor
         self.node = node
-        self.peers = self.node.getPeersManager()
+        self.peers = self.node.peersManager
         self.logger = logger or logging.getLogger("root")
+        self.parser = protocol.Parser()
 
         self.peer_dispatch_cache = {}
-        self.peer_dispatch = None
+        self.state_dispatch = {}
+        self.delayed = None
 
         self.Reset()
 
     def Reset(self):
         self.state = None
+        self.sender = None
+        self.peer_dispatch = {}
 
         # Id's of the peers encountered during a FINDNEAREST chain
         self.nearest_peers = set()
@@ -63,6 +67,16 @@ class StateMachine(object):
         # BEST peer discovered at the end of a FINDNEAREST chain
         self.best_peer = None
 
+        self._CancelDelayed()
+
+    def ConnectWithEntities(self, sender, addresses):
+        self.Reset()
+        self.sender = sender
+
+        message = self._PeerMessage('FINDNEAREST')
+        for address in addresses:
+            self._SendToAddress(address, message)
+        self.SetState(states.Locating())
 
     def SetState(self, state):
         """
@@ -70,27 +84,38 @@ class StateMachine(object):
         The 'state' parameter must be an instance of one
         of the State subclasses.
         """
+        old_state = self.state
         self.state = state
+        _class = state.__class__
         try:
-            self.peer_dispatch = self.peer_dispatch_cache[state.__class__]
+            self.peer_dispatch = self.peer_dispatch_cache[_class]
         except KeyError:
             # Here we build a cache for dispatching peer messages
             # according to the current state.
             d = {}
-            _class = state.__class__
             # We restrict message types according both to:
             # 1. expected messages in the given state
             # 2. accepted states for the given message type
             try:
-                messages = state.expected_messages
+                messages = state.expected_peer_messages
             except AttributeError:
                 messages = self.accepted_peer_messages.keys()
             for request in messages:
                 l = self.accepted_peer_messages[request]
                 if len(l) == 0 or _class in l:
-                    d[request] = getattr(self.state_machine, 'peer_' + request)
+                    d[request] = getattr(self, 'peer_' + request)
             self.peer_dispatch = d
-            self.peer_dispatch_cache[state.__class__] = d
+            self.peer_dispatch_cache[_class] = d
+        # Call state initialization function
+        if _class != old_state.__class__:
+            self._CancelDelayed()
+            try:
+                func = self.state_dispatch[_class]
+            except:
+                func = getattr(self, 'state_' + _class.__name__, None)
+                self.state_dispatch[_class] = func
+            if func is not None:
+                func()
 
     def InState(self, state_class):
         """
@@ -103,22 +128,43 @@ class StateMachine(object):
         Called by the network routines when a proper Solipsis message is received.
         """
         try:
-            self.dispatch[request](args)
+            func = self.peer_dispatch[request]
         except:
-            self.logger.debug("Ignoring unexpected message '%s' in state '%s'" % (request, state.__class__.__name__))
+            self.logger.info("Ignoring unexpected message '%s' in state '%s'" % (request, self.state.__class__.__name__))
         else:
+            func(args)
             # TODO: properly handle heartbeat et al.
             try:
                 id_ = args.id_
-            except KeyError:
+            except AttributeError:
                 pass
             else:
                 manager = self.peers
                 manager.heartbeat(id_)
 
+    def _CancelDelayed(self):
+        if self.delayed is not None:
+            try:
+                self.delayed[1].cancel()
+                self.delayed = None
+            except:
+                pass
+
+    def _CallLater(self, _delay, _function, *args, **kargs):
+        self.delayed = (_delay, self.reactor.callLater(_delay, _function, *args, **kargs))
+
+    def _CallPeriodically(self, _period, _function, *args, **kargs):
+        def fun():
+            _function(*args, **kargs)
+            self._CallLater(_period, fun)
+        self._CallLater(_period, fun)
+
     def _Peer(self, args):
+        """
+        Returns a Peer created from the given message arguments.
+        """
         return Peer(
-            address = args.address
+            address = args.address,
             awareness_radius = args.awareness_radius,
             calibre = args.calibre,
             id_ = args.id_,
@@ -127,8 +173,11 @@ class StateMachine(object):
             pseudo = args.pseudo)
 
     def _RemotePeer(self, args):
+        """
+        Returns a Peer created from the given "Remote-*" message arguments.
+        """
         return Peer(
-            address = args.remote_address
+            address = args.remote_address,
             awareness_radius = args.remote_awareness_radius,
             calibre = args.remote_calibre,
             id_ = args.remote_id,
@@ -150,19 +199,20 @@ class StateMachine(object):
         return True
 
     def _PeerMessage(self, request, entity=None, remote_entity=None):
-        if peer is None:
-            peer = self.node
-        message = protocol.Message()
+        if entity is None:
+            entity = self.node
+        message = protocol.Message(request)
         # Build message args from involved entities
         # This could be smarter...
         a = message.args
-        a.address = entity.address
-        a.awareness_radius = entity.awareness_radius
-        a.calibre = entity.calibre
-        a.id_ = entity.id_
-        a.orientation = entity.orientation
-        a.position = entity.position
-        a.pseudo = entity.pseudo
+        e = entity
+        a.address = e.address
+        a.awareness_radius = e.awareness_radius
+        a.calibre = e.calibre
+        a.id_ = e.id_
+        a.orientation = e.orientation
+        a.position = e.position
+        a.pseudo = e.pseudo
         if remote_entity:
             r = remote_entity
             a.remote_address = r.address
@@ -177,12 +227,32 @@ class StateMachine(object):
         return message
 
     def _SendToAddress(self, address, message):
-        print "sending '%s' message to %s:" % (message.request, str(address))
-        #print data
+        if self.sender is not None:
+            self.sender(message=message, address=address)
+        else:
+            self.logger.warning("Attempting to send message but sender method is not initialized")
 
     def _SendToPeer(self, peer, message):
         data = self.parser.BuildMessage(message)
         self._SendToAddress(peer.address, message)
+
+    #
+    # State changes
+    #
+    def state_Connecting(self):
+        def hello():
+            print "connecting"
+        self._CallPeriodically(1, hello)
+
+    def state_Scanning(self):
+        def hello():
+            print "scanning"
+        self._CallPeriodically(1, hello)
+
+    def state_Connecting(self):
+        def hello():
+            print "connecting"
+        self._CallPeriodically(1, hello)
 
     #
     # Peer events
@@ -202,7 +272,7 @@ class StateMachine(object):
             # check if we have not already connected to this peer
             if manager.hasPeer(peer.id_):
                 manager.removePeer(peer.id_)
-                self.logger.debug('HELLO from %s, but we are already connected',
+                self.logger.info('HELLO from %s, but we are already connected',
                                   peer.getId())
             if self._SayConnect(peer):
                 self._AddPeer(peer)
@@ -221,7 +291,7 @@ class StateMachine(object):
             # TODO: notify
 
         else:
-            self.logger.debug('reception of CONNECT but we are already connected to'
+            self.logger.info('reception of CONNECT but we are already connected to'
                               + peer.getId())
 
     def peer_CLOSE(self, args):
@@ -231,7 +301,7 @@ class StateMachine(object):
         id_ = args.id_
         manager = self.peers
         if not manager.hasPeer(id_):
-            self.logger.debug('CLOSE from %s, but we are not connected' % id_)
+            self.logger.info('CLOSE from %s, but we are not connected' % id_)
             return
 
         self._RemovePeer(manager.getPeer(id_))
@@ -259,19 +329,29 @@ class StateMachine(object):
         """
         A peer answers us a NEAREST message.
         """
-        # Create a find nearest event
         id_ = args.remote_id
+        # Loop detection
         if id_ in self.nearest_peers:
             self.logger.warning("Infinite loop in FINDNEAREST algorithm: %s"
                     % ", ".join(["'" + str(i) + "'" for i in self.nearest_peers]))
-        else:
-            self.nearest_peers.add(id_)
-            address = args.remote_address
-            self._SendToAddress(address, self._PeerMessage('FINDNEAREST'))
-            # We could come here from the Scanning procedure,
-            # if a neighbour finds someone closer to us than our current BEST
-            if self.InState(states.Scanning):
-                self.SetState(states.Locating())
+            return
+        # Check we do not already have a better candidate
+        if self.best_peer is not None:
+            if id_ == self.best_peer.id_:
+                self.logger.info("NEAREST received, but proposed is already our best")
+                return
+            elif (Geometry.distance(self.node.position, self.best_peer.position) <=
+                Geometry.distance(self.node.position, args.remote_position)):
+                self.logger.info("NEAREST received, but proposed peer is farther than our current best")
+                return
+
+        self.nearest_peers.add(id_)
+        address = args.remote_address
+        self._SendToAddress(address, self._PeerMessage('FINDNEAREST'))
+        # We could come here from the Scanning procedure,
+        # if a neighbour finds someone closer to us than our current BEST
+        if self.InState(states.Scanning):
+            self.SetState(states.Locating())
 
     def peer_BEST(self, args):
         """
@@ -289,7 +369,7 @@ class StateMachine(object):
         # Store the best peer and launch the scanning procedure
         self.best_peer = peer
         self.nearest_peers.clear()
-        self.scanned.neighbours = [peer]
+        self.scanned_neighbours = [peer]
         self.SetState(states.Scanning())
 
     def peer_FINDNEAREST(self, args):
@@ -361,15 +441,15 @@ class StateMachine(object):
             # Our awareness radius is the distance between us and our closest
             # neighbour, because we are sure to know all the entities between us
             # and the best.
-            self.node.setAwarenessRadius(best_distance)
+            self.node.awareness_radius = best_distance
 
             # Try to connect with those peers
             for p in self.scanned_neighbours:
                 self._SayHello(p.address)
 
-            self.scanned_neighbours.clear()
+            self.scanned_neighbours = []
             self.best_peer = None
-            self.node.setState(Connecting())
+            self.SetState(states.Connecting())
             return
 
         # Add this peer to our list of neighbours
@@ -377,8 +457,8 @@ class StateMachine(object):
 
         # Send this peer a queryaround message
         message = self._PeerMessage('QUERYAROUND')
-        message.args.best_id = peer.id_
-        message.args.best_distance = Geometry.distance(self.node.position, peer.position)
+        message.args.best_id = self.best_peer.id_
+        message.args.best_distance = Geometry.distance(self.node.position, self.best_peer.position)
         self._SendToPeer(peer, message)
 
     def peer_QUERYAROUND(self, args):
@@ -404,7 +484,7 @@ class StateMachine(object):
             if around is not None:
                 self.SendToAddress(args.address, self._PeerMessage('AROUND', remote_peer=around))
             else:
-                self.logger.debug('QUERYAROUND received, but no peer around position: %s' % str(target))
+                self.logger.info('QUERYAROUND received, but no peer around position: %s' % str(target))
 
     def peer_HEARTBEAT(self, args):
         """
@@ -422,7 +502,7 @@ class StateMachine(object):
 
         manager = self.peers
         if not manager.hasPeer(peer.id_):
-            self.logger.debug('UPDATE from %s, but we are not connected' % peer.id_)
+            self.logger.info('UPDATE from %s, but we are not connected' % peer.id_)
             return
 
         # Save old peer value
@@ -528,7 +608,7 @@ class StateMachine(object):
             self.jump()
 
     def control_KILL(self, event):
-        self.logger.debug("Received kill message")
+        self.logger.info("Received kill message")
         self.node.exit()
 
     def control_ABORT(self, event):
