@@ -691,7 +691,7 @@ class StateMachine(object):
         Add a peer and send the necessary notification messages.
         """
         if not self.topology.AddPeer(peer):
-            self._Verbose("topology refused peer '%s'" % peer.id_)
+            self.logger.warning("topology refused peer '%s'" % peer.id_)
             return
 
         def msg_receive_timeout():
@@ -1009,4 +1009,3 @@ class StateMachine(object):
         if not self.params.quiet:
             sys.stdout.write(s)
         self.logger.info(s)
-
