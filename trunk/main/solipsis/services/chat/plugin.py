@@ -67,7 +67,7 @@ class Plugin(ServicePlugin):
         self._SetHosts()
         # Set up main GUI hooks
         menu = wx.Menu()
-        self.service_api.SetMenu('Chat', menu)
+        self.service_api.SetMenu(_("Chat"), menu)
 
     def Disable(self):
         self.network.Stop()

@@ -86,11 +86,12 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.locale.Init2()
         try:
             translation_dir = self.params.translation_dir
-            self.locale.AddCatalogLookupPathPrefix(translation_dir)
         except AttributeError:
             print "No translation dir specified"
             pass
-        self.locale.AddCatalog("solipsis")
+        else:
+            self.locale.AddCatalogLookupPathPrefix(translation_dir)
+            self.locale.AddCatalog("solipsis")
         # Workaround for buggy Python behaviour with floats
         system_locale.setlocale(system_locale.LC_NUMERIC, "C")
 

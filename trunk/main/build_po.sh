@@ -19,7 +19,7 @@ function do_po() {
 	PY_FILES=`find -name '*.py' -not -path "*/services/*/*"`
 
 	echo "" | $GETTEXT_FIRST -
-	wxrc -g $XRC_FILES | $GETTEXT -
+	wxrc -g $XRC_FILES | $GETTEXT --no-location -
 	$GETTEXT $PY_FILES
 
 	# 2. Create or update PO files

@@ -94,13 +94,27 @@ class ServiceCollector(object):
         """
         Load a service plugin, register it and initialize it.
         """
+        # Get main plugin file
         plugin_file = os.path.join(path, 'plugin.py')
         assert os.path.isfile(plugin_file), "Bad service plug-in: %s" % plugin_file
         print "Loading service '%s'..." % name
+
+        # Import the plugin and instantiate it
         plugin_module = _import('solipsis.services.%s.plugin' %name)
         api = self.ServiceAPI(self, name)
         plugin = plugin_module.Plugin(api)
         self.plugins[name] = plugin
+
+        # Initialize plugin-specific localization files
+        translation_dir = os.path.join(path, 'po')
+        if os.path.isdir(translation_dir):
+            locale = wx.GetLocale()
+            locale.AddCatalogLookupPathPrefix(translation_dir)
+            if not locale.AddCatalog("solipsis_%s" % name):
+                print "Warning: failed to load translations for plugin '%s'" % name
+        else:
+            print "Warning: plugin \"%s\" has no translation directory" % name
+
         # When plugin.Init() is called, everything else should have been
         # properly initialized for the plugin to interact with it.
         plugin.Init()
