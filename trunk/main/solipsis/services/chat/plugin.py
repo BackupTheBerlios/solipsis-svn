@@ -30,6 +30,8 @@ from gui import ChatWindow
 
 
 class Plugin(ServicePlugin):
+    str_action = "Chat with all peers"
+
     def Init(self):
         self.reactor = self.service_api.GetReactor()
         # TODO: smartly discover our own address IP
@@ -45,7 +47,7 @@ class Plugin(ServicePlugin):
         return _("Talk with the people that are currently around you")
 
     def GetAction(self):
-        return _("Chat with all peers")
+        return _(self.str_action)
 
     def GetPointToPointAction(self):
         return None
@@ -59,6 +61,7 @@ class Plugin(ServicePlugin):
     def Enable(self):
         # Set up chat GUI
         window = ChatWindow(self, self.service_api.GetDirectory())
+        main_window = self.service_api.GetMainWindow()
         self.ui = UIProxy(window)
         self.ui.AddPeer(self.service_api.GetNode())
         # Set up network connection
@@ -68,6 +71,9 @@ class Plugin(ServicePlugin):
         self._SetHosts()
         # Set up main GUI hooks
         menu = wx.Menu()
+        item_id = wx.NewId()
+        menu.Append(item_id, _(self.str_action))
+        wx.EVT_MENU(main_window, item_id, self.DoAction)
         self.service_api.SetMenu(_("Chat"), menu)
 
     def Disable(self):
@@ -76,7 +82,7 @@ class Plugin(ServicePlugin):
         self.ui.Destroy()
         self.ui = None
 
-    def DoAction(self):
+    def DoAction(self, evt=None):
         self.ui.Show()
     
     #~ def GotMessage(self, text, (host, port)):

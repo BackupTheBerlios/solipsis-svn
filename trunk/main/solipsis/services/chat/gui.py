@@ -42,7 +42,7 @@ class ChatWindow(wx.EvtHandler, XRCLoader, UIProxyReceiver):
         self.LoadResource(os.path.join(dir, "gui.xrc"))
         for obj_name in objects:
             setattr(self, obj_name, self.Resource(obj_name))
-        
+
         # Shortcuts to objects
         self.chat_panel = XRCCTRL(self.chat_window, "chat_panel")
         self.chat_edit = XRCCTRL(self.chat_window, "chat_edit")

@@ -58,7 +58,8 @@ class ServiceCollector(object):
 
     def __init__(self, params, ui, reactor):
         self.params = params
-        self.wxApp = ui
+        self.app = ui
+        self.main_window = ui.main_window
         self.ui = UIProxy(ui)
         self.reactor = reactor
         self.dir = self.params.services_dir
@@ -155,7 +156,7 @@ class ServiceCollector(object):
                 item = wx.MenuItem(menu, item_id, title.encode(self.charset))
                 def _clicked(evt):
                     plugin.DoAction()
-                wx.EVT_MENU(self.wxApp, item_id, _clicked)
+                wx.EVT_MENU(self.main_window, item_id, _clicked)
                 l.append(item)
         return l
 
@@ -261,6 +262,12 @@ class ServiceCollector(object):
         Get the plugin base directory.
         """
         return os.path.join(self.dir, service_id)
+
+    def service_GetMainWindow(self, service_id):
+        """
+        Get the navigator main window (wxWindow object).
+        """
+        return self.main_window
 
     def service_GetNode(self, service_id):
         """
