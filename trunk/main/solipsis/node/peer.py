@@ -30,12 +30,10 @@
 ##
 ## ******************************************************************************
 
-import random, string, time, logging, math
+import random
+import string, time, logging, math
 
-from solipsis.util.geometry import Geometry, Position
-from solipsis.util.address import Address
 from solipsis.util.exception import *
-from solipsis.util.container import CcwList, DistList
 
 from entity import Entity
 
@@ -47,6 +45,9 @@ class Peer(Entity):
 
         # Call parent class constructor
         super(Peer, self).__init__(*args, **kargs)
+
+        # TODO: initialize this from protocol message
+        self.keepalive_duration = 30
 
         # Time of latest messages received/sent
         self.last_received_message = 0

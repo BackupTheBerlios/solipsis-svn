@@ -2,7 +2,7 @@ import sys
 import logging
 
 from solipsis.util.parameter import Parameters
-from solipsis.util.geometry import Geometry, Position
+from solipsis.util.geometry import Position
 from solipsis.util.address import Address
 from solipsis.util.exception import *
 
@@ -38,7 +38,7 @@ class Node(Entity):
         self.logger.debug('node started')
 
         # Set world size in Geometry class
-        Geometry.SIZE = params.world_size
+#         Geometry.SIZE = params.world_size
 
 
     def CreateId(self):

@@ -2,13 +2,13 @@
 import logging
 import math
 
-from solipsis.util.geometry import Geometry
 from solipsis.util.exception import *
 
 from peer import Peer
 import protocol
 import states
 from topology import Topology
+from delayedcaller import DelayedCaller
 
 
 # Forward compatibility with built-in "set" types
@@ -19,8 +19,19 @@ except:
 
 
 class StateMachine(object):
-    teleportation_flood = 3
+    """
+    Finite State Machine of the Solipsis protocol.
+    This is where all the interesting stuff happens.
+    """
     world_size = 2**128
+
+    teleportation_flood = 3
+    peer_neighbour_ratio = 2.0
+
+    gc_check_period = 2.0
+    connection_check_period = 1.0
+    population_check_period = 4.0
+    heartbeat_period = 10.0
 
     # These are all the message types accepted from other peers.
     # Some of them will only be accepted in certain states.
@@ -62,7 +73,7 @@ class StateMachine(object):
 
         self.peer_dispatch_cache = {}
         self.state_dispatch = {}
-        self.delayed_calls = []
+        self.caller = DelayedCaller(self.reactor)
 
         self.Reset()
 
@@ -80,7 +91,7 @@ class StateMachine(object):
         self.best_peer = None
 
         self.topology.SetOrigin(self.node.position.getCoords())
-        self._CancelDelayedCalls()
+        self.caller.Reset()
 
     def ConnectWithEntities(self, sender, addresses):
         self.Reset()
@@ -121,7 +132,7 @@ class StateMachine(object):
             self.peer_dispatch_cache[_class] = d
         # Call state initialization function
         if _class != old_state.__class__:
-            self._CancelDelayedCalls()
+            self.caller.Reset()
             try:
                 func = self.state_dispatch[_class]
             except:
@@ -170,11 +181,14 @@ class StateMachine(object):
     def state_Connecting(self):
         print "connecting"
 
+        def connecting():
+            print "(still connecting)"
         def check_gc():
             # Periodically check global connectivity
             if self.topology.HasGlobalConnectivity():
                 self.SetState(states.Idle())
-        self._CallPeriodically(1, check_gc)
+        self.caller.CallPeriodically(self.connection_check_period, check_gc)
+        self.caller.CallPeriodically(1.0, connecting)
 
     def state_Idle(self):
         print "idle"
@@ -185,9 +199,9 @@ class StateMachine(object):
             if not self.topology.HasGlobalConnectivity():
                 self.SetState(states.LostGlobalConnectivity())
 
-        self._CallPeriodically(2, check_gc)
+        self.caller.CallPeriodically(self.gc_check_period, check_gc)
         self._CheckNumberOfPeers()
-        self._CallPeriodically(2, self._CheckNumberOfPeers)
+        self.caller.CallPeriodically(self.population_check_period, self._CheckNumberOfPeers)
 
     def state_LostGlobalConnectivity(self):
         print "lost global connectivity"
@@ -212,7 +226,7 @@ class StateMachine(object):
                 self._SendToPeer(pair[1], message2)
 
         check_gc()
-        self._CallPeriodically(2, check_gc)
+        self.caller.CallPeriodically(self.gc_check_period, check_gc)
 
 
     #
@@ -562,7 +576,7 @@ class StateMachine(object):
             raise NotImplementedError()
 
     #
-    # Private methods
+    # Private methods: connection management
     #
     def _AddPeer(self, peer):
         """
@@ -607,6 +621,24 @@ class StateMachine(object):
         self._SendToPeer(peer, self._PeerMessage('CLOSE'))
         self._RemovePeer(peer.id_)
 
+    def _SayHello(self, address):
+        # TODO: manage repeted connection failures and
+        # optionally cancel request (returning False)
+        self._SendToAddress(address, self._PeerMessage('HELLO'))
+        return True
+
+    def _SayConnect(self, peer):
+        # TODO: manage repeted connection failures and
+        # optionally cancel request (sending CLOSE and
+        # returning False)
+        self._SendToPeer(peer, self._PeerMessage('CONNECT'))
+        return True
+
+
+    #
+    # Private methods: algorithmic routines
+    #
+
     def _SwitchTopologies(self):
         new_peers = self.future_topology.PeersSet()
         old_peers = self.topology.PeersSet()
@@ -644,23 +676,6 @@ class StateMachine(object):
         # Go to the tracking state
         self.node.setState(Locating())
 
-    def _SayHello(self, address):
-        # TODO: manage repeted connection failures and
-        # optionally cancel request (returning False)
-        self._SendToAddress(address, self._PeerMessage('HELLO'))
-        return True
-
-    def _SayConnect(self, peer):
-        # TODO: manage repeted connection failures and
-        # optionally cancel request (sending CLOSE and
-        # returning False)
-        self._SendToPeer(peer, self._PeerMessage('CONNECT'))
-        return True
-
-    def _UpdateAwarenessRadius(self, ar):
-        self.node.awareness_radius = ar
-        self._SendUpdates()
-
     def _SendUpdates(self):
         """
         Send updates to all peers.
@@ -669,6 +684,10 @@ class StateMachine(object):
         message = self._PeerMessage('UPDATE')
         for peer in self.topology.EnumeratePeers():
             self._SendToPeer(peer, message)
+
+    def _UpdateAwarenessRadius(self, ar):
+        self.node.awareness_radius = ar
+        self._SendUpdates()
 
     def _CheckNumberOfPeers(self):
         """
@@ -707,51 +726,8 @@ class StateMachine(object):
                 self._CloseConnection(p)
 
     #
-    # Private methods: timers, protocol and stuff
+    # Private methods: protocol helpers
     #
-    def _CancelDelayedCalls(self):
-        """
-        Cancel all pending delayed calls.
-        Called on a state change.
-        """
-        for delayed in self.delayed_calls:
-            try:
-                delayed[1].cancel()
-            except Exception, e:
-                print str(e)
-        # Important: we must not create a new list
-        # (see _CallLater below)
-        self.delayed_calls[:] = []
-
-    def _CallLater(self, _delay, _function, *args, **kargs):
-        """
-        Call a function later in the current state.
-        The call will be cancelled if we enter another state.
-        """
-        # This class defines a callable that will remove itself
-        # from the list of delayed calls
-        class Fun:
-            def __call__(self):
-                self.delayed_calls.remove(self.delayed)
-                _function(*args, **kargs)
-        # We first register the callable, then give it the
-        # necessary parameters to remove itself...
-        fun = Fun()
-        delayed = (_delay, self.reactor.callLater(_delay, fun))
-        self.delayed_calls.append(delayed)
-        fun.delayed = delayed
-        fun.delayed_calls = self.delayed_calls
-
-    def _CallPeriodically(self, _period, _function, *args, **kargs):
-        """
-        Call a function once in a while in the current state.
-        The calls will be cancelled if we enter another state.
-        """
-        def fun():
-            self._CallLater(_period, fun)
-            _function(*args, **kargs)
-        self._CallLater(_period, fun)
-
     def _Peer(self, args):
         """
         Returns a Peer created from the given message arguments.
