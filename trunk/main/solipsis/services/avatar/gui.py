@@ -52,7 +52,7 @@ class ConfigDialog(wx.EvtHandler, XRCLoader, UIProxyReceiver):
         # Build the final result
         target = Image.new('RGBA', (self.size, self.size), background)
         target.paste(resized, None, mask)
-        target.show()
+        #~ target.show()
         # Convert to wxBitmap
         r, g, b, alpha = target.split()
         rgb_data = Image.merge('RGB', (r, g, b))
@@ -61,7 +61,18 @@ class ConfigDialog(wx.EvtHandler, XRCLoader, UIProxyReceiver):
         image.SetData(rgb_data.tostring())
         image.SetAlphaData(alpha.tostring())
         bitmap = wx.BitmapFromImage(image)
-        print bitmap.GetSize()
+        # Test!
+        #~ b2 = wx.Bitmap('avatars/lion.jpg')
+        #~ dialog = wx.Dialog(None, 4555, "title")
+        #~ dialog.Show()
+        #~ panel = wx.Panel(dialog)
+        #~ dc = wx.ClientDC(panel)
+        #~ dc.BeginDrawing()
+        #~ dc.DrawText("toto", 5, 5)
+        #~ dc.DrawBitmap(bitmap, 30, 30, useMask=False)
+        #~ dc.DrawBitmap(b2, 130, 130, useMask=False)
+        #~ dc.EndDrawing()
+        #~ panel.Update()
 
     def Destroy(self):
         pass

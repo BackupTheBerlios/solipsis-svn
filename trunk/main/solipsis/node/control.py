@@ -88,9 +88,9 @@ class RemoteControl(object):
         Allowed only if the process hosts a single node.
         """
         self._CheckConnectId(connect_id)
+        self._CloseConnection(connect_id)
         if self.params.pool:
             return False
-        self._CloseConnection(connect_id)
 
         # We cannot call self.reactor.stop synchronously,
         # since we must first return the method result over the network.
@@ -204,6 +204,7 @@ class RemoteControl(object):
             print "RemoteControl: connection timeout", connect_id
             self._CloseConnection(connect_id)
         self.caller.CallLaterWithId('timeout_' + connect_id, self.connection_timeout, _timeout)
+        self.state_machine.EnableServices()
         return connect_id
 
     def _CloseConnection(self, connect_id):
@@ -215,6 +216,8 @@ class RemoteControl(object):
             self._SendNotifs(connect_id, force=True)
         self.connections[connect_id].Reset()
         del self.connections[connect_id]
+        if not len(self.connections):
+            self.state_machine.DisableServices()
 
     def _CheckConnectId(self, connect_id):
         """

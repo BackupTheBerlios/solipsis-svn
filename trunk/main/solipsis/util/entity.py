@@ -116,6 +116,7 @@ class Entity(Marshallable):
         self.pseudo = pseudo
         self.services = {}
         self.languages = []
+        self.services_enabled = True
 
     def AddService(self, service):
         """
@@ -129,6 +130,18 @@ class Entity(Marshallable):
         """
         if service_id in self.services:
             del(self.services[service_id])
+    
+    def DisableServices(self):
+        """
+        Disable all services.
+        """
+        self.services_enabled = False
+
+    def EnableServices(self):
+        """
+        Enable all services.
+        """
+        self.services_enabled = True
 
     def GetService(self, service_id):
         """
@@ -140,6 +153,8 @@ class Entity(Marshallable):
         """
         Get a list of the entity's services.
         """
+        if not self.services_enabled:
+            return []
         return [s for s in self.services.itervalues() if s.known]
 
     def GetLanguages(self):
@@ -193,6 +208,8 @@ class Entity(Marshallable):
         to the other entity.
         """
         matched = []
+        if not self.services_enabled:
+            return matched
         for service in entity.services.values():
             # For each offered service, see if it matches ours
             my_service = self.services.get(service.id_)

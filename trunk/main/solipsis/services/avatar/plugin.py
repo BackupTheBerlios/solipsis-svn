@@ -80,7 +80,7 @@ class Plugin(ServicePlugin):
         except ValueError:
             pass
         else:
-            self.ui.AddPeer(peer)
+            #~ self.ui.AddPeer(peer)
             self.hosts[peer.id_] = host, port
 
     def ChangedPeer(self, peer, service):
@@ -89,18 +89,19 @@ class Plugin(ServicePlugin):
         except ValueError:
             if peer.id_ in self.hosts:
                 del self.hosts[peer.id_]
-                self.ui.RemovePeer(peer.id_)
+                #~ self.ui.RemovePeer(peer.id_)
                 self._SetHosts()
         else:
-            self.ui.UpdatePeer(peer)
+            #~ self.ui.UpdatePeer(peer)
             self.hosts[peer.id_] = host, port
 
     def LostPeer(self, peer_id):
         if peer_id in self.hosts:
             del self.hosts[peer_id]
-            self.ui.RemovePeer(peer_id)
+            #~ self.ui.RemovePeer(peer_id)
     
-    #~ def ChangedNode(self, node):
+    def ChangedNode(self, node):
+        pass
         #~ self.ui.RemovePeer(node.id_)
         #~ self.ui.AddPeer(node)
     

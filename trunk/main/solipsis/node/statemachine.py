@@ -806,7 +806,17 @@ class StateMachine(object):
             message.args.service_id = service_id
             message.args.payload = data
             self._SendToPeer(peer, message)
-
+    
+    def DisableServices(self):
+        self.node.DisableServices()
+        for peer in self.GetAllPeers():
+            self._SendMeta(peer)
+    
+    def EnableServices(self):
+        self.node.EnableServices()
+        for peer in self.GetAllPeers():
+            self._SendMeta(peer)
+    
     #
     # Private methods: add / remove peers
     #
