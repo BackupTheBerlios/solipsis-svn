@@ -75,10 +75,10 @@ class Plugin(ServicePlugin):
         menu.Append(item_id, _("&Configure"))
         wx.EVT_MENU(main_window, item_id, self.Configure)
         item_id = wx.NewId()
-        menu.Append(item_id, _("Stretch avatars\tCtrl+M"))
+        menu.Append(item_id, "%s\tCtrl++" % _("Stretch avatars"))
         wx.EVT_MENU(main_window, item_id, self.StretchAvatars)
         item_id = wx.NewId()
-        menu.Append(item_id, _("Shrink avatars\tCtrl+-"))
+        menu.Append(item_id, "%s\tCtrl+-" % _("Shrink avatars"))
         wx.EVT_MENU(main_window, item_id, self.ShrinkAvatars)
         self.service_api.SetMenu(_("Avatar"), menu)
         # Set up network handler
