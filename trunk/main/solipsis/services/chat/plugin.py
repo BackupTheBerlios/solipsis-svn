@@ -57,11 +57,15 @@ class Plugin(ServicePlugin):
     # Here comes the real action
     #
     def Enable(self):
+        # Set up chat GUI
         window = ChatWindow(self, self.service_api.GetDirectory())
         self.ui = UIProxy(window)
+        # Set up network connection
         n = NetworkLauncher(self.reactor, self, self.port)
         self.network = TwistedProxy(n, self.reactor)
         self.network.Start(self.GotMessage)
+        self._SetHosts()
+        # Set up main GUI hooks
         menu = wx.Menu()
         self.service_api.SetMenu('Chat', menu)
 
@@ -83,7 +87,7 @@ class Plugin(ServicePlugin):
         self.network.SendMessage(text)
 
     def NewPeer(self, peer, service):
-        #~ print "chat: NEW %s" % peer.id_
+        print "chat: NEW %s (%s)" % (peer.id_, service.address)
         try:
             host, port = self._ParseAddress(service.address)
         except ValueError:
@@ -93,7 +97,7 @@ class Plugin(ServicePlugin):
             self._SetHosts()
 
     def ChangedPeer(self, peer, service):
-        #~ print "chat: CHANGED %s" % peer.id_
+        print "chat: CHANGED %s (%s)" % (peer.id_, service.address)
         try:
             host, port = self._ParseAddress(service.address)
         except ValueError:
