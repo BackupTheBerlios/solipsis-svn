@@ -93,9 +93,11 @@ class Viewport(object):
         resized = False
         if self.draw_buffer is None or self.draw_buffer.GetSize() != (width, height):
             resized = True
-            self.draw_buffer = wx.EmptyBitmap(width, height)
+#             self.draw_buffer = wx.EmptyBitmap(width, height)
             self._SetFutureRatio()
 
+        # Under Windows, it seems we cannot re-use the same buffer twice (why ?)
+        self.draw_buffer = wx.EmptyBitmap(width, height)
         cpu_timer = AutoTimer()
         draw_timer = AutoTimer()
         cpu_time = 0
@@ -440,7 +442,10 @@ class Viewport(object):
             dc.BlitPointSize((0, h), (width, h), dc, (0, 0))
             h *= 2
         dc.EndDrawing()
+        # Under Windows, we must temporarily de-select the bitmap to set its mask
+        dc.SelectObject(wx.NullBitmap)
         bmp.SetMaskColour(transparent)
+        dc.SelectObject(bmp)
         self.dim_dc = dc
         return self.dim_dc
 

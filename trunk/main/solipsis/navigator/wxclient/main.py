@@ -14,7 +14,7 @@ def main():
                         help="configuration file")
     params = Parameters(parser, config_file=config_file)
 
-    application = NavigatorApp(parameters=params)
+    application = NavigatorApp(redirect=False, parameters=params)
     application.MainLoop()
     sys.exit(0)
 
