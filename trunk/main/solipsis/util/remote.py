@@ -20,6 +20,7 @@
 import os
 
 from solipsis.util.entity import Entity, ServiceData
+from solipsis.util.position import Position
 from solipsis.util.nodeproxy import XMLRPCNode
 
 
@@ -49,7 +50,6 @@ class RemoteConnector(object):
         def _failure(error):
             self.proxy = None
             self.ui.NodeConnectionFailed(error)
-            #~ print "connection failure:", str(error)
 
         if config_data.proxy_mode != "none" and config_data.proxy_host:
             proxy_host = config_data.proxy_host
@@ -84,13 +84,6 @@ class RemoteConnector(object):
         """
         return self.remote_node is not None
 
-    def Call(self, method, *args):
-        """
-        Call a remote function on the node.
-        """
-        print "!!!Call %s" % method
-        if self.proxy is not None:
-            getattr(self.proxy, method)(*args)
 
     #
     # Method response callbacks
@@ -112,7 +105,6 @@ class RemoteConnector(object):
         assert isinstance(reply, list), "Bad reply to GetAllPeers()"
         for struct_ in reply:
             peer = Entity.FromStruct(struct_)
-            #~ print "PEER", peer.id_
             self.ui.AddPeer(peer)
         self.ui.Redraw()
 
@@ -121,7 +113,6 @@ class RemoteConnector(object):
         Transmit node information to the viewport.
         """
         node = Entity.FromStruct(reply)
-        #~ print "NODE", node.id_
         self.ui.UpdateNode(node)
 
     def success_GetStatus(self, reply):
@@ -136,24 +127,26 @@ class RemoteConnector(object):
     #
     def event_CHANGED(self, struct_):
         peer = Entity.FromStruct(struct_)
-        #~ print "CHANGED", peer.id_
         self.ui.UpdatePeer(peer)
         self.ui.AskRedraw()
 
     def event_NEW(self, struct_):
         peer = Entity.FromStruct(struct_)
-        #~ print "NEW", peer.id_
         self.ui.AddPeer(peer)
         self.ui.AskRedraw()
 
     def event_LOST(self, peer_id):
-        #~ print "LOST", peer_id
         self.ui.RemovePeer(peer_id)
         self.ui.AskRedraw()
 
     def event_STATUS(self, status):
         print "STATUS", status
         self.ui.SetStatus(status)
+
+    def event_JUMPED(self, struct_):
+        position = Position.FromStruct(struct_)
+        self.ui.UpdateNodePosition(position)
+        self.ui.AskRedraw()
 
     def event_SERVICEDATA(self, struct_):
         d = ServiceData.FromStruct(struct_)

@@ -619,13 +619,7 @@ class StateMachine(object):
             return
 
         if self.future_topology.HasGlobalConnectivity():
-            # Our awareness radius is the distance between us and our closest
-            # neighbour, because we are "sure" to know all the entities between us
-            # and the best.
-            self.node.awareness_radius = self.best_distance
-            self.node.position = self.future_position
             self._SwitchTopologies()
-            self.topology.SetOrigin(self.node.position.GetXY())
             self.SetState(states.Connecting())
             return
 
@@ -740,10 +734,10 @@ class StateMachine(object):
 
         # Really jump near the target peer
         self.future_topology = Topology()
-        self.future_position = args.remote_position
-        self.future_topology.SetOrigin(self.future_position.GetXY())
+        self.future_topology.SetOrigin(args.remote_position.GetXY())
         self.future_topology.AddPeer(peer)
-        self._Jump()
+        self.future_position = args.remote_position
+        self._StartFindNearest(addresses=[args.address])
 
 
     #
@@ -917,10 +911,10 @@ class StateMachine(object):
             return True
         return not self.topology.IsWorstPeer(peer)
 
-    def _CloseCurrentConnections(self, keep_ids=None):
+    def _CloseCurrentConnections(self, keep_peers=None):
         remove_ids = []
         for p in self.topology.EnumeratePeers():
-            if keep_ids is None or p.id_ not in keep_ids:
+            if keep_peers is None or p.id_ not in keep_peers:
                 self._SendToPeer(p, self._PeerMessage('CLOSE'))
                 remove_ids.append(p.id_)
         for id_ in remove_ids:
@@ -935,40 +929,64 @@ class StateMachine(object):
     # Teleportation algorithm
     #
     def _SwitchTopologies(self):
+        """
+        Called when finished teleporting.
+        This function "commits" the future topology, notably by sending the
+        necessary HELLO and CLOSE messages.
+        """
+        # Our awareness radius is the distance between us and our closest
+        # neighbour, because we are "sure" to know all the entities between us
+        # and the best.
+        self.node.awareness_radius = self.best_distance
+        self.node.position = self.future_position
+        self.topology.SetOrigin(self.node.position.GetXY())
+
         new_peers = self.future_topology.PeersSet()
         old_peers = self.topology.PeersSet()
-
-        # Close our current connections, except with peers that
-        # are in our future topology.
-        self._CloseCurrentConnections(new_peers)
 
         # Try to connect with future peers
         for p in self.future_topology.EnumeratePeers():
             if p not in old_peers:
                 self._SayHello(p.address)
 
+        # Close connections with peers that do not belong to the new topology
+        self._CloseCurrentConnections(keep_peers=new_peers)
+
+        # Cleanup
+        self.future_topology = None
+        self.future_position = None
+
+        # Don't forget to notify our controller(s)
+        print self.node.position.GetXY()
+        self.event_sender.event_Jumped(self.node.position)
+
     def _Jump(self, position=None):
         """
-        Jump to the node's current position. This triggers
-        the recursive teleportation algorithm.
+        Jump to the given position, or by default the node's current position.
+        This triggers the recursive teleportation algorithm.
         """
         # Prefer future topology over current one
         topology = self.future_topology or self.topology
         addresses = [peer.address for peer in topology.GetNearestPeers(self.teleportation_flood)]
+        if position is None:
+            position = self.node.position
+        self.future_position = position
 
         # Start teleportation algorithm
         if addresses:
-            self._StartFindNearest(addresses, position=position)
+            self._StartFindNearest(addresses)
         else:
             self.TryConnect()
 
-    def _StartFindNearest(self, addresses, position=None):
+    def _StartFindNearest(self, addresses):
+        """
+        Start the teleportation algorithm.
+        """
         # Create future topology
-        if position is None:
-            position = self.node.position
+        if self.future_position is None:
+            self.future_position = self.node.position
         self.future_topology = Topology()
-        self.future_topology.SetOrigin(position.GetXY())
-        self.future_position = position
+        self.future_topology.SetOrigin(self.future_position.GetXY())
 
         # Send FINDNEAREST to all selected addresses
         message = self._PeerMessage('FINDNEAREST', future=True)

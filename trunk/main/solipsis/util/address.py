@@ -46,7 +46,8 @@ class Address(Marshallable):
 
     def FromString(cls, s):
         t = s.split(':')
-        assert len(t) == 2, "Wrong address format: '%s'" % s
+        if len(t) != 2:
+            raise ValueError("Wrong address format: '%s'" % s)
         obj = cls(t[0].strip(), t[1])
         return obj
 

@@ -117,6 +117,13 @@ class World(object):
         x, y, z = node.position.GetXYZ()
         self.viewport.JumpTo((x, y))
 
+    def UpdateNodePosition(self, position):
+        """
+        Called when the node's position is updated.
+        """
+        x, y, z = position.GetXYZ()
+        self.viewport.JumpTo((x, y))
+
     def UpdatePeer(self, peer):
         """
         Called when a peer has changed.

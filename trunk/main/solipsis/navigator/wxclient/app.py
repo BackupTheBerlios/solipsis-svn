@@ -414,8 +414,18 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     def _JumpNear(self, evt):
         """ Called on "jump near" event (menu -> Edit -> Jump Near). """
         if self._CheckNodeProxy():
-            address = Address('10.193.167.67', 5010)
-            self.node_proxy.JumpNear(address.ToStruct())
+            dialog = wx.TextEntryDialog(self.main_window,
+                message=_("Please enter the address to jump to"),
+                caption=_("Jump near an entity"),
+                defaultValue='192.33.178.29:5010'
+                )
+            if dialog.ShowModal() == wx.ID_OK:
+                try:
+                    address = Address.FromString(dialog.GetValue())
+                except ValueError, e:
+                    print str(e)
+                else:
+                    self.node_proxy.JumpNear(address.ToStruct())
 
     def _Kill(self, evt):
         """ Called on "kill" event (menu -> File -> Kill). """
@@ -576,6 +586,10 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     def UpdateNode(self, *args, **kargs):
         """ Update node information. """
         self.world.UpdateNode(*args, **kargs)
+    
+    def UpdateNodePosition(self, *args, **kargs):
+        """ Update node position. """
+        self.world.UpdateNodePosition(*args, **kargs)
     
     def ProcessServiceData(self, *args, **kargs):
         """ Process service-specific data. """
