@@ -3,7 +3,7 @@
 
 import wx, os, os.path
 from solipsis.services.profile.facade import get_facade
-from solipsis.services.profile import PROFILE_FILE
+from solipsis.services.profile import PROFILE_DIR, PROFILE_FILE
 
 # begin wxGlade: dependencies
 from FilePanel import FilePanel
@@ -24,22 +24,22 @@ class ProfileFrame(wx.Frame):
         self.profile_menu = wx.MenuBar()
         self.SetMenuBar(self.profile_menu)
         self.profile_item = wx.Menu()
-        self.activate_item = wx.MenuItem(self.profile_item, wx.NewId(), _("Activate"), _("Allow users seeing profile"), wx.ITEM_CHECK)
+        self.activate_item = wx.MenuItem(self.profile_item, wx.NewId(), _("&Activate\tCtrl+A"), _("Allow users seeing profile"), wx.ITEM_CHECK)
         self.profile_item.AppendItem(self.activate_item)
-        self.export_item = wx.MenuItem(self.profile_item, wx.NewId(), _("Export HTML ..."), _("Write HTML File"), wx.ITEM_NORMAL)
+        self.export_item = wx.MenuItem(self.profile_item, wx.NewId(), _("&Export HTML ...\tCtrl+E"), _("Write HTML File"), wx.ITEM_NORMAL)
         self.profile_item.AppendItem(self.export_item)
         self.profile_item.AppendSeparator()
-        self.load_item = wx.MenuItem(self.profile_item, wx.NewId(), _("Load ..."), "", wx.ITEM_NORMAL)
+        self.load_item = wx.MenuItem(self.profile_item, wx.NewId(), _("&Load ... \tCtrl+L"), "", wx.ITEM_NORMAL)
         self.profile_item.AppendItem(self.load_item)
-        self.save_item = wx.MenuItem(self.profile_item, wx.NewId(), _("Save ..."), _("Save profile into file"), wx.ITEM_NORMAL)
+        self.save_item = wx.MenuItem(self.profile_item, wx.NewId(), _("&Save ...\tCtrl+S"), _("Save profile into file"), wx.ITEM_NORMAL)
         self.profile_item.AppendItem(self.save_item)
-        self.quit_item = wx.MenuItem(self.profile_item, wx.NewId(), _("Quit"), _("Exit profile management"), wx.ITEM_NORMAL)
+        self.quit_item = wx.MenuItem(self.profile_item, wx.NewId(), _("&Quit\tCtrl+Q"), _("Exit profile management"), wx.ITEM_NORMAL)
         self.profile_item.AppendItem(self.quit_item)
         self.profile_menu.Append(self.profile_item, _("Profile"))
         self.search_item = wx.Menu()
-        self.raw_item = wx.MenuItem(self.search_item, wx.NewId(), _("Raw search..."), _("Search profile in surrounding area"), wx.ITEM_NORMAL)
+        self.raw_item = wx.MenuItem(self.search_item, wx.NewId(), _("&Find...\tCtrl+F"), _("Search profile in surrounding area"), wx.ITEM_NORMAL)
         self.search_item.AppendItem(self.raw_item)
-        self.filters_item = wx.MenuItem(self.search_item, wx.NewId(), _("Filters..."), _("Create active filters to get notified on peers approach"), wx.ITEM_NORMAL)
+        self.filters_item = wx.MenuItem(self.search_item, wx.NewId(), _("Filters...\tCtrl+H"), _("Create active filters to get notified on peers approach"), wx.ITEM_NORMAL)
         self.search_item.AppendItem(self.filters_item)
         self.profile_menu.Append(self.search_item, _("Search"))
         # Menu Bar end
@@ -64,12 +64,13 @@ class ProfileFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_save, id=self.save_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_export, id=self.export_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_load, id=self.load_item.GetId())
+        self.Bind(wx.EVT_MENU, self.on_quit, id=self.quit_item.GetId())
 
     def on_load(self, evt):
         """save .profile.solipsis"""
         dlg = wx.FileDialog(
             self, message="Load profile ...",
-            defaultDir=os.path.expanduser('~'), 
+            defaultDir=PROFILE_DIR,
             defaultFile=PROFILE_FILE,
             wildcard="Solipsis file (*.solipsis)|*.solipsis",
             style=wx.OPEN)
@@ -81,7 +82,7 @@ class ProfileFrame(wx.Frame):
         """save .profile.solipsis"""
         dlg = wx.FileDialog(
             self, message="Save profile as ...",
-            defaultDir=os.path.expanduser('~'), 
+            defaultDir=PROFILE_DIR,
             defaultFile=PROFILE_FILE,
             wildcard="Solipsis file (*.solipsis)|*.solipsis",
             style=wx.SAVE)
@@ -92,14 +93,18 @@ class ProfileFrame(wx.Frame):
     def on_export(self, evt):
         """save .profile.solipsis"""
         dlg = wx.FileDialog(
-            self, message="Save file as ...",
-            defaultDir=os.getcwd(), 
+            self, message="Export HTML file as ...",
+            defaultDir=PROFILE_DIR,
             defaultFile="",
             wildcard="HTML File (*.html)|*.html",
             style=wx.SAVE)
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
             self.facade.export_profile(path)
+
+    def on_quit(self, evt):
+        """end application"""
+        self.Close()
         
     def __set_properties(self):
         # begin wxGlade: ProfileFrame.__set_properties
@@ -115,6 +120,7 @@ class ProfileFrame(wx.Frame):
             self.profile_statusbar.SetStatusText(profile_statusbar_fields[i], i)
         self.profile_book.SetSize((400, 300))
         # end wxGlade
+        self.activate_item.Check()
 
     def __do_layout(self):
         # begin wxGlade: ProfileFrame.__do_layout

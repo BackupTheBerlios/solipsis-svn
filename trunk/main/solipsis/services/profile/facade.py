@@ -54,7 +54,6 @@ class Facade:
                 print >> stderr, "%s: %s"% (view.name, str(error))
     
     # MENU
-
     def save_profile(self, path):
         """save .profile.solipsis"""
         if "file" in self.documents:

@@ -6,7 +6,9 @@ import mx.DateTime
 import ConfigParser
 import os.path
 from os.path import isfile, isdir
-from solipsis.services.profile import ENCODING, PROFILE_FILE
+from solipsis.services.profile import ENCODING, \
+     PROFILE_DIR, PROFILE_FILE
+from solipsis.services.profile.images import DEFAULT_PIC
 
 DATE_FORMAT = "%d/%m/%Y"
 SECTION_PERSONAL = "Personal"
@@ -68,8 +70,7 @@ class AbstractDocument:
         self.set_country(other_document.get_country())
         self.set_description(other_document.get_description())
         # custom data
-        hobbies = other_document.get_hobbies()
-        self.set_hobbies('\n'.join(hobbies))
+        self.set_hobbies(other_document.get_hobbies())
         attributes = other_document.get_custom_attributes()
         for key, val in attributes.iteritems():
             self.add_custom_attributes((key, val))
@@ -207,8 +208,8 @@ class AbstractDocument:
     # CUSTOM TAB
     def set_hobbies(self, value):
         """sets new value for hobbies"""
-        if not isinstance(value, unicode):
-            raise TypeError("hobbies expected as unicode")
+        if not isinstance(value, list) and not isinstance(value, tuple):
+            raise TypeError("hobbies expected as list or tuple")
     def get_hobbies(self):
         """returns value of hobbies"""
         raise NotImplementedError
@@ -421,7 +422,7 @@ class CacheDocument(AbstractDocument):
     def set_hobbies(self, value):
         """sets new value for hobbies"""
         AbstractDocument.set_hobbies(self, value)
-        self.hobbies = value.split('\n')
+        self.hobbies = value
     def get_hobbies(self):
         """returns value of hobbies"""
         return self.hobbies
@@ -507,7 +508,7 @@ class FileDocument(AbstractDocument):
 
     def __init__(self, name="file"):
         AbstractDocument.__init__(self, name)
-        self.file_name = os.path.join(os.path.expanduser('~'), PROFILE_FILE)
+        self.file_name = os.path.join(PROFILE_DIR, PROFILE_FILE)
         self.encoding = ENCODING
         self.config = ConfigParser.ConfigParser()
         self.config.add_section(SECTION_PERSONAL)
@@ -541,7 +542,10 @@ class FileDocument(AbstractDocument):
         self.config.set(SECTION_PERSONAL, "title", value.encode(self.encoding))
     def get_title(self):
         """returns value of title"""
-        return unicode(self.config.get(SECTION_PERSONAL, "title"), self.encoding)
+        try:
+            return unicode(self.config.get(SECTION_PERSONAL, "title"), self.encoding)
+        except:
+            return u"Mr"
         
     def set_firstname(self, value):
         """sets new value for firstname"""
@@ -549,7 +553,10 @@ class FileDocument(AbstractDocument):
         self.config.set(SECTION_PERSONAL, "firstname", value.encode(self.encoding))
     def get_firstname(self):
         """returns value of firstname"""
-        return unicode(self.config.get(SECTION_PERSONAL, "firstname"), self.encoding)
+        try:
+            return unicode(self.config.get(SECTION_PERSONAL, "firstname", "Emmanuel"), self.encoding)
+        except:
+            return u"Emmanuel"
 
     def set_lastname(self, value):
         """sets new value for lastname"""
@@ -557,7 +564,10 @@ class FileDocument(AbstractDocument):
         self.config.set(SECTION_PERSONAL, "lastname", value.encode(self.encoding))
     def get_lastname(self):
         """returns value of lastname"""
-        return unicode(self.config.get(SECTION_PERSONAL, "lastname"), self.encoding)
+        try:
+            return unicode(self.config.get(SECTION_PERSONAL, "lastname"), self.encoding)
+        except:
+            return u"Bréton"
 
     def set_pseudo(self, value):
         """sets new value for pseudo"""
@@ -565,7 +575,10 @@ class FileDocument(AbstractDocument):
         self.config.set(SECTION_PERSONAL, "pseudo", value.encode(self.encoding))
     def get_pseudo(self):
         """returns value of pseudo"""
-        return unicode(self.config.get(SECTION_PERSONAL, "pseudo"), self.encoding)
+        try:
+            return unicode(self.config.get(SECTION_PERSONAL, "pseudo"), self.encoding)
+        except:
+            return u"emb"
 
     def set_photo(self, value):
         """sets new value for photo"""
@@ -573,7 +586,10 @@ class FileDocument(AbstractDocument):
         self.config.set(SECTION_PERSONAL, "photo", value.encode(self.encoding))
     def get_photo(self):
         """returns value of photo"""
-        return self.config.get(SECTION_PERSONAL, "photo")
+        try:
+            return self.config.get(SECTION_PERSONAL, "photo")
+        except:
+            return DEFAULT_PIC
 
     def set_email(self, value):
         """sets new value for email"""
@@ -581,7 +597,10 @@ class FileDocument(AbstractDocument):
         self.config.set(SECTION_PERSONAL, "email", value.encode(self.encoding))
     def get_email(self):
         """returns value of email"""
-        return unicode(self.config.get(SECTION_PERSONAL, "email"), self.encoding)
+        try:
+            return unicode(self.config.get(SECTION_PERSONAL, "email"), self.encoding)
+        except:
+            return u"emb@logilab.fr"
 
     def set_birthday(self, value):
         """sets new value for birthday"""
@@ -589,7 +608,11 @@ class FileDocument(AbstractDocument):
         self.config.set(SECTION_PERSONAL, "birthday", value.encode(self.encoding))
     def get_birthday(self):
         """returns value of birthday"""
-        return unicode(self.config.get(SECTION_PERSONAL, "birthday"), self.encoding)
+        try:
+            return unicode(self.config.get(SECTION_PERSONAL, "birthday"), self.encoding)
+        except:
+            return u"01/04/2005"
+            
 
     def set_language(self, value):
         """sets new value for language"""
@@ -597,7 +620,10 @@ class FileDocument(AbstractDocument):
         self.config.set(SECTION_PERSONAL, "language", value.encode(self.encoding))
     def get_language(self):
         """returns value of language"""
-        return unicode(self.config.get(SECTION_PERSONAL, "language"), self.encoding)
+        try:
+            return unicode(self.config.get(SECTION_PERSONAL, "language"), self.encoding)
+        except:
+            return u"fr"
 
     def set_address(self, value):
         """sets new value for """
@@ -605,7 +631,10 @@ class FileDocument(AbstractDocument):
         self.config.set(SECTION_PERSONAL, "address", value.encode(self.encoding))
     def get_address(self):
         """returns value of address"""
-        return unicode(self.config.get(SECTION_PERSONAL, "address"), self.encoding)
+        try:
+            return unicode(self.config.get(SECTION_PERSONAL, "address"), self.encoding)
+        except:
+            return u""
 
     def set_postcode(self, value):
         """sets new value for postcode"""
@@ -613,7 +642,10 @@ class FileDocument(AbstractDocument):
         self.config.set(SECTION_PERSONAL, "postcode", value.encode(self.encoding))
     def get_postcode(self):
         """returns value of postcode"""
-        return unicode(self.config.get(SECTION_PERSONAL, "postcode"), self.encoding)
+        try:
+            return unicode(self.config.get(SECTION_PERSONAL, "postcode"), self.encoding)
+        except:
+            return u"75"
 
     def set_city(self, value):
         """sets new value for city"""
@@ -621,7 +653,10 @@ class FileDocument(AbstractDocument):
         self.config.set(SECTION_PERSONAL, "city", value.encode(self.encoding))
     def get_city(self):
         """returns value of city"""
-        return unicode(self.config.get(SECTION_PERSONAL, "city"), self.encoding)
+        try:
+            return unicode(self.config.get(SECTION_PERSONAL, "city"), self.encoding)
+        except:
+            return u""
 
     def set_country(self, value):
         """sets new value for country"""
@@ -629,7 +664,10 @@ class FileDocument(AbstractDocument):
         self.config.set(SECTION_PERSONAL, "country", value.encode(self.encoding))
     def get_country(self):
         """returns value of country"""
-        return unicode(self.config.get(SECTION_PERSONAL, "country"), self.encoding)
+        try:
+            return unicode(self.config.get(SECTION_PERSONAL, "country"), self.encoding)
+        except:
+            return u""
 
     def set_description(self, value):
         """sets new value for description"""
@@ -637,17 +675,23 @@ class FileDocument(AbstractDocument):
         self.config.set(SECTION_PERSONAL, "description", value.encode(self.encoding))
     def get_description(self):
         """returns value of description"""
-        return unicode(self.config.get(SECTION_PERSONAL, "description"), self.encoding)
+        try:
+            return unicode(self.config.get(SECTION_PERSONAL, "description"), self.encoding)
+        except:
+            return u"Developer/Designer of this handful plugin"
 
     # CUSTOM TAB
     def set_hobbies(self, value):
         """sets new value for hobbies"""
         AbstractDocument.set_hobbies(self, value)
-        self.config.set(SECTION_CUSTOM, "hobbies", value.replace('\n', ',').encode(self.encoding))
+        self.config.set(SECTION_CUSTOM, "hobbies", ",".join(value).encode(self.encoding))
     def get_hobbies(self):
         """returns value of hobbies"""
-        return [unicode(hobby, self.encoding) for hobby 
-                in self.config.get(SECTION_CUSTOM, "hobbies").split( ',')]
+        try:
+            return [unicode(hobby, self.encoding) for hobby 
+                    in self.config.get(SECTION_CUSTOM, "hobbies").split( ',')]
+        except:
+            return []
 
     def add_custom_attributes(self, pair):
         """sets new value for custom_attributes"""
@@ -660,12 +704,14 @@ class FileDocument(AbstractDocument):
             self.config.remove_option(SECTION_CUSTOM, value)
     def get_custom_attributes(self):
         """returns value of custom_attributes"""
-        options = self.config.options(SECTION_CUSTOM)
         result = {}
-        for option in options:
-            if option != "hobbies":
-                result[option] = unicode(self.config.get(SECTION_CUSTOM, option), self.encoding)
-        return result
+        try:
+            options = self.config.options(SECTION_CUSTOM)
+            for option in options:
+                if option != "hobbies":
+                    result[option] = unicode(self.config.get(SECTION_CUSTOM, option), self.encoding)
+        finally:
+            return result
 
     # FILE TAB
     def set_repository(self, value):
@@ -674,7 +720,10 @@ class FileDocument(AbstractDocument):
         self.config.set(SECTION_FILE, "repository", value.encode(self.encoding))
     def get_repository(self):
         """returns value of repository"""
-        return unicode(self.config.get(SECTION_FILE, "repository"), self.encoding)
+        try:
+            return unicode(self.config.get(SECTION_FILE, "repository"), self.encoding)
+        except:
+            return unicode(os.path.expanduser('~'))
         
     def add_file(self, file_path):
         """stores File object"""
@@ -683,13 +732,15 @@ class FileDocument(AbstractDocument):
         
     def get_files(self):
         """returns value of files"""
-        options = self.config.options(SECTION_FILE)
         result = {}
-        for option in options:
-            if option != "repository":
-                result[option] = FileDescriptor(option,
-                                                unicode(self.config.get(SECTION_FILE, option), self.encoding))
-        return result
+        try:
+            options = self.config.options(SECTION_FILE)
+            for option in options:
+                if option != "repository":
+                    result[option] = FileDescriptor(option,
+                                                    unicode(self.config.get(SECTION_FILE, option), self.encoding))
+        finally:
+            return result
         
     def tag_file(self, pair):
         """sets new value for tagged file"""
@@ -704,13 +755,15 @@ class FileDocument(AbstractDocument):
     
     def get_peers(self):
         """returns Peers"""
-        options = self.config.options(SECTION_OTHERS)
         result = {}
-        for option in options:
-            uoption = unicode(option, self.encoding)
-            result[uoption] = PeerDescriptor(uoption,
-                                             self.config.get(SECTION_OTHERS, uoption))
-        return result
+        try:
+            options = self.config.options(SECTION_OTHERS)
+            for option in options:
+                uoption = unicode(option, self.encoding)
+                result[uoption] = PeerDescriptor(uoption,
+                                                 self.config.get(SECTION_OTHERS, uoption))
+        finally:
+            return result
         
     def make_friend(self, pseudo):
         """sets peer as friend """

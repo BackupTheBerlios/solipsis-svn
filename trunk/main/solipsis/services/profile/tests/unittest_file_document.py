@@ -62,7 +62,7 @@ hobbies = blabla,bla bla bla,
         self.document.set_city(u"Paris")
         self.document.set_country(u"France")
         self.document.set_description(u"anything")
-        self.document.set_hobbies(u"blabla\nbla bla bla\n")
+        self.document.set_hobbies([u"blabla", u"bla bla bla", u""])
         self.document.add_custom_attributes((u"homepage", u"manu.com"))
         self.document.add_custom_attributes((u'color', u'blue'))
         self.document.set_repository(".")

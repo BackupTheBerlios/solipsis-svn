@@ -106,7 +106,9 @@ class ValidatorTest(unittest.TestCase):
         """hobbies as unicode (multiple lines)"""
         self.assertRaises(TypeError, self.document.set_hobbies,
                           "blabla\nbla bla bla\n")
-        self.document.set_hobbies(u"blabla\nbla bla bla\n")
+        self.assertRaises(TypeError, self.document.set_hobbies,
+                          u"blabla\nbla bla bla\n")
+        self.document.set_hobbies([u"blabla", u"bla bla bla", u""])
         
     def test_custom_attributes(self):
         """custom_attributes as pair of key/unicode-value"""

@@ -94,7 +94,7 @@ class CustomPanel(wx.Panel):
         
     def on_hobbies(self, evt):
         """language loses focus"""
-        self.facade.change_hobbies(evt.GetEventObject().GetValue())
+        self.facade.change_hobbies(evt.GetEventObject().GetValue().split('\n'))
         evt.Skip()
         
     def on_more(self, evt):
@@ -104,7 +104,6 @@ class CustomPanel(wx.Panel):
         
     def __set_properties(self):
         # begin wxGlade: CustomPanel.__set_properties
-        self.custom_list.SetToolTipString(_("use format 'key:value' when editing"))
         self.add_custom_button.SetSize(self.add_custom_button.GetBestSize())
         self.del_custom_button.SetSize(self.del_custom_button.GetBestSize())
         # end wxGlade

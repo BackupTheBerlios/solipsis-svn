@@ -113,8 +113,8 @@ class FacadeTest(unittest.TestCase):
     # CUSTOM TAB
     def test_change_hobbies(self):
         """sets new value for hobbies"""
-        self.facade.change_hobbies(u'blablabl\nbla blabla \n')
-        self.assertEquals("[u'blablabl', u'bla blabla ', u'']\n", sys.stdout.getvalue())
+        self.facade.change_hobbies([u"blabla", u"bla bla bla", u""])
+        self.assertEquals("[u'blabla', u'bla bla bla', u'']\n", sys.stdout.getvalue())
         self.assertEquals("", sys.stderr.getvalue())
 
     def test_add_custom_attributes(self):
