@@ -67,7 +67,7 @@ class DirContainer:
         return "%s [%d]"% (self.name, self.nb_shared())
 
     def __repr__(self):
-        return "%s %s [%d]"% (self.name, str(self.content), self.nb_shared())
+        return "%s %s"% (str(self), str(self.content))
 
     def share_content(self, share=True):
         """(un)share all files of directory"""

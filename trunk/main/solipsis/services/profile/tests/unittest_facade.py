@@ -130,6 +130,11 @@ class FacadeTest(unittest.TestCase):
         self.assertRaises(KeyError, self.facade.remove_dir, u"data/subdir1")
         self.facade.add_dir(u"data/subdir1")
         self.facade.remove_dir(u"data/subdir1")
+        self.assertEquals("""[u'data']
+[u'data', u'data/subdir1']
+[u'data']
+""", sys.stdout.getvalue())
+        self.assertEquals("", sys.stderr.getvalue())
 
     def test_share_dir(self):
         """share all content of dir"""
@@ -141,6 +146,14 @@ class FacadeTest(unittest.TestCase):
         self.facade.add_dir(u"data/subdir1/subsubdir")
         self.facade.share_dir((u"data/emptydir", True))
         self.facade.share_dir((u"data/subdir1/subsubdir", True))
+        self.assertEquals("""[u'data']
+{u'data': data [3] {u'routage': data/routage [shared] [none], u'.path': data/.path [shared] [none], u'date.txt': data/date.txt [shared] [none]}}
+[u'data', u'data/emptydir']
+[u'data', u'data/emptydir', u'data/subdir1/subsubdir']
+{u'data/emptydir': emptydir [0] {}, u'data/subdir1/subsubdir': subsubdir [0] {u'dummy.txt': data/subdir1/subsubdir/dummy.txt  [none], u'null': data/subdir1/subsubdir/null  [none], u'default.solipsis': data/subdir1/subsubdir/default.solipsis  [none]}, u'data': data [3] {u'routage': data/routage [shared] [none], u'.path': data/.path [shared] [none], u'date.txt': data/date.txt [shared] [none]}}
+{u'data/emptydir': emptydir [0] {}, u'data/subdir1/subsubdir': subsubdir [3] {u'dummy.txt': data/subdir1/subsubdir/dummy.txt [shared] [none], u'null': data/subdir1/subsubdir/null [shared] [none], u'default.solipsis': data/subdir1/subsubdir/default.solipsis [shared] [none]}, u'data': data [3] {u'routage': data/routage [shared] [none], u'.path': data/.path [shared] [none], u'date.txt': data/date.txt [shared] [none]}}
+""", sys.stdout.getvalue())
+        self.assertEquals("", sys.stderr.getvalue())
 
     def test_share_files(self):
         """share specified files"""
@@ -148,6 +161,11 @@ class FacadeTest(unittest.TestCase):
         self.facade.share_files((u"data", ["routage"], True))
         self.assertRaises(ValueError, self.facade.share_files, (u"data", ["routage", "subdir1"], True))
         self.facade.share_files((u"data", ["routage"], False))
+        self.assertEquals("""[u'data']
+{u'data': data [1] {u'routage': data/routage [shared] [none], u'.path': data/.path  [none], u'date.txt': data/date.txt  [none]}}
+{u'data': data [0] {u'routage': data/routage  [none], u'.path': data/.path  [none], u'date.txt': data/date.txt  [none]}}
+""", sys.stdout.getvalue())
+        self.assertEquals("", sys.stderr.getvalue())
 
     def test_tag_files(self):
         """tag specified tags"""
@@ -155,14 +173,24 @@ class FacadeTest(unittest.TestCase):
         self.facade.tag_files((u"data", ["routage"], u"tag desc 1"))
         self.assertRaises(ValueError, self.facade.tag_files, (u"data", ["routage", "subdir1"], u"tag desc 2"))
         self.facade.tag_files((u"data", ["routage", "date.txt"], u"tag desc 3"))
+        self.assertEquals("""[u'data']
+{u'data': data [0] {u'routage': data/routage  [tag desc 1], u'.path': data/.path  [none], u'date.txt': data/date.txt  [none]}}
+{u'data': data [0] {u'routage': data/routage  [tag desc 3], u'.path': data/.path  [none], u'date.txt': data/date.txt  [tag desc 3]}}
+""", sys.stdout.getvalue())
+        self.assertEquals("", sys.stderr.getvalue())
 
-    def test_add_files(self):
+    def test_expand_dir(self):
         """expand dir"""
         self.facade.add_dir(u"data")
         self.facade.expand_dir(u"data")
         self.assertRaises(KeyError, self.facade.expand_dir, u"data/routage")
         self.facade.expand_dir(u"data/emptydir")
         self.assertRaises(KeyError, self.facade.expand_dir, u"data/subdir1/subsubdir")
+        self.assertEquals("""[u'data']
+new files: {u'data/subdir1': subdir1 [0] {u'date.doc': data/subdir1/date.doc  [none]}, u'data/emptydir': emptydir [0] {}, u'data/.svn': .svn [0] {u'format': data/.svn/format  [none], u'empty-file': data/.svn/empty-file  [none], u'README.txt': data/.svn/README.txt  [none], u'entries': data/.svn/entries  [none]}}
+new files: {u'data/emptydir/.svn': .svn [0] {u'format': data/emptydir/.svn/format  [none], u'empty-file': data/emptydir/.svn/empty-file  [none], u'README.txt': data/emptydir/.svn/README.txt  [none], u'entries': data/emptydir/.svn/entries  [none]}}
+""", sys.stdout.getvalue())
+        self.assertEquals("", sys.stderr.getvalue())
 
     # OTHERS TAB
     def test_add_peer(self):
