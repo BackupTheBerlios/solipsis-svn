@@ -234,7 +234,7 @@ class StateMachine(object):
             self.logger.debug('CLOSE from %s, but we are not connected' % id_)
             return
 
-        self.removePeer(manager.getPeer(id_))
+        self._RemovePeer(manager.getPeer(id_))
         # TODO: check global connectivity
 
         # check what is our state
@@ -363,11 +363,9 @@ class StateMachine(object):
             # and the best.
             self.node.setAwarenessRadius(best_distance)
 
-            # Register these peers with the peerManager and connect!
-            manager = self.peers
+            # Try to connect with those peers
             for p in self.scanned_neighbours:
-                if self._SayHello(p.address):
-                    self.manager.addPeer(p)
+                self._SayHello(p.address)
 
             self.scanned_neighbours.clear()
             self.best_peer = None
@@ -470,9 +468,24 @@ class StateMachine(object):
                     self._SendToPeer(peer, self._PeerMessage('DETECT', remote_peer=entity))
 
 
+    def peer_FOUND(self, args):
+        """
+        A peer replies to us with a FOUND message.
+        """
+        peer = self._RemotePeer(args)
+        id_ = peer.id_
+        manager = self.peers
+
+        # Verify that new entity is neither self neither an already known entity.
+        if id_ == self.node.id_:
+            self.logger.warning("FOUND message pointing to ourselves received")
+        elif not manager.hasPeer(id_):
+            self._SayHello(peer.address)
+
+
     def peer_SEARCH(self, args):
         """
-        A peer searches neighbours around itself to restore its global connectivity.
+        A peer sends SEARCH queries around itself to restore its global connectivity.
         """
         id_ = args.id_
         clockwise = args.clockwise > 0
@@ -484,17 +497,15 @@ class StateMachine(object):
             self.logger.warning("Error, reception of SEARCH message from unknown peer '%s'" % str(id_))
             return
 
-        around = manager.getPeerAround(queryEnt.getPosition(), id_, wise)
+        around = manager.getPeerAround(peer.position, id_, clockwise)
 
-        # send message if an entity has been found.
+        # Send message if an entity has been found
         if around is not None:
-            factory = EventFactory.getInstance(PeerEvent.TYPE)
-            aroundEvt = factory.createFOUND(around)
-            aroundEvt.setRecipientAddress(event.getSenderAddress())
-            self.node.dispatch(aroundEvt)
+            self._SendToPeer(peer, self._PeerMessage('FOUND', remote_peer=around))
 
     #
     # Control events
+    # TODO: rewrite
     #
     def control_MOVE(self, event):
         """ MOVE control event. Move the node to a new position.
@@ -544,35 +555,37 @@ class StateMachine(object):
     # Private methods
     #
     def _AddPeer(self, peer):
-        """ Add a peer and send the necessary notification messages. """
-        manager = self.node.getPeersManager()
+        """
+        Add a peer and send the necessary notification messages.
+        """
+        manager = self.peers
         manager.addPeer(peer)
-        factory = EventFactory.getInstance(ControlEvent.TYPE)
-        newPeerEvent = factory.createNEW(peer)
-        self.node.dispatch(newPeerEvent)
-        if type(self) == Idle:
-            if manager.hasTooManyPeers():
-                self.node.setState(TooManyPeers())
 
-    def removePeer(self, peer):
-        """ Remove a peer and send the necessary notification messages. """
-        manager = self.node.getPeersManager()
-        id_ = peer.getId()
-        manager.removePeer(id_)
+        # TODO: notify navigator that we gained a new peer
+#         factory = EventFactory.getInstance(ControlEvent.TYPE)
+#         newPeerEvent = factory.createNEW(peer)
+#         self.node.dispatch(newPeerEvent)
+#         if type(self) == Idle:
+#             if manager.hasTooManyPeers():
+#                 self.node.setState(TooManyPeers())
 
-        # notify controler that we lost connection with a peer
-        factory = EventFactory.getInstance(ControlEvent.TYPE)
-        dead = factory.createDEAD(id_)
-        self.node.dispatch(dead)
+    def _RemovePeer(self, peer):
+        """
+        Remove a peer and send the necessary notification messages.
+        """
+        manager = self.peers
+        manager.removePeer(peer.id_)
 
-    def sendUpdates(self):
-        """ Send an UPDATE message to all our peers"""
-        mng = self.node.getPeersManager()
-        update = EventFactory.getInstance(PeerEvent.TYPE).createUPDATE()
-        for p in mng.enumeratePeers():
-            update.setRecipientAddress(p.getAddress())
-            self.node.dispatch(update)
+        # TODO: notify navigator that we lost connection with a peer
+#         factory = EventFactory.getInstance(ControlEvent.TYPE)
+#         dead = factory.createDEAD(id_)
+#         self.node.dispatch(dead)
 
+
+    #
+    # Old stuff
+    # TODO: remove
+    #
     def searchPeers(self):
         """ Our Global connectivity is NOT OK, we have to search for new peers"""
         manager = self.node.getPeersManager()
@@ -601,18 +614,6 @@ class StateMachine(object):
         ar = manager.computeAwarenessRadius()
         self.node.setAwarenessRadius(ar)
         self.sendUpdates()
-
-    def startTimer(self, timeout=None):
-        if timeout is None:
-            timeout=State.TIMEOUT
-        self.timer = Timer(timeout, self.OnTimeOut)
-        self.timer.start()
-
-    def connectionError(self):
-        factory = EventFactory.getInstance(ControlEvent.TYPE)
-        error = factory.createERROR('Error: cannot connect to Solipsis')
-        self.node.setState(NotConnected())
-        self.node.dispatch(error)
 
     def jump(self):
         """ Jump to the node's current position. This involves

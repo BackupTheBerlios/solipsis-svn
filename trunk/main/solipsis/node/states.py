@@ -21,10 +21,6 @@ class State(object):
     """
     pass
 
-#     def __init__(self, state_machine):
-#         self.state_machine = state_machine
-#         self.logger = logging.getLogger("root")
-
 
 class NotConnected(State):
     """
@@ -53,34 +49,6 @@ class Locating(State):
 
     expected_peer_messages = ['NEAREST', 'BEST']
     expected_control_messages = ['MOVE', 'KILL', 'SET']
-
-#     def __init__(self):
-#         self.expectedMessages = ['NEAREST', 'BEST', 'TIMER', 'KILL', 'MOVE', 'SET']
-#         self.connectionAttempts = 0
-#         # timer object associated with the curent findnearest request - needed
-#         # to cancel the timer when we receive a response
-#         self.startTimer()
-#
-#     def activate(self):
-#         pass
-#
-#     def NEAREST(self, event):
-#         super(Locating, self).NEAREST(event)
-#         self.startTimer()
-#
-#     def TIMER(self, event):
-#         """ Timeout while waiting for an answer for a FINDNEAREST request """
-#         self.connectionAttempts += 1
-#
-#         # connection failed
-#         if self.connectionAttempts > self.MAX_CONNECTIONS_ATTEMPTS:
-#             self.connectionError()
-#
-#         # retry connecting
-#         manager = self.node.getPeersManager()
-#         peer = manager.getRandomPeer()
-#         self.sendFindNearest(peer.getAddress())
-#         self.startTimer()
 
 
 class Scanning(State):
@@ -144,10 +112,12 @@ class Connecting(State):
     expected_peer_messages = ['HELLO', 'CONNECT']
     expected_control_messages = ['MOVE', 'KILL', 'SET']
 
-#     # in the connecting state we increase our awareness radius in a linear way
-#     PERCENTAGE_AR_INCREASE = 0.3
-#     # maximum number of times we will try to incerease our awareness radius
-#     MAX_AR_INCREASE_ATTEMPTS = 10
+    # in the connecting state we increase our awareness radius in a linear way
+    PERCENTAGE_AR_INCREASE = 0.3
+    # maximum number of times we will try to incerease our awareness radius
+    MAX_AR_INCREASE_ATTEMPTS = 10
+
+
 #
 #     def __init__(self):
 #         self.expectedMessages = ['CONNECT', 'SERVICE', 'TIMER']
@@ -217,21 +187,6 @@ class LostGlobalConnectivity(State):
 #
 #     def activate(self):
 #         pass
-#
-#     def FOUND(self, event):
-#         """ an entity detected in an empty sector
-#         reception of message: FOUND"""
-#         peer = event.createRemotePeer()
-#         manager = self.node.getPeersManager()
-#         id_ = peer.getId()
-#         factory = EventFactory.getInstance(PeerEvent.TYPE)
-#
-#         # verify that new entity is neither self neither an already known entity.
-#         if id_ != self.node.getId() and not manager.hasPeer(id_):
-#             hello = factory.createHELLO()
-#             hello.setRecipientAddress(peer.getAddress())
-#             self.node.dispatch(hello)
-#
 #
 #
 #     def TIMER(self, event):
