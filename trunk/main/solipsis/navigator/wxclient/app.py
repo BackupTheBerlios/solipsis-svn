@@ -147,6 +147,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             [ self.prefs_dialog, "proxymode_manual", BooleanValidator, c, "proxymode_manual" ],
             [ self.prefs_dialog, "proxy_host", HostnameValidator, c, "proxy_host" ],
             [ self.prefs_dialog, "proxy_port", PortValidator, c, "proxy_port" ],
+            [ self.prefs_dialog, "node_autokill", BooleanValidator, c, "node_autokill" ],
         ]
         for v in validators:
             window, control_name, validator_class, data_obj, data_attr = v
@@ -417,6 +418,11 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
 
         self.alive = False
         self._DestroyProgress()
+        # Kill the node if necessary
+        if self.config_data.node_autokill and self._CheckNodeProxy(False):
+            self.network.KillNode()
+            # Dirty hack to leave enough time to send Kill request to the node
+            wx.Sleep(1)
         # Disable event proxying: as of now, all UI -> network
         # and network -> UI events will be discarded
         self.DisableProxy()
@@ -426,7 +432,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         # Finish running services
         self.services.Finish()
         # Now we are sure that no more events are pending, kill everything
-        self.reactor.crash()
+        self.reactor.stop()
         for obj_name in self.dialogs + self.windows:
             try:
                 win = getattr(self, obj_name)
@@ -590,20 +596,22 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
 
     def NodeKillSucceeded(self):
         """ We managed to kill the (remote/local) node. """
-        self.node_proxy = None
-        self._SetWaiting(False)
-        self.viewport.Disable()
-        self.Redraw()
-        self.statusbar.SetText(_("Not connected"))
+        if self.alive:
+            self.node_proxy = None
+            self._SetWaiting(False)
+            self.viewport.Disable()
+            self.Redraw()
+            self.statusbar.SetText(_("Not connected"))
 
     def NodeKillFailed(self):
         """ The node refused to kill itself. """
-        self.node_proxy = None
-        self._SetWaiting(False)
-        self.viewport.Disable()
-        msg = _("You cannot kill this node.")
-        dialog = wx.MessageDialog(None, msg, caption=_("Kill refused"), style=wx.OK | wx.ICON_ERROR)
-        dialog.ShowModal()
+        if self.alive:
+            self.node_proxy = None
+            self._SetWaiting(False)
+            self.viewport.Disable()
+            msg = _("You cannot kill this node.")
+            dialog = wx.MessageDialog(None, msg, caption=_("Kill refused"), style=wx.OK | wx.ICON_ERROR)
+            dialog.ShowModal()
 
     #===-----------------------------------------------------------------===#
     # Actions from the services

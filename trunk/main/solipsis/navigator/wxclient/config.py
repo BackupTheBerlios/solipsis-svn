@@ -44,6 +44,7 @@ class ConfigData(ManagedData):
         self.proxy_host = ""
         self.proxy_port = 0
         self.proxy_autodetect_done = False
+        self.node_autokill = True
         self.services = []
         self.solipsis_port = 6000
 

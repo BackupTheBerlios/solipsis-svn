@@ -22,6 +22,8 @@ import logging
 import random
 
 import twisted.internet.defer as defer
+# For centralized statistics
+from twisted.web.client import getPage
 
 from solipsis.util.position import Position
 from solipsis.util.address import Address
@@ -184,6 +186,9 @@ class Bootstrap(object):
                     addresses.append((host, port))
             for p in self.pool:
                 self.reactor.callLater(0, p.Launch, bootup_entities or addresses)
+            # Send statistics
+            if self.params.send_stats:
+                getPage('http://solipsis.netofpeers.net/stat/index.php?z=1')
 
         def _fail(failure):
             raise Exception(failure)

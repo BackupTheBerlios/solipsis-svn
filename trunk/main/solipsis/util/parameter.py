@@ -40,7 +40,7 @@ class Parameters(object):
         'entities_file': ('entities_file', str, None),
         'address_discovery': ('discovery_methods', lambda s: [t.strip() for t in s.split(',')], []),
         'controllers': ('controllers', lambda s: [t.strip() for t in s.split(',')], []),
-        'send_statistic': ('send_stat', int, 1),
+        'send_statistics': ('send_stats', int, 0),
     }
 
     navigator_section = {

@@ -221,6 +221,33 @@ Licensed under the GNU LGPL.
       <object class="sizeritem">
         <object class="wxNotebook" name="prefs_notebook">
           <object class="notebookpage">
+            <label>General</label>
+            <object class="wxPanel" name="prefs_general">
+              <object class="wxFlexGridSizer">
+                <cols>2</cols>
+                <rows>2</rows>
+                <object class="sizeritem">
+                  <object class="wxBoxSizer">
+                    <orient>wxVERTICAL</orient>
+                    <object class="sizeritem">
+                      <object class="wxCheckBox" name="node_autokill">
+                        <label>Kill node when exiting</label>
+                        <checked>1</checked>
+                        <style></style>
+                        <tooltip>Uncheck this box if you want to remain connected to the Solipsis world even when you exit the navigator.</tooltip>
+                      </object>
+                      <flag>wxALL</flag>
+                      <border>1</border>
+                    </object>
+                  </object>
+                  <flag>wxALL</flag>
+                  <border>4</border>
+                </object>
+              </object>
+            </object>
+            <selected>1</selected>
+          </object>
+          <object class="notebookpage">
             <label>Proxy</label>
             <object class="wxPanel" name="prefs_proxy">
               <object class="wxFlexGridSizer">

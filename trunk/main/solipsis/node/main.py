@@ -24,7 +24,6 @@ import exceptions
 from optparse import OptionParser
 
 from twisted.internet import reactor
-from twisted.web.client import getPage
 
 # Solipsis Packages
 from solipsis.util.parameter import Parameters
@@ -96,14 +95,6 @@ def main():
 
     # Create node and enter main loop
     try:        
-        #send statistic
-        if params.send_stat:
-            getPage('http://solipsis.netofpeers.net/stat/index.php?z=1').addCallbacks(
-                #we don't care about result
-                callback=lambda value:(reactor.stop()),
-                errback=lambda error:(reactor.stop()))
-            reactor.run()
-        #end statistic        
         global profile_run
         profile_run = lambda: run_loop(params)
         if (params.profile):

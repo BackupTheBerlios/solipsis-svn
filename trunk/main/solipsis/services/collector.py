@@ -72,8 +72,14 @@ class ServiceCollector(object):
         Correctly finalize all plugins.
         """
         for service_id in self._Services():
-            self.plugins[service_id].Disable()
-            self.enabled_services.clear()
+            try:
+                self.plugins[service_id].Disable()
+            # We don't want exceptions to propagate here, otherwise a buggy
+            # plugin would make the application difficult to kill for a novice user.
+            except Exception, e:
+                print "Exception caught while calling Disable on plugin '%s':" % service_id
+                print str(e)
+        self.enabled_services.clear()
 
     def Reset(self):
         self.plugins = {}
