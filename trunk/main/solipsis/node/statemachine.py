@@ -21,6 +21,7 @@ import sys
 import logging
 import math
 import random
+import time
 
 from solipsis.util.exception import *
 from solipsis.util.geometry import Position
@@ -64,6 +65,9 @@ class StateMachine(object):
     locating_trials = 3
     scanning_trials = 3
     connecting_trials = 3
+    
+    # Dampening delays
+    hello_dampening = 3.0
 
     # Time during which we request to send detects on a HELLO
     # after having moved
@@ -88,7 +92,9 @@ class StateMachine(object):
         'NEAREST':      [states.Locating, states.Scanning],
         'QUERYAROUND':  [states.Idle],
         'QUERYMETA':    [],
+        'QUERYSERVICE': [],
         'SEARCH':       [states.Idle],
+        'SERVICEINFO':  [],
         'UPDATE':       [],
     }
 
@@ -138,6 +144,9 @@ class StateMachine(object):
         # Delayed calls
         self.peer_timeouts = {}
         self.caller.Reset()
+        
+        # For each address, this is the timestamp of the last HELLO attempt
+        self.last_hellos = {}
 
         self.topology.Reset(origin=self.node.position.getCoords())
 
@@ -426,6 +435,32 @@ class StateMachine(object):
         if self.topology.HasPeer(id_):
             peer = self.topology.GetPeer(id_)
             self._UpdatePeerMeta(peer, args)
+            self._SendServices(peer, 'QUERYSERVICE')
+
+    def peer_QUERYSERVICE(self, args):
+        """
+        A peer queries information about a service and sends its own.
+        """
+        id_ = args.id_
+        service_id = args.service_id
+        if self.topology.HasPeer(id_):
+            peer = self.topology.GetPeer(id_)
+            self._UpdatePeerService(peer, args)
+            # Find our own service and send info about it
+            service = self.node.GetService(service_id)
+            #~ print "'%s':" % service_id, service
+            if service is not None:
+                self._SendService(peer, service, 'SERVICEINFO')
+
+    def peer_SERVICEINFO(self, args):
+        """
+        A peer sends or updates information about a service.
+        """
+        id_ = args.id_
+        service_id = args.service_id
+        if self.topology.HasPeer(id_):
+            peer = self.topology.GetPeer(id_)
+            self._UpdatePeerService(peer, args)
 
     def peer_NEAREST(self, args):
         """
@@ -947,6 +982,14 @@ class StateMachine(object):
         # Notify remote control
         self.event_sender.event_ChangedPeer(peer)
 
+    def _UpdatePeerService(self, peer, args):
+        """
+        Update a service of a peer from the incoming message's arguments.
+        """
+        peer.UpdateServiceInfo(args.service_id, address=args.service_address)
+        # Notify remote control
+        #~ self.event_sender.event_ChangedPeer(peer)
+
     #
     # Protocol helpers
     #
@@ -1005,10 +1048,15 @@ class StateMachine(object):
         """
         # TODO: manage repeted connection failures and
         # optionally cancel request (returning False)
-        msg = self._PeerMessage('HELLO')
-        msg.args.send_detects = send_detects
-        self._SendToAddress(address, msg)
-        return True
+        last = self.last_hellos.get(address, 0.0)
+        now = time.time()
+        if now - last > self.hello_dampening:
+            self.last_hellos[address] = now
+            msg = self._PeerMessage('HELLO')
+            msg.args.send_detects = send_detects
+            self._SendToAddress(address, msg)
+            return True
+        return False
 
     def _SayConnect(self, peer):
         """
@@ -1038,6 +1086,24 @@ class StateMachine(object):
         self._FillMeta(msg)
         self._SendToPeer(peer, msg)
         return True
+
+    def _SendService(self, peer, service, request='SERVICEINFO'):
+        """
+        Send service information to a peer.
+        """
+        message = self._PeerMessage(request)
+        message.args.service_id = service.id_
+        message.args.service_address = service.address
+        self._SendToPeer(peer, message)
+
+    def _SendServices(self, peer, request='SERVICEINFO'):
+        """
+        Send service information messages to a peer.
+        The request can be either 'QUERYSERVICE' or 'SERVICEINFO'.
+        """
+        matched_services = self.node.MatchServices(peer)
+        for service in matched_services:
+            self._SendService(peer, service, request)
 
     def _SendToAddress(self, address, message):
         """

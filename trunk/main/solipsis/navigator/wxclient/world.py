@@ -85,7 +85,7 @@ class World(object):
         if peer.position != old.position:
             x, y, z = peer.position
             self.viewport.MoveObject(id_, position=(x, y))
-        print "%s => %s" % (old.pseudo, peer.pseudo)
+        #~ print "%s => %s" % (old.pseudo, peer.pseudo)
         self.viewport.RemoveDrawable(id_, item.label_id)
         self._CreatePeerLabel(item)
 

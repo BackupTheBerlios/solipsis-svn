@@ -16,8 +16,38 @@
 # License along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
+
+
+class Autohash(type):
+    """
+    Metaclass that creates a hash function based on the attributes listed
+    in the '_hash_attributes' attribute.
+    """
+    def __new__(cls, name, bases, d):
+        try:
+            l = d['_hash_attributes']
+        except KeyError:
+            raise KeyError("class '%s' must have the '_hash_attributes' attribute" % name)
+            #~ l = [k for k, v in d.items() if not callable(v)]
+        _hash = hash
+        _xor = int.__xor__
+        _reduce = reduce
+        _int = int
+        c = _reduce(_xor, [_hash(k) for k in l])
+        def my_hash(obj):
+            g = obj.__getattribute__
+            return _reduce(_xor, [_hash(g(k)) for k in l], c)
+        d['__hash__'] = my_hash
+        t = super(Autohash, cls).__new__(cls, name, bases, d)
+        return t
+
+
 class Address(object):
-    """ Represents a Solipsis Address."""
+    """
+    Represents a Solipsis Address.
+    """
+    __metaclass__ = Autohash
+    _hash_attributes = ('host', 'port')
 
     SEPARATOR = ':'
 
@@ -61,3 +91,5 @@ class Address(object):
     def __str__(self):
         return self.toString()
 
+    #~ def __hash__(self):
+        #~ return hash(self.host) ^ hash(self.port)

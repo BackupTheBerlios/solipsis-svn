@@ -93,6 +93,7 @@ _aliases = {
 }
 
 def _init_table(table_name, table, aliases=_aliases, transform=(lambda x: x)):
+    # Create a global table of the specified name, then fill it with values
     t = {}
     globals()[table_name] = t
 
@@ -107,6 +108,7 @@ def _init_table(table_name, table, aliases=_aliases, transform=(lambda x: x)):
 # Syntax definition for each protocol argument.
 # This is mandatory.
 #
+
 _syntax_table = {
     ARG_ACCEPT_SERVICES  : r'[-_/\w\d]+(;d=\w+)?(\s*,\s*[-_/\w\d]+(;d=\w+)?)*',
     ARG_ADDRESS          : r'\s*.*:\d+\s*',
@@ -117,6 +119,8 @@ _syntax_table = {
     ARG_POSITION         : r'\s*\d+\s*,\s*\d+\s*,\s*\d+\s*',
     ARG_PSEUDO           : r'.*',
     ARG_SEND_DETECTS     : r'(now|later)',
+    ARG_SERVICE_ADDRESS  : r'[^\s]*',
+    ARG_SERVICE_ID       : r'[-_/\w\d]+',
 }
 
 _init_table('ARGS_SYNTAX', _syntax_table, transform=(lambda x: re.compile('^' + x + '$')))
@@ -149,28 +153,32 @@ def _accept_services_to_string(services):
     return ", ".join(s)
 
 _from_string = {
-    ARG_ACCEPT_SERVICES: _accept_services_from_string,
-    ARG_ADDRESS: (lambda s: Address(strAddress=s)),
-    ARG_AWARENESS_RADIUS: float,
-    ARG_BEST_DISTANCE: float,
-    ARG_CLOCKWISE: (lambda x: int(x) > 0),
-    ARG_ID: intern,
-    ARG_POSITION: (lambda s: Position(strPosition=s)),
-    ARG_PSEUDO: (lambda s: unicode(s.decode(CHARSET))),
-    ARG_SEND_DETECTS: (lambda s: s=='now'),
+    ARG_ACCEPT_SERVICES:    _accept_services_from_string,
+    ARG_ADDRESS:            (lambda s: Address(strAddress=s)),
+    ARG_AWARENESS_RADIUS:   float,
+    ARG_BEST_DISTANCE:      float,
+    ARG_CLOCKWISE:          (lambda c: int(c) > 0),
+    ARG_ID:                 intern,
+    ARG_POSITION:           (lambda s: Position(strPosition=s)),
+    ARG_PSEUDO:             (lambda s: unicode(s.decode(CHARSET))),
+    ARG_SEND_DETECTS:       (lambda s: s == 'now'),
+    ARG_SERVICE_ID:         str,
+    ARG_SERVICE_ADDRESS:    (lambda a: str(a)),
 }
 
 _to_string = {
-    ARG_ACCEPT_SERVICES: _accept_services_to_string,
-    ARG_ADDRESS: str,
+    ARG_ACCEPT_SERVICES:    _accept_services_to_string,
+    ARG_ADDRESS:            str,
     # TODO: change all coord and distance types to float
-    ARG_AWARENESS_RADIUS: (lambda x: str(long(x))),
-    ARG_BEST_DISTANCE: (lambda x: str(long(x))),
-    ARG_CLOCKWISE: (lambda x: x and "+1" or "-1"),
-    ARG_ID: str,
-    ARG_POSITION: str,
-    ARG_PSEUDO: (lambda u: u.encode(CHARSET)),
-    ARG_SEND_DETECTS: (lambda x: x and "now" or "later"),
+    ARG_AWARENESS_RADIUS:   (lambda x: str(long(x))),
+    ARG_BEST_DISTANCE:      (lambda x: str(long(x))),
+    ARG_CLOCKWISE:          (lambda c: c and "+1" or "-1"),
+    ARG_ID:                 str,
+    ARG_POSITION:           str,
+    ARG_PSEUDO:             (lambda u: u.encode(CHARSET)),
+    ARG_SEND_DETECTS:       (lambda x: x and "now" or "later"),
+    ARG_SERVICE_ID:         str,
+    ARG_SERVICE_ADDRESS:    (lambda a: a is not None and str(a) or ""),
 }
 
 _init_table('ARGS_FROM_STRING', _from_string)

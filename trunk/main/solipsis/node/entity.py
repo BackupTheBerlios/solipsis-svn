@@ -17,6 +17,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
 
+import logging
 try:
     set
 except:
@@ -26,10 +27,11 @@ from solipsis.util.geometry import Position
 
 
 class Service(object):
-    def __init__(self, id_, type='bidir'):
+    def __init__(self, id_, type='bidir', address=None):
         assert type in ('in', 'out', 'bidir'), "Wrong service type"
         self.id_ = id_
         self.type = type
+        self.address = address
 
 
 class Entity(object):
@@ -67,8 +69,8 @@ class Entity(object):
         # Metadata
         self.pseudo = pseudo
         self.services = {}
-        self.AddService(Service('chat'))
-        self.AddService(Service('video'))
+        self.AddService(Service('chat', address='127.0.0.1:5555'))
+        self.AddService(Service('video', address='127.0.0.1:6543'))
         self.AddService(Service('browse', 'in'))
         self.AddService(Service('share', 'out'))
 
@@ -84,6 +86,12 @@ class Entity(object):
         """
         if service_id in self.services:
             del(self.services[service_id])
+
+    def GetService(self, service_id):
+        """
+        Get a list of the entity's services.
+        """
+        return self.services.get(service_id, None)
 
     def GetServices(self):
         """
@@ -107,6 +115,15 @@ class Entity(object):
         if services is not None:
             self.UpdateServices(services)
 
+    def UpdateServiceInfo(self, service_id, address=None):
+        """
+        Update a service.
+        """
+        if service_id not in self.services:
+            logging.warning("Received service info from '%s' for unknown service '%s'"
+                % (self.id_, service_id))
+            self.services[service_id].address = address
+    
     def UpdateServices(self, new_services):
         """
         Update the entity's services with the new service list.
@@ -122,7 +139,7 @@ class Entity(object):
         to this entity.
         """
         matched = []
-        for service in entity.services:
+        for service in entity.services.values():
             # For each offered service, see if it matches ours
             my_service = self.services.get(service.id_)
             if my_service is not None:
