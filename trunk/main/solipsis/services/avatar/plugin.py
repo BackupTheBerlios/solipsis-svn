@@ -31,6 +31,7 @@ from repository import AvatarRepository
 
 
 class Plugin(ServicePlugin):
+    avatar_size_step = 12
 
     def Init(self):
         self.avatars = AvatarRepository()
@@ -73,6 +74,12 @@ class Plugin(ServicePlugin):
         item_id = wx.NewId()
         menu.Append(item_id, _("&Configure"))
         wx.EVT_MENU(main_window, item_id, self.Configure)
+        item_id = wx.NewId()
+        menu.Append(item_id, _("Stretch avatars\tCtrl+M"))
+        wx.EVT_MENU(main_window, item_id, self.StretchAvatars)
+        item_id = wx.NewId()
+        menu.Append(item_id, _("Shrink avatars\tCtrl+-"))
+        wx.EVT_MENU(main_window, item_id, self.ShrinkAvatars)
         self.service_api.SetMenu(_("Avatar"), menu)
         # Set up network handler
         network = NetworkLauncher(self.reactor, self, self.port)
@@ -132,6 +139,21 @@ class Plugin(ServicePlugin):
                 self.service_api.SendData(peer_id, self.node_avatar_hash)
 
         self.ui.Configure(callback=_configured)
+
+    def StretchAvatars(self, evt=None):
+        """
+        Called when the "Stretch Avatars" action is selected.
+        """
+        s = self.avatars.GetProcessedAvatarSize()
+        self.avatars.SetProcessedAvatarSize(s + self.avatar_size_step)
+
+    def ShrinkAvatars(self, evt=None):
+        """
+        Called when the "Shrink Avatars" action is selected.
+        """
+        s = self.avatars.GetProcessedAvatarSize()
+        if s > self.avatar_size_step:
+            self.avatars.SetProcessedAvatarSize(s - self.avatar_size_step)
 
     def GotServiceData(self, peer_id, hash_):
         """

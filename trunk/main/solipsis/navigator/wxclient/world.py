@@ -51,7 +51,7 @@ class World(UIProxyReceiver):
         self.viewport = viewport
         self.repository = images.ImageRepository()
         self.avatars = AvatarRepository()
-        self.avatars.AskNotify(UIProxy(self).UpdateAvatar)
+        self.avatars.AskNotify(UIProxy(self).UpdateAvatars)
         self.Reset()
 
     def Reset(self):
@@ -123,18 +123,19 @@ class World(UIProxyReceiver):
             self.viewport.RemoveDrawable(id_, item.label_id)
             self._CreatePeerLabel(item)
 
-    def UpdateAvatar(self, peer_id):
+    def UpdateAvatars(self, peer_list):
         """
-        Called when a peer's avatar has changed.
+        Called when some peers' avatars have changed.
         """
-        try:
-            item = self.items[peer_id]
-        except KeyError:
-            return
-        if item.avatar_id:
-            self.viewport.RemoveDrawable(peer_id, item.avatar_id)
-            item.avatar_id = None
-        self._CreatePeerAvatar(item)
+        for peer_id in peer_list:
+            try:
+                item = self.items[peer_id]
+            except KeyError:
+                continue
+            if item.avatar_id:
+                self.viewport.RemoveDrawable(peer_id, item.avatar_id)
+                item.avatar_id = None
+            self._CreatePeerAvatar(item)
 
     def GetPeer(self, peer_id):
         """

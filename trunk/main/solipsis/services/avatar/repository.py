@@ -59,7 +59,7 @@ class _AvatarRepository(object):
     def AskNotify(self, callback):
         """
         Ask to be notified when an peer's avatar is changed.
-        The callback will be notified with the peer_id.
+        The callback will be notified with a list of peer_ids.
         """
         self.event_sinks.append(callback)
 
@@ -87,7 +87,7 @@ class _AvatarRepository(object):
                 pass
             return False
         self.peer_avatar_hashes[peer_id] = hash_
-        self._Notify(peer_id)
+        self._Notify([peer_id])
         return True
 
     def BindAvatarToPeer(self, data, peer_id):
@@ -102,7 +102,7 @@ class _AvatarRepository(object):
         except KeyError:
             self._AddAvatar(data, hash_)
         self.peer_avatar_hashes[peer_id] = hash_
-        self._Notify(peer_id)
+        self._Notify([peer_id])
         return hash_
     
     def GetAvatarBitmap(self, peer_id):
@@ -126,17 +126,27 @@ class _AvatarRepository(object):
             return None
         self._CalculateAvatar(hash_)
         return self.processed_avatar_cache[hash_]
+    
+    def GetProcessedAvatarSize(self):
+        return self.processed_avatar_size
 
+    def SetProcessedAvatarSize(self, size):
+        self.processed_avatar_size = size
+        # Clear the cache
+        self.processed_avatar_cache.clear()
+        # Notify all sinks so that they redisplay everything
+        self._Notify(self.peer_avatar_hashes.keys())
 
     #
     # Private functions
     #
-    def _Notify(self, peer_id):
+    def _Notify(self, peer_list):
         """
-        Notify all event sinks that an avatar has been updated.
+        Notify all event sinks that some avatars have been updated.
         """
-        for sink in self.event_sinks:
-            sink(peer_id)
+        if len(peer_list):
+            for sink in self.event_sinks:
+                sink(peer_list)
 
     def _AddAvatar(self, data, hash_=None):
         """
@@ -190,19 +200,31 @@ class _AvatarRepository(object):
         Process the original avatar (as PIL image) and returns 
         its processed counterpart (as PIL image).
         """
-        s = self.processed_avatar_size
-        # Resize to desired target size
-        resized = source.resize((s, s), Image.BICUBIC)
-        # Build mask to shape the avatar inside a circle
+        # 1. Crop a square area inside the image
+        w, h = source.size
+        crop_offset = (max(w, h) - min(w, h)) // 2
+        if w > h:
+            crop_box = (crop_offset, 0, w - crop_offset, h)
+        else:
+            crop_box = (0, crop_offset, w, h - crop_offset)
+        cropped = source.crop(crop_box)
+            
+        # 2. Resize to desired target size
+        s = min(self.processed_avatar_size, w, h)
+        resized = cropped.resize((s, s), Image.ANTIALIAS)
+
+        # 3. Build mask to shape the avatar inside a circle
         transparent = (0,255,0,0)
         opaque = (255,0,0,255)
         background = (0,0,255,0)
         mask = Image.new('RGBA', (s, s), transparent)
         draw = ImageDraw.Draw(mask)
         draw.ellipse((0, 0, s - 1, s - 1), outline=opaque, fill=opaque)
-        # Build the final result
+
+        # 4. Build the final result by masking
         target = Image.new('RGBA', (s, s), background)
         target.paste(resized, None, mask)
+
         return target
 
     def _BitmapFromPIL(self, im):
