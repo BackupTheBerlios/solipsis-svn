@@ -41,3 +41,13 @@ class World(object):
         """
         x, y, z = node.position
         self.viewport.JumpTo((x, y))
+
+    def UpdatePeer(self, peer):
+        """
+        Called when a peer has changed.
+        """
+        if peer.id_ in self.peers:
+            self.peers[peer.id_] = peer
+            x, y, z = peer.position
+            self.viewport.MoveObject(peer.id_, position=(x, y))
+

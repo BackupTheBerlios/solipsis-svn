@@ -20,12 +20,8 @@ class Parameters(object):
         'position_y': ('pos_y', long, 0),
         'expected_neighbours': ('expected_neighbours', int, 10),
         'entities_file': ('entities_file', str, None),
-        'address_discovery': ('discovery_methods', str, None),
-    }
-
-    control_section = {
-        'host': ('control_host', str, ""),
-        'port': ('control_port', int, 8550),
+        'address_discovery': ('discovery_methods', lambda s: [t.strip() for t in s.split(',')], []),
+        'controllers': ('controllers', lambda s: [t.strip() for t in s.split(',')], []),
     }
 
     navigator_section = {
@@ -71,6 +67,8 @@ class Parameters(object):
             bool: p.getboolean,
         }
         for k, (var, cons, default) in fields.items():
+            # For each requested field, get the corresponding value
+            # from the config file or use the default value
             if p.has_option(section_name, k):
                 getter = getters.get(k, p.get)
                 v = cons(getter(section_name, k))
@@ -78,7 +76,9 @@ class Parameters(object):
                 v = default
             setattr(self, var, v)
         for var, v in self._options.__dict__.items():
-            if v is not None or not hasattr(self, var):
+            # For each command-line option that is not None or empty,
+            # override the config file value
+            if v or not hasattr(self, var):
                 setattr(self, var, v)
 
     def Load(self):
@@ -95,7 +95,6 @@ class Parameters(object):
             sys.exit(1)
 
         self.LoadSection("solipsis", self.solipsis_section)
-        self.LoadSection("control", self.control_section)
         self.LoadSection("navigator", self.navigator_section)
 
         #

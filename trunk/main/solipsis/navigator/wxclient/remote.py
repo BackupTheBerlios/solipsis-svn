@@ -111,6 +111,12 @@ class RemoteConnector(object):
     #
     # Notification handlers
     #
+    def event_CHANGED(self, struct):
+        peer_info = marshal.PeerInfo(struct)
+        print "CHANGED", peer_info.id_
+        self.ui.UpdatePeer(peer_info)
+        self.ui.AskRedraw()
+
     def event_NEW(self, struct):
         peer_info = marshal.PeerInfo(struct)
         print "NEW", peer_info.id_

@@ -21,34 +21,33 @@ def main():
     config_file = "conf/solipsis.conf"
     usage = "usage: %prog [-dbPM] [-p <port>] [-x ... -y ...] [-e ...] [-c <port>] [-n <port>]"
     parser = OptionParser(usage)
-#     parser.add_option("-h", "--help", action="help",
-#                         help="display help message")
+    # User options
     parser.add_option("-p", "--port", type="int", dest="port",
                         help="port number for all Solipsis connections")
     parser.add_option("-b", "--robot", action="store_true", dest="bot", default=False,
                         help="bot mode (don't listen for navigator)")
     parser.add_option("-d", "--daemon", action="store_true", dest="daemon", default=False,
                         help="run in the background")
-    parser.add_option("-x", type="long", dest="pos_x",
-                        help="X start value")
-    parser.add_option("-y", type="long", dest="pos_y",
-                        help="Y start value")
+    parser.add_option("-q", "--quiet", action="store_true", dest="quiet", default=False,
+                        help="run quietly")
+
+    parser.add_option("-c", "--controller", action="append", dest="controllers", default=[],
+                        help="specify a controller (multiple occurences allowed)")
     parser.add_option("-e", type="int", dest="expected_neighbours",
                         help="number of expected neighbours")
-    parser.add_option("-c", "--control_port", type="int", dest="control_port",
-                        help="control port for navigator")
-    parser.add_option("-n", "--notification_port", type="int", dest="notif_port",
-                        help="notification port for navigator")
     parser.add_option("-f", "--conf", dest="config_file", default=config_file,
                         help="configuration file")
-    parser.add_option("-P", "--profile", action="store_true", dest="profile", default=False,
-                        help="profile execution to node.prof")
-#     parser.add_option("-M", "--memdebug", action="store_true", dest="memdebug", default=False,
-#                         help="display periodic memory occupation statistics")
     parser.add_option("", "--pool", type="int", dest="pool", default=0,
                         help="pool of nodes")
     parser.add_option("", "--seed", action="store_true", dest="as_seed", default=False,
                         help="launch node as seed")
+    # Debug/developper options
+    parser.add_option("-P", "--profile", action="store_true", dest="profile", default=False,
+                        help="profile execution to node.prof")
+    parser.add_option("-x", type="long", dest="pos_x",
+                        help="X start value")
+    parser.add_option("-y", type="long", dest="pos_y",
+                        help="Y start value")
     params = Parameters(parser, config_file=config_file)
 
     if (params.daemon):
@@ -93,6 +92,8 @@ def main():
 #             import psyco
 #             psyco.profile(time=120)
             profile_run()
+    except SystemExit:
+        pass
     except Exception, e:
         raise
 

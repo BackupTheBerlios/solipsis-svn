@@ -14,7 +14,7 @@ delay = 7.0
 def create_nodes(n, port, custom_args):
     prog_name = os.path.normcase('.' + os.sep + 'twistednode.py')
     args = [prog_name]
-    args +=  ['-b', '-d', '-p', str(port)]
+    args +=  ['-q', '-b', '-d', '-p', str(port)]
     args +=  ['-f', 'conf/seed.conf', '--pool', str(n)]
     args += custom_args
     cmdline = " ".join(args)

@@ -17,16 +17,9 @@ from network import NetworkLoop
 class ConnectionData(ManagedData):
     def __init__(self, host=None, port=None, pseudo=None):
         super(ConnectionData, self).__init__()
-        self.pseudo = ""
-        self.host = "localhost"
-        self.port = ""
-        if pseudo:
-            self.pseudo = pseudo
-        if host:
-            self.host = host
-        if port:
-            self.port = port
-
+        self.pseudo = pseudo or u"Solipsou"
+        self.host = host or "localhost"
+        self.port = port or 8550
 
 
 class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
@@ -38,7 +31,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.params = parameters
         self.alive = True
         self.redraw_pending = False
-        self.connection_data = ConnectionData(self.params.control_host, self.params.control_port, self.params.pseudo)
+        self.connection_data = ConnectionData()
 
         # Caution : wx.App.__init__ automatically calls OnInit(),
         # thus all data must be initialized before
@@ -322,10 +315,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """ Add an object to the viewport. """
         self.world.AddPeer(*args, **kargs)
 
-    def MovePeer(self, *args, **kargs):
-        """ Move an object in the viewport. """
-#         self.viewport.MoveObject(*args, **kargs)
-
     def RemovePeer(self, *args, **kargs):
         """ Remove an object from the viewport. """
         self.world.RemovePeer(*args, **kargs)
@@ -333,6 +322,10 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     def UpdateNode(self, *args, **kargs):
         """ Update node information. """
         self.world.UpdateNode(*args, **kargs)
+
+    def UpdatePeer(self, *args, **kargs):
+        """ Update an object. """
+        self.world.UpdatePeer(*args, **kargs)
 
     def ResetWorld(self, *args, **kargs):
         """ Reset the viewport. """

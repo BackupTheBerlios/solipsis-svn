@@ -32,9 +32,9 @@ class NodeLauncher(object):
         """
         Prepare the node and return the assigned (host, port) tuple.
         """
+        self.pool_num = pool_num
         self.host = self.params.host or "127.0.0.1"
         self.port = self.params.port + pool_num
-        self.control_port = self.params.control_port + pool_num
         node = Node(self.reactor, self.params)
         if self.params.pool:
             node.position = Position(random.random() * 2**128, random.random() * 2**128, 0)
@@ -47,7 +47,7 @@ class NodeLauncher(object):
         # IP address discovery:
         # the successive discovery methods are specified in the configuration file.
         # Each is handled by a given file in the discovery/ subdirectory.
-        discovery_methods = [s.strip() for s in self.params.discovery_methods.split(',')]
+        discovery_methods = list(self.params.discovery_methods)
         discovery_deferred = defer.Deferred()
 
         def _try_next(failure=None):
@@ -102,11 +102,18 @@ class NodeLauncher(object):
         self.reactor.addSystemEventTrigger('before', 'shutdown', self.state_machine.Close)
 #         self.reactor.addSystemEventTrigger('after', 'shutdown', self.state_machine.DumpStats)
 
-        # Start remote controller
+        # Start remote controller(s)
         if not self.params.bot:
-            c = controller.xmlrpc.Controller(self.reactor, self.params, self.remote_control)
-            c.Start(self.control_port)
-            self.reactor.addSystemEventTrigger('before', 'shutdown', c.Stop)
+            for controller in self.params.controllers:
+                try:
+                    c = _import('controller.' + controller)
+                except ImportError, e:
+                    print str(e)
+                    self.reactor.stop()
+                    sys.exit(1)
+                c = c.Controller(self.reactor, self.params, self.remote_control)
+                c.Start(self.pool_num)
+                self.reactor.addSystemEventTrigger('before', 'shutdown', c.Stop)
 
 
 class Bootstrap(object):

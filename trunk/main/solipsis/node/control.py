@@ -30,8 +30,6 @@ class RemoteControl(object):
     SOAP listener, a local behaviour automaton, or anything else.
     """
 
-    # TODO: handle timeouts
-
     min_notif_delay = 0.050
     max_notif_delay = 4.0
 
@@ -74,7 +72,7 @@ class RemoteControl(object):
         Get a list of events since last call (or since the beginning of
         the connection if this is the first call).
         This function takes a variable time to send its result,
-        as we try to minimize the number of round-trips.
+        as it tries to minimize the number of round-trips.
         """
         self._CheckConnectId(connect_id)
         c = self.connections[connect_id]
@@ -128,13 +126,18 @@ class RemoteControl(object):
         x = float(x)
         y = float(y)
         z = float(z)
-        print "Move received", x, y, z
+#         print "Move received", x, y, z
         self.state_machine.MoveTo((x, y, z))
         return True
 
     #
     # Events
     #
+    def event_ChangedPeer(self, peer):
+        peer_info = marshal.PeerInfo()
+        peer_info.FromPeer(peer)
+        self._AddNotif("CHANGED", peer_info.ToStruct())
+
     def event_NewPeer(self, peer):
         peer_info = marshal.PeerInfo()
         peer_info.FromPeer(peer)
@@ -145,7 +148,6 @@ class RemoteControl(object):
 
     def event_StatusChanged(self, status):
         self._AddNotif("STATUS", status)
-
 
     #
     # Private methods

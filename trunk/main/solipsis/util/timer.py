@@ -104,7 +104,8 @@ class Evolver(object):
         self.duration = duration
         self.func = type(self).func_factory(**kargs)
         self.timer = AutoTimer()
-        self.Reset(begin, end)
+        self.Terminate()
+#         self.Reset(begin, end)
 
     def Read(self):
         (tick, elapsed) = self.timer.Read()

@@ -1,4 +1,5 @@
 
+import sys
 import logging
 import math
 import random
@@ -76,6 +77,7 @@ class StateMachine(object):
         Initialize the state machine.
         """
         self.reactor = reactor
+        self.params = params
         self.node = node
         self.topology = Topology()
         self.logger = logger or logging.getLogger("root")
@@ -209,19 +211,19 @@ class StateMachine(object):
         requests = self.sent_messages.keys()
         requests.extend([k for k in self.received_messages.keys() if k not in requests])
         requests.sort()
-        print "\n... Message statistics ..."
+        self._Verbose("\n... Message statistics ...")
         for r in requests:
-            print "%s: %d sent, %d received" % (r, self.sent_messages.get(r, 0), self.received_messages.get(r, 0))
+            self._Verbose("%s: %d sent, %d received" % (r, self.sent_messages.get(r, 0), self.received_messages.get(r, 0)))
 
 
     #
     # Methods called when a new state is entered
     #
     def state_NotConnected(self):
-        print "not connected"
+        self._Verbose("not connected")
 
     def state_Locating(self):
-        print "locating"
+        self._Verbose("locating")
 
         self.best_peer = None
 
@@ -232,7 +234,8 @@ class StateMachine(object):
         self.caller.CallLaterWithId('locating_timeout', self.locating_timeout, _restart)
 
     def state_Scanning(self):
-        print "scanning"
+        self._Verbose("scanning")
+
         def _restart():
             self._Jump()
         def _retry():
@@ -247,7 +250,8 @@ class StateMachine(object):
         self.caller.CallLater(self.scanning_period * self.scanning_trials, _restart)
 
     def state_EarlyConnecting(self):
-        print "early connecting"
+        self._Verbose("early connecting")
+
         def _restart():
             self.SetState(states.NotConnected())
             self.TryConnect()
@@ -257,13 +261,14 @@ class StateMachine(object):
             if self.topology.HasGlobalConnectivity():
                 self.SetState(states.Idle())
             else:
-                print "(still connecting)"
+                self._Verbose("(still connecting)")
 
         self.caller.CallPeriodically(self.early_connecting_period, _check_gc)
         self.caller.CallPeriodically(self.early_connecting_period * self.early_connecting_trials, _restart)
 
     def state_Connecting(self):
-        print "connecting"
+        self._Verbose("connecting")
+
         def _restart():
             self._Jump()
 
@@ -275,7 +280,7 @@ class StateMachine(object):
                 self.SetState(states.Idle())
         def _retry():
             # Resend a HELLO message to all future peers
-            print "(still connecting)"
+            self._Verbose("(still connecting)")
             peers = self.topology.PeersSet()
             for p in self.future_topology.EnumeratePeers():
                 if p not in peers:
@@ -286,7 +291,7 @@ class StateMachine(object):
         self.caller.CallLater(self.connecting_period * self.connecting_trials, _restart)
 
     def state_Idle(self):
-        print "idle"
+        self._Verbose("idle")
 
         def _check_gc():
             # Periodically check global connectivity
@@ -298,7 +303,8 @@ class StateMachine(object):
         self.caller.CallPeriodically(self.population_check_period, self._CheckNumberOfPeers)
 
     def state_LostGlobalConnectivity(self):
-        print "lost global connectivity"
+        self._Verbose("lost global connectivity")
+
         def _restart():
             self._Jump()
 
@@ -429,7 +435,7 @@ class StateMachine(object):
                 self.logger.info("BEST received, but peer is farther than our current best")
                 return
 
-        print "-> %d hops until BEST" % len(self.nearest_peers)
+        self._Verbose("-> %d hops until BEST" % len(self.nearest_peers))
         self.best_peer = peer
         self.best_distance = distance
         self.nearest_peers.clear()
@@ -545,7 +551,7 @@ class StateMachine(object):
         # Either:
         # 1. We have a peer closer to the target than the given Best
         if nearest.id_ != best_id and long(nearest_distance) < long(best_distance):
-            print "QUERYAROUND: ('%s', %f) is closer than best ('%s', %f)" % (nearest.id_, nearest_distance, best_id, best_distance)
+            self._Verbose("QUERYAROUND: ('%s', %f) is closer than best ('%s', %f)" % (nearest.id_, nearest_distance, best_id, best_distance))
             self._SendToAddress(args.address, self._PeerMessage('NEAREST', remote_peer=nearest))
 
         # 2. Or we find the closest peer around the target position and in the right half-plane
@@ -656,6 +662,8 @@ class StateMachine(object):
         Move to a given absolute position in the world.
         """
         # Change position
+        x %= self.world_size
+        y %= self.world_size
         position = Position(x, y, z)
         self.node.position = position
         self.topology.SetOrigin((x, y))
@@ -683,11 +691,11 @@ class StateMachine(object):
         Add a peer and send the necessary notification messages.
         """
         if not self.topology.AddPeer(peer):
-            print "topology refused peer '%s'" % peer.id_
+            self._Verbose("topology refused peer '%s'" % peer.id_)
             return
 
         def msg_receive_timeout():
-            print "timeout (%s) => closing connection with '%s'" % (str(self.node.id_), str(peer.id_))
+            self._Verbose("timeout (%s) => closing connection with '%s'" % (str(self.node.id_), str(peer.id_)))
             self._CloseConnection(peer)
         def msg_send_timeout():
             self._SendToPeer(peer, self._PeerMessage('HEARTBEAT'))
@@ -817,14 +825,11 @@ class StateMachine(object):
         old = topology.GetPeer(peer.id_)
         topology.UpdatePeer(peer)
 
-        # TODO: Notify the controller that a peer has changed
-#         ctlFact = EventFactory.getInstance(ControlEvent.TYPE)
-#         upd = ctlFact.createUPDATE(peer)
-#         self.node.dispatch(upd)
+        # Notify remote control
+        self.event_sender.event_ChangedPeer(peer)
 
         old_pos = old.position.getCoords()
         new_pos = peer.position.getCoords()
-
         old_ar = old.awareness_radius
         new_ar = peer.awareness_radius
 
@@ -869,8 +874,6 @@ class StateMachine(object):
         This is called on the connection initialization.
         """
         # Hack to speed up world build
-        if self.InState(states.EarlyConnecting):
-            return
         position = peer.position.getCoords()
         radius = peer.awareness_radius
         for remote_peer in self.topology.GetPeersInCircle(position, radius):
@@ -917,7 +920,6 @@ class StateMachine(object):
         # Notify peers of our new awareness radius
         if new_ar != ar:
             self._UpdateAwarenessRadius(new_ar)
-#         print "ar=%6f, peers=%d, neighbours=%d (min=%d, max=%d)" % (ar, nb_peers, nb_neighbours, self.min_neighbours, self.max_neighbours)
 
 
     #
@@ -998,4 +1000,13 @@ class StateMachine(object):
         else:
             if id_ in self.peer_timeouts:
                 self.peer_timeouts[id_].RescheduleCall('msg_send_timeout')
+
+    #
+    # Various stuff
+    #
+    def _Verbose(self, s):
+        s += "\n"
+        if not self.params.quiet:
+            sys.stdout.write(s)
+        self.logger.info(s)
 

@@ -64,17 +64,18 @@ class Viewport(object):
         self.obj_list = []
         self.obj_name = []
         self.obj_visible = []
+        self.obj_glider = []
         # List of dicts of drawables
         self.obj_drawables = []
         self.positions = []
-        self.obj_arrays = (self.obj_list, self.obj_name, self.obj_visible, self.obj_drawables, self.positions)
+        self.future_positions = []
+        self.obj_arrays = (self.obj_list, self.obj_name, self.obj_visible, self.obj_glider,
+            self.obj_drawables, self.positions, self.future_positions)
 
         # List of (z-index, dict { painter-type -> dict of drawables } )
         self.radix_list = []
         # Different painter instances
         self.painters = {}
-
-        self.future_positions = []
 
     def Draw(self, onPaint = False):
         """
@@ -93,7 +94,6 @@ class Viewport(object):
         resized = False
         if self.draw_buffer is None or self.draw_buffer.GetSize() != (width, height):
             resized = True
-#             self.draw_buffer = wx.EmptyBitmap(width, height)
             self._SetFutureRatio()
 
         # Under Windows, it seems we cannot re-use the same buffer twice (why ?)
@@ -199,8 +199,10 @@ class Viewport(object):
         # Then initialize the object's properties
         self.obj_name[index] = name
         self.positions[index] = position
+        self.future_positions[index] = position, position
         self.obj_visible[index] = True
         self.obj_drawables[index] = {}
+        self.obj_glider[index] = ExpEvolver(duration = self.glide_duration)
         self._ObjectsGeometryChanged()
 
         return index
@@ -286,7 +288,10 @@ class Viewport(object):
         except:
             print "Cannot move unknown object '%s' in viewport" % name
             return
-        self.positions[index] = position
+        fx, fy = position
+        x, y = self.positions[index]
+        self.future_positions[index] = position, self.positions[index]
+        self.obj_glider[index].Reset(0.0, 1.0)
         self._ObjectsGeometryChanged()
 
     def JumpTo(self, position):
@@ -498,8 +503,6 @@ class Viewport(object):
 
         fx, fy = position
         cx, cy = self.center
-        dist = (fx - cx) ** 2 + (fy - cy) ** 2
-        #self.future_center = position, dist
         self.future_center = position, self.center
         self.center_glider.Reset(0.0, 1.0)
 
@@ -644,6 +647,18 @@ class Viewport(object):
                 self.angle = self.angle_glider.Read()
             else:
                 self.angle_glider.Terminate()
+
+        # Glide objects
+        for i, glider in enumerate(self.obj_glider):
+            if not glider.Finished():
+                (fx, fy), (x, y) = self.future_positions[i]
+                dx = self.normalize(x - fx)
+                dy = self.normalize(y - fy)
+                r = glider.Read()
+                x = fx + dx * (1.0 - r)
+                y = fy + dy * (1.0 - r)
+                self.positions[i] = (x, y)
+                dirty = True
 
         # Glide the viewport ratio
         if dirty:
