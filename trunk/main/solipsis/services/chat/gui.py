@@ -63,7 +63,7 @@ class ChatWindow(wx.EvtHandler, XRCLoader, UIProxyReceiver):
         # Nicer sizing
         for obj_name in objects:
             attr = getattr(self, obj_name)
-            attr.SetSizeHintsSz(attr.GetBestSize())
+            attr.SetSizeHintsSz(attr.GetBestVirtualSize())
 
         # UI event handlers
         wx.EVT_BUTTON(self.chat_window, XRCID("chat_send"), self._Send)
