@@ -33,6 +33,10 @@
         <border>5</border>
         <minsize>380,160</minsize>
       </object>
+      <object class="spacer">
+        <size>20,20</size>
+        <flag>wxEXPAND</flag>
+      </object>
       <object class="sizeritem">
         <object class="wxBoxSizer">
           <orient>wxHORIZONTAL</orient>
