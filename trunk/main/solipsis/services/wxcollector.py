@@ -67,21 +67,23 @@ class WxServiceCollector(ServiceCollector):
             plugin = self.plugins[service_id]
             if id_ is not None:
                 if self.peers[id_].GetService(service_id) is not None:
-                    title = plugin.GetPointToPointAction()
+                    titles = plugin.GetPointToPointAction()
                 else:
-                    title = None
+                    titles = ()
             else:
-                title = plugin.GetAction()
-            if title is not None:
+                titles = plugin.GetAction()
+            i = 0
+            for title in titles:
                 item_id = self.action_ids.GetId()
                 item = wx.MenuItem(menu, item_id, title.encode(self.charset))
-                def _clicked(evt, p=plugin):
+                def _clicked(evt, p=plugin, it = i ):
                     if id_ is not None:
-                        p.DoPointToPointAction(self.peers[id_])
+                        p.DoPointToPointAction(it, self.peers[id_])
                     else:
-                        p.DoAction()
+                        p.DoAction(it)
                 wx.EVT_MENU(self.main_window, item_id, _clicked)
                 l.append(item)
+                i += 1
         return l
 
     #

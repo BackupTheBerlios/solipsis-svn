@@ -47,10 +47,10 @@ class Plugin(ServicePlugin):
         return _("Talk with the people that are currently around you")
 
     def GetAction(self):
-        return _(self.str_action)
+        return [_(self.str_action)]
 
     def GetPointToPointAction(self):
-        return None
+        return []
     
     def DescribeService(self, service):
         service.address = "%s:%d" % (self.host, self.port)
@@ -82,7 +82,8 @@ class Plugin(ServicePlugin):
         self.ui.Destroy()
         self.ui = None
 
-    def DoAction(self, evt=None):
+#    def DoAction(self, evt=None):
+    def DoAction(self,it):
         self.ui.Show()
     
     #~ def GotMessage(self, text, (host, port)):
