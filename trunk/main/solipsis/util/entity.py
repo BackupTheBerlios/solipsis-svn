@@ -50,7 +50,7 @@ class Service(Marshallable):
 
 class Entity(Marshallable):
     """
-    An entity is a participant is the Solipsis world. It conforms to the
+    An entity is a participant in the Solipsis world. It conforms to the
     Solipsis protocol, maintaining a number of properties useful to the
     global coherency of the world.
     """

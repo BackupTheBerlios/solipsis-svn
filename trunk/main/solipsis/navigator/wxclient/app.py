@@ -142,6 +142,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         wx.EVT_MENU(self, XRCID("menu_about"), self._About)
         wx.EVT_MENU(self, XRCID("menu_connect"), self._OpenConnect)
         wx.EVT_MENU(self, XRCID("menu_disconnect"), self._Disconnect)
+        wx.EVT_MENU(self, XRCID("menu_kill"), self._Kill)
         wx.EVT_MENU(self, XRCID("menu_preferences"), self._Preferences)
         wx.EVT_MENU(self, XRCID("menu_quit"), self._Quit)
         wx.EVT_CLOSE(self.main_window, self._Quit)
@@ -255,7 +256,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         if self.node_proxy is not None:
             return True
         if display_error:
-            msg = _("This action is only possible when connected.")
+            msg = _("This action cannot be performed, \nbecause you are not connected to a node.")
             dialog = wx.MessageDialog(None, msg, caption=_("Not connected"), style=wx.OK | wx.ICON_ERROR)
             dialog.ShowModal()
         return False
@@ -274,10 +275,16 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
 
     def _Disconnect(self, evt):
         """ Called on "disconnect" event (menu -> File -> Disconnect). """
-        self.node_proxy = None
-        self.network.DisconnectFromNode()
-        self.viewport.Disable()
-        self.Redraw()
+        if self._CheckNodeProxy():
+            self.network.DisconnectFromNode()
+            self.node_proxy = None
+            self.viewport.Disable()
+            self.Redraw()
+
+    def _Kill(self, evt):
+        """ Called on "connect" event (menu -> File -> Connect). """
+        if self._CheckNodeProxy():
+            self.network.KillNode()
 
     def _Preferences(self, evt):
         """ Called on "preferences" event (menu -> File -> Preferences). """
@@ -388,7 +395,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     def NodeConnectionSucceeded(self, node_proxy):
         """ We managed to connect to the node. """
         self.node_proxy = node_proxy
-        #~ self.network.
 
     def NodeConnectionFailed(self, error):
         """ Failed connecting to the node. """
@@ -397,4 +403,16 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         msg += "\n\n" + _("For information, here is the error message:")
         msg += "\n" + str(error)
         dialog = wx.MessageDialog(None, msg, caption=_("Connection error"), style=wx.OK | wx.ICON_ERROR)
+        dialog.ShowModal()
+
+    def NodeKillSucceeded(self):
+        """ We managed to kill the (remote/local) node. """
+        self.node_proxy = None
+        self.viewport.Disable()
+        self.Redraw()
+
+    def NodeKillFailed(self):
+        """ The node refused to kill itself. """
+        msg = _("You cannot kill this node.")
+        dialog = wx.MessageDialog(None, msg, caption=_("Kill refused"), style=wx.OK | wx.ICON_ERROR)
         dialog.ShowModal()

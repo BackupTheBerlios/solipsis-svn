@@ -57,7 +57,5 @@ class NetworkLoop(threading.Thread):
     def DisconnectFromNode(self, *args, **kargs):
         self.remote_connector.Disconnect(*args, **kargs)
 
-    #~ def MoveTo(self, (x, y)):
-        #~ x = str(long(x))
-        #~ y = str(long(y))
-        #~ self.remote_connector.Call('Move', x, y, 0)
+    def KillNode(self, *args, **kargs):
+        self.remote_connector.Kill(*args, **kargs)

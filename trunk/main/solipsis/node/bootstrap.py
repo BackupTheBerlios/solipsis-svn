@@ -118,7 +118,7 @@ class NodeLauncher(object):
         else:
             self.state_machine.TryConnect()
         self.reactor.addSystemEventTrigger('before', 'shutdown', self.state_machine.Close)
-#         self.reactor.addSystemEventTrigger('after', 'shutdown', self.state_machine.DumpStats)
+        #~ self.reactor.addSystemEventTrigger('after', 'shutdown', self.state_machine.DumpStats)
 
         # Start remote controller(s)
         if not self.params.bot:
@@ -131,7 +131,7 @@ class NodeLauncher(object):
                     sys.exit(1)
                 c = c.Controller(self.reactor, self.params, self.remote_control)
                 c.Start(self.pool_num)
-                self.reactor.addSystemEventTrigger('before', 'shutdown', c.Stop)
+                self.reactor.addSystemEventTrigger('after', 'shutdown', c.Stop)
 
 
 class Bootstrap(object):

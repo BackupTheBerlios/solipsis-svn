@@ -85,6 +85,26 @@ class RemoteControl(object):
         del self.connections[connect_id]
         return True
 
+    def remote_Quit(self, connect_id):
+        """
+        Kills the node and quits.
+        Allowed only if the process hosts a single node.
+        """
+        self._CheckConnectId(connect_id)
+        if self.params.pool:
+            return False
+        if connect_id in self.pending_notifs:
+            self._SendNotifs(connect_id, force=True)
+        self.connections[connect_id].Reset()
+        del self.connections[connect_id]
+
+        # We cannot call self.reactor.stop synchronously,
+        # since we must first return the method result over the network.
+        def _close():
+            self.reactor.stop()
+        self.reactor.callLater(1.0, _close)
+        return True
+
     def remote_GetEvents(self, connect_id):
         """
         Get a list of events since last call (or since the beginning of

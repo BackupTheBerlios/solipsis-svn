@@ -32,6 +32,7 @@ class RemoteConnector(object):
         self.reactor = reactor
         self.ui = ui
         self.proxy = None
+        self.remote_node = None
 
     def Connect(self, host, port):
         """
@@ -40,44 +41,62 @@ class RemoteConnector(object):
         def _success(proxy):
             # As soon as we are connected, get all peers and ask for events
             self.proxy = proxy
-            self.proxy.GetNodeInfo()
-            self.proxy.GetStatus()
-            self.proxy.GetAllPeers()
-            self.proxy.GetEvents()
-            self.ui.NodeConnectionSucceeded(self.proxy)
+            proxy.GetNodeInfo()
+            proxy.GetStatus()
+            proxy.GetAllPeers()
+            proxy.GetEvents()
+            self.ui.NodeConnectionSucceeded(proxy)
         def _failure(error):
             self.proxy = None
             self.ui.NodeConnectionFailed(error)
             #~ print "connection failure:", str(error)
             
-        remote_node = XMLRPCNode(self.reactor, host, port)
-        d = remote_node.Connect(self)
+        self.remote_node = XMLRPCNode(self.reactor, host, port)
+        d = self.remote_node.Connect(self)
         d.addCallbacks(_success, _failure)
 
     def Disconnect(self):
         """
         Disconnect from the node.
         """
-        if self.proxy is not None:
-            self.proxy.Disconnect()
-            self.proxy = None
+        if self.remote_node is not None:
+            self.remote_node.Disconnect()
+            self.remote_node = None
+
+    def Kill(self):
+        """
+        Kill the node.
+        """
+        if self.remote_node is not None:
+            self.remote_node.Quit()
+            self.remote_node = None
 
     def Connected(self):
         """
         Returns True if connected.
         """
-        return self.proxy is not None
+        return self.remote_node is not None
 
     def Call(self, method, *args):
         """
         Call a remote function on the node.
         """
+        print "!!!Call %s" % method
         if self.proxy is not None:
             getattr(self.proxy, method)(*args)
 
     #
     # Method response callbacks
     #
+    def success_Quit(self, reply):
+        """
+        Notify kill report to the UI.
+        """
+        if reply:
+            self.ui.NodeKillSucceeded()
+        else:
+            self.ui.NodeKillFailed()
+
     def success_GetAllPeers(self, reply):
         """
         Transmit all peer information to the viewport.

@@ -25,7 +25,11 @@ class _BaseNode(object):
     """
     Base class for node proxying objects.
     """
+
     class _Proxy(object):
+        """
+        A proxy class whose method calls will be forwarded to the node.
+        """
         def __init__(self, node, connect_id):
             # Instantiates a proxy object
             self.node = node
@@ -53,25 +57,67 @@ class _BaseNode(object):
             setattr(self, name, fun)
             return fun
 
-    def __init__(self):
-        pass
+    def Connect(self, receiver):
+        """
+        This method must be overriden.
+        Connect to the node, taking a "receiver" object for method responses
+        as parameter.
+        Returns a Deferred that will return:
+        - either a Proxy object if the connection has succeeded
+        - or an error through its errback if there was a problem.
+        """
+        raise NotImplementedError
+
+    def Connected(self):
+        """
+        Returns True if connected.
+        """
+        return self._proxy is not None
+
+    def Disconnect(self):
+        """
+        This method must be overriden.
+        Disconnect from the node.
+        """
+        if self.Connected():
+            self._proxy.Disconnect()
+            self._proxy = None
+            self._Disconnected()
+
+    def Quit(self):
+        """
+        Kill the node.
+        """
+        if self.Connected():
+            self._proxy.Quit()
+            self._proxy = None
+            self._Disconnected()
 
     def _CreateMethod(self, method_name, success, failure):
         """
         This method must be overriden.
-        It builds a method calling method "method_name" on the remote object
+        It creates a method calling method "method_name" on the remote object
         and ties the response to the "success" and "failure" callbacks.
         """
         raise NotImplementedError
 
     def _CreateProxy(self, connect_id):
+        """
+        Returns a proxy object when connecting.
+        """
         print "connect_id:", connect_id
-        self.connect_id = connect_id
         self._proxy = self._Proxy(self, connect_id)
         return self._proxy
+        
+    def _Disconnected(self):
+        """
+        Called when connection ends. Should be overriden.
+        """
+        pass
 
     def _AskEvents(self):
-        self._proxy.GetEvents()
+        if self.Connected():
+            self._proxy.GetEvents()
 
 
 class XMLRPCNode(_BaseNode):
@@ -79,12 +125,11 @@ class XMLRPCNode(_BaseNode):
     Class for connecting to a node via XMLRPC.
     """
     def __init__(self, reactor, host, port, *args, **kargs):
-        super(XMLRPCNode, self).__init__(*args, **kargs)
+        _BaseNode.__init__(self, *args, **kargs)
         self.reactor = reactor
         self.host = host
         self.port = port
         self.xmlrpc_control = None
-        self.connect_id = None
         self.receiver = None
 
     def Connect(self, receiver):
@@ -116,19 +161,8 @@ class XMLRPCNode(_BaseNode):
             return error
         return xmlrpc_control.callRemote('Connect').addCallbacks(_success, _failure)
 
-    def Disconnect(self):
-        """
-        Disconnect from the node.
-        """
-        self._proxy.Disconnect()
+    def _Disconnected(self):
         self.xmlrpc_control = None
-        self.connect_id = None
-
-    def Connected(self):
-        """
-        Returns True if connected.
-        """
-        return self.xmlrpc_control is not None
 
     def _CreateMethod(self, method_name, success, failure):
         def fun(*args, **kargs):

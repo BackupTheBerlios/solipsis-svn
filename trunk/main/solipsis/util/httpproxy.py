@@ -32,6 +32,8 @@ def discover_http_proxy():
     Note: automatic proxy configuration file (*.pac) handling is braindead.
     """
 
+    def d(x):
+        print "#http_proxy", x
     host_port = None
     host = port = None
     pac_url = None
@@ -81,19 +83,26 @@ def discover_http_proxy():
             pass
 
     # Gnome
+    # TODO: we sometimes hang in this code, find out why!
     try:
+        d(1)
         import gconf
+        d(2)
         client = gconf.client_get_default()
     except:
         pass
     else:
+        d(3)
         mode = client.get_string('/system/proxy/mode')
         if mode == 'auto':
+            d(4)
             pac_url = client.get_string('/system/proxy/autoconfig_url')
         elif mode == 'manual':
+            d(5)
             if client.get_bool('/system/http_proxy/use_http_proxy'):
                 host = client.get_string('/system/http_proxy/host')
                 port = client.get_int('/system/http_proxy/port')
+        d(6)
 
     # Read PAC file if necessary
     # Yes, we could use Twisted, but we don't need asynchronicity here
