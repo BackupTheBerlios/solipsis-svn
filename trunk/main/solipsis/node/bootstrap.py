@@ -11,7 +11,7 @@ import states
 
 class Bootstrap(object):
     from solipsis.util.geometry import Position
-    dummy_position = Position(1000, 200000, 0)
+    dummy_position = Position(2**127 - 2**125 - 3000, 2000000000, 0)
 
     def __init__(self, reactor, params):
         self.reactor = reactor
@@ -65,5 +65,6 @@ class Bootstrap(object):
             if len(t) >= 2:
                 host, port = t[0], int(t[1])
                 entities.append((host, port))
+        entities.reverse() # a bit of fun
         return entities
 

@@ -288,12 +288,17 @@ class StateMachine(object):
         print "idle"
         # TODO: add periodic handler for increasing / decreasing the number of peers
 
+        def count(i=[0]):
+            i[0] += 1
+            if i[0] % 50 == 0:
+                print i[0]
         def check_gc():
             # Periodically check global connectivity
             manager = self.peers
             if not manager.hasGlobalConnectivity():
                 self.SetState(states.LostGlobalConnectivity())
         self._CallPeriodically(2, check_gc)
+        #self._CallPeriodically(0, count)
 
     def state_LostGlobalConnectivity(self):
         print "lost global connectivity"
@@ -340,8 +345,7 @@ class StateMachine(object):
             # check if we have not already connected to this peer
             if manager.hasPeer(peer.id_):
                 manager.removePeer(peer.id_)
-                self.logger.info('HELLO from %s, but we are already connected',
-                                  peer.getId())
+                self.logger.info("HELLO from '%s', but we are already connected" % peer.id_)
             if self._SayConnect(peer):
                 self._AddPeer(peer)
 
@@ -359,8 +363,7 @@ class StateMachine(object):
             # TODO: notify
 
         else:
-            self.logger.info('reception of CONNECT but we are already connected to'
-                              + peer.getId())
+            self.logger.info("reception of CONNECT but we are already connected to '%s'" % peer.id_)
 
     def peer_CLOSE(self, args):
         """
@@ -400,8 +403,8 @@ class StateMachine(object):
         id_ = args.remote_id
         # Loop detection
         if id_ in self.nearest_peers:
-            self.logger.warning("Infinite loop in FINDNEAREST algorithm: %s"
-                    % ", ".join(["'" + str(i) + "'" for i in self.nearest_peers]))
+            self.logger.warning("Already encountered peer '%s' in FINDNEAREST algorithm: %s"
+                    % (str(id_), ", ".join(["'" + str(i) + "'" for i in self.nearest_peers])))
             return
         # Check we do not already have a better candidate
         if self.best_peer is not None:
@@ -501,8 +504,8 @@ class StateMachine(object):
         # to the first peer (=> turn completed) or our last neighbour was in the
         # left half plane and this peer is in the right half plane
         if nb_peers > 2 and (peer.id_ == self.best_peer.id_ or
-            (Geometry.inHalfPlane(best_pos, our_pos, last.position) !=
-            Geometry.inHalfPlane(best_pos, our_pos, peer.pos))):
+            (not Geometry.inHalfPlane(best_pos, our_pos, last.position)
+            and Geometry.inHalfPlane(best_pos, our_pos, peer.position))):
 #             (not Geometry.inHalfPlane(best_pos, our_pos, last.position)
 #             and Geometry.inHalfPlane(bestPos, nodePos, peerPos))):
 

@@ -137,7 +137,7 @@ class Geometry(object):
         rp1  = Geometry.relativePosition(p1,p2)
         rpos = Geometry.relativePosition(pos, p2)
         return (rpos.getPosX()-rp1.getPosX())*(rp1.getPosY()-p2.getPosY()) + \
-               (rpos.getPosY()-rp1.getPosY())*(p2.getPosX()-rp1.getPosX()) >= 0
+               (rpos.getPosY()-rp1.getPosY())*(p2.getPosX()-rp1.getPosX()) > 0
 
     def ccwOrder(x, y):
         """ return TRUE if entity y is before entity x in ccw order relation
