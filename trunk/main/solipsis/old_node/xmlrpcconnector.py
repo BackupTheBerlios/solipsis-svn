@@ -223,7 +223,7 @@ class XMLRPCControlChannel(object):
 
 
     def move(self, x, y, z):
-         """ Reception of a move order
+        """ Reception of a move order
         x,y,z : target coordinates. These parameters are passed as string
         to avoid int overflow problems
         """
@@ -233,3 +233,12 @@ class XMLRPCControlChannel(object):
         jump = factory.createMOVE(pos)
         self.incoming.put(jump)
         return self.ok
+
+    def set(self, name, value):
+        """ Reception of a SET order. Modification of a characteristic of the
+        node. E.g. the pseudo set('Pseudo', 'john')"""
+        factory = EventFactory.getInstance(ControlEvent.TYPE)
+        set = factory.createSET(name, value)
+        self.incoming.put(set)
+        return self.ok
+    
