@@ -39,6 +39,7 @@
       <label>Help</label>
       <object class="wxMenuItem" name="menu_about">
         <label>About</label>
+        <bitmap stock_id="wxART_INFORMATION"></bitmap>
       </object>
     </object>
   </object>

@@ -210,6 +210,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         wx.EVT_PAINT(self.viewport_panel, self.OnPaint)
         wx.EVT_SIZE(self.viewport_panel, self.OnResize)
         wx.EVT_LEFT_DOWN(self.viewport_panel, self._LeftClickViewport)
+        wx.EVT_RIGHT_UP(self.viewport_panel, self._RightClickViewport)
         wx.EVT_MOTION(self.viewport_panel, self._HoverViewport)
 
         # Let's go...
@@ -400,6 +401,22 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         if self._CheckNodeProxy(False):
             x, y = self.viewport.MoveToPixels(evt.GetPositionTuple())
             self.node_proxy.Move(str(long(x)), str(long(y)), str(0))
+        evt.Skip()
+
+    def _RightClickViewport(self, evt):
+        """ Called on left click event. """
+        if self._CheckNodeProxy(False):
+            menu = wx.Menu()
+            #~ menu.Append(wx.NewId(), "Nothing")
+            menu.AppendSeparator()
+            menu.Append(XRCID("menu_disconnect"), _("Disconnect from node"))
+            menu.Append(XRCID("menu_about"), _("About Solipsis"))
+            self.viewport_panel.PopupMenu(menu)
+        else:
+            menu = wx.Menu()
+            menu.Append(XRCID("menu_connect"), _("Connect to node"))
+            menu.Append(XRCID("menu_about"), _("About Solipsis"))
+            self.viewport_panel.PopupMenu(menu)
         evt.Skip()
 
     def _HoverViewport(self, evt):

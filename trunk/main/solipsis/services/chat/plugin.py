@@ -22,17 +22,17 @@ from solipsis.services.plugin import ServicePlugin
 
 
 class Plugin(ServicePlugin):
-    def GetAction(self):
-        return _("Chat with people")
-
     def GetTitle(self):
         return _("Discussion")
 
     def GetDescription(self):
         return _("Talk with the people around you")
 
-    def IsPointToPoint(self):
-        return False
+    def GetAction(self):
+        return _("Chat with people")
+
+    def GetPointToPointAction(self):
+        return None
 
     def NewPeer(self, peer):
         print "chat: NEW %s" % peer.id_

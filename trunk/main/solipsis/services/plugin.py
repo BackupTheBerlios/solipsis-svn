@@ -31,7 +31,11 @@ class ServicePlugin(object):
         it can query some useful objects and information.
         """
         self.service_api = service_api
-    
+
+    #
+    # Service description methods
+    #
+
     def GetTitle(self):
         """
         Returns a short title of the plugin.
@@ -46,6 +50,13 @@ class ServicePlugin(object):
         """
         raise NotImplementedError
 
+    def GetAction(self):
+        """
+        Returns a string advertising an action with all peers,
+        or None if no such action is allowed.
+        """
+        raise NotImplementedError
+
     def GetPointToPointAction(self):
         """
         Returns a string advertising a point-to-point action
@@ -55,10 +66,33 @@ class ServicePlugin(object):
 
     def GetIcon(self, size):
         """
-        Returns an icon representing the plugin.
-        The standard size in pixels should be 24x24.
+        Returns the file name of an icon representing the plugin.
+        There should be at least a 16x16 icon (for pop-up menus).
         """
         raise NotImplementedError
+
+    #
+    # Service setup
+    #
+
+    def Enable(self):
+        """
+        All real actions involved in initializing the service should be
+        defined here, not in the constructor.
+        This includes e.g. opening sockets, collecting data from directories, etc.
+        """
+        raise NotImplementedError
+    
+    def Disable(self):
+        """
+        This routine should invalidate all actions take in the Enable() method.
+        It is called when the user chooses to disable the service.
+        """
+        raise NotImplementedError
+
+    #
+    # Peer management
+    #
 
     def NewPeer(self, peer):
         raise NotImplementedError
