@@ -3,6 +3,8 @@ import sys
 import logging
 import random
 
+import twisted.internet.defer as defer
+
 from solipsis.util.geometry import Position
 from solipsis.util.address import Address
 from node import Node
@@ -11,7 +13,6 @@ from control import RemoteControl
 from statemachine import StateMachine
 
 import controller.xmlrpc
-
 
 # Helper (see Python documentation for built-in function __import__)
 def _import(name):
@@ -22,8 +23,73 @@ def _import(name):
     return mod
 
 
-class Bootstrap(object):
+class NodeLauncher(object):
+    def __init__(self, reactor, params):
+        self.reactor = reactor
+        self.params = params
 
+    def Prepare(self, pool_num=0):
+        """
+        Prepare the node and return the assigned (host, port) tuple.
+        """
+        self.host = self.params.host or "127.0.0.1"
+        self.port = self.params.port + pool_num
+        self.control_port = self.params.control_port + pool_num
+        node = Node(self.reactor, self.params)
+        if self.params.pool:
+            node.position = Position(random.random() * 2**128, random.random() * 2**128, 0)
+        else:
+            node.position = Position(self.params.pos_x, self.params.pos_y, 0)
+        self.state_machine = StateMachine(self.reactor, self.params, node)
+        self.node_connector = NodeConnector(self.reactor, self.params, self.state_machine)
+        self.remote_control = RemoteControl(self.reactor, self.params, self.state_machine)
+
+        # Local address discovery
+        discovery_module = 'local'
+        discovery = _import('discovery.' + discovery_module)
+        d = discovery.DiscoverAddress(self.port, self.reactor, self.params)
+        def _succeed(address):
+            self.host, self.port = address
+            node.address = Address(self.host, self.port)
+            return self.host, self.port
+        def _fail(failure):
+            print "Address discovery failed:", str(failure)
+            sys.exit(1)
+        d.addCallback(_succeed)
+        d.addErrback(_fail)
+        return d
+
+    def Launch(self, bootup_entities):
+        """
+        Launch the node: initiate network connections and start the state machine.
+        """
+        # Open Solipsis main port
+        sender = self.node_connector.SendMessage
+        self.state_machine.Init(sender, self.remote_control, bootup_entities)
+        try:
+            self.node_connector.Start(self.port)
+        except Exception, e:
+            print str(e)
+            self.reactor.stop()
+            sys.exit(1)
+        self.reactor.addSystemEventTrigger('during', 'shutdown', self.node_connector.Stop)
+
+        # Setup the initial state
+        if self.params.as_seed:
+            self.state_machine.ImmediatelyConnect()
+        else:
+            self.state_machine.TryConnect()
+        self.reactor.addSystemEventTrigger('before', 'shutdown', self.state_machine.Close)
+        self.reactor.addSystemEventTrigger('after', 'shutdown', self.state_machine.DumpStats)
+
+        # Start remote controller
+        if not self.params.bot:
+            c = controller.xmlrpc.Controller(self.reactor, self.params, self.remote_control)
+            c.Start(self.control_port)
+            self.reactor.addSystemEventTrigger('before', 'shutdown', c.Stop)
+
+
+class Bootstrap(object):
     def __init__(self, reactor, params):
         """
         Initialize the bootstrap object and all necessary objects.
@@ -33,97 +99,55 @@ class Bootstrap(object):
         self.params = params
         self.pool = []
 
-        # Local address discovery
-        discovery_module = 'local'
-        discovery = _import('discovery.' + discovery_module)
-        d = discovery.DiscoverAddress(self.reactor, self.params)
-        def _succeed(address):
-            print "local IP address is %s" % str(address)
-            self.local_address = address
-            self.reactor.callLater(0, self.LaunchPool)
-        def _fail(failure):
-            print "Address discovery failed:", str(failure)
-            sys.exit(1)
-        d.addCallback(_succeed)
-        d.addErrback(_fail)
-
     def Run(self):
         """
         Initiate the network connections and launch the main loop.
         """
         # Enter event loop
-        try:
-            self.reactor.run()
-        except Exception, e:
-            print str(e)
-            sys.exit(1)
+        self.reactor.callLater(0, self.LaunchPool)
+        self.reactor.run()
 
     def LaunchPool(self):
         """
         Launch the pool of local nodes.
         """
-        class PoolItem(object):
-            def __init__(self, state_machine, node_connector, remote_control):
-                self.state_machine = state_machine
-                self.node_connector = node_connector
-                self.remote_control = remote_control
-
+        deferreds = []
         if self.params.pool:
             # Prepare a pool of nodes
-            entities = []
             for i in range(self.params.pool):
-                port = self.params.port + i
-                entities.append((self.params.host, port))
-                node = Node(self.reactor, self.params)
-                node.address = Address(self.local_address, port)
-                node.position = Position(random.random() * 2**128, random.random() * 2**128, 0)
-                state_machine = StateMachine(self.reactor, self.params, node)
-                node_connector = NodeConnector(self.reactor, self.params, state_machine)
-                remote_control = RemoteControl(self.reactor, self.params, state_machine)
-                self.pool.append(PoolItem(state_machine, node_connector, remote_control))
-            if self.params.as_seed:
-                self.bootup_entities = entities
-            else:
-                self.bootup_entities = self._ParseEntitiesFile(self.params.entities_file)
+                p = NodeLauncher(self.reactor, self.params)
+                self.pool.append(p)
+                deferreds.append(p.Prepare(i))
         else:
             # Prepare a single node
-            node = Node(self.reactor, self.params)
-            node.address = Address(self.local_address, self.params.port)
-            node.position = Position(self.params.pos_x, self.params.pos_y, 0)
-            state_machine = StateMachine(self.reactor, self.params, node)
-            node_connector = NodeConnector(self.reactor, self.params, state_machine)
-            remote_control = RemoteControl(self.reactor, self.params, state_machine)
-            if self.params.as_seed:
-                self.bootup_entities = self._ParseSeedsFile("conf/seed.met")
-            else:
-                self.bootup_entities = self._ParseEntitiesFile(self.params.entities_file)
-            self.pool.append(PoolItem(state_machine, node_connector, remote_control))
+            p = NodeLauncher(self.reactor, self.params)
+            self.pool.append(p)
+            deferreds.append(p.Prepare())
 
-        # Launch the network connections
-        for i, p in enumerate(self.pool):
-            # Open Solipsis main port
-            sender = p.node_connector.SendMessage
-            p.state_machine.Init(sender, p.remote_control, self.bootup_entities)
-            try:
-                p.node_connector.Start(i)
-            except Exception, e:
-                print str(e)
-                sys.exit(1)
-            self.reactor.addSystemEventTrigger('during', 'shutdown', p.node_connector.Stop)
+        # Startup entities are saved in a file
+        if not self.params.as_seed:
+            bootup_entities = self._ParseEntitiesFile(self.params.entities_file)
+        else:
+            bootup_entities = []
 
-            # Setup the initial state
-            if self.params.as_seed:
-                p.state_machine.ImmediatelyConnect()
-            else:
-                p.state_machine.TryConnect()
-            self.reactor.addSystemEventTrigger('before', 'shutdown', p.state_machine.Close)
-            self.reactor.addSystemEventTrigger('after', 'shutdown', p.state_machine.DumpStats)
+        def _succeed(results):
+            # Build the list of local addresses once they are known
+            addresses = []
+            for r in results:
+                host, port = r[1]
+                print "local address is %s:%d" % (host, port)
+                addresses.append((host, port))
+            for p in self.pool:
+                self.reactor.callLater(0, p.Launch, bootup_entities or addresses)
 
-            # Start remote controller
-            if not self.params.bot:
-                x = controller.xmlrpc.Controller(self.reactor, self.params, p.remote_control)
-                x.Start(i)
-                self.reactor.addSystemEventTrigger('before', 'shutdown', x.Stop)
+        def _fail(failure):
+            raise Exception(failure)
+
+        # We must wait for all addresses to be known
+        # before we can really launch the nodes
+        d = defer.DeferredList(deferreds, fireOnOneErrback=True, consumeErrors=True)
+        d.addErrback(_fail)
+        d.addCallback(_succeed)
 
 
     #

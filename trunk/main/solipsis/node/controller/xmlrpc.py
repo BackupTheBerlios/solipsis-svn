@@ -14,11 +14,11 @@ class Controller(xmlrpc.XMLRPC):
         self.params = params
         self.remote_control = remote_control
 
-    def Start(self, pool_num=0):
+    def Start(self, port):
         """
         Start listening to XML-RPC requests.
         """
-        self.listening = self.reactor.listenTCP(self.params.control_port + pool_num, server.Site(self))
+        self.listening = self.reactor.listenTCP(port, server.Site(self))
 
     def Stop(self):
         """
