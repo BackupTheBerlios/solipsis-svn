@@ -114,9 +114,6 @@ class PersonalPanel(wx.Panel):
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
             self.facade.change_photo(path)
-            evt.GetEventObject().SetBitmapLabel(\
-                wx.Bitmap(path, wx.BITMAP_TYPE_ANY))
-
         dlg.Destroy()
         
     def on_postcode(self, evt):

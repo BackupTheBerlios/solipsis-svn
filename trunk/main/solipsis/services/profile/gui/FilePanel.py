@@ -41,7 +41,6 @@ class FilePanel(wx.Panel):
         self.root = self.tree_list_ctrl.AddRoot(_("File System..."))
         
         self.facade = get_facade()
-        self.build_tree(os.getcwd())
         self.bind_controls()
 
     def build_tree(self, root_path):
@@ -56,7 +55,6 @@ class FilePanel(wx.Panel):
         self.tree_list_ctrl.SetItemImage(child_dir, self.fldropenidx, which = wx.TreeItemIcon_Expanded)
         self.tree_list_ctrl.SetItemText(child_dir, root_path, 2)
         # walk through dirs
-        files = self.facade.documents[0].get_files()
         for (dirname, dirnames, names) in os.walk(root_path):
             for dir_name in dirnames:
                 self.fill_dir(dir_name, dirname)
@@ -100,7 +98,7 @@ class FilePanel(wx.Panel):
         
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            self.build_tree(path)
+            self.facade.change_repository(path)
             
         dlg.Destroy()
         

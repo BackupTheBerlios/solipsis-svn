@@ -2,6 +2,9 @@
 (document.py) even if its independant from the structure and the inner
 workings of documents"""
 
+import wx
+import sys
+
 class AbstractView:
     """Base class for all views"""
 
@@ -193,4 +196,93 @@ class PrintView(AbstractView):
     def update_peers(self):
         """peer"""
         print self.document.get_peers()
+        
+
+class GuiView(AbstractView):
+    """synthetises information and renders it in HTML"""
+
+    def __init__(self, document, frame, name="gui"):
+        self.frame = frame
+        AbstractView.__init__(self, document, name)
+
+    # PERSONAL TAB: frame.personal_tab
+    def update_title(self):
+        """title"""
+        self.frame.personal_tab.title_value.SetValue(self.document.get_title())
+
+    def update_firstname(self):
+        """firstname"""
+        self.frame.personal_tab.firstname_value.SetValue(self.document.get_firstname())
+        
+    def update_lastname(self):
+        """lastname"""
+        self.frame.personal_tab.lastname_value.SetValue(self.document.get_lastname())
+
+    def update_pseudo(self):
+        """pseudo"""
+        self.frame.personal_tab.nickname_value.SetValue(self.document.get_pseudo())
+
+    def update_photo(self):
+        """photo"""
+        self.frame.personal_tab.photo_button.SetBitmapLabel(\
+                wx.Bitmap(self.document.get_photo(), wx.BITMAP_TYPE_ANY))
+
+    def update_email(self):
+        """email"""
+        self.frame.personal_tab.email_value.SetValue(self.document.get_email())     
+
+    def update_birthday(self):
+        """DateTime birthday"""
+        self.frame.personal_tab.birthday_value.SetValue(self.document.get_birthday()) 
+
+    def update_language(self):
+        """language"""
+        self.frame.personal_tab.language_value.SetValue(self.document.get_language())
+
+    def update_address(self):
+        """address"""
+        self.frame.personal_tab.road_value.SetValue(self.document.get_address())
+
+    def update_postcode(self):
+        """int postcode"""
+        self.frame.personal_tab.postcode_value.SetValue(self.document.get_postcode())
+
+    def update_city(self):
+        """city"""
+        self.frame.personal_tab.city_value.SetValue(self.document.get_city())
+
+    def update_country(self):
+        """country"""
+        self.frame.personal_tab.country_value.SetValue(self.document.get_country())
+
+    def update_description(self):
+        """description"""
+        self.frame.personal_tab.description_value.SetValue(self.document.get_description())
+
+    # CUSTOM TAB : frame.custom_tab
+    def update_hobbies(self):
+        """list hobbies"""
+        self.frame.custom_tab.hobbies_value.SetValue('\n'.join(self.document.get_hobbies()))
+        
+    def update_custom_attributes(self):
+        """dict custom_attributes"""
+        for key, value in self.document.get_custom_attributes().iteritems():
+            index = self.frame.custom_tab.custom_list.InsertStringItem(sys.maxint, key)
+            self.frame.custom_tab.custom_list.SetStringItem(index, 1, value)
+        
+    # FILE TAB : frame.file_tab
+    def update_repository(self):
+        """repository"""
+        self.frame.file_tab.build_tree(self.document.get_repository())
+        
+    def update_files(self):
+        """file"""
+        #TODO
+        files = self.document.get_files()
+        
+    # OTHERS TAB : frame.other_tab  
+    def update_peers(self):
+        """peer"""
+        #TODO
+        peers = self.document.get_peers()
         

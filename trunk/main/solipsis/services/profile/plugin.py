@@ -23,6 +23,9 @@ import wx
 
 from solipsis.util.wxutils import _
 from solipsis.services.plugin import ServicePlugin
+from solipsis.services.profile.facade import get_facade
+from solipsis.services.profile.document import CacheDocument, FileDocument
+from solipsis.services.profile.view import GuiView
 
 class Plugin(ServicePlugin):
     """

@@ -5,23 +5,29 @@
 import wx
 from ProfileFrame import ProfileFrame
 from solipsis.services.profile.facade import get_facade
-from solipsis.services.profile.document import CacheDocument
-from solipsis.services.profile.view import PrintView
+from solipsis.services.profile.document import CacheDocument, FileDocument
+from solipsis.services.profile.view import GuiView
 
 if __name__ == "__main__":
+    #set up GUI
     import gettext
     gettext.install("app") # replace with the appropriate catalog name
-
-    #set up facade
-    facade = get_facade()
-    doc = CacheDocument()
-    view = PrintView(doc)
-    facade.add_document(doc)
-    facade.add_view(view)
-
     app = wx.PySimpleApp(0)
     wx.InitAllImageHandlers()
     profile_frame = ProfileFrame(None, -1, "")
+
+    #set up facade
+    facade = get_facade()
+    file_doc = FileDocument()
+    file_doc.load()
+    cache_doc = CacheDocument()
+    cache_doc.import_document(file_doc)
+    view = GuiView(cache_doc, profile_frame)
+    facade.add_document(file_doc)
+    facade.add_document(cache_doc)
+    facade.add_view(view)
+
+    #launch gui
     app.SetTopWindow(profile_frame)
     profile_frame.Show()
     app.MainLoop()
