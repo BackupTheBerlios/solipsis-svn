@@ -91,7 +91,7 @@ def main():
             # See Psyco documentation: http://psyco.sourceforge.net/psycoguide/module-psyco.html
             try:
                 import psyco
-                psyco.profile(time=120)
+                psyco.profile(time=240)
             except ImportError:
                 print "You can speed up this program by installing psyco (http://psyco.sourceforge.net/)."
             profile_run()
@@ -102,4 +102,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

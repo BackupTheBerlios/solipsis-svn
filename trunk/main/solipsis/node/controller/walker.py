@@ -7,6 +7,10 @@ from delayedcaller import DelayedCaller
 
 
 class Controller(object):
+    """
+    walker.Controller is a special controller that periodically moves the
+    node in the world by a random amount.
+    """
     update_period = 60.0
     decide_period_avg = 60.0
 
@@ -20,14 +24,21 @@ class Controller(object):
         self.speed = (0.0, 0.0)
 
     def Start(self, pool_num):
+        """
+        Start behaviour.
+        """
         self.alive = True
         self.timer = AutoTimer()
         self.connect_id = self.remote_control.remote_Connect()
         self._AskEvents()
         self._Decide()
-        self.caller.CallPeriodically(self.update_period, self._Update)
+        period = self.update_period * (1.0 + random.normalvariate(0.0, 0.2))
+        self.caller.CallPeriodically(period, self._Update)
 
     def Stop(self):
+        """
+        Stop behaviour.
+        """
         self.alive = False
         self.caller.Reset()
 #         self.remote_control.remote_Disconnect(self.connect_id)
@@ -38,12 +49,15 @@ class Controller(object):
             speed = random.expovariate(3.0)
             angle = random.uniform(0.0, 2.0 * math.pi)
             self.speed = (speed * math.cos(angle), speed * math.sin(angle))
-#             print "decide speed=%f angle=%f" % (speed, angle)
         if self.alive:
             duration = abs(random.normalvariate(self.decide_period_avg, self.decide_period_avg / 2.0))
             self.caller.CallLater(duration, self._Decide)
 
     def _Update(self):
+        """
+        Update the node's position.
+        We only move if the node is in a stable state.
+        """
         if self.ready:
             node_info = self.remote_control.remote_GetNodeInfo(self.connect_id)
             ar = node_info.awareness_radius
