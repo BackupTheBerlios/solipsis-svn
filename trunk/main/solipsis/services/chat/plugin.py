@@ -87,7 +87,7 @@ class Plugin(ServicePlugin):
         self.network.SendMessage(text)
 
     def NewPeer(self, peer, service):
-        print "chat: NEW %s (%s)" % (peer.id_, service.address)
+        #~ print "chat: NEW %s (%s)" % (peer.id_, service.address)
         try:
             host, port = self._ParseAddress(service.address)
         except ValueError:
@@ -97,7 +97,7 @@ class Plugin(ServicePlugin):
             self._SetHosts()
 
     def ChangedPeer(self, peer, service):
-        print "chat: CHANGED %s (%s)" % (peer.id_, service.address)
+        #~ print "chat: CHANGED %s (%s)" % (peer.id_, service.address)
         try:
             host, port = self._ParseAddress(service.address)
         except ValueError:

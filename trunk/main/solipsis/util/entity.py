@@ -173,8 +173,8 @@ class Entity(Marshallable):
     def MatchServices(self, entity):
         """
         Match the entity's services with another entity's services.
-        Returns the list of the other entity's services that are of interest
-        to this entity.
+        Returns the services of mine that are of interest
+        to the other entity.
         """
         matched = []
         for service in entity.services.values():
@@ -182,5 +182,5 @@ class Entity(Marshallable):
             my_service = self.services.get(service.id_)
             if my_service is not None:
                 if (service.type, my_service.type) in self.service_matches:
-                    matched.append(service)
+                    matched.append(my_service)
         return matched
