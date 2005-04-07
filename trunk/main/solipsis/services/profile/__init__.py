@@ -23,7 +23,7 @@ import os.path
 
 ENCODING = "ISO-8859-1"
 PROFILE_DIR = os.path.join(os.path.expanduser("~/"), ".solipsis/profiles")
-PROFILE_FILE = ".profile.solipsis"
+PROFILE_FILE = ".default.prf"
 
 if not os.path.isdir(PROFILE_DIR):
     print "creating conf directory %s"% PROFILE_DIR

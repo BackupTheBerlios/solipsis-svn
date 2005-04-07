@@ -12,8 +12,7 @@ TEMPLATE = """<html>
   <title>user preview</title>
   <style>
 #contact { 
-         float: right;
-	 text-align: center;
+         text-align: left;
  }
 
 #email {
@@ -89,7 +88,7 @@ class HtmlTest(unittest.TestCase):
         """diff result from view with expeceted template"""
         self.view.import_document()
         result = difflib.ndiff([line.strip() for line in self.print_template().splitlines()],
-                               [line.strip() for line in self.view.get_view().splitlines()],
+                               [line.strip() for line in self.view.get_view(True).splitlines()],
                                charjunk=lambda x: x in [' ', '\t'])
         result = list(result)
         for index, line in enumerate(result):
@@ -130,7 +129,7 @@ class HtmlTest(unittest.TestCase):
 
     def print_files(self):
         html = []
-        for dir_container in self.document.get_files().values():
+        for dir_container in self.document.get_files().data.values():
             files_str = ''.join(["""<tr>
 	<td>%s</td>
 	<td>%s</td>

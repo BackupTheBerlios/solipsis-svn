@@ -24,7 +24,7 @@ def run():
     cache_doc = CacheDocument()
     cache_doc.import_document(file_doc)
     gui_view = GuiView(cache_doc, profile_frame)
-    html_view = HtmlView(cache_doc, profile_frame.preview_tab.html_preview)
+    html_view = HtmlView(cache_doc, profile_frame.preview_tab.html_preview, True)
     facade.add_document(file_doc)
     facade.add_document(cache_doc)
     facade.add_view(gui_view)

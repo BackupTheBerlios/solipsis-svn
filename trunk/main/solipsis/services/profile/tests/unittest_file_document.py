@@ -3,7 +3,6 @@ gathared in views.py. Documents are to be seen as completely
 independant from views"""
 
 import unittest
-import sys
 from difflib import Differ
 from StringIO import StringIO
 import os.path
@@ -11,18 +10,22 @@ from solipsis.services.profile.document import FileDocument, CacheDocument, Peer
 from solipsis.services.profile.view import PrintView, HtmlView
 from solipsis.services.profile import PROFILE_DIR
 
-TEST_PROFILE = os.path.join(PROFILE_DIR, ".test.solipsis")
+TEST_PROFILE = "data/profiles/test.prf"
 
-class FacadeTest(unittest.TestCase):
+class FileTest(unittest.TestCase):
     """test that all fields are correctly validated"""
 
     expected = """#ISO-8859-1
 [Repository_data/emptydir]
+files = All
 path = data/emptydir
+tag = none
 
 [Repository_data]
-routage = none
+files = All,routage
 path = data
+routage = none
+tag = none
 date.txt = Error: doc not shared
 
 [Personal]
@@ -47,15 +50,19 @@ homepage = manu.com
 hobbies = blabla,bla bla bla,
 
 [Repository_data/subdir1/subsubdir]
+files = All,null,dummy.txt
 path = data/subdir1/subsubdir
+tag = none
 null = empty
 dummy.txt = empty
 
 [Others]
-nico = Friend
+nico = Friend,none
 
 [Repository_data/subdir1]
+files = All
 path = data/subdir1
+tag = none
 
 """
     
@@ -102,7 +109,7 @@ path = data/subdir1
         differ = Differ()
         result =  list(differ.compare([line.replace('\n', '') for line
                                   in open(self.document.file_name).readlines()],
-                                 FacadeTest.expected.splitlines()))
+                                 FileTest.expected.splitlines()))
         for index, line in enumerate(result):
             if not line.startswith("  "):
                 print '\n'.join(result)
@@ -164,10 +171,8 @@ path = data/subdir1
     def test_default(self):
         """load default"""
         self.document.load("dummy")
-        sav_stdout = sys.stdout
         result = StringIO()
-        sys.stdout = result
-        view = PrintView(self.document)
+        view = PrintView(self.document, result, do_import=True)
         self.assertEquals(result.getvalue(), unicode("""Mr
 Emmanuel
 Bréton
@@ -184,19 +189,16 @@ Developer/Designer of this handful plugin
 []
 {}
 []
-[]
+{}
 {}
 """, "iso-8859-1"))
         result.close()
-        sys.stdout = sav_stdout
         
     def test_view(self):
         """load & printView"""
         self.document.load(TEST_PROFILE)
-        sav_stdout = sys.stdout
         result = StringIO()
-        sys.stdout = result
-        view = PrintView(self.document)
+        view = PrintView(self.document, result, do_import=True)
         self.assertEquals(result.getvalue(), """Mr
 manu
 breton
@@ -213,11 +215,10 @@ anything
 [u'blabla', u'bla bla bla', u'']
 {'dirs': u'data,data/emptydir,data/subdir1,data/subdir1/subsubdir', 'color': u'blue', 'homepage': u'manu.com'}
 [u'data', u'data/emptydir', u'data/subdir1', u'data/subdir1/subsubdir']
-[u'data', u'data/emptydir', u'data/subdir1', u'data/subdir1/subsubdir']
+{u'data/subdir1': subdir1 [1] {u'date.doc': data/subdir1/date.doc [shared] [none]}, u'data/emptydir': emptydir [0] {}, u'data/subdir1/subsubdir': subsubdir [3] {u'dummy.txt': data/subdir1/subsubdir/dummy.txt [shared] [empty], u'null': data/subdir1/subsubdir/null [shared] [empty], u'default.solipsis': data/subdir1/subsubdir/default.solipsis [shared] [none]}, u'data': data [4] {u'routage': data/routage [shared] [none], u'.path': data/.path [shared] [none], u'test.prf': data/test.prf [shared] [none], u'date.txt': data/date.txt [shared] [none]}}
 {u'nico': [nico (%s), None]}
 """% PeerDescriptor.FRIEND)
         result.close()
-        sys.stdout = sav_stdout
         
 if __name__ == '__main__':
     unittest.main()

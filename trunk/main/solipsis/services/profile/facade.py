@@ -73,21 +73,29 @@ class Facade:
         """tries to call function doc_set and then, if succeeded, gui_update"""
         for document in self.documents.values():
             try:
-                getattr(document, setter)(value)
+                result = getattr(document, setter)(value)
             except TypeError, error:
                 print >> stderr, "%s: %s"% (document.name, str(error))
+                raise
             except AttributeError, error:
                 print >> stderr, "%s: %s"% (document.name, str(error))
+                raise
         for view in self.views.values():
             try:
                 getattr(view, updater)()
             except AttributeError, error:
                 print >> stderr, "%s: %s"% (view.name, str(error))
+                raise
+        return result
     
     # MENU
     def save_profile(self, path):
         """save .profile.solipsis"""
         if "file" in self.documents:
+            # refresh file document to be sure to save updated data
+            if "cache" in self.documents:
+                self.documents["file"].import_document(self.documents["cache"])
+            # save
             self.documents["file"].save(path)
 
     def load_profile(self, path):
@@ -217,13 +225,9 @@ class Facade:
 
     def expand_dir(self, value):
         """update doc when dir expanded"""
-        for document in self.documents.values():
-            try:
-                added_dirs = document.expand_dir(value)
-            except TypeError, error:
-                print >> stderr, "%s: %s"% (document.name, str(error))
-        for view in self.views.values():
-            view.new_files(added_dirs)
+        return self._try_change(value,
+                               "expand_dir",
+                               "update_dirs")
     
     def share_dir(self, pair):
         """forward command to cache"""
@@ -284,6 +288,11 @@ class Facade:
         """sets new preview for peer"""
         if "gui" in self.views:
             self.views["gui"].update_peer_preview(pseudo)
+    
+    def set_auto_refresh_html(self, enable):
+        """sets new preview for peer"""
+        if "gui" in self.views:
+            self.views["html"].set_auto_refresh(enable)
     
     def refresh_html_preview(self):
         """sets new preview for peer"""

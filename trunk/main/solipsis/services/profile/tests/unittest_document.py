@@ -7,7 +7,7 @@ from solipsis.services.profile.document import PeerDescriptor, \
       AbstractDocument, CacheDocument, FileDocument
 
 
-class ValidatorTest(unittest.TestCase):
+class DocumentTest(unittest.TestCase):
     """test that all fields are correctly validated"""
 
     def setUp(self):

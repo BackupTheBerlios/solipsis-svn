@@ -104,7 +104,7 @@ class CacheTest(unittest.TestCase):
         self.container.share_files("data", [".path", "date.txt"])
         self.container.tag_files("data", ["routage", "date.txt"], u"tag1")
         content = self.container.get_dir_content("data")
-        self.assertEquals(str(content), "{'routage': data/routage  [tag1], '.path': data/.path [shared] [none], 'date.txt': data/date.txt [shared] [tag1]}")
+        self.assertEquals(str(content), "{'routage': data/routage  [tag1], '.path': data/.path [shared] [none], 'test.prf': data/test.prf  [none], 'date.txt': data/date.txt [shared] [tag1]}")
     
 if __name__ == '__main__':
     unittest.main()

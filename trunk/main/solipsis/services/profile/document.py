@@ -25,6 +25,7 @@ import ConfigParser
 import os.path
 import sys
 from os.path import isfile, isdir
+from StringIO import StringIO
 from solipsis.services.profile.data import SharingContainer
 from solipsis.services.profile import ENCODING, \
      PROFILE_DIR, PROFILE_FILE
@@ -36,7 +37,13 @@ SECTION_PERSONAL = "Personal"
 SECTION_CUSTOM = "Custom"
 SECTION_OTHERS = "Others"
 SECTION_REPO_PREFIX = "Repository_"
-        
+BULB_ON_IMG = "../images/bulb.gif"      
+BULB_OFF_IMG = "../images/bulb_off.gif"
+
+SHARE_ALL = "All"
+SHARE_NONE = "none"
+
+NO_PATH = "none"
 
 class FileDescriptor:
     """contains information relative to the sharing of one file"""
@@ -58,17 +65,28 @@ class PeerDescriptor:
               FRIEND:'blue',
               BLACKLISTED:'red'}
     
-    def __init__(self, pseudo, state=ANONYMOUS):
+    def __init__(self, pseudo, state=ANONYMOUS, connected=False):
         self.pseudo = pseudo
         self.state = state
+        self.connected = connected
+        self.file_path = None
 
     def __repr__(self):
         return "%s (%s)"% (self.pseudo, self.state)
 
+    def set_connected(self, enable):
+        """change user's connected status"""
+        self.connected = enable
+
+    def set_file_path(self, path):
+        """change user's connected status"""
+        self.file_path = path
+        
     def html(self):
         """render peer in HTML"""
-        return "<font color=%s>%s</font>"% (PeerDescriptor.COLORS[self.state],
-                                            self.pseudo)
+        return "<img src='%s'/><font color=%s>%s</font>"\
+               % (self.connected and BULB_ON_IMG or BULB_OFF_IMG,
+                  PeerDescriptor.COLORS[self.state], self.pseudo)
         
 class AbstractDocument:
     """Base class for data container. Acts as validator.
@@ -403,7 +421,13 @@ class CacheDocument(AbstractDocument):
         self.files = SharingContainer()
         # dictionary of peers. {pseudo : PeerDescriptor}
         self.peers = {}
-    
+
+    def __str__(self):
+        from view import PrintView
+        result = StringIO()
+        PrintView(self, result, do_import=True)
+        return result.getvalue()
+        
     # MENU
 
     # used base method: saving / loading not implemented
@@ -540,7 +564,7 @@ class CacheDocument(AbstractDocument):
     def add_dir(self, value):
         """sets new value for repository"""
         AbstractDocument.add_dir(self, value)
-        self.files.add_dir(value)
+        return self.files.add_dir(value)
         
     def remove_dir(self, value):
         """sets new value for repository"""
@@ -572,7 +596,7 @@ class CacheDocument(AbstractDocument):
         
     def get_files(self):
         """returns value of files"""
-        return self.files.data
+        return self.files
         
     def get_dirs(self):
         """returns value of repository"""
@@ -639,6 +663,11 @@ class FileDocument(AbstractDocument):
         self.config.add_section(SECTION_PERSONAL)
         self.config.add_section(SECTION_CUSTOM)
         self.config.add_section(SECTION_OTHERS)
+
+    def __str__(self):
+        result = StringIO()
+        self.config.write(result)
+        return result.getvalue()
     
     # MENU
 
@@ -872,15 +901,7 @@ class FileDocument(AbstractDocument):
     def add_dir(self, value):
         """sets new value for repository"""
         AbstractDocument.add_dir(self, value)
-        new_key = SECTION_REPO_PREFIX + value
-        # update list of repositories
-        values = self.get_dirs()
-        values.append(value)
-        self.config.set(SECTION_CUSTOM, "dirs",
-                        ",".join(values).encode(self.encoding))
-        # add section for new repository
-        self.config.add_section(new_key)
-        self.config.set(new_key, "path", value)
+        return self._update_share_dir(value)
         
     def remove_dir(self, value):
         """sets new value for repository"""
@@ -897,14 +918,14 @@ class FileDocument(AbstractDocument):
     def expand_dir(self, value):
         """put into cache new information when dir expanded in tree"""
         AbstractDocument.expand_dir(self, value)
-        self._update_share_dir(value)
+        # html doc does not expand anything
+        return []
 
     def share_dir(self, pair):
         """forward command to cache"""
         AbstractDocument.share_dir(self, pair)
         path, share = pair
-        if share:
-            self._update_share_dir(path)
+        self._update_share_dir(path, share)
 
     def share_files(self, triplet):
         """forward command to cache"""
@@ -914,6 +935,12 @@ class FileDocument(AbstractDocument):
         key = SECTION_REPO_PREFIX + path
         for name in names:
             if share:
+                # update list of file
+                values = self._list_all(key)
+                values.append(name)
+                self.config.set(key, "files",
+                                ",".join(values).encode(self.encoding))
+                # add option for new file
                 self.config.set(key, name, DEFAULT_TAG)
             else:
                 self.config.remove_option(key, name)
@@ -929,12 +956,24 @@ class FileDocument(AbstractDocument):
         
     def get_files(self):
         """returns value of files"""
-        files = SharingContainer()
+        container = SharingContainer()
         # >> repositories
-        for value in self.get_dirs():
-            files.add_dir(value)
-            self._update_share_files(value, files)
-        return files
+        for section in self.get_dirs():
+            container.add_dir(section)
+            key = SECTION_REPO_PREFIX + section
+            shared_files = self._list_all(key)
+            # share
+            if SHARE_ALL in shared_files:
+                container.share_dir(section)
+                shared_files = [item for item in shared_files if item != SHARE_ALL]
+            else:
+                container.share_files(section, shared_files, True)
+            # tag
+            for shared_file in shared_files:
+                container.tag_files(section, [shared_file],
+                                    unicode(self.config.get(key, shared_file),
+                                            self.encoding))
+        return container
     
     def get_dirs(self):
         """returns value of repository"""
@@ -943,41 +982,47 @@ class FileDocument(AbstractDocument):
                     in  self.config.get(SECTION_CUSTOM, "dirs").split(',')]
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
             return []
+    
+    def _list_all(self, section):
+        """returns value of repository"""
+        try:
+            return [unicode(repo, self.encoding) for repo
+                    in  self.config.get(section, "files").split(',')]
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+            return []
+    
+    def _list(self, section):
+        """returns value of repository"""
+        try:
+            return [unicode(repo, self.encoding) for repo
+                    in  self.config.get(section, "files").split(',')
+                    if repo != SHARE_ALL]
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+            return []
 
-    def _update_share_files(self, section, container):
+    def _update_share_dir(self, value, share=True):
         """parse all section for given files"""
-        key = SECTION_REPO_PREFIX + section
-        shared_files = [file_name for file_name in self.config.options(key)
-                        if file_name != "path"]
-        container.share_files(section, shared_files, True)
-        for shared_file in shared_files:
-            container.tag_files(section, [shared_file],
-                                unicode(self.config.get(key, shared_file),
-                                       self.encoding))
-
-    def _update_share_dir(self, dir_name):
-        """parse all section for given files"""
-        new_key = SECTION_REPO_PREFIX + dir_name
+        new_key = SECTION_REPO_PREFIX + value
         if self.config.has_section(new_key):
             return
         # update list of repositories
-        if self.config.has_option(SECTION_CUSTOM, "dirs"):
-            values = self.config.get(SECTION_CUSTOM, "dirs").split(',')
-        else:
-            values = []
-        values.append(dir_name)
+        values = self.get_dirs()
+        values.append(value)
         self.config.set(SECTION_CUSTOM, "dirs",
-                        ",".join(values).encode(self.encoding))  
-        # add section for new dir
+                        ",".join(values).encode(self.encoding))
+        # add section for new repository
         self.config.add_section(new_key)
-        self.config.set(new_key, "path", dir_name)
+        self.config.set(new_key, "path", value)
+        self.config.set(new_key, "files", share and SHARE_ALL or SHARE_NONE)
+        self.config.set(new_key, "tag", DEFAULT_TAG)
+        return new_key
 
         
     # OTHERS TAB
     def add_peer(self, pseudo):
         """stores Peer object"""
         AbstractDocument.add_peer(self, pseudo)
-        self.config.set(SECTION_OTHERS, pseudo, PeerDescriptor.ANONYMOUS)
+        self.config.set(SECTION_OTHERS, pseudo, ",".join([PeerDescriptor.ANONYMOUS, NO_PATH]))
         
     def remove_peer(self, pseudo):
         """del Peer object"""
@@ -993,9 +1038,26 @@ class FileDocument(AbstractDocument):
             for opt in options:
                 if isinstance(opt, str):
                     opt = unicode(opt, self.encoding)
-                friend = self.config.get(SECTION_OTHERS, opt)
-                result[opt] = [PeerDescriptor(opt, friend), None]
-                #TODO: load FileDocument corresponding to  other peer
+                try:
+                    # expected format is friend, path
+                    friend, path = self.config.get(SECTION_OTHERS, opt).split(",")
+                except ValueError:
+                    # if format does not match, guess for path or friend
+                    value = self.config.get(SECTION_OTHERS, opt)
+                    if value in [PeerDescriptor.ANONYMOUS, PeerDescriptor.FRIEND,
+                                 PeerDescriptor.BLACKLISTED]:
+                        friend, path = value, NO_PATH
+                    elif os.path.exists(value):
+                        friend, path = PeerDescriptor.ANONYMOUS, value
+                    else:
+                        friend, path = PeerDescriptor.ANONYMOUS, NO_PATH
+                if path != NO_PATH:
+                    doc = FileDocument()
+                    if not doc.load(path):
+                        doc = None
+                else:
+                    doc = None
+                result[opt] = [PeerDescriptor(opt, friend), doc]
             return result
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
             return result
@@ -1004,20 +1066,32 @@ class FileDocument(AbstractDocument):
     def fill_data(self, pair):
         """stores CacheDocument associated with peer"""
         AbstractDocument.fill_data(self, pair)
-        #TODO: create other FileDocument for other peer wich will be saved apart
+        pseudo, path = pair
+        friendship = self._get_peer_info(pseudo)[0]
+        self.config.set(SECTION_OTHERS, pseudo, "%s,%s"% (friendship, path))   
         
     def make_friend(self, pseudo):
         """sets peer as friend """
         AbstractDocument.make_friend(self, pseudo)
-        self.config.set(SECTION_OTHERS, pseudo, PeerDescriptor.FRIEND)
+        path = self._get_peer_info(pseudo)[1]
+        self.config.set(SECTION_OTHERS, pseudo, "%s,%s"% (PeerDescriptor.FRIEND, path))
 
     def blacklist_peer(self, pseudo):
         """sets new value for unshared file"""
         AbstractDocument.blacklist_peer(self, pseudo)
-        self.config.set(SECTION_OTHERS, pseudo, PeerDescriptor.BLACKLISTED)
+        path = self._get_peer_info(pseudo)[1]
+        self.config.set(SECTION_OTHERS, pseudo, "%s,%s"% (PeerDescriptor.BLACKLISTED, path))
 
     def unmark_peer(self, pseudo):
         """sets new value for unshared file"""
         AbstractDocument.unmark_peer(self, pseudo)
-        self.config.set(SECTION_OTHERS, pseudo, PeerDescriptor.ANONYMOUS)
+        path = self._get_peer_info(pseudo)[1]
+        self.config.set(SECTION_OTHERS, pseudo, "%s,%s"% (PeerDescriptor.ANONYMOUS, path))
+
+    def _get_peer_info(self, pseudo):
+        """retreive stored value (friendship, path) for pseudo"""
+        try:
+            return self.config.get(SECTION_OTHERS, pseudo).split(",")
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+            return [PeerDescriptor.ANONYMOUS, NO_PATH]
 

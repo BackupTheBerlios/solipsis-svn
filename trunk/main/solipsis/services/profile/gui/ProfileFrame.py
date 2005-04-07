@@ -54,6 +54,8 @@ class ProfileFrame(wx.Frame):
         self.peers_item.AppendItem(self.filters_item)
         self.profile_menu.Append(self.peers_item, _("Peers"))
         self.display_item = wx.Menu()
+        self.autorefresh_item = wx.MenuItem(self.display_item, wx.NewId(), _("Auto refresh"), _("Automatically call refresh on any change in profile"), wx.ITEM_CHECK)
+        self.display_item.AppendItem(self.autorefresh_item)
         self.refresh_item = wx.MenuItem(self.display_item, wx.NewId(), _("&Refresh\tCtrl+R"), "", wx.ITEM_NORMAL)
         self.display_item.AppendItem(self.refresh_item)
         self.profile_menu.Append(self.display_item, _("Display"))
@@ -88,15 +90,16 @@ class ProfileFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_blacklist, id=self.blacklisted_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_anonymous, id=self.anonymous_item.GetId())
         
+        self.Bind(wx.EVT_MENU, self.set_refresh, id=self.autorefresh_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_refresh, id=self.refresh_item.GetId())
 
     def on_add(self, evt):
-        """save .profile.solipsis"""
+        """save profile .prf"""
         dlg = wx.FileDialog(
             self, message="Add profile ...",
             defaultDir=PROFILE_DIR,
             defaultFile="",
-            wildcard="Solipsis file (*.solipsis)|*.solipsis",
+            wildcard="Solipsis file (*.prf)|*.prf",
             style=wx.OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
@@ -107,31 +110,32 @@ class ProfileFrame(wx.Frame):
             self.facade.display_peer_preview(loader.get_pseudo())
 
     def on_load(self, evt):
-        """save .profile.solipsis"""
+        """load profile .prf"""
         dlg = wx.FileDialog(
             self, message="Load profile ...",
             defaultDir=PROFILE_DIR,
-            defaultFile=PROFILE_FILE,
-            wildcard="Solipsis file (*.solipsis)|*.solipsis",
+            defaultFile=".prf",
+            wildcard="Solipsis file (*.prf)|*.prf",
             style=wx.OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
             self.facade.load_profile(path)
+            self.facade.refresh_html_preview()
 
     def on_save(self, evt):
-        """save .profile.solipsis"""
+        """save .prf"""
         dlg = wx.FileDialog(
             self, message="Save profile as ...",
             defaultDir=PROFILE_DIR,
-            defaultFile=PROFILE_FILE,
-            wildcard="Solipsis file (*.solipsis)|*.solipsis",
+            defaultFile=self.personal_tab.nickname_value.GetValue()+".prf",
+            wildcard="Solipsis file (*.prf)|*.prf",
             style=wx.SAVE)
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
             self.facade.save_profile(path)
         
     def on_export(self, evt):
-        """save .profile.solipsis"""
+        """export .html"""
         dlg = wx.FileDialog(
             self, message="Export HTML file as ...",
             defaultDir=PROFILE_DIR,
@@ -164,6 +168,10 @@ class ProfileFrame(wx.Frame):
         if pseudo:
             self.facade.unmark_peer(pseudo)
 
+    def set_refresh(self, evt):
+        """refresh HTML preview"""
+        self.facade.set_auto_refresh_html(evt.IsChecked())
+
     def on_refresh(self, evt):
         """refresh HTML preview"""
         self.facade.refresh_html_preview()
@@ -174,7 +182,7 @@ class ProfileFrame(wx.Frame):
         _icon = wx.EmptyIcon()
         _icon.CopyFromBitmap(wx.Bitmap("/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/icon.gif", wx.BITMAP_TYPE_ANY))
         self.SetIcon(_icon)
-        self.SetSize((480, 529))
+        self.SetSize((700, 600))
         self.profile_statusbar.SetStatusWidths([-1])
         # statusbar fields
         profile_statusbar_fields = [_("status")]
@@ -183,15 +191,16 @@ class ProfileFrame(wx.Frame):
         self.profile_book.SetSize((400, 300))
         # end wxGlade
         self.activate_item.Check()
+        self.autorefresh_item.Check()
 
     def __do_layout(self):
         # begin wxGlade: ProfileFrame.__do_layout
         frame_sizer = wx.BoxSizer(wx.VERTICAL)
         self.profile_book.AddPage(self.preview_tab, _("Preview"))
         self.profile_book.AddPage(self.personal_tab, _("Personal"))
-        self.profile_book.AddPage(self.custom_tab, _("Custom"))
+        self.profile_book.AddPage(self.custom_tab, _("Special Interests"))
         self.profile_book.AddPage(self.file_tab, _("Files"))
-        self.profile_book.AddPage(self.other_tab, _("Others"))
+        self.profile_book.AddPage(self.other_tab, _("Contacts"))
         frame_sizer.Add(wx.NotebookSizer(self.profile_book), 1, wx.EXPAND, 0)
         self.SetAutoLayout(True)
         self.SetSizer(frame_sizer)
