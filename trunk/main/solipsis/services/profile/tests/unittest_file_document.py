@@ -216,7 +216,7 @@ anything
 [u'blabla', u'bla bla bla', u'']
 {'dirs': u'data,data/emptydir,data/subdir1,data/subdir1/subsubdir', 'color': u'blue', 'homepage': u'manu.com'}
 [u'data', u'data/emptydir', u'data/subdir1', u'data/subdir1/subsubdir']
-{u'data/subdir1': subdir1 [1] {u'date.doc': data/subdir1/date.doc [shared] [none]}, u'data/emptydir': emptydir [0] {}, u'data/subdir1/subsubdir': subsubdir [3] {u'dummy.txt': data/subdir1/subsubdir/dummy.txt [shared] [empty], u'null': data/subdir1/subsubdir/null [shared] [empty], u'default.solipsis': data/subdir1/subsubdir/default.solipsis [shared] [none]}, u'data': data [3] {u'routage': data/routage [shared] [none], u'.path': data/.path [shared] [none], u'date.txt': data/date.txt [shared] [none]}}
+{u'data/subdir1': data/subdir1(subdir1) [1] {u'date.doc': data/subdir1/date.doc [shared] [none]}, u'data/emptydir': data/emptydir(emptydir) [0] {}, u'data/subdir1/subsubdir': data/subdir1/subsubdir(subsubdir) [3] {u'dummy.txt': data/subdir1/subsubdir/dummy.txt [shared] [empty], u'null': data/subdir1/subsubdir/null [shared] [empty], u'default.solipsis': data/subdir1/subsubdir/default.solipsis [shared] [none]}, u'data': data(data) [3] {u'routage': data/routage [shared] [none], u'.path': data/.path [shared] [none], u'date.txt': data/date.txt [shared] [none]}}
 {u'nico': [nico (%s), None]}
 """% PeerDescriptor.FRIEND)
         result.close()

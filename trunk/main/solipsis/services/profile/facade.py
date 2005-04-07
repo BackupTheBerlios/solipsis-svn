@@ -71,9 +71,10 @@ class Facade:
         
     def _try_change(self, value, setter, updater):
         """tries to call function doc_set and then, if succeeded, gui_update"""
+        result = {}
         for document in self.documents.values():
             try:
-                result = getattr(document, setter)(value)
+                result[document.name] = getattr(document, setter)(value)
             except TypeError, error:
                 print >> stderr, "%s: %s"% (document.name, str(error))
                 raise
@@ -283,6 +284,8 @@ class Facade:
         return self._try_change(value,
                                "unmark_peer",
                                "update_peers")
+
+    # SPECIFIC ACTIONS
     
     def display_peer_preview(self, pseudo):
         """sets new preview for peer"""
@@ -298,4 +301,11 @@ class Facade:
         """sets new preview for peer"""
         if "gui" in self.views:
             self.views["html"].update_view()
+
+    def get_dir_content(self, path):
+        """return list of FileContainer for given path"""
+        if 'cache' in self.documents:
+            return self.documents["cache"].get_dir_content()
+        else:
+            return {}
 

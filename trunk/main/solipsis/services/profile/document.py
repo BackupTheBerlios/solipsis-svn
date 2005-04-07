@@ -26,7 +26,7 @@ import os.path
 import sys
 from os.path import isfile, isdir
 from StringIO import StringIO
-from solipsis.services.profile.data import SharingContainer
+from solipsis.services.profile.data import SharingContainer, DirContainer
 from solipsis.services.profile import ENCODING, \
      PROFILE_DIR, PROFILE_FILE
 from solipsis.services.profile.images import DEFAULT_PIC
@@ -96,6 +96,10 @@ class AbstractDocument:
 
     def get_name(self):
         """used as key in index"""
+        return self.name
+
+    def get_id(self):
+        """return identifiant of Document"""
         return self.name
 
     def import_document(self, other_document):
@@ -663,6 +667,10 @@ class FileDocument(AbstractDocument):
         result = StringIO()
         self.config.write(result)
         return result.getvalue()
+
+    def get_id(self):
+        """return identifiant of Document"""
+        return self.file_name
     
     # MENU
 
@@ -678,7 +686,7 @@ class FileDocument(AbstractDocument):
         """fill document with information from .profile file"""
         if path and os.path.exists(path):
             self.file_name = path
-        elif not os.path.exists(self.file_name):
+        else:
             return False
         # else: continue
         file_obj = open(self.file_name)
@@ -898,7 +906,8 @@ class FileDocument(AbstractDocument):
     def add_dir(self, value):
         """sets new value for repository"""
         AbstractDocument.add_dir(self, value)
-        return self._update_share_dir(value)
+        self._update_share_dir(value)
+        return DirContainer(value)
         
     def remove_dir(self, value):
         """sets new value for repository"""
@@ -916,7 +925,7 @@ class FileDocument(AbstractDocument):
         """put into cache new information when dir expanded in tree"""
         AbstractDocument.expand_dir(self, value)
         # html doc does not expand anything
-        return []
+        return {}
 
     def share_dir(self, pair):
         """forward command to cache"""
@@ -1067,7 +1076,7 @@ class FileDocument(AbstractDocument):
         AbstractDocument.fill_data(self, pair)
         pseudo, doc = pair
         friendship = self._get_peer_info(pseudo)[0]
-        self.config.set(SECTION_OTHERS, pseudo, "%s,%s"% (friendship, doc.file_name))   
+        self.config.set(SECTION_OTHERS, pseudo, "%s,%s"% (friendship, doc.get_id()))   
         
     def make_friend(self, pseudo):
         """sets peer as friend """

@@ -4,7 +4,7 @@ independant from views"""
 
 import unittest
 import difflib
-from solipsis.services.profile.document import PeerDescriptor, CacheDocument
+from solipsis.services.profile.document import PeerDescriptor, CacheDocument, FileDocument
 from solipsis.services.profile.view import HtmlView
 
 TEMPLATE = """<html>
@@ -157,7 +157,7 @@ class HtmlTest(unittest.TestCase):
       <td>%s</td>
       <td>%s</td>
       <td>%s</td>
-    </tr>"""% (key, doc and doc.get_firstname() or "no data", desc.state)
+    </tr>"""% (key, doc and doc.get_id() or "NA", desc.state)
                 for key, (desc, doc) in self.document.get_peers().iteritems()]
         return ''.join(html)
         
@@ -214,7 +214,7 @@ class HtmlTest(unittest.TestCase):
         
     def test_filling_data(self):
         """data as (pseudo, document)"""
-        self.document.fill_data((u"emb", CacheDocument()))
+        self.document.fill_data((u"emb", FileDocument()))
         self.assert_template()
     
     def test_peers_status(self):

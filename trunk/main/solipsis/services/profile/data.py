@@ -58,7 +58,8 @@ class DirContainer:
         if not isdir(path):
             raise ValueError("%s not a valid dir"% path)
         self.path = path
-        self.name = path.split(os.path.sep)[-1]
+        name_index = path.endswith(os.path.sep) and -2 or -1
+        self.name = path.split(os.path.sep)[name_index]
         self.item = item
         self.content = {}
         self.share_content(False)
@@ -67,7 +68,7 @@ class DirContainer:
         return "%s [%d]"% (self.name, self.nb_shared())
 
     def __repr__(self):
-        return "%s %s"% (str(self), str(self.content))
+        return "%s(%s) [%d] %s"% (self.path, self.name, self.nb_shared(), str(self.content))
 
     def set_item(self, item):
         """setter for view item corresonding to this container"""
