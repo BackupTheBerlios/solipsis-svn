@@ -83,7 +83,7 @@
   <table>
     <tr tal:repeat="pseudo peers/keys">
       <td tal:content="pseudo">pseudo</td>
-      <td tal:content="python:peers[pseudo][1] and peers[pseudo][1].get_firstname() or 'no data'">name</td>
+      <td tal:content="python:peers[pseudo][1] and peers[pseudo][1].file_name or 'NA'">name</td>
       <td tal:content="python:peers[pseudo][0].state">state</td>
     </tr>
   </table>

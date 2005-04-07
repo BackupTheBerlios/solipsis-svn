@@ -69,7 +69,6 @@ class PeerDescriptor:
         self.pseudo = pseudo
         self.state = state
         self.connected = connected
-        self.file_path = None
 
     def __repr__(self):
         return "%s (%s)"% (self.pseudo, self.state)
@@ -77,10 +76,6 @@ class PeerDescriptor:
     def set_connected(self, enable):
         """change user's connected status"""
         self.connected = enable
-
-    def set_file_path(self, path):
-        """change user's connected status"""
-        self.file_path = path
         
     def html(self):
         """render peer in HTML"""
@@ -681,14 +676,16 @@ class FileDocument(AbstractDocument):
 
     def load(self, path=None):
         """fill document with information from .profile file"""
-        if os.path.exists(path or self.file_name):
-            file_obj = open(path or self.file_name)
-            self.encoding = file_obj.readline()[1:]
-            self.config = ConfigParser.ConfigParser()
-            self.config.readfp(file_obj)
-            return True
-        else:
+        if path and os.path.exists(path):
+            self.file_name = path
+        elif not os.path.exists(self.file_name):
             return False
+        # else: continue
+        file_obj = open(self.file_name)
+        self.encoding = file_obj.readline()[1:]
+        self.config = ConfigParser.ConfigParser()
+        self.config.readfp(file_obj)
+        return True
         
     # PERSONAL TAB
     def set_title(self, value):
@@ -1036,6 +1033,7 @@ class FileDocument(AbstractDocument):
         try:
             options = self.config.options(SECTION_OTHERS)
             for opt in options:
+                # get info
                 if isinstance(opt, str):
                     opt = unicode(opt, self.encoding)
                 try:
@@ -1051,6 +1049,7 @@ class FileDocument(AbstractDocument):
                         friend, path = PeerDescriptor.ANONYMOUS, value
                     else:
                         friend, path = PeerDescriptor.ANONYMOUS, NO_PATH
+                # load doc
                 if path != NO_PATH:
                     doc = FileDocument()
                     if not doc.load(path):
@@ -1066,9 +1065,9 @@ class FileDocument(AbstractDocument):
     def fill_data(self, pair):
         """stores CacheDocument associated with peer"""
         AbstractDocument.fill_data(self, pair)
-        pseudo, path = pair
+        pseudo, doc = pair
         friendship = self._get_peer_info(pseudo)[0]
-        self.config.set(SECTION_OTHERS, pseudo, "%s,%s"% (friendship, path))   
+        self.config.set(SECTION_OTHERS, pseudo, "%s,%s"% (friendship, doc.file_name))   
         
     def make_friend(self, pseudo):
         """sets peer as friend """
