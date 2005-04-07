@@ -118,11 +118,11 @@ class FacadeTest(unittest.TestCase):
         self.facade.share_dir((u"data/emptydir", True))
         self.facade.share_dir((u"data/subdir1/subsubdir", True))
         self.assertEquals("""[u'data']
-{u'data': data [4] {u'routage': data/routage [shared] [none], u'.path': data/.path [shared] [none], u'test.prf': data/test.prf [shared] [none], u'date.txt': data/date.txt [shared] [none]}}
+{u'data': data [3] {u'routage': data/routage [shared] [none], u'.path': data/.path [shared] [none], u'date.txt': data/date.txt [shared] [none]}}
 [u'data', u'data/emptydir']
 [u'data', u'data/emptydir', u'data/subdir1/subsubdir']
-{u'data/emptydir': emptydir [0] {}, u'data/subdir1/subsubdir': subsubdir [0] {u'dummy.txt': data/subdir1/subsubdir/dummy.txt  [none], u'null': data/subdir1/subsubdir/null  [none], u'default.solipsis': data/subdir1/subsubdir/default.solipsis  [none]}, u'data': data [4] {u'routage': data/routage [shared] [none], u'.path': data/.path [shared] [none], u'test.prf': data/test.prf [shared] [none], u'date.txt': data/date.txt [shared] [none]}}
-{u'data/emptydir': emptydir [0] {}, u'data/subdir1/subsubdir': subsubdir [3] {u'dummy.txt': data/subdir1/subsubdir/dummy.txt [shared] [none], u'null': data/subdir1/subsubdir/null [shared] [none], u'default.solipsis': data/subdir1/subsubdir/default.solipsis [shared] [none]}, u'data': data [4] {u'routage': data/routage [shared] [none], u'.path': data/.path [shared] [none], u'test.prf': data/test.prf [shared] [none], u'date.txt': data/date.txt [shared] [none]}}
+{u'data/emptydir': emptydir [0] {}, u'data/subdir1/subsubdir': subsubdir [0] {u'dummy.txt': data/subdir1/subsubdir/dummy.txt  [none], u'null': data/subdir1/subsubdir/null  [none], u'default.solipsis': data/subdir1/subsubdir/default.solipsis  [none]}, u'data': data [3] {u'routage': data/routage [shared] [none], u'.path': data/.path [shared] [none], u'date.txt': data/date.txt [shared] [none]}}
+{u'data/emptydir': emptydir [0] {}, u'data/subdir1/subsubdir': subsubdir [3] {u'dummy.txt': data/subdir1/subsubdir/dummy.txt [shared] [none], u'null': data/subdir1/subsubdir/null [shared] [none], u'default.solipsis': data/subdir1/subsubdir/default.solipsis [shared] [none]}, u'data': data [3] {u'routage': data/routage [shared] [none], u'.path': data/.path [shared] [none], u'date.txt': data/date.txt [shared] [none]}}
 """, self.result.getvalue())
 
     def test_share_files(self):
@@ -132,8 +132,8 @@ class FacadeTest(unittest.TestCase):
         self.assertRaises(ValueError, self.facade.share_files, (u"data", ["routage", "subdir1"], True))
         self.facade.share_files((u"data", ["routage"], False))
         self.assertEquals("""[u'data']
-{u'data': data [1] {u'routage': data/routage [shared] [none], u'.path': data/.path  [none], u'test.prf': data/test.prf  [none], u'date.txt': data/date.txt  [none]}}
-{u'data': data [0] {u'routage': data/routage  [none], u'.path': data/.path  [none], u'test.prf': data/test.prf  [none], u'date.txt': data/date.txt  [none]}}
+{u'data': data [1] {u'routage': data/routage [shared] [none], u'.path': data/.path  [none], u'date.txt': data/date.txt  [none]}}
+{u'data': data [0] {u'routage': data/routage  [none], u'.path': data/.path  [none], u'date.txt': data/date.txt  [none]}}
 """, self.result.getvalue())
 
     def test_tag_files(self):
@@ -143,8 +143,8 @@ class FacadeTest(unittest.TestCase):
         self.assertRaises(ValueError, self.facade.tag_files, (u"data", ["routage", "subdir1"], u"tag desc 2"))
         self.facade.tag_files((u"data", ["routage", "date.txt"], u"tag desc 3"))
         self.assertEquals("""[u'data']
-{u'data': data [0] {u'routage': data/routage  [tag desc 1], u'.path': data/.path  [none], u'test.prf': data/test.prf  [none], u'date.txt': data/date.txt  [none]}}
-{u'data': data [0] {u'routage': data/routage  [tag desc 3], u'.path': data/.path  [none], u'test.prf': data/test.prf  [none], u'date.txt': data/date.txt  [tag desc 3]}}
+{u'data': data [0] {u'routage': data/routage  [tag desc 1], u'.path': data/.path  [none], u'date.txt': data/date.txt  [none]}}
+{u'data': data [0] {u'routage': data/routage  [tag desc 3], u'.path': data/.path  [none], u'date.txt': data/date.txt  [tag desc 3]}}
 """, self.result.getvalue())
 
     def test_expand_dir(self):
