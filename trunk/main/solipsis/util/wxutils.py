@@ -122,7 +122,7 @@ class ManagedData(object):
 
     def GetDict(self):
         """
-        Returns a dict contain managed datas in an unmanaged way.
+        Returns a dict containing managed data in an unmanaged way.
         Changes to this dict will not be propagated to the object attributes.
         """
         d = {}
