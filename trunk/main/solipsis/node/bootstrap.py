@@ -56,10 +56,7 @@ class NodeLauncher(object):
         self.host = self.params.host or "127.0.0.1"
         self.port = self.params.port + pool_num
         node = Node(self.reactor, self.params)
-        if self.params.pool:
-            node.position = Position((random.random() * 2**128, random.random() * 2**128, 0))
-        else:
-            node.position = Position((self.params.pos_x, self.params.pos_y, 0))
+        node.position = Position((random.random() * 2**128, random.random() * 2**128, 0))
         self.state_machine = StateMachine(self.reactor, self.params, node)
         self.node_connector = NodeConnector(self.reactor, self.params, self.state_machine)
         self.remote_control = RemoteControl(self.reactor, self.params, self.state_machine)
