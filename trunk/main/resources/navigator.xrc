@@ -143,16 +143,9 @@ Licensed under the GNU LGPL.
                     <flag>wxALIGN_CENTRE_VERTICAL</flag>
                   </object>
                   <object class="sizeritem">
-                    <object class="wxComboBox" name="connect_host">
-                      <content>
-                        <item>bots.netofpeers.net</item>
-                        <item>localhost</item>
-                      </content>
-                      <selection>0</selection>
-                      <style></style>
-                    </object>
+                    <object class="wxTextCtrl" name="connect_host"/>
                     <option>1</option>
-                    <flag>wxEXPAND|wxGROW</flag>
+                    <flag>wxEXPAND|wxGROW|wxALIGN_CENTRE_VERTICAL</flag>
                   </object>
                 </object>
                 <flag>wxEXPAND|wxGROW</flag>
