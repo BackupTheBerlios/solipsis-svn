@@ -68,7 +68,11 @@ class ConfigData(ManagedData):
     
     def Save(self, outfile):
         d = self.GetDict()
-        pickle.dump(d, outfile, protocol=-1)
+        # Python < 2.4 compatibility: the "protocol" argument used to be name "proto"...
+        try:
+            pickle.dump(d, outfile, protocol=-1)
+        except TypeError:
+            pickle.dump(d, outfile, proto=-1)
 
     def GetNode(self):
         node = Entity()

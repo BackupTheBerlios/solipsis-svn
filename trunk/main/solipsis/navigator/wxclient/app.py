@@ -191,7 +191,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         try:
             f = file(self.config_file, "rb")
             self.config_data.Load(f)
-        except IOError:
+        except (IOError, EOFError):
             if os.path.exists(self.config_file):
                 print "Config file '%s' broken, erasing"
                 os.remove(self.config_file)
