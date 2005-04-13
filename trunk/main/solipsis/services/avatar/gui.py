@@ -37,7 +37,7 @@ class ConfigDialog(wx.EvtHandler, XRCLoader, UIProxyReceiver):
     def __init__(self, plugin, plugin_dir):
         self.plugin = plugin
         self.plugin_dir = plugin_dir
-        self.filename = 'avatars/dauphin.jpg'
+        self.filename = 'avatars/mouette.jpg'
         self.avatar_dir = 'avatars'
 
         wx.EvtHandler.__init__(self)
@@ -51,9 +51,19 @@ class ConfigDialog(wx.EvtHandler, XRCLoader, UIProxyReceiver):
         """
         file_spec = "%s (PNG, JPEG, GIF)|*.gif;*.png;*.jpg;*.jpeg|%s (*.*)|*.*" \
             % (_("Images"), _("All files"))
+        # Bug workaround for Windows, where os.path gives paths in the local
+        # charset (e.g. "windows-1252") but wxWidgets tries to decode it using
+        # the 'ascii' codec...
+        charset = GetCharset()
+        defaultDir=os.path.realpath(self.avatar_dir)
+        if not isinstance(defaultDir, unicode):
+            defaultDir = defaultDir.decode(charset)
+        defaultFile=os.path.basename(self.filename)
+        if not isinstance(defaultFile, unicode):
+            defaultFile = defaultFile.decode(charset)
         dialog = wx.FileDialog(None, _("Choose your avatar"), 
-            defaultDir=os.path.realpath(self.avatar_dir),
-            defaultFile=os.path.basename(self.filename),
+            defaultDir=defaultDir,
+            defaultFile=defaultFile,
             wildcard=file_spec,
             style=wx.OPEN | wx.FILE_MUST_EXIST
             )

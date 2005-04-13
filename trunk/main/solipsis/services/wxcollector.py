@@ -79,9 +79,9 @@ class WxServiceCollector(ServiceCollector):
             for title in titles:
                 item_id = self.action_ids.GetId()
                 item = wx.MenuItem(menu, item_id, title.encode(self.charset))
-                def _clicked(evt, p=plugin, it = i ):
-                    if id_ is not None:
-                        p.DoPointToPointAction(it, self.peers[id_])
+                def _clicked(evt, p=plugin, it=i):
+                    if peer_id is not None and peer_id in self.peers:
+                        p.DoPointToPointAction(it, self.peers[peer_id])
                     else:
                         p.DoAction(it)
                 wx.EVT_MENU(self.main_window, item_id, _clicked)
