@@ -57,22 +57,24 @@ class WxServiceCollector(ServiceCollector):
     
         super(WxServiceCollector, self).InitService(service_id, plugin)
 
-    def GetPopupMenuItems(self, menu, id_):
+    def GetPopupMenuItems(self, menu, peer_id):
         """
         Get specific service items for the UI pop-up menu.
         """
         l = []
         self.action_ids.Begin()
+        # Get menu elements for each service plug-in
         for service_id in self._Services():
             plugin = self.plugins[service_id]
-            if id_ is not None:
-                if self.peers[id_].GetService(service_id) is not None:
+            if peer_id is not None and peer_id in self.peers:
+                if self.peers[peer_id].GetService(service_id) is not None:
                     titles = plugin.GetPointToPointActions()
                 else:
                     titles = []
             else:
                 titles = plugin.GetActions()
             i = 0
+            # Add as many elements as there are actions for this specific service
             for title in titles:
                 item_id = self.action_ids.GetId()
                 item = wx.MenuItem(menu, item_id, title.encode(self.charset))
