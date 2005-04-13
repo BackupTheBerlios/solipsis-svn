@@ -35,6 +35,7 @@ class WxServiceCollector(ServiceCollector):
     def __init__(self, params, ui, reactor):
         self.app = ui
         self.main_window = ui.main_window
+        self.config_data = ui.config_data
         self.ui = UIProxy(ui)
         self.charset = GetCharset()
         ServiceCollector.__init__(self, params, reactor)
@@ -108,3 +109,15 @@ class WxServiceCollector(ServiceCollector):
         Send service-specific data using the Solipsis network.
         """
         self.ui.SendServiceData(peer_id, service_id, data)
+
+    def service_SetConfig(self, service_id, data):
+        """
+        Store service-specific configuration (will be saved on exit).
+        """
+        self.config_data.SetServiceConfig(service_id, data)
+
+    def service_GetConfig(self, service_id):
+        """
+        Get service-specific configuration (loaded on application start).
+        """
+        return self.config_data.GetServiceConfig(service_id)

@@ -48,6 +48,7 @@ class Plugin(ServicePlugin):
         # Network address container: { peer_id => (host, port) }
         self.hosts = {}
         self.node_avatar_hash = None
+        self.node_id = None
         # Peers for which we have received an avatar hash but whose
         # address we don't know yet
         self.pending_peers = set()
@@ -93,6 +94,10 @@ class Plugin(ServicePlugin):
         # Set up network handler
         network = NetworkLauncher(self.reactor, self, self.port)
         self.network = TwistedProxy(network, self.reactor)
+        # Get saved config
+        filename = self.service_api.GetConfig()
+        if filename is not None:
+            self._SetNodeAvatar(filename)
         # Start network
         self.network.Start()
 
@@ -145,7 +150,12 @@ class Plugin(ServicePlugin):
             del self.hosts[peer_id]
     
     def ChangedNode(self, node):
-        pass
+        """
+        The node has changed (also perhaps its ID).
+        """
+        self.node_id = node.id_
+        if self.node_avatar_hash is not None:
+            self.avatars.BindHashToPeer(self.node_avatar_hash, self.node_id)
     
     def Configure(self, evt=None):
         """
@@ -155,15 +165,8 @@ class Plugin(ServicePlugin):
         # to the callback, if successful.
         # This is because self.ui goes through an asynchronous proxy.
         def _configured(filename):
-            """ Callback for avatar choice. """
-            self.network.SetFile(filename)
-            node_id = self.service_api.GetNode().id_
-            data = file(filename, "rb").read()
-            # Add the avatar to the repository, and send its hash to all our neighbours
-            self.node_avatar_hash = self.avatars.BindAvatarToPeer(data, node_id)
-            for peer_id in self.hosts.keys():
-                self.service_api.SendData(peer_id, self.node_avatar_hash)
-
+            self._SetNodeAvatar(filename)
+            self.service_api.SetConfig(filename)
         self.ui.Configure(callback=_configured)
 
     def StretchAvatars(self, evt=None):
@@ -194,6 +197,21 @@ class Plugin(ServicePlugin):
     #
     # Private methods
     #
+    def _SetNodeAvatar(self, filename):
+        """
+        Set our avatar to the given filename.
+        """
+        try:
+            data = file(filename, "rb").read()
+        except (IOError, EOFError), e:
+            print "Failed to load node avatar: '%s'" % str(e)
+            return
+        # Add the avatar to the repository, and send its hash to all our neighbours
+        self.network.SetFile(filename)
+        self.node_id = self.service_api.GetNode().id_
+        self.node_avatar_hash = self.avatars.BindAvatarToPeer(data, self.node_id)
+        for peer_id in self.hosts.keys():
+            self.service_api.SendData(peer_id, self.node_avatar_hash)
 
     def _LoadPeerAvatar(self, peer_id):
         """

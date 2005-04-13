@@ -411,7 +411,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.config_data.proxymode_auto = False
         self.config_data.proxymode_manual = False
         self.config_data.proxymode_none = True
-        self.config_data.Autocomplete()
+        self.config_data.Compute()
         # Hack so that the node has the time to launch
         self.connection_trials = 5
         self._TryConnect()
@@ -466,7 +466,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """
         Called on "preferences" event (menu -> File -> Preferences).
         """
-        self.config_data.Autocomplete()
+        self.config_data.Compute()
         self.prefs_dialog.Show()
 
     def _Quit(self, evt):
@@ -545,7 +545,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """
         if (self.connect_dialog.Validate()):
             self.connect_dialog.Hide()
-            self.config_data.Autocomplete()
+            self.config_data.Compute()
             self.connection_trials = 0
             self._TryConnect()
 

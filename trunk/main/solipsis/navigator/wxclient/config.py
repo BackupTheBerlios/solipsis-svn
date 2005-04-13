@@ -49,8 +49,13 @@ class ConfigData(ManagedData):
         self.node_autokill = True
         self.services = []
         self.solipsis_port = 6010
+        self.service_config = {}
 
-    def Autocomplete(self):
+    def Compute(self):
+        """
+        Compute some "hidden" configuration values 
+        (like HTTP proxy URL)
+        """
         self.proxy_mode = self.proxymode_auto and "auto" or (
             self.proxymode_manual and "manual" or "none")
         if self.proxy_mode == "auto":
@@ -60,13 +65,37 @@ class ConfigData(ManagedData):
             self.proxy_port = proxy_port or 0
 
     def SetServices(self, services):
+        """
+        Set service list.
+        """
         self.services = list(services)
     
+    def SetServiceConfig(self, service_id, data):
+        """
+        Store service-specific configuration data.
+        """
+        self.service_config[service_id] = data
+    
+    def GetServiceConfig(self, service_id):
+        """
+        Retrieve service-specific configuration data.
+        """
+        try:
+            return self.service_config[service_id]
+        except KeyError:
+            return None
+    
     def Load(self, infile):
+        """
+        Restore configuration from a readable file object.
+        """
         d = pickle.load(infile)
         self.UpdateDict(d)
     
     def Save(self, outfile):
+        """
+        Store configuration in a writable file object.
+        """
         d = self.GetDict()
         # Python < 2.4 compatibility: the "protocol" argument used to be name "proto"...
         try:
@@ -75,6 +104,9 @@ class ConfigData(ManagedData):
             pickle.dump(d, outfile, proto=-1)
 
     def GetNode(self):
+        """
+        Get the object representing the node (i.e. ourselves).
+        """
         node = Entity()
         node.pseudo = self.pseudo
         lang_code = wx.Locale.GetLanguageInfo(wx.Locale.GetSystemLanguage()).CanonicalName
