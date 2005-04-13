@@ -4,7 +4,7 @@ BLP BLOP
 Q: How do I run solipsis?
 A: You just need to run navigator.py or navigator.exe and to create a new node (File - New Node (Ctrl+N)). The navigator will automatically connects on it.
 
-Q: What is a node?
+Q: What is a node? blabla
 A: A node is an entity of the solipsis virtual world. Thanks to the Solipsis protocol, it ensures that the entity is directly connected with its virtual neighbors.
 
 Q: What is a navigator?
