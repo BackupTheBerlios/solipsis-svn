@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resource>
+  <object class="wxFrame" name="main_window">
+    <title>Navigator</title>
+    <centered>1</centered>
+    <object class="wxPanel" name="viewport_panel">
+      <style>wxCLIP_CHILDREN</style>
+    </object>
+  </object>
+  <object class="wxMenuBar" name="main_menubar">
+    <object class="wxMenu" name="file_menu">
+      <label>&amp;Node</label>
+      <object class="wxMenuItem" name="menu_create">
+        <label>&amp;New node</label>
+        <accel>Ctrl-N</accel>
+      </object>
+      <object class="wxMenuItem" name="menu_connect">
+        <label>&amp;Connect to existing node</label>
+        <bitmap stock_id="wxART_FILE_OPEN"></bitmap>
+        <accel>Ctrl-O</accel>
+      </object>
+      <object class="wxMenuItem" name="menu_disconnect">
+        <label>&amp;Disconnect</label>
+        <accel>Ctrl-W</accel>
+      </object>
+      <object class="wxMenuItem" name="menu_kill">
+        <label>&amp;Kill node</label>
+        <accel>Ctrl+K</accel>
+      </object>
+      <object class="separator"/>
+      <object class="wxMenuItem" name="menu_quit">
+        <label>Quit</label>
+      </object>
+    </object>
+    <object class="wxMenu" name="edit_menu">
+      <label>&amp;Actions</label>
+      <object class="wxMenuItem" name="menu_jumpnear">
+        <label>&amp;Jump near...</label>
+        <bitmap stock_id="wxART_GO_FORWARD"></bitmap>
+        <accel>Ctrl+G</accel>
+      </object>
+      <object class="separator"/>
+      <object class="wxMenuItem" name="menu_preferences">
+        <label>Preferences</label>
+      </object>
+    </object>
+    <object class="wxMenu" name="view_menu">
+      <label>&amp;View</label>
+      <object class="wxMenuItem" name="menu_autorotate">
+        <label>Automatic Rotation</label>
+        <checkable>1</checkable>
+        <checked>1</checked>
+      </object>
+    </object>
+    <object class="wxMenu" name="help_menu">
+      <label>&amp;Help</label>
+      <object class="wxMenuItem" name="menu_about">
+        <label>About</label>
+      </object>
+    </object>
+  </object>
+  <object class="wxDialog" name="about_dialog">
+    <title>About...</title>
+    <centered>1</centered>
+    <object class="wxBoxSizer">
+      <orient>wxVERTICAL</orient>
+      <object class="spacer">
+        <size>20,20</size>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <orient>wxHORIZONTAL</orient>
+          <object class="spacer">
+            <size>20,20</size>
+          </object>
+          <object class="sizeritem">
+            <object class="wxStaticText">
+              <label>Solipsis Navigator 0.1
+
+Licensed under the GNU LGPL.
+(c) France Telecom R&amp;&amp;D</label>
+              <style>wxALIGN_CENTRE</style>
+            </object>
+            <flag>wxALIGN_CENTRE</flag>
+          </object>
+          <object class="spacer">
+            <size>20,20</size>
+          </object>
+        </object>
+      </object>
+      <object class="spacer">
+        <size>20,20</size>
+      </object>
+      <object class="sizeritem">
+        <object class="wxButton" name="about_ok">
+          <label>&amp;Close</label>
+          <default>1</default>
+        </object>
+        <flag>wxALIGN_CENTRE</flag>
+      </object>
+      <object class="spacer">
+        <size>20,20</size>
+      </object>
+    </object>
+  </object>
+  <object class="wxDialog" name="connect_dialog">
+    <title>Connect to Solipsis</title>
+    <centered>1</centered>
+    <object class="wxFlexGridSizer">
+      <object class="spacer">
+        <size>20,20</size>
+      </object>
+      <object class="sizeritem">
+        <object class="wxBoxSizer">
+          <orient>wxVERTICAL</orient>
+          <object class="spacer">
+            <size>20,20</size>
+          </object>
+          <object class="sizeritem">
+            <object class="wxStaticText">
+              <label>Name or pseudo</label>
+            </object>
+            <flag>wxLEFT</flag>
+          </object>
+          <object class="sizeritem">
+            <object class="wxTextCtrl" name="connect_pseudo"/>
+            <flag>wxEXPAND</flag>
+          </object>
+          <object class="spacer">
+            <size>20,20</size>
+          </object>
+          <object class="sizeritem">
+            <object class="wxStaticBoxSizer">
+              <label>Node address</label>
+              <orient>wxVERTICAL</orient>
+              <object class="sizeritem">
+                <object class="wxBoxSizer">
+                  <orient>wxHORIZONTAL</orient>
+                  <object class="sizeritem">
+                    <object class="wxStaticText" name="">
+                      <label>Host: </label>
+                    </object>
+                    <flag>wxALIGN_CENTRE_VERTICAL</flag>
+                  </object>
+                  <object class="sizeritem">
+                    <object class="wxTextCtrl" name="connect_host"/>
+                    <option>1</option>
+                    <flag>wxEXPAND|wxGROW|wxALIGN_CENTRE_VERTICAL</flag>
+                  </object>
+                </object>
+                <flag>wxEXPAND|wxGROW</flag>
+              </object>
+              <object class="sizeritem">
+                <object class="wxBoxSizer">
+                  <orient>wxHORIZONTAL</orient>
+                  <object class="sizeritem">
+                    <object class="wxStaticText" name="">
+                      <label>Port: </label>
+                    </object>
+                    <flag>wxALIGN_CENTRE_VERTICAL</flag>
+                  </object>
+                  <object class="sizeritem">
+                    <object class="wxTextCtrl" name="connect_port"/>
+                    <flag>wxEXPAND|wxGROW|wxALIGN_CENTRE_VERTICAL</flag>
+                  </object>
+                </object>
+                <flag>wxEXPAND|wxGROW</flag>
+              </object>
+            </object>
+            <flag>wxLEFT|wxEXPAND</flag>
+          </object>
+          <object class="spacer">
+            <size>20,20</size>
+          </object>
+          <object class="sizeritem">
+            <object class="wxBoxSizer">
+              <orient>wxHORIZONTAL</orient>
+              <object class="sizeritem">
+                <object class="wxButton" name="connect_ok">
+                  <label>&amp;Ok</label>
+                  <default>1</default>
+                </object>
+                <flag>wxBOTTOM</flag>
+              </object>
+              <object class="spacer">
+                <size>20,20</size>
+              </object>
+              <object class="sizeritem">
+                <object class="wxButton" name="connect_cancel">
+                  <label>&amp;Cancel</label>
+                </object>
+                <flag>wxEXPAND</flag>
+              </object>
+            </object>
+            <flag>wxALIGN_CENTRE_HORIZONTAL</flag>
+            <border>10</border>
+          </object>
+          <object class="spacer">
+            <size>20,20</size>
+          </object>
+        </object>
+        <flag>wxEXPAND</flag>
+      </object>
+      <object class="spacer">
+        <size>20,20</size>
+      </object>
+      <growablecols>1</growablecols>
+      <growablerows>1</growablerows>
+      <cols>3</cols>
+    </object>
+    <style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxRESIZE_BOX</style>
+    <exstyle></exstyle>
+  </object>
+  <object class="wxDialog" name="prefs_dialog">
+    <title>Preferences</title>
+    <centered>1</centered>
+    <style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxRESIZE_BOX</style>
+    <object class="wxFlexGridSizer">
+      <object class="sizeritem">
+        <object class="wxNotebook" name="prefs_notebook">
+          <object class="notebookpage">
+            <label>General</label>
+            <object class="wxPanel" name="prefs_general">
+              <object class="wxFlexGridSizer">
+                <cols>2</cols>
+                <rows>2</rows>
+                <object class="sizeritem">
+                  <object class="wxBoxSizer">
+                    <orient>wxVERTICAL</orient>
+                    <object class="sizeritem">
+                      <object class="wxCheckBox" name="node_autokill">
+                        <label>Kill node when exiting</label>
+                        <checked>1</checked>
+                        <style></style>
+                        <tooltip>Uncheck this box if you want to remain connected to the Solipsis world even when you exit the navigator.</tooltip>
+                      </object>
+                      <flag>wxALL</flag>
+                      <border>1</border>
+                    </object>
+                  </object>
+                  <flag>wxALL</flag>
+                  <border>4</border>
+                </object>
+              </object>
+            </object>
+            <selected>1</selected>
+          </object>
+          <object class="notebookpage">
+            <label>Proxy</label>
+            <object class="wxPanel" name="prefs_proxy">
+              <object class="wxFlexGridSizer">
+                <cols>1</cols>
+                <object class="sizeritem">
+                  <object class="wxBoxSizer">
+                    <object class="sizeritem">
+                      <object class="wxStaticText">
+                        <label>If you want to connect to a remote node
+instead of running a node on this computer,
+you might have to adjust the HTTP proxy settings.</label>
+                        <style>wxALIGN_LEFT</style>
+                      </object>
+                      <flag>wxALL</flag>
+                      <border>4</border>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxRadioButton" name="proxymode_auto">
+                        <label>Automatic proxy detection</label>
+                        <value>1</value>
+                        <style>wxRB_GROUP</style>
+                      </object>
+                      <flag>wxALL</flag>
+                      <border>1</border>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxRadioButton" name="proxymode_none">
+                        <label>No proxy</label>
+                      </object>
+                      <flag>wxALL</flag>
+                      <border>1</border>
+                    </object>
+                    <object class="spacer">
+                      <size>8,8</size>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxRadioButton" name="proxymode_manual">
+                        <label>Manual configuration</label>
+                      </object>
+                      <flag>wxALL</flag>
+                      <border>1</border>
+                    </object>
+                    <object class="sizeritem">
+                      <object class="wxBoxSizer">
+                        <orient>wxHORIZONTAL</orient>
+                        <object class="sizeritem">
+                          <object class="wxStaticText">
+                            <label>Host: </label>
+                          </object>
+                          <flag>wxLEFT|wxALIGN_CENTRE_VERTICAL</flag>
+                          <border>10</border>
+                        </object>
+                        <object class="sizeritem">
+                          <object class="wxTextCtrl" name="proxy_host"/>
+                          <option>1</option>
+                          <flag>wxEXPAND|wxGROW</flag>
+                        </object>
+                        <object class="sizeritem">
+                          <object class="wxStaticText">
+                            <label>Port: </label>
+                          </object>
+                          <flag>wxLEFT|wxALIGN_CENTRE_VERTICAL</flag>
+                          <border>10</border>
+                        </object>
+                        <object class="sizeritem">
+                          <object class="wxTextCtrl" name="proxy_port"/>
+                        </object>
+                      </object>
+                      <flag>wxALL|wxEXPAND|wxGROW</flag>
+                      <border>4</border>
+                    </object>
+                    <orient>wxVERTICAL</orient>
+                  </object>
+                  <flag>wxALL</flag>
+                  <border>4</border>
+                </object>
+                <growablerows>0</growablerows>
+                <growablecols>0</growablecols>
+              </object>
+            </object>
+          </object>
+        </object>
+        <flag>wxTOP|wxEXPAND|wxGROW</flag>
+        <border>6</border>
+      </object>
+      <cols>1</cols>
+      <rows>0</rows>
+      <growablerows>0</growablerows>
+      <object class="spacer">
+        <size>10,10</size>
+      </object>
+      <object class="sizeritem">
+        <object class="wxButton" name="prefs_close">
+          <label>&amp;Close</label>
+          <default>1</default>
+        </object>
+        <flag>wxALIGN_CENTRE</flag>
+      </object>
+      <growablecols>0</growablecols>
+    </object>
+    <exstyle>wxWS_EX_VALIDATE_RECURSIVELY</exstyle>
+  </object>
+</resource>
