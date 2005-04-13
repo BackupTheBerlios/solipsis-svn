@@ -94,7 +94,7 @@ class DirContainer(dict):
                     print >> sys.stderr, "% not a valid file/dir" % full_path
             #else: already expanded, do nothing
 
-    def share_content(self, share=True):
+    def share(self, share=True):
         """(un)share all files of directory"""
         self._shared = share
         
@@ -165,12 +165,12 @@ class SharingContainer(dict):
         # check
         return dict.has_key(dir_dict, leaf)
 
-    def keys(self, full_path):
+    def keys(self):
         """overrides dict method. returns all keys of all dicts"""
         all_keys = []
         all_keys += dict.keys(self)
         for dir_container in dict.values(self):
-            all_keys += dir_container.keys()
+            all_keys += [os.path.join(dir_container.path, key) for key in dir_container.keys()]
         # check
         return all_keys
 
@@ -242,7 +242,7 @@ class SharingContainer(dict):
             
     def share_dir(self, full_path, share=True):
         """forward command to cache"""
-        self[full_path].share_content(share)
+        self[full_path].share(share)
 
     def share_files(self, full_path, names, share=True):
         """forward command to cache"""

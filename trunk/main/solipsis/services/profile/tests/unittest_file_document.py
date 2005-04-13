@@ -136,7 +136,7 @@ tag = none
         self.assertEquals("anything", self.document.get_description())
         self.assertEquals([u'blabla', u'bla bla bla', u''], self.document.get_hobbies())
         self.assertEquals({'dirs': u'data,data/emptydir,data/subdir1,data/subdir1/subsubdir', 'color': u'blue', 'homepage': u'manu.com'}, self.document.get_custom_attributes())
-        self.assertEquals([u'data', u'data/emptydir', u'data/subdir1', u'data/subdir1/subsubdir'], self.document.get_dirs())
+        self.assertEquals([u'data', u'data/emptydir', u'data/subdir1', u'data/subdir1/subsubdir'], self.document.get_keys())
         self.assertEquals("[u'data', u'data/emptydir', u'data/subdir1', u'data/subdir1/subsubdir']", 
                           str(self.document.get_files()))
         peers = self.document.get_peers()
@@ -163,7 +163,7 @@ tag = none
         self.assertEquals("anything", new_doc.get_description())
         self.assertEquals([u'blabla', u'bla bla bla', u''], new_doc.get_hobbies())
         self.assertEquals({'dirs': u'data,data/emptydir,data/subdir1,data/subdir1/subsubdir', 'color': u'blue', 'homepage': u'manu.com'}, new_doc.get_custom_attributes())
-        self.assertEquals([u'data', u'data/emptydir', u'data/subdir1', u'data/subdir1/subsubdir'], new_doc.get_dirs())
+        self.assertEquals([u'data', u'data/emptydir', u'data/subdir1', u'data/subdir1/subsubdir'], new_doc.get_keys())
         self.assertEquals("[u'data', u'data/emptydir', u'data/subdir1', u'data/subdir1/subsubdir']",
                           str(self.document.get_files()))
         peers = new_doc.get_peers()

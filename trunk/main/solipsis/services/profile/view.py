@@ -24,6 +24,7 @@ import wx
 import sys
 import os
 from StringIO import StringIO
+
 # Search first in system directory, fall back to bundled version if necessary
 try:
     from simpletal import simpleTAL, simpleTALES
@@ -45,7 +46,7 @@ class AbstractView:
             self.import_document()
 
     def __str__(self):
-        raise NotImplementedError        
+        raise NotImplementedError   
 
     def get_name(self):
         """used as key in index"""
@@ -229,7 +230,7 @@ class PrintView(AbstractView):
         
     def update_files(self):
         """file"""
-        print >> self.output, self.document.get_files().data
+        print >> self.output, self.document.get_files()
         
     # OTHERS TAB        
     def update_peers(self):
@@ -490,7 +491,7 @@ class HtmlView(AbstractView):
         
     def update_files(self):
         """file"""
-        self.context.addGlobal("files", self.document.get_files().data)
+        self.context.addGlobal("files", self.document.get_files())
         if self.auto_refresh:
             self.update_view()
         

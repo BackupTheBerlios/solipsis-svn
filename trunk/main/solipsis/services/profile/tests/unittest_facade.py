@@ -128,8 +128,7 @@ class FacadeTest(unittest.TestCase):
     def test_share_files(self):
         """share specified files"""
         self.facade.add_dir(u"data")
-        self.facade.share_files((u"data", ["routage"], True))
-        self.assertRaises(ValueError, self.facade.share_files, (u"data", ["routage", "subdir1"], True))
+        self.facade.share_files((u"data", ["routage", "subdir1"], True))
         self.facade.share_files((u"data", ["routage"], False))
         self.assertEquals("""[u'data']
 {u'data': data(data) [1] {u'routage': data/routage [shared] [none], u'.path': data/.path  [none], u'date.txt': data/date.txt  [none]}}
@@ -139,8 +138,7 @@ class FacadeTest(unittest.TestCase):
     def test_tag_files(self):
         """tag specified tags"""
         self.facade.add_dir(u"data")
-        self.facade.tag_files((u"data", ["routage"], u"tag desc 1"))
-        self.assertRaises(ValueError, self.facade.tag_files, (u"data", ["routage", "subdir1"], u"tag desc 2"))
+        self.facade.tag_files((u"data", ["routage", "subdir1"], u"tag desc 1"))
         self.facade.tag_files((u"data", ["routage", "date.txt"], u"tag desc 3"))
         self.assertEquals("""[u'data']
 {u'data': data(data) [0] {u'routage': data/routage  [tag desc 1], u'.path': data/.path  [none], u'date.txt': data/date.txt  [none]}}
@@ -151,7 +149,7 @@ class FacadeTest(unittest.TestCase):
         """expand dir"""
         self.facade.add_dir(u"data")
         self.facade.expand_dir(u"data")
-        self.assertRaises(KeyError, self.facade.expand_dir, u"data/routage")
+        self.assertRaises(AttributeError, self.facade.expand_dir, u"data/routage")
         self.facade.expand_dir(u"data/emptydir")
         self.assertRaises(KeyError, self.facade.expand_dir, u"data/subdir1/subsubdir")
         self.assertEquals("""[u'data']

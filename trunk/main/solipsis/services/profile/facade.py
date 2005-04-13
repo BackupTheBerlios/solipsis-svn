@@ -302,10 +302,10 @@ class Facade:
         if "gui" in self.views:
             self.views["html"].update_view()
 
-    def get_dir_content(self, path):
+    def get_keys(self, path):
         """return list of FileContainer for given path"""
         if 'cache' in self.documents:
-            return self.documents["cache"].get_dir_content()
+            return self.documents["cache"].get_keys()
         else:
             return {}
 

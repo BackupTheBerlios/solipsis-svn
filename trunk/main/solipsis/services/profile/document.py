@@ -124,12 +124,12 @@ class AbstractDocument:
         for key, val in attributes.iteritems():
             self.add_custom_attributes((key, val))
         # file data
-        for repository in other_document.get_dirs():
+        for repository in other_document.get_keys():
             self.add_dir(repository)
         files = other_document.get_files()
-        for dir_name in files.get_all_dirs():
+        for dir_name in files.keys():
             self.add_dir(dir_name)
-            content = files.get_dir_content(dir_name)
+            content = files[dir_name]
             for file_path, file_desc in content.iteritems():
                 self.tag_files((dir_name, [file_path], file_desc._tag))
         # others' data
@@ -348,8 +348,8 @@ class AbstractDocument:
         """returns value of files"""
         raise NotImplementedError
         
-    def get_dirs(self):
-        """returns value of repository"""
+    def get_keys(self):
+        """returns list of all dirs"""
         raise NotImplementedError
             
     # OTHERS TAB
@@ -568,7 +568,7 @@ class CacheDocument(AbstractDocument):
     def remove_dir(self, value):
         """sets new value for repository"""
         AbstractDocument.remove_dir(self, value)
-        self.files.remove_dir(value)
+        del self.files[value]
         
     def expand_dir(self, value):
         """update doc when dir expanded"""
@@ -597,9 +597,9 @@ class CacheDocument(AbstractDocument):
         """returns value of files"""
         return self.files
         
-    def get_dirs(self):
+    def get_keys(self):
         """returns value of repository"""
-        return self.files.get_all_dirs()
+        return self.files.keys()
 
     # OTHERS TAB
     def add_peer(self, pseudo):
@@ -914,7 +914,7 @@ class FileDocument(AbstractDocument):
         AbstractDocument.remove_dir(self, value)
         new_key = SECTION_REPO_PREFIX + value
         # update list of repositories
-        values = [repo for repo in self.get_dirs()
+        values = [repo for repo in self.get_keys()
                   if repo != value]
         self.config.set(SECTION_CUSTOM, "dirs",
                         ",".join(values).encode(self.encoding))
@@ -964,7 +964,7 @@ class FileDocument(AbstractDocument):
         """returns value of files"""
         container = SharingContainer()
         # >> repositories
-        for section in self.get_dirs():
+        for section in self.get_keys():
             container.add_dir(section)
             key = SECTION_REPO_PREFIX + section
             shared_files = self._list_all(key)
@@ -981,7 +981,7 @@ class FileDocument(AbstractDocument):
                                             self.encoding))
         return container
     
-    def get_dirs(self):
+    def get_keys(self):
         """returns value of repository"""
         try:
             return [unicode(repo, self.encoding) for repo
@@ -1012,7 +1012,7 @@ class FileDocument(AbstractDocument):
         if self.config.has_section(new_key):
             return
         # update list of repositories
-        values = self.get_dirs()
+        values = self.get_keys()
         values.append(value)
         self.config.set(SECTION_CUSTOM, "dirs",
                         ",".join(values).encode(self.encoding))
