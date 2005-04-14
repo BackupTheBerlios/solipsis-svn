@@ -22,8 +22,10 @@ workings of documents"""
 
 import wx
 import sys
-import os
+import os, os.path
 from StringIO import StringIO
+
+PREVIEW_PT = os.path.join(os.path.dirname(__file__), "preview.html")
 
 # Search first in system directory, fall back to bundled version if necessary
 try:
@@ -367,7 +369,7 @@ class HtmlView(AbstractView):
         self.html_window = html_window
         # Create the context that is used by the template
         self.context = simpleTALES.Context(allowPythonPath=1)
-        template_file = open ("../preview.html", 'r')
+        template_file = open (PREVIEW_PT, 'r')
         self.template = simpleTAL.compileHTMLTemplate(template_file,
                                                       inputEncoding=ENCODING)
         template_file.close()
@@ -491,7 +493,13 @@ class HtmlView(AbstractView):
         
     def update_files(self):
         """file"""
-        self.context.addGlobal("files", self.document.get_files())
+        html_format = {}
+        for repo in self.document.get_repositories():
+            content = {}
+            html_format[repo] = content
+            for file_name, tag in self.document.get_flattened(repo).iteritems():
+                content[file_name[len(repo):]] = tag
+        self.context.addGlobal("files", html_format)
         if self.auto_refresh:
             self.update_view()
         

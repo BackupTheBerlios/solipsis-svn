@@ -16,12 +16,27 @@ email = demi.moore@stars.com
 description = Big star, connected with Bruce
 
 [Custom]
+repositories = /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests
 book = Harry Potter
 music = classic
 film = Des hommes d'Honneurs
 hobbies = cinema,theatre,striptease
 
-[File]
+[Files]
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data = tagou
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/.path = ligne 2
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/date.txt = none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/routage = none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/.svn = none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1 = none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/profiles = none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/emptydir = Youpi
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/emptydir/.svn = none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/subsubdir = ok
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/subsubdir/default.solipsis = Content
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/subsubdir/dummy.txt = hé hé hé
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/subsubdir/null = none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/subsubdir/.svn = none
 
 [Others]
 john = Friend

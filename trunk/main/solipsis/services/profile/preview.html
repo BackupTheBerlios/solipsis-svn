@@ -62,19 +62,20 @@
   </div>
 
   <h2 class="header">Personal Files</h2>
-  <table tal:repeat ="dir files/values">
+  <table tal:repeat ="repository files/keys">
+    <caption tal:content="repository">
+	repository
+    </caption>
     <thead>
       <tr>
-	<th tal:content="python:dir.path">path</th>
-	<th>shared</th>
+	<th>name</th>
 	<th>tag</th>
       </tr>
     </thead>
     <tbody>
-      <tr tal:repeat ="file dir/content/values">
-	<td tal:content="python: file.name">name</td>
-	<td tal:content="python: file.shared">shared</td>
-	<td tal:content="python: file._tag">tag</td>
+      <tr tal:repeat ="name python:files[repository].keys()">
+	<td tal:content="name">name</td>
+	<td tal:content="python:files[repository][name]">tag</td>
       </tr>
     </tbody>
   </table>
