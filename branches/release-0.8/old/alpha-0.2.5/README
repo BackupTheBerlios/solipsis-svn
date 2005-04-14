@@ -1,0 +1,13 @@
+***********************************************
+
+This Package requires python2.2, wxPython and PIL.
+
+To launch :
+
+"python2.2 module_Solipsis.py"
+
+If you have problem to connect, please download file for bootstrap at :
+
+http://solipsis.netofpeers.net/
+
+***********************************************

@@ -1,0 +1,31 @@
+#: plugin.py:74
+msgid "Add files ..."
+msgstr ""
+
+#: plugin.py:75
+msgid "Delete files ..."
+msgstr ""
+
+#: plugin.py:62
+msgid "Manage personal information and share it with people"
+msgstr ""
+
+#: plugin.py:73
+msgid "Modify ..."
+msgstr ""
+
+#: plugin.py:55
+msgid "Profile"
+msgstr ""
+
+#: plugin.py:84
+msgid "Request profile"
+msgstr ""
+
+#: plugin.py:76
+msgid "Search ..."
+msgstr ""
+
+#: plugin.py:83
+msgid "Show info"
+msgstr ""

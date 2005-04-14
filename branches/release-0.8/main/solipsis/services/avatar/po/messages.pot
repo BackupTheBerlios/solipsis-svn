@@ -1,0 +1,72 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2005-03-18 16:04+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: plugin.py:43
+msgid "Avatars"
+msgstr ""
+
+#: plugin.py:46
+msgid "Exchange avatars to customize your appearance"
+msgstr ""
+
+#: plugin.py:68
+msgid "&Configure"
+msgstr ""
+
+#: plugin.py:70
+msgid "Avatar"
+msgstr ""
+
+#: gui.py:52
+msgid "Images"
+msgstr ""
+
+#: gui.py:52
+msgid "All files"
+msgstr ""
+
+#: gui.py:53
+msgid "Choose your avatar"
+msgstr ""
+
+#: gui.py:67
+msgid "The file you chose could not be opened."
+msgstr ""
+
+#: gui.py:82
+msgid "Your avatar has been changed."
+msgstr ""
+
+#: gui.py:83
+msgid "Avatar configured"
+msgstr ""
+
+#: gui.py:87
+#, python-format
+msgid ""
+"The file you chose does not belong to the \n"
+"supported image types (%s)."
+msgstr ""
+
+#: gui.py:90
+msgid "Please choose another file."
+msgstr ""
+
+#: gui.py:91
+msgid "Error"
+msgstr ""
