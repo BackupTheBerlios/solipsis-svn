@@ -78,7 +78,7 @@ class Viewport(object):
 
         self.dim_dc = None
         self.disabled = True
-        self.auto_rotate = True
+        self.auto_rotate = False
 
         self.Reset()
 

@@ -49,7 +49,6 @@
       <object class="wxMenuItem" name="menu_autorotate">
         <label>Automatic Rotation</label>
         <checkable>1</checkable>
-        <checked>1</checked>
       </object>
     </object>
     <object class="wxMenu" name="help_menu">
