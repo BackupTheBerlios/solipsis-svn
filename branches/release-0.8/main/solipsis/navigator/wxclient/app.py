@@ -373,6 +373,17 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         else:
             cursor = wx.StockCursor(wx.CURSOR_DEFAULT)
         self.viewport_panel.SetCursor(cursor)
+    
+    def _HandleMouseMovement(self, evt):
+        """
+        Handle the mouse position part of a mouse event.
+        """
+        x, y = evt.GetPositionTuple()
+        changed, id_ = self.viewport.Hover((x, y))
+        if changed and id_:
+            self.statusbar.SetTemp(self.world.GetPeer(id_).pseudo)
+        elif changed and not id_:
+            self.statusbar.Reset()
 
 
     #===-----------------------------------------------------------------===#
@@ -583,6 +594,9 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         Called on left click event.
         """
         if self._CheckNodeProxy(False):
+            # First update our position (due to buggy EVT_MOTION handling)
+            self._HandleMouseMovement(evt)
+            # Then handle mouse click
             x, y = self.viewport.MoveToPixels(evt.GetPositionTuple())
             self.world.UpdateNodePosition(Position((x, y, 0)))
             self.node_proxy.Move(str(long(x)), str(long(y)), str(0))
@@ -595,6 +609,9 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         # We display a contextual menu
         menu = wx.Menu()
         if self._CheckNodeProxy(False):
+            # First update our position (due to buggy EVT_MOTION handling)
+            self._HandleMouseMovement(evt)
+            # Then get ID of the hovered peer, if any
             id_ = self.viewport.HoveredItem()
             if id_ is not None:
                 menu.Append(wx.NewId(), _('Peer "%s"') % self.world.GetPeer(id_).pseudo)
@@ -616,12 +633,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         Called on mouse movement in the viewport.
         """
         if self._CheckNodeProxy(False):
-            x, y = evt.GetPositionTuple()
-            changed, id_ = self.viewport.Hover((x, y))
-            if changed and id_:
-                self.statusbar.SetTemp(self.world.GetPeer(id_).pseudo)
-            elif changed and not id_:
-                self.statusbar.Reset()
+            self._HandleMouseMovement(evt)
         evt.Skip()
 
 
