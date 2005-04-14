@@ -78,15 +78,11 @@ class Facade:
             except TypeError, error:
                 print >> stderr, "%s: %s"% (document.name, str(error))
                 raise
-            except AttributeError, error:
-                print >> stderr, "%s: %s"% (document.name, str(error))
-                raise
+#             except AttributeError, error:
+#                 print >> stderr, "%s: %s"% (document.name, str(error))
+#                 raise
         for view in self.views.values():
-            try:
-                getattr(view, updater)()
-            except AttributeError, error:
-                print >> stderr, "%s: %s"% (view.name, str(error))
-                raise
+            getattr(view, updater)()
         return result
     
     # MENU
@@ -212,16 +208,16 @@ class Facade:
                                "update_custom_attributes")
 
     # FILE TAB
-    def add_dir(self, value):
+    def add_repository(self, value):
         """sets new value for repositor"""
         return self._try_change(value,
-                               "add_dir",
+                               "add_repository",
                                "update_dirs")
     
-    def remove_dir(self, value):
+    def remove_repository(self, value):
         """sets new value for repositor"""
         return self._try_change(value,
-                               "remove_dir",
+                               "remove_repository",
                                "update_dirs")
 
     def expand_dir(self, value):

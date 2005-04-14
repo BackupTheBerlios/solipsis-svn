@@ -3,6 +3,7 @@ gathared in views.py. Documents are to be seen as completely
 independant from views"""
 
 import unittest
+from os.path import abspath
 from solipsis.services.profile.document import PeerDescriptor, \
       AbstractDocument, CacheDocument, FileDocument
 
@@ -13,7 +14,12 @@ class DocumentTest(unittest.TestCase):
     def setUp(self):
         """override one in unittest.TestCase"""
         self.documents = [CacheDocument(), FileDocument()]
+        for document in self.documents:
+            document.add_repository(\
+                u"/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests")
         self.abstract_doc = AbstractDocument()
+        self.abstract_doc.add_repository(\
+                u"/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests")
 
     # PERSONAL TAB
     def test_title(self):
@@ -157,27 +163,26 @@ class DocumentTest(unittest.TestCase):
     # FILE TAB
     def test_repository(self):
         """repository valid path"""
-        self.assertRaises(NotImplementedError, self.abstract_doc.get_dirs)
         for document in self.documents:
-            self.assertRaises(TypeError, document.add_dir, "data/dummy")
-            self.assertRaises(TypeError, document.add_dir, u"data/dummy")
-            document.add_dir(u"data")
-            document.remove_dir(u"data")
+            self.assertRaises(TypeError, document.add, abspath("data/dummy"))
+            self.assertRaises(KeyError, document.add, abspath(u"data/dummy"))
+            document.add(abspath(u"data"))
+            document.remove(abspath(u"data"))
         
     def test_share_dir(self):
         """share dir giving unicode name"""
         for document in self.documents:
-            document.add_dir(u"data")
+            document.add((abspath(u"data")))
             self.assertRaises(TypeError, document.share_dir, "data, True")
             self.assertRaises(TypeError, document.share_dir, ("data", ))
             self.assertRaises(TypeError, document.share_dir, ("data", True))
-            document.share_dir((u"data", True))
-            document.share_dir([u"data", True])
+            document.share_dir((abspath(u"data"), True))
+            document.share_dir([abspath(u"data"), True])
         
     def test_share_files(self):
         """share files giving root & unicode names"""
         for document in self.documents:
-            document.add_dir(u"data")
+            document.add((abspath(u"data")))
             self.assertRaises(TypeError, document.share_files,
                               "data, ['.path', 'routage'], True")
             self.assertRaises(TypeError, document.share_files,
@@ -188,13 +193,13 @@ class DocumentTest(unittest.TestCase):
                               (u"data", "['.path', 'routage']", True))
             self.assertRaises(TypeError, document.share_files,
                               ("data", ['.path', 'routage'], True))
-            document.share_files((u"data", ['.path', 'routage'], True))
-            document.share_files([u"data", ['.path', 'routage'], True])
+            document.share_files((abspath(u"data"), ['.path', 'routage'], True))
+            document.share_files([abspath(u"data"), ['.path', 'routage'], True])
         
     def test_tag_file(self):
         """tag files giving root & unicode names"""
         for document in self.documents:
-            document.add_dir(u"data")
+            document.add((abspath(u"data")))
             self.assertRaises(TypeError, document.tag_files,
                               "data, ['.path', 'routage'], tag desc")
             self.assertRaises(TypeError, document.tag_files,
@@ -207,17 +212,17 @@ class DocumentTest(unittest.TestCase):
                               (u"data", "['.path', 'routage']", "tag desc"))
             self.assertRaises(TypeError, document.tag_files,
                               (u"data", ['.path', 'routage'], "tag desc"))
-            document.tag_files((u"data", ['.path', 'routage'], u"tag desc"))
-            document.tag_files([u"data", ['.path', 'routage'], u"tag desc"])
+            document.tag_files((abspath(u"data"), ['.path', 'routage'], u"tag desc"))
+            document.tag_files([abspath(u"data"), ['.path', 'routage'], u"tag desc"])
         
     def test_add_file(self):
         """expand dir giving unicode name"""
         self.assertRaises(NotImplementedError, self.abstract_doc.get_files)
         for document in self.documents:
-            document.add_dir(u"data")
+            document.add((abspath(u"data")))
             self.assertRaises(TypeError, document.expand_dir, "data/dummy")
             self.assertRaises(TypeError, document.expand_dir, "data")
-            document.expand_dir(u"data")
+            document.expand_dir((abspath(u"data")))
             
     # OTHERS TAB
     def test_adding_peer(self):

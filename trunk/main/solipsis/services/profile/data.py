@@ -31,7 +31,7 @@ class FileContainer:
     def __init__(self, path, share=False, tag=DEFAULT_TAG):
         # check validity
         if not os.path.isfile(path):
-            raise KeyError("%s not a valid file"% name)
+            raise KeyError("%s not a valid file"% path)
         self.path = path
         self.name = os.path.basename(path)
         self._tag = tag
@@ -57,7 +57,8 @@ class DirContainer(dict):
     
     [item, name, #shared, [data to display on right side]"""
 
-    def __init__(self, path, tag=DEFAULT_TAG):
+    def __init__(self, path, share=False, tag=DEFAULT_TAG):
+        dict.__init__(self)
         # remove last '/'
         if path.endswith('/'):
             path = path[:-1]
@@ -67,54 +68,66 @@ class DirContainer(dict):
         # set value
         self.path = path
         self.name = os.path.basename(path)
-        self._shared = False
+        self._shared = share
         self._tag = tag
 
     def __str__(self):
         return "%s [%d]"% (self.name, self.nb_shared())
 
     def __repr__(self):
-        return "%s(%s) [%d] %s"% (self.path, self.name, self.nb_shared(), dict.__str__(self))
+        return "%s(%s) [%d] %s"\
+               % (self.path, self.name, self.nb_shared(), dict.__str__(self))
+
+    def keys(self):
+        """overrides dict methode"""
+        all_keys = []
+        all_keys += [os.path.join(self.path, key) for key in dict.keys(self)]
+        for container in dict.values(self):
+            if isinstance(container, dict):
+                all_keys += [os.path.join(container.path, key)
+                             for key in container.keys()]
+        return all_keys
+
+    def _add(self, name, share=False, tag=DEFAULT_TAG):
+        """add File/DirContainer"""
+        full_path = os.path.join(self.path, name)
+        if os.path.isdir(full_path):
+            self[name] = DirContainer(full_path, share, tag)
+        elif os.path.isfile(full_path):
+            self[name] = FileContainer(full_path, share, tag)
+        else:
+            print >> sys.stderr, "% not a valid file/dir" % full_path
     
     def tag(self, tag):
         """set tag"""
         self._tag = tag
 
+    def share(self, share=True):
+        """(un)share all files of directory"""
+        self._shared = share
+
     def expand(self):
         """list content of directory and cache it"""
         # add each dir of browsed dir
         for dir_name in os.listdir(self.path):
-            full_path = os.path.join(self.path, dir_name)
-            if not self.has_key(dir_name):
-                if os.path.isdir(full_path):
-                    self[dir_name] = DirContainer(full_path)
-                elif os.path.isfile(full_path):
-                    self[dir_name] = FileContainer(full_path)
-                else:
-                    print >> sys.stderr, "% not a valid file/dir" % full_path
-            #else: already expanded, do nothing
-
-    def share(self, share=True):
-        """(un)share all files of directory"""
-        self._shared = share
+            self._add(dir_name)
         
     def share_files(self, names, share=True):
         """share given files of dir"""
         for name in names:
-            full_path = os.path.join(self.path, name)
-            if not name in self:
-                #print >> sys.stderr, "shared a not expanded file (%s)"% name
-                self.expand()
-            self[name].share(share)
+            try:
+                self[name].share(share)
+            except KeyError:
+                self._add(name, share)
+                
 
     def tag_files(self, names, tag):
         """modify tag of shared file. Share file if not"""
         for name in names:
-            full_path = os.path.join(self.path, name)
-            if not name in self:
-                #print >> sys.stderr, "tagged a not expanded file (%s)"% name
-                self.expand()
-            self[name].tag(tag)
+            try:
+                self[name].tag(tag)
+            except KeyError:
+                self._add(name, tag=tag)
 
     def nb_shared(self):
         """return number of shared element"""
@@ -130,6 +143,14 @@ class DirContainer(dict):
 class SharingContainer(dict):
     """stores all DirContainer along with items"""
 
+    def __init__(self, root_path):
+        dict.__init__(self)
+        # remove last '/'
+        if root_path.endswith('/'):
+            self.root = root_path[:-1]
+        else:
+            self.root = root_path
+
     def __str__(self):
         return str(self.keys())
 
@@ -143,8 +164,9 @@ class SharingContainer(dict):
 
     def __setitem__(self, full_path, value):
         # check validity
-        if not isinstance(value, DirContainer) and not isinstance(value, FileContainer):
-            raise ValueError("Adding %s not supported (only DirContainer or FileContainer)"\
+        if not isinstance(value, DirContainer) \
+               and not isinstance(value, FileContainer):
+            raise ValueError("Adding %s not supported"\
                              % value.__class__)
         if not os.path.exists(full_path):
             raise KeyError("%s does not exist"% full_path)
@@ -168,11 +190,21 @@ class SharingContainer(dict):
     def keys(self):
         """overrides dict method. returns all keys of all dicts"""
         all_keys = []
-        all_keys += dict.keys(self)
+        all_keys += [os.path.join(self.root, key) for key in dict.keys(self)]
         for dir_container in dict.values(self):
-            all_keys += [os.path.join(dir_container.path, key) for key in dir_container.keys()]
+            if isinstance(dir_container, dict):
+                all_keys += [os.path.join(dir_container.path, key)
+                             for key in dir_container.keys()]
         # check
         return all_keys
+
+    def flat(self):
+        """returns {path: tag}"""
+        result = {}
+        all_keys = self.keys()
+        for key in all_keys:
+            result[key] = self[key]._tag
+        return result
 
     def add(self, full_path):
         """calls add_dir or add_file according to nature of full_path"""
@@ -219,6 +251,9 @@ class SharingContainer(dict):
         # remove last '/'
         if full_path.endswith('/'):
             full_path = full_path[:-1]
+        # remove root_path not to create useless DirContainers
+        if full_path.startswith(self.root):
+            full_path = full_path[len(self.root)+1:]
         # extract all intermediate dirs
         path, leaf = os.path.split(full_path)
         all_dirs = path.split(os.path.sep)
@@ -238,16 +273,41 @@ class SharingContainer(dict):
 
     def expand_dir(self, full_path):
         """put into cache new information when dir expanded in tree"""
-        self[full_path].expand()
+        if not self.has_key(full_path):
+            container = self.add(full_path)
+            container.expand()
+        else:
+            self[full_path].expand()
             
     def share_dir(self, full_path, share=True):
         """forward command to cache"""
-        self[full_path].share(share)
+        if not self.has_key(full_path):
+            container = self.add(full_path)
+            container.share(share)
+        else:
+            self[full_path].share(share)
 
     def share_files(self, full_path, names, share=True):
         """forward command to cache"""
-        self[full_path].share_files(names, share)
+        if not self.has_key(full_path):
+            container = self.add(full_path)
+            container.share_files(names, share)
+        else:
+            self[full_path].share_files(names, share)
 
     def tag_files(self, full_path, names, tag):
         """forward command to cache"""
-        self[full_path].tag_files(names, tag)
+        """forward command to cache"""
+        if not self.has_key(full_path):
+            container = self.add(full_path)
+            container.tag_files(names, tag)
+        else:
+            self[full_path].tag_files(names, tag)
+
+    def tag_file(self, full_path, tag):
+        """forward command to cache"""
+        if not self.has_key(full_path):
+            container = self.add(full_path)
+            container.tag(tag)
+        else:
+            self[full_path].tag(tag)

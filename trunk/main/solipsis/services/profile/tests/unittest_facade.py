@@ -5,16 +5,20 @@ import unittest
 from StringIO import StringIO
 
 from solipsis.services.profile.document import CacheDocument, PeerDescriptor
+from solipsis.services.profile.data import DEFAULT_TAG
 from solipsis.services.profile.view import PrintView
 from solipsis.services.profile.facade import get_facade
 from mx.DateTime import DateTime
+from os.path import abspath
 
 class FacadeTest(unittest.TestCase):
     """assert that facade does effectively change document and calls callback on views"""
 
     def setUp(self):
         """override one in unittest.TestCase"""
+        self.repo = u"/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests"
         doc = CacheDocument()
+        doc.add_repository(self.repo)
         self.result = StringIO()
         self.facade = get_facade(doc, PrintView(doc, self.result))
 
@@ -96,66 +100,114 @@ class FacadeTest(unittest.TestCase):
         self.assertEquals("{'key': u'value'}\n", self.result.getvalue())
 
     # FILE TAB
-    def test_add_dir(self):
+    def test_repository(self):
         """sets new value for repository"""
-        self.facade.add_dir(u"data")
-        self.assertRaises(KeyError, self.facade.remove_dir, u"data/subdir1")
-        self.facade.add_dir(u"data/subdir1")
-        self.facade.remove_dir(u"data/subdir1")
-        self.assertEquals("""[u'data']
-[u'data', u'data/subdir1']
-[u'data']
-""", self.result.getvalue())
-
-    def test_share_dir(self):
-        """share all content of dir"""
-        self.facade.add_dir(u"data")
-        self.facade.share_dir((u"data", True))
-        self.assertRaises(KeyError, self.facade.share_dir, (u"routage", True))
-        self.assertRaises(KeyError, self.facade.share_dir, (u"data/subdir1", True))
-        self.facade.add_dir(u"data/emptydir")
-        self.facade.add_dir(u"data/subdir1/subsubdir")
-        self.facade.share_dir((u"data/emptydir", True))
-        self.facade.share_dir((u"data/subdir1/subsubdir", True))
-        self.assertEquals("""[u'data']
-{u'data': data(data) [3] {u'routage': data/routage [shared] [none], u'.path': data/.path [shared] [none], u'date.txt': data/date.txt [shared] [none]}}
-[u'data', u'data/emptydir']
-[u'data', u'data/emptydir', u'data/subdir1/subsubdir']
-{u'data/emptydir': data/emptydir(emptydir) [0] {}, u'data/subdir1/subsubdir': data/subdir1/subsubdir(subsubdir) [0] {u'dummy.txt': data/subdir1/subsubdir/dummy.txt  [none], u'null': data/subdir1/subsubdir/null  [none], u'default.solipsis': data/subdir1/subsubdir/default.solipsis  [none]}, u'data': data(data) [3] {u'routage': data/routage [shared] [none], u'.path': data/.path [shared] [none], u'date.txt': data/date.txt [shared] [none]}}
-{u'data/emptydir': data/emptydir(emptydir) [0] {}, u'data/subdir1/subsubdir': data/subdir1/subsubdir(subsubdir) [3] {u'dummy.txt': data/subdir1/subsubdir/dummy.txt [shared] [none], u'null': data/subdir1/subsubdir/null [shared] [none], u'default.solipsis': data/subdir1/subsubdir/default.solipsis [shared] [none]}, u'data': data(data) [3] {u'routage': data/routage [shared] [none], u'.path': data/.path [shared] [none], u'date.txt': data/date.txt [shared] [none]}}
-""", self.result.getvalue())
-
-    def test_share_files(self):
-        """share specified files"""
-        self.facade.add_dir(u"data")
-        self.facade.share_files((u"data", ["routage", "subdir1"], True))
-        self.facade.share_files((u"data", ["routage"], False))
-        self.assertEquals("""[u'data']
-{u'data': data(data) [1] {u'routage': data/routage [shared] [none], u'.path': data/.path  [none], u'date.txt': data/date.txt  [none]}}
-{u'data': data(data) [0] {u'routage': data/routage  [none], u'.path': data/.path  [none], u'date.txt': data/date.txt  [none]}}
-""", self.result.getvalue())
-
-    def test_tag_files(self):
-        """tag specified tags"""
-        self.facade.add_dir(u"data")
-        self.facade.tag_files((u"data", ["routage", "subdir1"], u"tag desc 1"))
-        self.facade.tag_files((u"data", ["routage", "date.txt"], u"tag desc 3"))
-        self.assertEquals("""[u'data']
-{u'data': data(data) [0] {u'routage': data/routage  [tag desc 1], u'.path': data/.path  [none], u'date.txt': data/date.txt  [none]}}
-{u'data': data(data) [0] {u'routage': data/routage  [tag desc 3], u'.path': data/.path  [none], u'date.txt': data/date.txt  [tag desc 3]}}
-""", self.result.getvalue())
+        self.assertEquals([abspath(u".")],
+                          self.facade.documents["cache"].get_repositories())
+        self.assertRaises(KeyError, self.facade.remove_repository,
+                          abspath(u"data"))
+        self.facade.add_repository(abspath(u"data"))
+        self.assertEquals([abspath(u"data"), abspath(u".")],
+                          self.facade.documents["cache"].get_repositories())
+        self.facade.remove_repository(abspath(u"data"))
+        self.assertEquals([abspath(u".")],
+                          self.facade.documents["cache"].get_repositories())
 
     def test_expand_dir(self):
         """expand dir"""
-        self.facade.add_dir(u"data")
-        self.facade.expand_dir(u"data")
-        self.assertRaises(AttributeError, self.facade.expand_dir, u"data/routage")
-        self.facade.expand_dir(u"data/emptydir")
-        self.assertRaises(KeyError, self.facade.expand_dir, u"data/subdir1/subsubdir")
-        self.assertEquals("""[u'data']
-[u'data', u'data/.svn', u'data/emptydir', u'data/profiles', u'data/subdir1']
-[u'data', u'data/.svn', u'data/emptydir', u'data/emptydir/.svn', u'data/profiles', u'data/subdir1']
-""", self.result.getvalue())
+        self.assertEquals(self.facade.documents["cache"].get_flattened(self.repo),
+                          {})
+        self.facade.expand_dir(abspath(u"data"))
+        self.assertEquals(self.facade.documents["cache"].get_flattened(self.repo),
+                          {abspath(u'data'): u'none',
+                           abspath(u'data/.path'): u'none',
+                           abspath(u'data/date.txt'): u'none',
+                           abspath(u'data/routage'): u'none',
+                           abspath(u'data/.svn'): u'none',
+                           abspath(u'data/subdir1'): u'none',
+                           abspath(u'data/profiles'): u'none',
+                           abspath(u'data/emptydir'): u'none'})
+        self.assertRaises(AttributeError, self.facade.expand_dir,
+                          abspath(u"data/routage"))
+        self.facade.expand_dir(abspath(u"data/emptydir"))
+        self.assertEquals(self.facade.documents["cache"].get_flattened(self.repo),
+                          {abspath(u'data'): u'none',
+                           abspath(u'data/.path'): u'none',
+                           abspath(u'data/date.txt'): u'none',
+                           abspath(u'data/routage'): u'none',
+                           abspath(u'data/.svn'): u'none',
+                           abspath(u'data/subdir1'): u'none',
+                           abspath(u'data/profiles'): u'none',
+                           abspath(u'data/emptydir'): u'none',
+                           abspath(u'data/emptydir/.svn'): u'none'})
+        self.facade.expand_dir(abspath(u"data/subdir1/subsubdir"))
+        self.assertEquals(self.facade.documents["cache"].get_flattened(self.repo),
+                          {abspath(u'data'): u'none',
+                           abspath(u'data/.path'): u'none',
+                           abspath(u'data/date.txt'): u'none',
+                           abspath(u'data/routage'): u'none',
+                           abspath(u'data/.svn'): u'none',
+                           abspath(u'data/subdir1'): u'none',
+                           abspath(u'data/profiles'): u'none',
+                           abspath(u'data/emptydir'): u'none',
+                           abspath(u'data/emptydir/.svn'): u'none',
+                           abspath(u'data/subdir1/subsubdir'): u'none',
+                           abspath(u'data/subdir1/subsubdir/default.solipsis'): u'none',
+                           abspath(u'data/subdir1/subsubdir/dummy.txt'): u'none',
+                           abspath(u'data/subdir1/subsubdir/null'): u'none',
+                           abspath(u'data/subdir1/subsubdir/.svn'): u'none'})
+
+    def test_share_dir(self):
+        """share all content of dir"""
+        files = self.facade.documents["cache"].get_files()[self.repo]
+        self.assertRaises(KeyError, self.facade.share_dir,
+                          (abspath(u"data/routage"), True))
+        self.assertRaises(ValueError, self.facade.share_dir,
+                          (abspath(u"data/ghost"), True))
+        self.facade.expand_dir(abspath(u"data"))
+        self.assertEquals(files[abspath(u"data")]._shared, False)
+        self.facade.share_dir((abspath(u"data"), True))
+        self.assertEquals(files[abspath(u"data")]._shared, True)
+        self.facade.share_dir((abspath(u"data/subdir1/subsubdir"), True))
+        self.assertEquals(files[abspath(u"data/subdir1/subsubdir")]._shared, True)
+        self.facade.share_dir((abspath(u"data/subdir1/subsubdir"), False))
+        self.assertEquals(files[abspath(u"data/subdir1/subsubdir")]._shared, False)
+
+    def test_share_files(self):
+        """share specified files"""
+        files = self.facade.documents["cache"].get_files()[self.repo]
+        self.facade.expand_dir(abspath(u"data"))
+        self.assertEquals(files[abspath(u"data/routage")]._shared, False)
+        self.assertEquals(files[abspath(u"data")]._shared, False)
+        self.facade.share_files((abspath(u"data"),
+                                 ["routage", "subdir1"], True))
+        self.assertEquals(files[abspath(u"data/routage")]._shared, True)
+        self.assertEquals(files[abspath(u"data/subdir1")]._shared, True)
+        self.assertEquals(files[abspath(u"data")]._shared, False)
+        self.facade.share_files((abspath(u"data"),
+                                 ["routage"], False))
+        self.assertEquals(files[abspath(u"data/routage")]._shared, False)
+
+    def test_tag_files(self):
+        """tag specified tags"""
+        files = self.facade.documents["cache"].get_files()[self.repo]
+        self.facade.expand_dir(abspath(u"data"))
+        self.facade.tag_files((abspath(u"data"),
+                               ["routage", "subdir1"], u"tag desc 1"))
+        self.assertEquals(files[abspath(u"data/routage")]._tag,
+                          u"tag desc 1")
+        self.assertEquals(files[abspath(u"data/subdir1")]._tag,
+                          u"tag desc 1")
+        self.assertEquals(files[abspath(u"data/date.txt")]._tag,
+                          DEFAULT_TAG)
+        self.facade.tag_files((abspath(u"data"),
+                               ["routage", "date.txt"], u"tag desc 3"))
+        self.assertEquals(files[abspath(u"data/routage")]._tag,
+                          u"tag desc 3")
+        self.assertEquals(files[abspath(u"data/subdir1")]._tag,
+                          u"tag desc 1")
+        self.assertEquals(files[abspath(u"data/date.txt")]._tag,
+                          u"tag desc 3")
 
     # OTHERS TAB
     def test_add_peer(self):

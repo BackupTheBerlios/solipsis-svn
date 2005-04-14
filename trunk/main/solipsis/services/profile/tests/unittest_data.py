@@ -3,6 +3,7 @@
 import unittest
 import sys
 
+from os.path import abspath
 from StringIO import StringIO
 from solipsis.services.profile.data import DEFAULT_TAG, \
      SharingContainer, DirContainer, FileContainer
@@ -27,12 +28,13 @@ class DataTest(unittest.TestCase):
         
     def setUp(self):
         """override one in unittest.TestCase"""
-        self.container = SharingContainer()
+        self.repo = u"/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests"
+        self.container = SharingContainer(self.repo)
 
     def test_setting(self):
         """get data"""
         # dir
-        self.container.add_dir("data/")
+        self.container.add_dir(abspath(u"data/"))
         self.container.add_dir("data/subdir1/subsubdir")
         self.assertRaises(KeyError, self.container.add_dir, "data/date.txt")
         # file
@@ -57,7 +59,8 @@ class DataTest(unittest.TestCase):
         """get data"""
         # dir
         self.container.add_dir("data/")
-        self.assertEquals(isinstance(self.container["data"], DirContainer), True)
+        self.assertEquals(isinstance(
+            self.container[abspath(u"data")], DirContainer), True)
         # file
         self.container.add_file("data/subdir1/date.doc")
         self.assertEquals(isinstance(self.container["data/subdir1/date.doc"], FileContainer), True)
@@ -77,9 +80,9 @@ class DataTest(unittest.TestCase):
     def test_deleting(self):
         """get data"""
         # add data
-        dir_str = "data/emptydir"
+        dir_str = u"data/emptydir"
         file_str = "data/subdir1/subsubdir/default.solipsis"
-        self.container[dir_str] = DirContainer(dir_str)
+        self.container[abspath(dir_str)] = DirContainer(dir_str)
         self.container[file_str] = FileContainer(file_str)
         self.assertEquals(self.container.has_key(dir_str), True)
         self.assertEquals(self.container.has_key(file_str), True)
@@ -99,7 +102,7 @@ class DataTest(unittest.TestCase):
         self.assert_(not self.container.has_key("data/.path"))
         self.assert_(not self.container.has_key("data/date.txt"))
         #expand
-        self.container.expand_dir("data")
+        self.container.expand_dir(abspath(u"data"))
         self.assert_(self.container.has_key("data"))
         self.assert_(self.container.has_key("data/subdir1"))
         self.assert_(self.container.has_key("data/profiles"))
@@ -115,7 +118,7 @@ class DataTest(unittest.TestCase):
         self.container.expand_dir("data")
         self.container.expand_dir("data/subdir1")
         self.assertEquals(self.container["data"].nb_shared(), 0)
-        self.container.share_files("data", [".path", "date.txt"])
+        self.container.share_files(abspath(u"data"), [".path", "date.txt"])
         self.assertEquals(self.container["data"].nb_shared(), 2)
         self.container.share_dir("data/subdir1/subsubdir")
         self.assertEquals(self.container["data/subdir1/subsubdir"].nb_shared(), -1)
@@ -129,11 +132,12 @@ class DataTest(unittest.TestCase):
     def test_tagging(self):
         """coherent listing of content"""
         self.container.add_dir("data")
-        self.container.tag_files("data", ["routage", "date.txt", "subdir1"], u"tag1")
+        self.container.tag_files(abspath(u"data"),
+                                 ["routage", "date.txt", "subdir1"], u"tag1")
         self.assertEquals(self.container["data"]["routage"]._tag, u"tag1")
         self.assertEquals(self.container["data"]["date.txt"]._tag, u"tag1")
         self.assertEquals(self.container["data"]["subdir1"]._tag, u"tag1")
-        self.assertEquals(self.container["data"][".path"]._tag, DEFAULT_TAG)
+        self.assertRaises(KeyError, self.container["data"].__getitem__, ".path")
 
 if __name__ == '__main__':
     unittest.main()

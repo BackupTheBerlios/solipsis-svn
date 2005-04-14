@@ -226,7 +226,8 @@ class PrintView(AbstractView):
     # FILE TAB
     def update_dirs(self):
         """dirs"""
-        print >> self.output, self.document.get_dirs()
+        for repo in self.document.get_repositories():
+            print >> self.output, repo, ":", self.document.get_flattened(repo)
         
     def update_files(self):
         """file"""
@@ -354,7 +355,6 @@ class GuiView(AbstractView):
         else:
             self.frame.other_tab.detail_preview.SetPage(text or "<font color='red'>%s %s</font>"\
                                                         % (_("no data available for"), pseudo))
-            
         
 
 class HtmlView(AbstractView):

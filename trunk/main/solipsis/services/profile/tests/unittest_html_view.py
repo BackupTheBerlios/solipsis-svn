@@ -195,11 +195,11 @@ class HtmlTest(unittest.TestCase):
     # FILE TAB       
     def test_files(self):
         """file_path as valid file"""
-        self.document.add_dir(u"data")
+        self.document.add(u"data")
         self.document.expand_dir(u"data")
         self.document.share_files((u"data", ["routage"], True))
         self.document.share_dir((u"data/emptydir", True))
-        self.document.add_dir(u"data/subdir1/subsubdir")
+        self.document.add(u"data/subdir1/subsubdir")
         self.document.share_files((u"data/subdir1/subsubdir", ["null", "dummy.txt"], True))
         self.document.tag_files((u"data", ["date.txt"], u"Error: doc not shared"))
         self.document.tag_files((u"data/subdir1/subsubdir", ["null", "dummy.txt"], u"empty"))

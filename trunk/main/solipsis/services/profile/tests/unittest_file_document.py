@@ -7,6 +7,7 @@ import unittest
 from difflib import Differ
 from StringIO import StringIO
 import os.path
+from os.path import abspath
 from solipsis.services.profile.document import FileDocument, CacheDocument, PeerDescriptor
 from solipsis.services.profile.view import PrintView, HtmlView
 from solipsis.services.profile import PROFILE_DIR
@@ -17,18 +18,6 @@ class FileTest(unittest.TestCase):
     """test that all fields are correctly validated"""
 
     expected = """#ISO-8859-1
-[Repository_data/emptydir]
-files = All
-path = data/emptydir
-tag = none
-
-[Repository_data]
-files = All,routage
-path = data
-routage = none
-tag = none
-date.txt = Error: doc not shared
-
 [Personal]
 city = Paris
 language = fr
@@ -44,32 +33,31 @@ country = France
 email = manu@ft.com
 description = anything
 
-[Custom]
-color = blue
-dirs = data,data/emptydir,data/subdir1,data/subdir1/subsubdir
-homepage = manu.com
-hobbies = blabla,bla bla bla,
-
-[Repository_data/subdir1/subsubdir]
-files = All,null,dummy.txt
-path = data/subdir1/subsubdir
-tag = none
-null = empty
-dummy.txt = empty
+[Files]
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/date.txt = Error: doc not shared
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data = none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/subsubdir/null = empty
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1 = none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/subsubdir/dummy.txt = empty
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/routage = none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/emptydir = none
 
 [Others]
 nico = Friend,none
 
-[Repository_data/subdir1]
-files = All
-path = data/subdir1
-tag = none
+[Custom]
+color = blue
+homepage = manu.com
+repositories = /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests
+hobbies = blabla,bla bla bla,
 
 """
     
     def setUp(self):
         """override one in unittest.TestCase"""
         self.document = FileDocument()
+        self.document.add_repository(
+            u"/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests")
         # first test to call must write test file to get correct
         # execution of the others
         if not os.path.exists(TEST_PROFILE):
@@ -94,15 +82,15 @@ tag = none
         self.document.set_hobbies([u"blabla", u"bla bla bla", u""])
         self.document.add_custom_attributes((u"homepage", u"manu.com"))
         self.document.add_custom_attributes((u'color', u'blue'))
-        self.document.add_dir(u"data")
-        self.document.expand_dir(u"data")
-        self.document.share_files((u"data", ["routage"], True))
-        self.document.share_dir((u"data/emptydir", True))
-        self.document.expand_dir(u"data/subdir1")
-        self.document.share_dir((u"data/subdir1", True))
-        self.document.share_files((u"data/subdir1/subsubdir", ["null", "dummy.txt"], True))
-        self.document.tag_files((u"data", ["date.txt"], u"Error: doc not shared"))
-        self.document.tag_files((u"data/subdir1/subsubdir", ["null", "dummy.txt"], u"empty"))
+        self.document.add(abspath(u"data"))
+        self.document.expand_dir(abspath(u"data"))
+        self.document.share_files((abspath(u"data"), ["routage"], True))
+        self.document.share_dir((abspath(u"data/emptydir"), True))
+        self.document.expand_dir(abspath(u"data/subdir1"))
+        self.document.share_dir((abspath(u"data/subdir1"), True))
+        self.document.share_files((abspath(u"data/subdir1/subsubdir"), ["null", "dummy.txt"], True))
+        self.document.tag_files((abspath(u"data"), ["date.txt"], u"Error: doc not shared"))
+        self.document.tag_files((abspath(u"data/subdir1/subsubdir"), ["null", "dummy.txt"], u"empty"))
         self.document.add_peer(u"nico")
         self.document.make_friend(u"nico")
         # write file

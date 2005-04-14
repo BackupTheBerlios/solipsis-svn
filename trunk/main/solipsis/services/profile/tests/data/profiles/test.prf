@@ -1,16 +1,4 @@
 #ISO-8859-1
-[Repository_data/emptydir]
-files = All
-path = data/emptydir
-tag = none
-
-[Repository_data]
-files = All,routage
-path = data
-routage = none
-tag = none
-date.txt = Error: doc not shared
-
 [Personal]
 city = Paris
 language = fr
@@ -26,24 +14,21 @@ country = France
 email = manu@ft.com
 description = anything
 
-[Custom]
-color = blue
-dirs = data,data/emptydir,data/subdir1,data/subdir1/subsubdir
-homepage = manu.com
-hobbies = blabla,bla bla bla,
-
-[Repository_data/subdir1/subsubdir]
-files = All,null,dummy.txt
-path = data/subdir1/subsubdir
-tag = none
-null = empty
-dummy.txt = empty
+[Files]
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/date.txt = Error: doc not shared
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data = none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/subsubdir/null = empty
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1 = none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/subsubdir/dummy.txt = empty
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/routage = none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/emptydir = none
 
 [Others]
 nico = Friend,none
 
-[Repository_data/subdir1]
-files = All
-path = data/subdir1
-tag = none
+[Custom]
+color = blue
+homepage = manu.com
+repositories = /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests
+hobbies = blabla,bla bla bla,
 

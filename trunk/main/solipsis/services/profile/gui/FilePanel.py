@@ -79,7 +79,7 @@ class FilePanel(wx.Panel):
             # path chosen
             path = dlg.GetPath()
             # add item
-            container = self.facade.add_dir(path)["cache"]
+            container = self.facade.add(path)["cache"]
             item = self._add_item_in_tree(self.root, path, container)
             # fill new directories
             new_dirs = self.facade.expand_dir(path)
