@@ -167,6 +167,7 @@ Section "Solipsis" SEC01
   File "dist\solipsis\services\plugin.py"
   File "dist\solipsis\services\wxcollector.py"
   File "dist\solipsis\services\__init__.py"
+  SetOutPath "$INSTDIR\state"
   SetOutPath "$INSTDIR"
   File "dist\twistednode.exe"
   CreateShortCut "$SMPROGRAMS\Solipsis\Node.lnk" "$INSTDIR\twistednode.exe"
