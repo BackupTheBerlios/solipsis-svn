@@ -6,7 +6,15 @@ import os, os.path
 import wx, wx.gizmos
 import sys
 from solipsis.services.profile.facade import get_facade
-from solipsis.services.profile.data import SharingContainer
+from solipsis.services.profile.data import SharingContainer, DirContainer
+
+# tree list
+NB_SHARED_COL = 1
+FULL_PATH_COL = 2
+# dir list
+NAME_COL = 0
+TAG_COL = 1
+IS_SHARED_COL = 2
 
 # begin wxGlade: dependencies
 # end wxGlade
@@ -25,7 +33,7 @@ class FilePanel(wx.Panel):
         self.add_button = wx.BitmapButton(self, -1, wx.Bitmap("/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/add_file.jpeg", wx.BITMAP_TYPE_ANY))
         self.del_button = wx.BitmapButton(self, -1, wx.Bitmap("/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/del_file.jpeg", wx.BITMAP_TYPE_ANY))
         self.tag_value = wx.TextCtrl(self, -1, "")
-        self.tree_list = wx.TreeCtrl(self.window_1_pane_1, -1, style=wx.TR_HAS_BUTTONS|wx.TR_LINES_AT_ROOT|wx.TR_MULTIPLE|wx.TR_MULTIPLE|wx.TR_DEFAULT_STYLE|wx.SUNKEN_BORDER)
+        self.tree_list = wx.gizmos.TreeListCtrl(self.window_1_pane_1, -1)
         self.dir_list = wx.ListCtrl(self.window_1_pane_2, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
 
         self.__set_properties()
@@ -33,18 +41,23 @@ class FilePanel(wx.Panel):
         # end wxGlade
 
         isz = (16, 16)
-        il = wx.ImageList(isz[0], isz[1])
-        self.fldridx     = il.Add(wx.ArtProvider_GetBitmap(wx.ART_FOLDER,      wx.ART_OTHER, isz))
-        self.fldropenidx = il.Add(wx.ArtProvider_GetBitmap(wx.ART_FILE_OPEN,   wx.ART_OTHER, isz))
-        self.fileidx     = il.Add(wx.ArtProvider_GetBitmap(wx.ART_REPORT_VIEW, wx.ART_OTHER, isz))
-        self.tree_list.SetImageList(il)
-        self.dir_list.SetImageList(il, wx.IMAGE_LIST_SMALL)
-        self.il = il
+        tree_il = wx.ImageList(isz[0], isz[1])
+        self.tree_fldridx     = tree_il.Add(wx.ArtProvider_GetBitmap(wx.ART_FOLDER,      wx.ART_OTHER, isz))
+        self.tree_fldropenidx = tree_il.Add(wx.ArtProvider_GetBitmap(wx.ART_FILE_OPEN,   wx.ART_OTHER, isz))
+        self.tree_list.SetImageList(tree_il)
+        self.tree_il = tree_il
+        
+        dir_il = wx.ImageList(isz[0], isz[1])
+        self.dir_fldridx     = dir_il.Add(wx.ArtProvider_GetBitmap(wx.ART_FOLDER,      wx.ART_OTHER, isz))
+        self.dir_fileidx     = dir_il.Add(wx.ArtProvider_GetBitmap(wx.ART_REPORT_VIEW, wx.ART_OTHER, isz))
+        self.tree_list.SetImageList(dir_il)
+        self.dir_list.SetImageList(dir_il, wx.IMAGE_LIST_SMALL)
+        self.dir_il = dir_il
         
         # build dir list view
         self.dir_list.InsertColumn(0, "Name")
-        self.dir_list.InsertColumn(1, "Tag")
-        self.dir_list.InsertColumn(2, "Shared", wx.LIST_FORMAT_RIGHT)
+        self.dir_list.InsertColumn(TAG_COL, "Tag")
+        self.dir_list.InsertColumn(IS_SHARED_COL, "Shared", wx.LIST_FORMAT_RIGHT)
 
         # specific stuff
         self.facade = get_facade()
@@ -54,8 +67,11 @@ class FilePanel(wx.Panel):
         self.bind_controls()
 
         # build tree list view
+        self.tree_list.AddColumn("Main column")
+        self.tree_list.AddColumn("#shared")
+        self.tree_list.AddColumn("full path")
+        self.tree_list.SetMainColumn(0)
         self.root = self.tree_list.AddRoot(_("File System..."))
-        self.dirs = {}
 
     # EVENTS
     
@@ -66,110 +82,105 @@ class FilePanel(wx.Panel):
         self.del_button.Bind(wx.EVT_BUTTON, self.on_del)
         
         self.dir_list.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_select_list)
-        self.tree_list.Bind(wx.EVT_TREE_ITEM_EXPANDED, self.on_expand)
         self.tree_list.Bind(wx.EVT_TREE_SEL_CHANGED, self.on_select_tree)
+        self.tree_list.Bind(wx.EVT_TREE_ITEM_EXPANDED, self.on_expand)
         
     def on_browse(self, evt):
         """add shared directory to list"""
         # pop up to choose repository
+
         dlg = wx.DirDialog(self, message=_("Choose your repository"),
                            defaultPath = os.path.expanduser("~/"),
                            style=wx.DD_DEFAULT_STYLE|wx.DD_NEW_DIR_BUTTON)
         if dlg.ShowModal() == wx.ID_OK:
             # path chosen
             path = dlg.GetPath()
-            # add item
-            container = self.facade.add(path)["cache"]
-            item = self._add_item_in_tree(self.root, path, container)
-            # fill new directories
-            new_dirs = self.facade.expand_dir(path)
-            for path, container in new_dirs.iteritems():
-                self._add_item_in_tree(item, path, container)
+            repo = os.path.dirname(path)
+            self.facade.add_repository(repo)
+            self.facade.expand_dir(path)
         dlg.Destroy()
-
-    def _add_item_in_tree(self, item, path, container):
-        """add items in tree"""
-        # create item
-        child = self.tree_list.AppendItem(item, path.split(os.path.sep)[-1])
-        self.tree_list.SetPyData(child, path)
-        if os.path.isdir(path):
-            self.tree_list.SetItemImage(child, self.fldridx, which = wx.TreeItemIcon_Normal)
-            self.tree_list.SetItemImage(child, self.fldropenidx, which = wx.TreeItemIcon_Expanded)
-            self.tree_list.SetItemText(child, container.nb_shared, 1)
-            self.tree_list.SetItemText(child, container.path, 2)
-        else:
-            self.tree_list.SetItemImage(child, self.fileidx, which = wx.TreeItemIcon_Normal)
-            self.tree_list.SetItemImage(child, self.fileidx, which = wx.TreeItemIcon_Expanded)
-        # link wx item with container in cache
-        self.dirs[path] = container
-        print "ADDED", path, container
-        return child
-
-    def on_expand(self, evt):
-        """put into cache new information when dir expanded in tree"""
-        item = evt.GetItem()
-        path =  self.tree_list.GetPyData(item)
-        print str(path)
-        if path is None:
-            evt.Skip()
-            return
-        container = self.dirs[path]
-        new_dirs = self.facade.expand_dir(container.path)
-        for new_dir, new_container in new_dirs.iteritems():
-            new_path = os.path.join(path, new_dir)
-            child_item = self.tree_list.AppendItem(item, new_dir)
-            self.tree_list.SetPyData(child_item, new_path)
-            self.dirs[new_path] = new_container
-            self.tree_list.SetItemImage(child_item, self.fldridx, which = wx.TreeItemIcon_Normal)
-            self.tree_list.SetItemImage(child_item, self.fldropenidx, which = wx.TreeItemIcon_Expanded)
-            self.tree_list.SetItemText(child_item, new_container.nb_shared, 1)
-            self.tree_list.SetItemText(child_item, new_container.path, 2)
-        evt.Skip()
         
     def on_add(self, evt):
         """share selected files or directory"""
-        self.current_state.on_add(evt)
+        file_name = self.tree_list.GetItemText(evt.GetItem())
+        if evt.GetItem() != self.root:
+            self.current_state.on_add(evt)
         evt.Skip()
         
     def on_del(self, evt):
         """cancel sharing of selected files or directory"""
-        self.current_state.on_del(evt)
+        file_name = self.tree_list.GetItemText(evt.GetItem())
+        if evt.GetItem() != self.root:
+            self.current_state.on_del(evt)
+        evt.Skip()
+
+    def on_expand(self, evt):
+        """put into cache new information when dir expanded in tree"""
+        file_name = self.tree_list.GetItemText(evt.GetItem(), FULL_PATH_COL)
+        print "expand_dir:",file_name
+        if evt.GetItem() != self.root:
+            self.facade.expand_dir(file_name)
+            self.facade.expand_children('gui', file_name)
         evt.Skip()
 
     def on_select_list(self, evt):
         """new shared directory selecetd"""
-        self.current_state = self.list_state
-        self.current_state.on_select(evt)
-        evt.Skip()
+        # get DirContainer
+        file_name = self.dir_list.GetItem(evt.GetItem(), FULL_PATH_COL).GetText()
+        data = self.owner.facade.get_container('gui', file_name)
+        print "on_select_list:",file_name
+        # update tag
+        self.tag_value.SetValue(data._tag)
 
     def on_select_tree(self, evt):
         """new shared directory selecetd"""
+        self.dir_list.DeleteAllItems()
+        file_name = self.tree_list.GetItemText(evt.GetItem(), FULL_PATH_COL)
+        print "on_select_tree:",file_name
+        if evt.GetItem() != self.root:
+            # update list
+            data = self.facade.get_container('gui', file_name)
+            self._display_dir_content(data)
         self.current_state = self.tree_state
-        self.current_state.on_select(evt)
-        evt.Skip()
 
-    def _add_item_in_list(self, full_path):
-        """format item in tree view"""
-        self.dir_list.ClearAll()
-        file_content = self.facade.get_keys(full_path)
-        for file_name, file_container in file_content.iteritems():
-            #add to file list
-            index = self.dir_list.InsertImageStringItem(sys.maxint, file_name, self.fileidx)
-            self.dir_list.SetStringItem(index, 1, file_container.tag)
-            self.dir_list.SetStringItem(index, 2, file_container.shared)
-            self.dir_list.SetPyData(index, os.path.join(full_path, file_name))
-        
+    def _display_dir_content(self, dir_container):
+        """update list view with content of directory"""
+        #self.dir_list.ClearAll()
+        for name, container in dir_container.iteritems():
+            if isinstance(container, DirContainer):
+                index = self.dir_list.InsertImageStringItem(sys.maxint, name, self.dir_fldridx)
+            else:
+                index = self.dir_list.InsertImageStringItem(sys.maxint, name, self.dir_fileidx)
+                self.dir_list.SetStringItem(index, 1, container._tag)
+                self.dir_list.SetStringItem(index, 2, str(container._shared))
 
-    def _display_content_in_list(self, full_path):
+    def cb_update_tree(self, containers):
+        """synchronize tree list with sharing container"""
+        for container in containers:
+            self._add_container_in_tree(self.root, container)
+
+    def _add_container_in_tree(self, parent, container):
         """format item in tree view"""
-        self.dir_list.ClearAll()
-        file_content = self.facade.get_keys(full_path)
-        for file_name, file_container in file_content.iteritems():
-            #add to file list
-            index = self.dir_list.InsertImageStringItem(sys.maxint, file_name, self.fileidx)
-            self.dir_list.SetStringItem(index, 1, file_container.tag)
-            self.dir_list.SetStringItem(index, 2, file_container.shared)
-            self.dir_list.SetPyData(index, os.path.join(full_path, file_name))
+        child = self._add_item_in_tree(parent, container)
+        for key, container in container.iteritems():
+            if isinstance(container, DirContainer):
+                self._add_container_in_tree(child, container)
+
+    def _add_item_in_tree(self, parent, container):
+        """add items in tree"""
+        # create item
+        if container.item is None:
+            name = os.path.basename(container.path)
+            child = self.tree_list.AppendItem(parent, name)
+            print "_add_item_in_tree:", name
+            container.set_item(child)
+            self.tree_list.SetItemImage(child, self.tree_fldridx, which = wx.TreeItemIcon_Normal)
+            self.tree_list.SetItemImage(child, self.tree_fldropenidx, which = wx.TreeItemIcon_Expanded)
+            self.tree_list.SetItemText(child, u"%d"% container.nb_shared(), NB_SHARED_COL)
+            self.tree_list.SetItemText(child, container.path, FULL_PATH_COL)
+            return child
+        else:
+            return container.get_item()
             
     def __set_properties(self):
         """init widgets properties"""
@@ -225,10 +236,6 @@ class FilePanelState:
     def on_del(self, evt):
         """cancel sharing of selected files or directory"""
         raise NotImplementedError("need a selection to unshare")
-    
-    def on_select(self, evt):
-        """tag selected files or all directory"""
-        raise NotImplementedError
 
 
 class SelectedListState(FilePanelState):
@@ -243,10 +250,6 @@ class SelectedListState(FilePanelState):
     def on_del(self, evt):
         """cancel sharing of selected files"""
         raise NotImplementedError
-    
-    def on_select(self, evt):
-        """acrtion on selection"""
-        self.owner.tag_value.SetValue(container._tag)
 
 class SelectedTreeState(FilePanelState):
     """Abstract class for states"""
@@ -255,18 +258,11 @@ class SelectedTreeState(FilePanelState):
         
     def on_add(self, evt):
         """share directory"""
-        raise NotImplementedError
+        dir_name = self.owner.tree_list.GetItemText(evt.GetItem(), FULL_PATH_COL)
+        print "on_add", dir_name
         
     def on_del(self, evt):
         """cancel sharing of directory"""
-        raise NotImplementedError
-    
-    def on_select(self, evt):
-        """acrtion on selection"""
-        item = evt.GetItem()
-        data = self.owner.tree_list.GetPyData(item)
-        if data is None:
-            data = self.owner.tree_list.GetItemText(item)
-        print str(data)
-        self.owner._display_dir_content(data)
+        dir_name = self.owner.tree_list.GetItemText(evt.GetItem(), FULL_PATH_COL)
+        print "on_del", dir_name
 

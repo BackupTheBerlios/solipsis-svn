@@ -21,6 +21,7 @@ available. This facade will be used both by GUI and unittests."""
 
 from sys import stderr
 from solipsis.services.profile import ENCODING
+from solipsis.services.profile.data import DirContainer
 
 #TODO: add state pattern when doc modified => prompt to save
 
@@ -210,21 +211,23 @@ class Facade:
     # FILE TAB
     def add_repository(self, value):
         """sets new value for repositor"""
+        print "add_repository:", value
         return self._try_change(value,
                                "add_repository",
-                               "update_dirs")
+                               "update_files")
     
     def remove_repository(self, value):
         """sets new value for repositor"""
         return self._try_change(value,
                                "remove_repository",
-                               "update_dirs")
-
+                               "update_files")
+    
     def expand_dir(self, value):
         """update doc when dir expanded"""
+        print "expand_dir:", value
         return self._try_change(value,
                                "expand_dir",
-                               "update_dirs")
+                               "update_files")
     
     def share_dir(self, pair):
         """forward command to cache"""
@@ -243,6 +246,28 @@ class Facade:
         return self._try_change(triplet,
                                "tag_files",
                                "update_files")
+        
+    def get_files(self, view):
+        """forward command to cache"""
+        return self.views[view].document.get_files()
+        
+    def get_container(self, view, name):
+        """forward command to cache"""
+        for sharing_container in  self.views[view].document.get_files().values():
+            if name.startswith(sharing_container.path):
+                return sharing_container[name]
+            else:
+                continue
+        raise KeyError("%s not found in any repository"% name)
+    
+    def expand_children(self, view, value):
+        """update doc when dir expanded"""
+        container = self.get_container(view, value)
+        for dir_container in [cont for cont in container.values()
+                              if isinstance(cont, DirContainer)]:
+            print "expand_children:", dir_container.name
+            dir_container.expand()
+        self.views[view].update_files()
 
     # OTHERS TAB
     def add_peer(self, value):

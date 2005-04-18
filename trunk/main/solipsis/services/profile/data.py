@@ -36,6 +36,7 @@ class FileContainer:
         self.name = os.path.basename(path)
         self._tag = tag
         self._shared = share
+        self.item = None
 
     def __str__(self):
         return "%s%s"% (self.name, self._shared and " [shared]" or "")
@@ -51,6 +52,14 @@ class FileContainer:
     def share(self, share=True):
         """set sharing status"""
         self._shared = share
+
+    def set_item(self, item):
+        """used by GUI"""
+        self.item = item
+
+    def get_item(self):
+        """used by GUI"""
+        return self.item
         
 class DirContainer(dict):
     """Structure to store data in cache:
@@ -70,19 +79,20 @@ class DirContainer(dict):
         self.name = os.path.basename(path)
         self._shared = share
         self._tag = tag
+        self.item = None
 
     def __str__(self):
         return "%s [%d]"% (self.name, self.nb_shared())
 
     def __repr__(self):
-        return "%s(%s) [%d] %s"\
-               % (self.path, self.name, self.nb_shared(), dict.__str__(self))
+        return "%s(%s) [%d]"\
+               % (self.path, self.name, self.nb_shared())
 
     def keys(self):
         """overrides dict methode"""
         all_keys = []
         all_keys += [os.path.join(self.path, key) for key in dict.keys(self)]
-        for container in dict.values(self):
+        for container in self.values():
             if isinstance(container, dict):
                 all_keys += [os.path.join(container.path, key)
                              for key in container.keys()]
@@ -90,13 +100,15 @@ class DirContainer(dict):
 
     def _add(self, name, share=False, tag=DEFAULT_TAG):
         """add File/DirContainer"""
-        full_path = os.path.join(self.path, name)
-        if os.path.isdir(full_path):
-            self[name] = DirContainer(full_path, share, tag)
-        elif os.path.isfile(full_path):
-            self[name] = FileContainer(full_path, share, tag)
-        else:
-            print >> sys.stderr, "% not a valid file/dir" % full_path
+        if not self.has_key(name):
+            full_path = os.path.join(self.path, name)
+            if os.path.isdir(full_path):
+                self[name] = DirContainer(full_path, share, tag)
+            elif os.path.isfile(full_path):
+                self[name] = FileContainer(full_path, share, tag)
+            else:
+                print >> sys.stderr, "% not a valid file/dir" % full_path
+        # else: already added
     
     def tag(self, tag):
         """set tag"""
@@ -105,6 +117,14 @@ class DirContainer(dict):
     def share(self, share=True):
         """(un)share all files of directory"""
         self._shared = share
+
+    def set_item(self, item):
+        """used by GUI"""
+        self.item = item
+
+    def get_item(self):
+        """used by GUI"""
+        return self.item
 
     def expand(self):
         """list content of directory and cache it"""
@@ -143,13 +163,13 @@ class DirContainer(dict):
 class SharingContainer(dict):
     """stores all DirContainer along with items"""
 
-    def __init__(self, root_path):
+    def __init__(self, path):
         dict.__init__(self)
         # remove last '/'
-        if root_path.endswith('/'):
-            self.root = root_path[:-1]
-        else:
-            self.root = root_path
+        if path.endswith('/'):
+            path = path[:-1]
+        # set value
+        self.path = path
 
     def __str__(self):
         return str(self.keys())
@@ -168,8 +188,6 @@ class SharingContainer(dict):
                and not isinstance(value, FileContainer):
             raise ValueError("Adding %s not supported"\
                              % value.__class__)
-        if not os.path.exists(full_path):
-            raise KeyError("%s does not exist"% full_path)
         # get leaf in tree corresponding to full_path
         dir_dict, leaf = self._browse_dicts(full_path)
         # set leaf
@@ -190,8 +208,8 @@ class SharingContainer(dict):
     def keys(self):
         """overrides dict method. returns all keys of all dicts"""
         all_keys = []
-        all_keys += [os.path.join(self.root, key) for key in dict.keys(self)]
-        for dir_container in dict.values(self):
+        all_keys += [os.path.join(self.path, key) for key in dict.keys(self)]
+        for dir_container in self.values():
             if isinstance(dir_container, dict):
                 all_keys += [os.path.join(dir_container.path, key)
                              for key in dir_container.keys()]
@@ -252,8 +270,8 @@ class SharingContainer(dict):
         if full_path.endswith('/'):
             full_path = full_path[:-1]
         # remove root_path not to create useless DirContainers
-        if full_path.startswith(self.root):
-            full_path = full_path[len(self.root)+1:]
+        if full_path.startswith(self.path):
+            full_path = full_path[len(self.path)+1:]
         # extract all intermediate dirs
         path, leaf = os.path.split(full_path)
         all_dirs = path.split(os.path.sep)

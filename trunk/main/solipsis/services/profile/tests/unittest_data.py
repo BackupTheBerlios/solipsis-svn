@@ -49,8 +49,6 @@ class DataTest(unittest.TestCase):
         file_c = FileContainer("data/subdir1/subsubdir/default.solipsis")
         self.container["data/emptydir"] = dir_c
         self.container["data/subdir1/subsubdir/default.solipsis"] = file_c
-        self.assertRaises(KeyError, self.container.__setitem__, *("data/false", DirContainer("data")))
-        self.assertRaises(KeyError, self.container.__setitem__, *("data/false", FileContainer("data/date.txt")))
         self.assertRaises(ValueError, self.container.__setitem__, *("data", None))
         self.assertRaises(ValueError, self.container.__setitem__, *("data", "false"))
         self.assertRaises(ValueError, self.container.__setitem__, *("data", 1))

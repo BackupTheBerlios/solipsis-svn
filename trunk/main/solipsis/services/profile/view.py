@@ -74,7 +74,6 @@ class AbstractView:
         self.update_hobbies()
         self.update_custom_attributes()
         # FILE TAB
-        self.update_dirs()
         self.update_files()
         # OTHERS TAB
         self.update_peers()
@@ -142,10 +141,6 @@ class AbstractView:
         raise NotImplementedError
 
     # FILE TAB
-    def update_dirs(self):
-        """repository"""
-        raise NotImplementedError
-
     def update_files(self):
         """file"""
         raise NotImplementedError
@@ -226,11 +221,6 @@ class PrintView(AbstractView):
         print >> self.output, self.document.get_custom_attributes()
         
     # FILE TAB
-    def update_dirs(self):
-        """dirs"""
-        for repo in self.document.get_repositories():
-            print >> self.output, repo, ":", self.document.get_flattened(repo)
-        
     def update_files(self):
         """file"""
         print >> self.output, self.document.get_files()
@@ -328,16 +318,11 @@ class GuiView(AbstractView):
                 sys.maxint, key)
             self.frame.custom_tab.custom_list.SetStringItem(index, 1, value)
         
-    # FILE TAB : frame.file_tab
-    def update_dirs(self):
-        """repository"""
-        #TODO
-        pass
-        
+    # FILE TAB : frame.file_tab        
     def update_files(self):
         """file"""
-        #TODO
-        pass
+        for sharing_container in self.document.get_files().values():
+            self.frame.file_tab.cb_update_tree(sharing_container.values())
         
     # OTHERS TAB : frame.other_tab  
     def update_peers(self):
@@ -487,10 +472,6 @@ class HtmlView(AbstractView):
             self.update_view()
         
     # FILE TAB : frame.file_tab
-    def update_dirs(self):
-        """nothing to change in HTML view when dir added in file structure"""
-        pass
-        
     def update_files(self):
         """file"""
         html_format = {}

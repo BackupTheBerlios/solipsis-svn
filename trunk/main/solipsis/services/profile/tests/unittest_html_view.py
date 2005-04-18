@@ -4,6 +4,7 @@ independant from views"""
 
 import unittest
 import difflib
+from os.path import abspath
 from solipsis.services.profile.document import PeerDescriptor, CacheDocument, FileDocument
 from solipsis.services.profile.view import HtmlView
 
@@ -129,26 +130,25 @@ class HtmlTest(unittest.TestCase):
 
     def print_files(self):
         html = []
-        for dir_container in self.document.get_files().data.values():
+        for repo in self.document.get_repositories():
             files_str = ''.join(["""<tr>
 	<td>%s</td>
 	<td>%s</td>
-	<td>%s</td>
-      </tr>"""% (f_container.name, f_container.shared, f_container._tag)
-                         for f_container in dir_container.content.values()])
+      </tr>"""% (file_name[len(repo):], tag)
+                                 for file_name, tag in self.document.get_flattened(repo).iteritems()])
             
             html.append("""<table>
+    <caption>%s</caption>
     <thead>
       <tr>
-	<th>%s</th>
-	<th>shared</th>
+	<th>name</th>
 	<th>tag</th>
       </tr>
     </thead>
     <tbody>
 %s
     </tbody>
-  </table>"""% (dir_container.path, files_str))
+  </table>"""% (repo, files_str))
         # concatenate all description of directories & return result
         return ''.join(html)
 
@@ -195,14 +195,14 @@ class HtmlTest(unittest.TestCase):
     # FILE TAB       
     def test_files(self):
         """file_path as valid file"""
-        self.document.add(u"data")
-        self.document.expand_dir(u"data")
-        self.document.share_files((u"data", ["routage"], True))
-        self.document.share_dir((u"data/emptydir", True))
-        self.document.add(u"data/subdir1/subsubdir")
-        self.document.share_files((u"data/subdir1/subsubdir", ["null", "dummy.txt"], True))
-        self.document.tag_files((u"data", ["date.txt"], u"Error: doc not shared"))
-        self.document.tag_files((u"data/subdir1/subsubdir", ["null", "dummy.txt"], u"empty"))
+        self.document.add_repository(abspath(u"."))
+        self.document.expand_dir(abspath(u"data"))
+        self.document.share_files((abspath(u"data"), ["routage"], True))
+        self.document.share_dir((abspath(u"data/emptydir"), True))
+        self.document.add(abspath(u"data/subdir1/subsubdir"))
+        self.document.share_files((abspath(u"data/subdir1/subsubdir"), ["null", "dummy.txt"], True))
+        self.document.tag_files((abspath(u"data"), ["date.txt"], u"Error: doc not shared"))
+        self.document.tag_files((abspath(u"data/subdir1/subsubdir"), ["null", "dummy.txt"], u"empty"))
         self.assert_template()
             
     # OTHERS TAB
