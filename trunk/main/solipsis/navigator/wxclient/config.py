@@ -97,7 +97,7 @@ class ConfigData(ManagedData):
         Store configuration in a writable file object.
         """
         d = self.GetDict()
-        # Python < 2.4 compatibility: the "protocol" argument used to be name "proto"...
+        # Python < 2.4 compatibility: documentation for the cPickle module is partly wrong
         #~ pickle.dump(d, outfile, protocol=-1)
         pickle.dump(d, outfile, -1)
 
