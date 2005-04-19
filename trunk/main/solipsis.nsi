@@ -2,13 +2,12 @@
 
 ; HM NIS Edit Wizard helper defines
 !define PRODUCT_NAME "Solipsis"
-!define PRODUCT_VERSION "0.7"
-!define PRODUCT_PUBLISHER "France Telecom R&D"
+!define PRODUCT_VERSION "0.8"
+!define PRODUCT_PUBLISHER "France Telecom"
 !define PRODUCT_WEB_SITE "http://solipsis.netofpeers.net"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\navigator.exe"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
-!define PRODUCT_STARTMENU_REGVAL "NSIS:StartMenuDir"
 
 SetCompressor lzma
 
@@ -31,14 +30,6 @@ SetCompressor lzma
 !insertmacro MUI_PAGE_LICENSE "LICENSE"
 ; Directory page
 !insertmacro MUI_PAGE_DIRECTORY
-; Start menu page
-var ICONS_GROUP
-!define MUI_STARTMENUPAGE_NODISABLE
-!define MUI_STARTMENUPAGE_DEFAULTFOLDER "Solipsis"
-!define MUI_STARTMENUPAGE_REGISTRY_ROOT "${PRODUCT_UNINST_ROOT_KEY}"
-!define MUI_STARTMENUPAGE_REGISTRY_KEY "${PRODUCT_UNINST_KEY}"
-!define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "${PRODUCT_STARTMENU_REGVAL}"
-!insertmacro MUI_PAGE_STARTMENU Application $ICONS_GROUP
 ; Instfiles page
 !insertmacro MUI_PAGE_INSTFILES
 ; Finish page
@@ -59,7 +50,7 @@ var ICONS_GROUP
 ; MUI end ------
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
-OutFile "Install.exe"
+OutFile "Solipsis_0_8_win32.exe"
 InstallDir "$PROGRAMFILES\Solipsis"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 ShowInstDetails show
@@ -70,8 +61,23 @@ Function .onInit
 FunctionEnd
 
 Section "Solipsis" SEC01
-  SetOutPath "$INSTDIR"
+  SetOutPath "$INSTDIR\avatars"
   SetOverwrite try
+  File "dist\avatars\beagle.jpg"
+  File "dist\avatars\chat.jpg"
+  File "dist\avatars\coccinelle.jpg"
+  File "dist\avatars\CREDITS.txt"
+  File "dist\avatars\ecureuil.jpg"
+  File "dist\avatars\insecte.jpg"
+  File "dist\avatars\insecte2.jpg"
+  File "dist\avatars\jouet.jpg"
+  File "dist\avatars\mouette.jpg"
+  File "dist\avatars\oeil.jpg"
+  File "dist\avatars\oie_egypte.jpg"
+  File "dist\avatars\oiseau.jpg"
+  File "dist\avatars\ours.jpg"
+  File "dist\avatars\papillon.jpg"
+  SetOutPath "$INSTDIR"
   File "dist\bz2.pyd"
   File "dist\cBanana.pyd"
   SetOutPath "$INSTDIR\conf"
@@ -102,7 +108,6 @@ Section "Solipsis" SEC01
   File "dist\img\small_chat_blue.png"
   File "dist\img\small_transfer_red.png"
   File "dist\img\solipsis.ico"
-  File "dist\img\Thumbs.db"
   File "dist\img\tmp_small_chat_blue.png"
   File "dist\img\tmp_small_transfer_red.png"
   File "dist\img\top_banner.png"
@@ -114,8 +119,11 @@ Section "Solipsis" SEC01
   SetOutPath "$INSTDIR\log"
   File "dist\log\solipsis.log"
   SetOutPath "$INSTDIR"
-  File "dist\msvcr71.dll"
+  File "dist\mxDateTime.pyd"
   File "dist\navigator.exe"
+  CreateDirectory "$SMPROGRAMS\Solipsis"
+  CreateShortCut "$SMPROGRAMS\Solipsis\Solipsis.lnk" "$INSTDIR\navigator.exe"
+  CreateShortCut "$DESKTOP\Solipsis.lnk" "$INSTDIR\navigator.exe"
   SetOutPath "$INSTDIR\po\fr\LC_MESSAGES"
   File "dist\po\fr\LC_MESSAGES\solipsis.mo"
   File "dist\po\fr\LC_MESSAGES\solipsis.po"
@@ -131,14 +139,22 @@ Section "Solipsis" SEC01
   File "dist\resources\navigator.xrc"
   SetOutPath "$INSTDIR"
   File "dist\select.pyd"
+  SetOutPath "$INSTDIR\solipsis\services\avatar"
+  File "dist\solipsis\services\avatar\gui.py"
+  File "dist\solipsis\services\avatar\network.py"
+  File "dist\solipsis\services\avatar\plugin.py"
+  SetOutPath "$INSTDIR\solipsis\services\avatar\po\fr\LC_MESSAGES"
+  File "dist\solipsis\services\avatar\po\fr\LC_MESSAGES\solipsis_avatar.mo"
+  File "dist\solipsis\services\avatar\po\fr\LC_MESSAGES\solipsis_avatar.po"
+  SetOutPath "$INSTDIR\solipsis\services\avatar\po"
+  File "dist\solipsis\services\avatar\po\messages.pot"
+  SetOutPath "$INSTDIR\solipsis\services\avatar"
+  File "dist\solipsis\services\avatar\repository.py"
+  File "dist\solipsis\services\avatar\__init__.py"
   SetOutPath "$INSTDIR\solipsis\services\chat"
   File "dist\solipsis\services\chat\gui.py"
-  File "dist\solipsis\services\chat\gui.pyc"
   File "dist\solipsis\services\chat\gui.xrc"
-  File "dist\solipsis\services\chat\network.py"
-  File "dist\solipsis\services\chat\network.pyc"
   File "dist\solipsis\services\chat\plugin.py"
-  File "dist\solipsis\services\chat\plugin.pyc"
   SetOutPath "$INSTDIR\solipsis\services\chat\po\fr\LC_MESSAGES"
   File "dist\solipsis\services\chat\po\fr\LC_MESSAGES\solipsis_chat.mo"
   File "dist\solipsis\services\chat\po\fr\LC_MESSAGES\solipsis_chat.po"
@@ -146,16 +162,16 @@ Section "Solipsis" SEC01
   File "dist\solipsis\services\chat\po\messages.pot"
   SetOutPath "$INSTDIR\solipsis\services\chat"
   File "dist\solipsis\services\chat\__init__.py"
-  File "dist\solipsis\services\chat\__init__.pyc"
   SetOutPath "$INSTDIR\solipsis\services"
   File "dist\solipsis\services\collector.py"
-  File "dist\solipsis\services\collector.pyc"
   File "dist\solipsis\services\plugin.py"
-  File "dist\solipsis\services\plugin.pyc"
+  File "dist\solipsis\services\wxcollector.py"
   File "dist\solipsis\services\__init__.py"
-  File "dist\solipsis\services\__init__.pyc"
+  SetOutPath "$INSTDIR\state"
   SetOutPath "$INSTDIR"
   File "dist\twistednode.exe"
+  CreateShortCut "$SMPROGRAMS\Solipsis\Node.lnk" "$INSTDIR\twistednode.exe"
+  CreateShortCut "$DESKTOP\Node.lnk" "$INSTDIR\twistednode.exe"
   File "dist\unicodedata.pyd"
   File "dist\w9xpopen.exe"
   File "dist\win32api.pyd"
@@ -185,6 +201,9 @@ Section "Solipsis" SEC01
   File "dist\_grid.pyd"
   File "dist\_html.pyd"
   File "dist\_iewin.pyd"
+  File "dist\_imaging.pyd"
+  File "dist\_imagingft.pyd"
+  File "dist\_imagingtk.pyd"
   File "dist\_iocp.pyd"
   File "dist\_misc_.pyd"
   File "dist\_ogl.pyd"
@@ -194,23 +213,12 @@ Section "Solipsis" SEC01
   File "dist\_windows_.pyd"
   File "dist\_wizard.pyd"
   File "dist\_xrc.pyd"
-
-; Shortcuts
-  !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
-  CreateDirectory "$SMPROGRAMS\$ICONS_GROUP"
-  CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\Navigator.lnk" "$INSTDIR\navigator.exe"
-  CreateShortCut "$DESKTOP\Navigator.lnk" "$INSTDIR\navigator.exe"
-  CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\Node.lnk" "$INSTDIR\twistednode.exe"
-  CreateShortCut "$DESKTOP\Node.lnk" "$INSTDIR\twistednode.exe"
-  !insertmacro MUI_STARTMENU_WRITE_END
 SectionEnd
 
 Section -AdditionalIcons
-  !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
   WriteIniStr "$INSTDIR\${PRODUCT_NAME}.url" "InternetShortcut" "URL" "${PRODUCT_WEB_SITE}"
-  CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\Website.lnk" "$INSTDIR\${PRODUCT_NAME}.url"
-  CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\Uninstall.lnk" "$INSTDIR\uninst.exe"
-  !insertmacro MUI_STARTMENU_WRITE_END
+  CreateShortCut "$SMPROGRAMS\Solipsis\Website.lnk" "$INSTDIR\${PRODUCT_NAME}.url"
+  CreateShortCut "$SMPROGRAMS\Solipsis\Uninstall.lnk" "$INSTDIR\uninst.exe"
 SectionEnd
 
 Section -Post
@@ -237,19 +245,22 @@ Function un.onInit
 FunctionEnd
 
 Section Uninstall
-  !insertmacro MUI_STARTMENU_GETFOLDER "Application" $ICONS_GROUP
   RMDir /r "$INSTDIR\"
-  Delete "$SMPROGRAMS\$ICONS_GROUP\Uninstall.lnk"
-  Delete "$SMPROGRAMS\$ICONS_GROUP\Website.lnk"
+  Delete "$SMPROGRAMS\Solipsis\Uninstall.lnk"
+  Delete "$SMPROGRAMS\Solipsis\Website.lnk"
   Delete "$DESKTOP\Node.lnk"
-  Delete "$SMPROGRAMS\$ICONS_GROUP\Node.lnk"
-  Delete "$DESKTOP\Navigator.lnk"
-  Delete "$SMPROGRAMS\$ICONS_GROUP\Navigator.lnk"
+  Delete "$SMPROGRAMS\Solipsis\Node.lnk"
+  Delete "$DESKTOP\Solipsis.lnk"
+  Delete "$SMPROGRAMS\Solipsis\Solipsis.lnk"
 
-  RMDir "$SMPROGRAMS\$ICONS_GROUP"
+  RMDir "$SMPROGRAMS\Solipsis"
+  RMDir "$INSTDIR\state"
   RMDir "$INSTDIR\solipsis\services\chat\po\fr\LC_MESSAGES"
   RMDir "$INSTDIR\solipsis\services\chat\po"
   RMDir "$INSTDIR\solipsis\services\chat"
+  RMDir "$INSTDIR\solipsis\services\avatar\po\fr\LC_MESSAGES"
+  RMDir "$INSTDIR\solipsis\services\avatar\po"
+  RMDir "$INSTDIR\solipsis\services\avatar"
   RMDir "$INSTDIR\solipsis\services"
   RMDir "$INSTDIR\resources"
   RMDir "$INSTDIR\po\fr\LC_MESSAGES"
@@ -257,6 +268,7 @@ Section Uninstall
   RMDir "$INSTDIR\log"
   RMDir "$INSTDIR\img"
   RMDir "$INSTDIR\conf"
+  RMDir "$INSTDIR\avatars"
   RMDir "$INSTDIR"
 
   DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
