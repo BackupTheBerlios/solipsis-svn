@@ -82,10 +82,10 @@
 
   <h2 class="header">Known Neighbors</h2>
   <table>
-    <tr tal:repeat="pseudo peers/keys">
-      <td tal:content="pseudo">pseudo</td>
-      <td tal:content="python:peers[pseudo][1] and peers[pseudo][1].get_id() or 'NA'">name</td>
-      <td tal:content="python:peers[pseudo][0].state">state</td>
+    <tr tal:repeat="info ordered_peers">
+      <td tal:content="python:info[0]">pseudo</td>
+      <td tal:content="python:info[1][0] and info[1][1].get_id() or 'NA'">name</td>
+      <td tal:content="python:info[1][0] and info[1][0].state or '--'">state</td>
     </tr>
   </table>
 </body>

@@ -135,7 +135,7 @@ class HtmlTest(unittest.TestCase):
 	<td>%s</td>
 	<td>%s</td>
       </tr>"""% (file_name[len(repo):], tag)
-                                 for file_name, tag in self.document.get_flattened(repo).iteritems()])
+                                 for file_name, tag in self.document.get_shared(repo).iteritems()])
             
             html.append("""<table>
     <caption>%s</caption>

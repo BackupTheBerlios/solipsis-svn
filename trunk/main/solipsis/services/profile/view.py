@@ -478,7 +478,7 @@ class HtmlView(AbstractView):
         for repo in self.document.get_repositories():
             content = {}
             html_format[repo] = content
-            for file_name, tag in self.document.get_flattened(repo).iteritems():
+            for file_name, tag in self.document.get_shared(repo).iteritems():
                 content[file_name[len(repo):]] = tag
         self.context.addGlobal("files", html_format)
         if self.auto_refresh:
@@ -487,6 +487,6 @@ class HtmlView(AbstractView):
     # OTHERS TAB : frame.other_tab  
     def update_peers(self):
         """peer"""
-        self.context.addGlobal("peers",  self.document.get_peers())
+        self.context.addGlobal("ordered_peers", self.document.get_ordered_peers())
         if self.auto_refresh:
             self.update_view()

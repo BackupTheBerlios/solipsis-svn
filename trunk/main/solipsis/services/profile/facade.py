@@ -211,7 +211,6 @@ class Facade:
     # FILE TAB
     def add_repository(self, value):
         """sets new value for repositor"""
-        print "add_repository:", value
         return self._try_change(value,
                                "add_repository",
                                "update_files")
@@ -224,15 +223,14 @@ class Facade:
     
     def expand_dir(self, value):
         """update doc when dir expanded"""
-        print "expand_dir:", value
         return self._try_change(value,
                                "expand_dir",
                                "update_files")
     
-    def share_dir(self, pair):
+    def share_dirs(self, pair):
         """forward command to cache"""
         return self._try_change(pair,
-                               "share_dir",
+                               "share_dirs",
                                "update_files")
 
     def share_files(self, triplet):
@@ -245,6 +243,12 @@ class Facade:
         """forward command to cache"""
         return self._try_change(triplet,
                                "tag_files",
+                               "update_files")
+
+    def tag_file(self, pair):
+        """forward command to cache"""
+        return self._try_change(pair,
+                               "tag_file",
                                "update_files")
         
     def get_files(self, view):
@@ -265,7 +269,6 @@ class Facade:
         container = self.get_container(view, value)
         for dir_container in [cont for cont in container.values()
                               if isinstance(cont, DirContainer)]:
-            print "expand_children:", dir_container.name
             dir_container.expand()
         self.views[view].update_files()
 

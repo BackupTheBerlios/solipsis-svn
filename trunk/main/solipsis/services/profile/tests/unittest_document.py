@@ -165,7 +165,6 @@ class DocumentTest(unittest.TestCase):
         """repository valid path"""
         for document in self.documents:
             self.assertRaises(TypeError, document.add, abspath("data/dummy"))
-            self.assertRaises(KeyError, document.add, abspath(u"data/dummy"))
             document.add(abspath(u"data"))
             document.remove(abspath(u"data"))
         
@@ -173,11 +172,12 @@ class DocumentTest(unittest.TestCase):
         """share dir giving unicode name"""
         for document in self.documents:
             document.add((abspath(u"data")))
-            self.assertRaises(TypeError, document.share_dir, "data, True")
-            self.assertRaises(TypeError, document.share_dir, ("data", ))
-            self.assertRaises(TypeError, document.share_dir, ("data", True))
-            document.share_dir((abspath(u"data"), True))
-            document.share_dir([abspath(u"data"), True])
+            self.assertRaises(TypeError, document.share_dirs, "data, True")
+            self.assertRaises(TypeError, document.share_dirs, ("data", ))
+            self.assertRaises(TypeError, document.share_dirs, ("data", True))
+            self.assertRaises(TypeError, document.share_dirs, (abspath(u"data"), True))
+            document.share_dirs(([abspath(u"data")], True))
+            document.share_dirs([[abspath(u"data")], True])
         
     def test_share_files(self):
         """share files giving root & unicode names"""

@@ -15,13 +15,12 @@ email = manu@ft.com
 description = anything
 
 [Files]
-/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/date.txt = Error: doc not shared
-/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data = none
-/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/subsubdir/null = empty
-/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1 = none
-/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/subsubdir/dummy.txt = empty
-/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/routage = none
-/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/emptydir = none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/date.txt = ,tagos
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/subsubdir/null = shared,empty
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1 = shared,none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/subsubdir/dummy.txt = shared,empty
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/routage = shared,none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/emptydir = shared,none
 
 [Others]
 nico = Friend,none

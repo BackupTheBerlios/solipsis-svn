@@ -115,10 +115,11 @@ class FacadeTest(unittest.TestCase):
 
     def test_expand_dir(self):
         """expand dir"""
-        self.assertEquals(self.facade.documents["cache"].get_flattened(self.repo),
+        self.assertEquals(self.facade.documents["cache"].get_shared(self.repo),
                           {})
         self.facade.expand_dir(abspath(u"data"))
-        self.assertEquals(self.facade.documents["cache"].get_flattened(self.repo),
+        check = {}
+        self.assertEquals(self._build_check_dict(self.facade.documents["cache"], self.repo),
                           {abspath(u'data'): u'none',
                            abspath(u'data/.path'): u'none',
                            abspath(u'data/date.txt'): u'none',
@@ -130,7 +131,7 @@ class FacadeTest(unittest.TestCase):
         self.assertRaises(AttributeError, self.facade.expand_dir,
                           abspath(u"data/routage"))
         self.facade.expand_dir(abspath(u"data/emptydir"))
-        self.assertEquals(self.facade.documents["cache"].get_flattened(self.repo),
+        self.assertEquals(self._build_check_dict(self.facade.documents["cache"], self.repo),
                           {abspath(u'data'): u'none',
                            abspath(u'data/.path'): u'none',
                            abspath(u'data/date.txt'): u'none',
@@ -141,7 +142,7 @@ class FacadeTest(unittest.TestCase):
                            abspath(u'data/emptydir'): u'none',
                            abspath(u'data/emptydir/.svn'): u'none'})
         self.facade.expand_dir(abspath(u"data/subdir1/subsubdir"))
-        self.assertEquals(self.facade.documents["cache"].get_flattened(self.repo),
+        self.assertEquals(self._build_check_dict(self.facade.documents["cache"], self.repo),
                           {abspath(u'data'): u'none',
                            abspath(u'data/.path'): u'none',
                            abspath(u'data/date.txt'): u'none',
@@ -157,21 +158,31 @@ class FacadeTest(unittest.TestCase):
                            abspath(u'data/subdir1/subsubdir/null'): u'none',
                            abspath(u'data/subdir1/subsubdir/.svn'): u'none'})
 
+    def _build_check_dict(self, doc, repo_path):
+        """format list of existing dir"""
+        result = {}
+        for name, container in doc.files[repo_path].flat().iteritems():
+            result[name] = container._tag
+        return result
+        
     def test_share_dir(self):
         """share all content of dir"""
         files = self.facade.documents["cache"].get_files()[self.repo]
-        self.assertRaises(KeyError, self.facade.share_dir,
-                          (abspath(u"data/routage"), True))
-        self.assertRaises(ValueError, self.facade.share_dir,
-                          (abspath(u"data/ghost"), True))
+        self.assertRaises(ValueError, self.facade.share_dirs,
+                          ([abspath(u"data/routage")], True))
+        self.assertRaises(AssertionError, self.facade.share_dirs,
+                          ([abspath(u"data/ghost")], True))
         self.facade.expand_dir(abspath(u"data"))
         self.assertEquals(files[abspath(u"data")]._shared, False)
-        self.facade.share_dir((abspath(u"data"), True))
-        self.assertEquals(files[abspath(u"data")]._shared, True)
-        self.facade.share_dir((abspath(u"data/subdir1/subsubdir"), True))
-        self.assertEquals(files[abspath(u"data/subdir1/subsubdir")]._shared, True)
-        self.facade.share_dir((abspath(u"data/subdir1/subsubdir"), False))
+        self.facade.share_dirs(([abspath(u"data")], True))
+        self.assertEquals(files[abspath(u"data")]._shared, False)
+        self.assertEquals(files[abspath(u"data/subdir1")]._shared, True)
+        self.assertEquals(files[abspath(u"data/emptydir")]._shared, True)
+        self.facade.share_dirs(([abspath(u"data/subdir1/subsubdir")], True))
         self.assertEquals(files[abspath(u"data/subdir1/subsubdir")]._shared, False)
+        self.facade.share_dirs(([abspath(u"data")], False))
+        self.assertEquals(files[abspath(u"data/subdir1")]._shared, False)
+        self.assertEquals(files[abspath(u"data/emptydir")]._shared, False)
 
     def test_share_files(self):
         """share specified files"""

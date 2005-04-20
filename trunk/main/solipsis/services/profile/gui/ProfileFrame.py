@@ -182,13 +182,12 @@ class ProfileFrame(wx.Frame):
         _icon = wx.EmptyIcon()
         _icon.CopyFromBitmap(wx.Bitmap("/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/icon.gif", wx.BITMAP_TYPE_ANY))
         self.SetIcon(_icon)
-        self.SetSize((700, 600))
+        self.SetSize((700, 900))
         self.profile_statusbar.SetStatusWidths([-1])
         # statusbar fields
         profile_statusbar_fields = [_("status")]
         for i in range(len(profile_statusbar_fields)):
             self.profile_statusbar.SetStatusText(profile_statusbar_fields[i], i)
-        self.profile_book.SetSize((400, 300))
         # end wxGlade
         self.activate_item.Check()
         self.autorefresh_item.Check()
