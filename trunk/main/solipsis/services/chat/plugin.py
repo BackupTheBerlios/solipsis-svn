@@ -79,7 +79,7 @@ class Plugin(ServicePlugin):
     
     def SendMessage(self, text):
         # This method is called in UI context (i.e. wx Thread)
-        data = text
+        data = text        print "send Message ", data
         for peer_id in self.hosts.keys():
             self.service_api.SendData(peer_id, data)
         self.ui.AppendSelfMessage(self.service_api.GetNode().id_, text)
@@ -90,7 +90,7 @@ class Plugin(ServicePlugin):
     
     def NewPeer(self, peer, service):
         try:
-            host, port = self._ParseAddress(service.address)
+            host, port = self._ParseAddress(service.address)            print "New Peer ", host, ":", port
         except ValueError:
             pass
         else:
