@@ -119,6 +119,7 @@ Section "Solipsis" SEC01
   SetOutPath "$INSTDIR\log"
   File "dist\log\solipsis.log"
   SetOutPath "$INSTDIR"
+  File "dist\msvcr71.dll"
   File "dist\mxDateTime.pyd"
   File "dist\navigator.exe"
   CreateDirectory "$SMPROGRAMS\Solipsis"

@@ -32,7 +32,7 @@ sys.path.append("solipsis/navigator")
 
 data_files=[
     ("",["entities.met", "LICENSE", "README.txt"]),
-    ("img", glob.glob("img/*.*")),
+    ("img", glob.glob("img/*.*")),    ("",["msvcr71.dll"]),
     ("conf", ["conf/solipsis.conf"]),
 # Insert services files here
     ("solipsis/services", glob.glob("solipsis/services/*.*")),
