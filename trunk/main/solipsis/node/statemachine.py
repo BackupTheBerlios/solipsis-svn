@@ -943,17 +943,19 @@ class StateMachine(object):
         new_peers = self.future_topology.PeersSet()
         old_peers = self.topology.PeersSet()
 
-        # Try to connect with future peers
-        for p in self.future_topology.EnumeratePeers():
-            if p not in old_peers:
-                self._SayHello(p.address)
+        #~ for p in self.future_topology.EnumeratePeers():
+            #~ if p not in old_peers:
+                #~ self._SayHello(p.address)
 
         # Close connections with peers that do not belong to the new topology
         self._CloseCurrentConnections(keep_peers=new_peers)
+        
+        # Notify remaining peers that our position has changed
+        self._SendUpdates()
 
-        # Cleanup
-        #~ self.future_topology = None
-        #~ self.future_position = None
+        # Try to connect with new peers
+        for peer_id in new_peers - old_peers:
+            self._SayHello(self.future_topology.GetPeer(peer_id).address)
 
         # Don't forget to notify our controller(s)
         #~ print self.node.position.GetXY()
