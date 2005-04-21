@@ -41,22 +41,19 @@ class DataTest(unittest.TestCase):
         # dir
         self.assertRaises(AssertionError, self.container.add_dir, REPO + "data/dummy")
         self.assertRaises(ValueError, self.container.add_dir, REPO + "data/date.txt")
+        self.assertRaises(ValueError, self.container.add_dir, "data")
         self.container.add_dir(REPO + u"data/")
         self.container.add_dir(REPO + "data/subdir1/subsubdir")
-        self.container.add_dir("data/")
-        self.container.add_dir("data/subdir1/subsubdir")
         # file
         self.assertRaises(AssertionError, self.container.add_file, REPO + "data/dummy.txt")
         self.assertRaises(ValueError, self.container.add_file, REPO + "data/emptydir")
+        self.assertRaises(ValueError, self.container.add_file, "data/subdir1/date.doc")
         self.container.add_file(REPO + u"data/subdir1/date.doc")
         self.container.add_file(REPO +"data/subdir1/subsubdir/null")
-        self.container.add_file("data/subdir1/date.doc")
-        self.container.add_file("data/subdir1/subsubdir/null")
+        self.container.add_file(REPO +"runtests.py")
         # generic
         self.container.add(REPO + "data/profiles")
         self.container.add(REPO + "data/routage")
-        self.container.add("data/profiles")
-        self.container.add("data/routage")
         # wrapper
         dir_c = DirContainer("data/emptydir")
         file_c = FileContainer("data/subdir1/subsubdir/default.solipsis")
@@ -75,7 +72,9 @@ class DataTest(unittest.TestCase):
         self.assertEquals(isinstance(self.container[REPO + u"data"], DirContainer), True)
         # file
         self.container.add_file(REPO + "data/subdir1/date.doc")
+        self.container.add_file(REPO +"runtests.py")
         self.assertEquals(isinstance(self.container[REPO + "data/subdir1/date.doc"], FileContainer), True)
+        self.assertEquals(isinstance(self.container[REPO + "runtests.py"], FileContainer), True)
         # generic
         self.container.add(REPO + "data/profiles")
         self.container.add(REPO + "data/routage")
@@ -126,6 +125,8 @@ class DataTest(unittest.TestCase):
         
     def test_sharing(self):
         """share/unshare file and dirs"""
+        self.container.share_file(REPO +"runtests.py")
+        self.assertEquals(self.container[REPO + "runtests.py"]._shared, True)
         self.container.add_dir(REPO + "data")
         self.container.expand_dir(REPO + "data")
         self.container.expand_dir(REPO + "data/subdir1")

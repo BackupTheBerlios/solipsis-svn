@@ -322,7 +322,7 @@ class GuiView(AbstractView):
     def update_files(self):
         """file"""
         for sharing_container in self.document.get_files().values():
-            self.frame.file_tab.cb_update_tree(sharing_container.values())
+            self.frame.file_tab.cb_update_tree(sharing_container)
         
     # OTHERS TAB : frame.other_tab  
     def update_peers(self):

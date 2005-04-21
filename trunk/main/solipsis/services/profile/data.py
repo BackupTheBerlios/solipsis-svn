@@ -44,10 +44,12 @@ class SharedMixin:
 
     def tag(self, tag):
         """set tag"""
+        assert isinstance(tag, unicode), "tag must be unicode"
         self._tag = tag
 
     def share(self, share=True):
         """set sharing status"""
+        assert isinstance(share, bool), "share must be bool"
         self._shared = share
 
     def set_data(self, data):
@@ -173,16 +175,20 @@ class DirContainer(dict, SharedMixin):
                     result += 1
             return result
 
-class SharingContainer(dict):
+class SharingContainer(dict, SharedMixin):
     """stores all DirContainer along with items"""
 
     def __init__(self, path):
         dict.__init__(self)
+        SharedMixin.__init__(self)
         path = self.validate(path)
         self.path = path
+        # init_content
+        self.expand_root()
 
     def validate(self, path):
         """assert path exists and is a file"""
+        assert path, "empty path '%s'"% path
         # remove last '/'
         if path.endswith('/'):
             path = path[:-1]
@@ -233,20 +239,20 @@ class SharingContainer(dict):
         dir_dict, leaf = self._browse_dicts(full_path)
         assert_dir(full_path)
         # add container
-        if not dir_dict.has_key(leaf):
-            dir_dict[leaf] = DirContainer(full_path)
+        if not dict.has_key(dir_dict, leaf):
+            dict.__setitem__(dir_dict, leaf, DirContainer(full_path))
         # return final container
-        return dir_dict[leaf]
+        return dict.__getitem__(dir_dict, leaf)
 
     def add_file(self, full_path):
         """add shared directory to list"""
         dir_dict, leaf = self._browse_dicts(full_path)
         assert_file(full_path)
         # add container
-        if not dir_dict.has_key(leaf):
-            dir_dict[leaf] = FileContainer(full_path)
+        if not dict.has_key(dir_dict, leaf):
+            dict.__setitem__(dir_dict, leaf, FileContainer(full_path))
         # return final container
-        return dir_dict[leaf]
+        return dict.__getitem__(dir_dict, leaf)
 
     def _browse_dicts(self, full_path):
         """call os.path.split on full_path and return couple:
@@ -254,8 +260,13 @@ class SharingContainer(dict):
          - filename"""
         full_path = self.validate(full_path)
         # remove root_path not to create useless DirContainers
-        if full_path.startswith(self.path):
+        if full_path == self.path:
+            raise AssertionError("no leaf in '%s'"% full_path)
+        elif full_path.startswith(self.path):
             full_path = full_path[len(self.path)+1:]
+        else:
+            raise ValueError("file '%s' not in repository '%s'"\
+                             %(full_path, self.path))
         # extract all intermediate dirs
         path, leaf = os.path.split(full_path)
         all_dirs = path.split(os.path.sep)
@@ -267,22 +278,37 @@ class SharingContainer(dict):
             if not dict.has_key(current_dict, key):
                 current_container = DirContainer(os.path.join(self.path,
                                                               current_path))
-                current_dict[key] = current_container
+                dict.__setitem__(current_dict, key, current_container)
                 current_dict = current_container
             else:
-                current_dict = current_dict[key]
+                current_dict = dict.__getitem__(current_dict, key)
         # return last created dict
         return (current_dict, leaf)
 
     def expand_dir(self, full_path):
         """put into cache new information when dir expanded in tree"""
         full_path = self.validate(full_path)
-        if not self.has_key(full_path):
-            container = self.add(full_path)
-            container.expand()
+        if full_path == self.path:
+            self.expand_root()
         else:
-            self[full_path].expand()
+            if not self.has_key(full_path):
+                container = self.add(full_path)
+                container.expand()
+            else:
+                self[full_path].expand()
 
+    def expand_root(self):
+        """put into cache new information when dir expanded in tree"""
+        for full_name in [os.path.join(self.path, name) for name in os.listdir(self.path)]:
+            if not dict.has_key(self, full_name):
+                if os.path.isdir(full_name):
+                    dict.__setitem__(self, os.path.basename(full_name),
+                                     DirContainer(full_name))
+                else:
+                    dict.__setitem__(self, os.path.basename(full_name),
+                                     FileContainer(full_name))
+            #else already added
+        
     def flat(self):
         """returns {path: tag}"""
         result = {}
@@ -302,14 +328,11 @@ class SharingContainer(dict):
             else:
                 self[full_path].share_content(share)
 
-    def share_files(self, full_path, names, share=True):
+    def share_files(self, path, names, share=True):
         """forward command to cache"""
-        full_path = self.validate(full_path)
-        if not self.has_key(full_path):
-            container = self.add(full_path)
-            container.share_files(names, share)
-        else:
-            self[full_path].share_files(names, share)
+        path = self.validate(path)
+        for full_path in [os.path.join(path, name) for name in names]:
+            self.share_file(full_path, share)
 
     def share_file(self, full_path, share=True):
         """forward command to cache"""
@@ -320,15 +343,11 @@ class SharingContainer(dict):
         else:
             self[full_path].share(share)
 
-    def tag_files(self, full_path, names, tag):
+    def tag_files(self, path, names, tag):
         """forward command to cache"""
-        """forward command to cache"""
-        full_path = self.validate(full_path)
-        if not self.has_key(full_path):
-            container = self.add(full_path)
-            container.tag_files(names, tag)
-        else:
-            self[full_path].tag_files(names, tag)
+        path = self.validate(path)
+        for full_path in [os.path.join(path, name) for name in names]:
+            self.tag_file(full_path, tag)
 
     def tag_file(self, full_path, tag):
         """forward command to cache"""
@@ -338,3 +357,15 @@ class SharingContainer(dict):
             container.tag(tag)
         else:
             self[full_path].tag(tag)
+
+    def nb_shared(self):
+        """return number of shared element"""
+        if self._shared:
+            return SHARING_ALL
+        else:
+            result = 0
+            for container in self.values():
+                if container._shared:
+                    result += 1
+            return result
+

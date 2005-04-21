@@ -239,6 +239,12 @@ class Facade:
                                "share_files",
                                "update_files")
 
+    def share_file(self, pair):
+        """forward command to cache"""
+        return self._try_change(pair,
+                               "share_file",
+                               "update_files")
+
     def tag_files(self, triplet):
         """forward command to cache"""
         return self._try_change(triplet,
@@ -257,19 +263,14 @@ class Facade:
         
     def get_container(self, view, name):
         """forward command to cache"""
-        for sharing_container in  self.views[view].document.get_files().values():
-            if name.startswith(sharing_container.path):
-                return sharing_container[name]
-            else:
-                continue
-        raise KeyError("%s not found in any repository"% name)
+        return self.views[view].document.get_container(name)
     
     def expand_children(self, view, value):
         """update doc when dir expanded"""
         container = self.get_container(view, value)
         for dir_container in [cont for cont in container.values()
                               if isinstance(cont, DirContainer)]:
-            dir_container.expand()
+            self.expand_dir(dir_container.path)
         self.views[view].update_files()
 
     # OTHERS TAB

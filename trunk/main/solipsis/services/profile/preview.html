@@ -84,7 +84,7 @@
   <table>
     <tr tal:repeat="info ordered_peers">
       <td tal:content="python:info[0]">pseudo</td>
-      <td tal:content="python:info[1][0] and info[1][1].get_id() or 'NA'">name</td>
+      <td tal:content="python:info[1][1] and info[1][1].get_id() or 'NA'">name</td>
       <td tal:content="python:info[1][0] and info[1][0].state or '--'">state</td>
     </tr>
   </table>

@@ -5,6 +5,7 @@
 import os, os.path
 import wx, wx.gizmos
 import sys
+from os.path import abspath
 from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile.data import SharingContainer, DirContainer
 from solipsis.services.profile.data import SHARING_ALL
@@ -104,8 +105,7 @@ class FilePanel(wx.Panel):
         if dlg.ShowModal() == wx.ID_OK:
             # path chosen
             path = dlg.GetPath()
-            repo = os.path.dirname(path)
-            self.facade.add_repository(repo)
+            self.facade.add_repository(path)
             self.facade.expand_dir(path)
         dlg.Destroy()
         
@@ -136,8 +136,8 @@ class FilePanel(wx.Panel):
         self.current_state = self.tree_state
         file_name = self.tree_list.GetItemText(evt.GetItem(), FULL_PATH_COL)
         if evt.GetItem() != self.root:
-            self.facade.expand_dir(file_name)
-            self.facade.expand_children('gui', file_name)
+            self.facade.expand_dir(abspath(file_name))
+            self.facade.expand_children('gui', abspath(file_name))
         evt.Skip()
 
     def on_select_list(self, evt):
@@ -145,7 +145,8 @@ class FilePanel(wx.Panel):
         self.current_state = self.list_state
         dir_name = self.tree_list.GetItemText(self.tree_list.GetSelection(), FULL_PATH_COL)
         file_name = self.dir_list.GetItemText(evt.GetItem().GetId())
-        data = self.facade.get_container('gui', os.path.join(dir_name, file_name))
+        data = self.facade.get_container('gui', abspath(os.path.join(dir_name,
+                                                                     file_name)))
         # update tag
         self.tag_value.SetValue(data._tag)
 
@@ -155,7 +156,7 @@ class FilePanel(wx.Panel):
         file_name = self.tree_list.GetItemText(evt.GetItem(), FULL_PATH_COL)
         if evt.GetItem() != self.root:
             # update list
-            data = self.facade.get_container('gui', file_name)
+            data = self.facade.get_container('gui', abspath(file_name))
             self._display_dir_content(data)
             # update tag
             self.tag_value.SetValue(data._tag)
@@ -176,8 +177,7 @@ class FilePanel(wx.Panel):
     def cb_update_tree(self, containers):
         """synchronize tree list with sharing container"""
         # update tree
-        for container in containers:
-            self._add_container_in_tree(self.root, container)
+        self._add_container_in_tree(self.root, containers)
         # update list
         selected_item = None
         try:
@@ -186,7 +186,7 @@ class FilePanel(wx.Panel):
             # no selection
             pass
         if selected_item:
-            data = self.facade.get_container('gui', selected_item)
+            data = self.facade.get_container('gui', abspath(selected_item))
             self._display_dir_content(data)
 
     def _add_container_in_tree(self, parent, container):
@@ -199,14 +199,14 @@ class FilePanel(wx.Panel):
     def _add_item_in_tree(self, parent, container):
         """add items in tree"""
         # create item
-        if container.item is None:
+        if container.get_data() is None:
             name = os.path.basename(container.path)
             child = self.tree_list.AppendItem(parent, name)
-            container.set_item(child)
+            container.set_data(child)
             self.tree_list.SetItemImage(child, self.tree_fldridx, which = wx.TreeItemIcon_Normal)
             self.tree_list.SetItemImage(child, self.tree_fldropenidx, which = wx.TreeItemIcon_Expanded)
         else:
-            child = container.get_item()
+            child = container.get_data()
         nb_shared = container.nb_shared()
         if nb_shared == SHARING_ALL:
             str_shared = "All"
@@ -334,6 +334,8 @@ class SelectedTreeState(FilePanelState):
         selections = [self.owner.tree_list.GetItemText(selected_item, FULL_PATH_COL)
                       for selected_item in self.owner.tree_list.GetSelections()]
         self.owner.facade.share_dirs((selections, False))
+        for selection in selections:
+            self.owner.facade.share_file((selection, False))
         
     def on_tag(self, evt):
         """tag selected files or directory"""

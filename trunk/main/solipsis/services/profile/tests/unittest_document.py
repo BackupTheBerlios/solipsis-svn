@@ -6,7 +6,9 @@ import unittest
 from os.path import abspath
 from solipsis.services.profile.document import PeerDescriptor, \
       AbstractDocument, CacheDocument, FileDocument
+from solipsis.services.profile.data import DEFAULT_TAG
 
+REPO = u"/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests"
 
 class DocumentTest(unittest.TestCase):
     """test that all fields are correctly validated"""
@@ -15,11 +17,9 @@ class DocumentTest(unittest.TestCase):
         """override one in unittest.TestCase"""
         self.documents = [CacheDocument(), FileDocument()]
         for document in self.documents:
-            document.add_repository(\
-                u"/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests")
+            document.add_repository(REPO)
         self.abstract_doc = AbstractDocument()
-        self.abstract_doc.add_repository(\
-                u"/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests")
+        self.abstract_doc.add_repository(REPO)
 
     # PERSONAL TAB
     def test_title(self):
@@ -223,6 +223,55 @@ class DocumentTest(unittest.TestCase):
             self.assertRaises(TypeError, document.expand_dir, "data/dummy")
             self.assertRaises(TypeError, document.expand_dir, "data")
             document.expand_dir((abspath(u"data")))
+
+    def test_get_container(self):
+        """retreive correct contaier"""
+        for document in self.documents:
+            document.tag_files((abspath(u"data/profiles"),
+                               ["bruce.prf", ".svn"], u"first"))
+            document.share_files((abspath(u"data/profiles"),
+                                  ["bruce.prf", "demi.prf"], True))
+            # check sharing state
+            self.assertEquals(document.get_container(
+                abspath(u"data/profiles/bruce.prf"))._shared, True)
+            self.assertEquals(document.get_container(
+                abspath(u"data/profiles/demi.prf"))._shared, True)
+            self.assertEquals(document.get_container(
+                abspath(u"data/profiles/.svn"))._shared, False)
+            # check tag
+            self.assertEquals(document.get_container(
+                abspath(u"data/profiles/bruce.prf"))._tag, u"first")
+            self.assertEquals(document.get_container(
+                abspath(u"data/profiles/demi.prf"))._tag, DEFAULT_TAG)
+            self.assertEquals(document.get_container(
+                abspath(u"data/profiles/.svn"))._tag, u"first")
+
+    def test_multiple_repos(self):
+        """coherency when several repos in use"""
+        document = CacheDocument()
+        # create 2 repos
+        document.add_repository(REPO + "/data/profiles")
+        document.tag_files((REPO + "/data/profiles", ["bruce.prf", ".svn"], u"first"))
+        document.share_files((REPO + "/data/profiles", ["bruce.prf", "demi.prf"], True))
+        document.add_repository(REPO + "/data/subdir1")
+        document.tag_files((REPO + "/data/subdir1", ["date.doc", ".svn"], u"second"))
+        document.share_files((REPO + "/data/subdir1", ["date.doc", "subsubdir"], True))
+        # check sharing state
+        self.assertEquals(document.get_container(
+            abspath("data/profiles/bruce.prf"))._shared, True)
+        self.assertEquals(document.get_container(
+            abspath("data/profiles/demi.prf"))._shared, True)
+        self.assertEquals(document.get_container(
+            abspath("data/profiles/.svn"))._shared, False)
+        self.assertEquals(document.get_container(
+            abspath("data/subdir1/date.doc"))._shared, True)
+        self.assertEquals(document.get_container(
+            abspath("data/subdir1/subsubdir"))._shared, True)
+        self.assertEquals(document.get_container(
+            abspath("data/subdir1/.svn"))._shared, False)
+        # check tag
+        self.assertRaises(ValueError, document.add_repository, REPO + "/data/subdir1/subsubdir")
+        self.assertRaises(ValueError, document.add_repository, REPO + "/data")
             
     # OTHERS TAB
     def test_adding_peer(self):

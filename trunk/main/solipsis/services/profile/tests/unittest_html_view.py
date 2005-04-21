@@ -96,7 +96,7 @@ class HtmlTest(unittest.TestCase):
             if not line.startswith("  "):
                 print self.view.get_view()
                 print "*************"
-                print '\n'.join(result[index-2:index+4])
+                print '\n'.join(result[index-2:index+10])
             self.assert_(line.startswith("  "))
  
     def print_template(self):
@@ -130,12 +130,15 @@ class HtmlTest(unittest.TestCase):
 
     def print_files(self):
         html = []
-        for repo in self.document.get_repositories():
+        repos = self.document.get_repositories()
+        repos.sort()
+        for repo in repos:
             files_str = ''.join(["""<tr>
 	<td>%s</td>
 	<td>%s</td>
       </tr>"""% (file_name[len(repo):], tag)
-                                 for file_name, tag in self.document.get_shared(repo).iteritems()])
+                                 for file_name, tag
+                                 in self.document.get_shared(repo).iteritems()])
             
             html.append("""<table>
     <caption>%s</caption>
@@ -153,12 +156,17 @@ class HtmlTest(unittest.TestCase):
         return ''.join(html)
 
     def print_peers(self):
-        html = ["""<tr>
+        html = []
+        peers = self.document.get_peers()
+        keys = peers.keys()
+        keys.sort()
+        for key in keys:
+            desc, doc = peers[key]
+            html.append("""<tr>
       <td>%s</td>
       <td>%s</td>
       <td>%s</td>
-    </tr>"""% (key, doc and doc.get_id() or "NA", desc.state)
-                for key, (desc, doc) in self.document.get_peers().iteritems()]
+    </tr>"""% (key, doc and doc.get_id() or "NA", desc.state))
         return ''.join(html)
         
     
@@ -198,18 +206,21 @@ class HtmlTest(unittest.TestCase):
         self.document.add_repository(abspath(u"."))
         self.document.expand_dir(abspath(u"data"))
         self.document.share_files((abspath(u"data"), ["routage"], True))
-        self.document.share_dir((abspath(u"data/emptydir"), True))
-        self.document.add(abspath(u"data/subdir1/subsubdir"))
-        self.document.share_files((abspath(u"data/subdir1/subsubdir"), ["null", "dummy.txt"], True))
-        self.document.tag_files((abspath(u"data"), ["date.txt"], u"Error: doc not shared"))
-        self.document.tag_files((abspath(u"data/subdir1/subsubdir"), ["null", "dummy.txt"], u"empty"))
+        self.document.share_file((abspath(u"data/emptydir"), True))
         self.assert_template()
             
     # OTHERS TAB
-    def test_adding_peer(self):
+    def test_ordered_peer(self):
         """pseudo as unicode"""
         self.document.add_peer(u"nico")
         self.document.make_friend(u"emb")
+        self.document.make_friend(u"star")
+        self.document.make_friend(u"albert")
+        self.assert_template()
+        
+    def test_adding_peer(self):
+        """pseudo as unicode"""
+        self.document.add_peer(u"nico")
         self.assert_template()
         
     def test_filling_data(self):

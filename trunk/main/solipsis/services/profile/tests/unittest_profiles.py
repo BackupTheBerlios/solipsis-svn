@@ -20,67 +20,29 @@ class ProfileTest(unittest.TestCase):
         # bruce
         doc = FileDocument()
         self.assert_(doc.load(TEST_BRUCE))
-        bruce_doc = CacheDocument()
-        bruce_doc.import_document(doc)
-        self.bruce = HtmlView(bruce_doc)
+        self.bruce_doc = CacheDocument()
+        self.bruce_doc.import_document(doc)
         # demi
-        demi_doc = FileDocument()
-        self.assert_(demi_doc.load(TEST_DEMI))
-        result = StringIO()
-        self.demi = PrintView(demi_doc, result)
+        self.demi_doc = FileDocument()
+        self.assert_(self.demi_doc.load(TEST_DEMI))
 
     def test_bruce(self):
         """import bruce data"""
-        self.assertEquals(str(self.bruce.document),"""Mr
-Bruce
-Willis
-john
-/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/profile_male.gif
-bruce.willis@stars.com
-01/06/1947
-English
-Hill
-920
-Los Angeles
-US
-Lots of movies, quite famous, doesn't look much but very effective
-[u'cinema', u'theatre', u'cop', u'action']
-{'music': u'jazz', 'film': u'Die Hard'}
-[]
-{}
-{}
-""")
-        
-    def test_demi(self):
-        """import demi data"""
-        self.assertEquals(str(self.demi.document),"""[Personal]
-city = Los Angeles
-language = English
-firstname = Demi
-title = Mrs
-photo = /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/profile_female.gif
-address = Hill
-pseudo = demi
-birthday = 01/02/1949
-postcode = 920
-lastname = Moore
-country = US
-email = demi.moore@stars.com
-description = Big star, connected with Bruce
-
-[Others]
-john = Friend
-
-[File]
-
-[Custom]
-book = Harry Potter
-music = classic
-film = Des hommes d'Honneurs
-hobbies = cinema,theatre,striptease
-
-""")        
-        
+        self.assertEquals("Bruce", self.bruce_doc.get_firstname())
+        self.assertEquals("Willis", self.bruce_doc.get_lastname())
+        self.assertEquals("john", self.bruce_doc.get_pseudo())
+        self.assertEquals("bruce.willis@stars.com", self.bruce_doc.get_email())
+        self.assertEquals("01/06/1947", self.bruce_doc.get_birthday())
+        self.assertEquals("English", self.bruce_doc.get_language())
+        self.assertEquals("Hill", self.bruce_doc.get_address())
+        self.assertEquals("920", self.bruce_doc.get_postcode())
+        self.assertEquals("Los Angeles", self.bruce_doc.get_city())
+        self.assertEquals("US", self.bruce_doc.get_country())
+        self.assertEquals("Lots of movies, quite famous, doesn't look much but very effective",
+                          self.bruce_doc.get_description())
+        self.assertEquals([u'cinema', u'theatre', u'cop', u'action'], self.bruce_doc.get_hobbies())
+        self.assertEquals({'music': u'jazz', 'film': u'Die Hard'},
+                          self.bruce_doc.get_custom_attributes())
         
 if __name__ == '__main__':
     unittest.main()

@@ -291,7 +291,7 @@ class AbstractDocument:
     def add_repository(self, value):
         """sets new value for repository"""
         if not isdir(value):
-            raise TypeError("repository %s does not exist"% value) 
+            raise AssertionError("repository %s does not exist"% value) 
         if not isinstance(value, unicode):
             raise TypeError("repository to add expected as unicode")       
         
@@ -330,12 +330,23 @@ class AbstractDocument:
         if not isinstance(triplet, list) and not isinstance(triplet, tuple):
             raise TypeError("argument of tag_file expected as list or tuple")
         elif len(triplet) != 3:
-            raise TypeError("argument of  expected as triplet (dir_path, file_path, share)")
+            raise TypeError("argument of  expected as triplet"
+                            " (dir_path, file_path, share)")
         if not isinstance(triplet[0], unicode):
             raise TypeError("path expected as unicode")
         if not isinstance(triplet[1], list) \
                and not isinstance(triplet[1], tuple):
             raise TypeError("names expected as list")
+
+    def share_file(self, pair):
+        """forward command to cache"""
+        if not isinstance(pair, list) and not isinstance(pair, tuple):
+            raise TypeError("argument of share_file expected as list or tuple")
+        elif len(pair) != 2:
+            raise TypeError("argument of  expected as couple"
+                            " (file_path, share)")
+        if not isinstance(pair[0], unicode):
+            raise TypeError("path expected as unicode")
         
     def tag_files(self, triplet):
         """sets new value for tagged files"""
@@ -370,8 +381,12 @@ class AbstractDocument:
         """returns value of files"""
         raise NotImplementedError
         
-    def get_shared(self):
+    def get_shared(self, repo_path):
         """returns list of all dirs"""
+        raise NotImplementedError
+
+    def get_container(self, full_path):
+        """returns File/DirContainer correspondind to full_path"""
         raise NotImplementedError
             
     # OTHERS TAB
@@ -592,6 +607,14 @@ class CacheDocument(AbstractDocument):
     def add_repository(self, value):
         """create new SharingContainer"""
         AbstractDocument.add_repository(self, value)
+        for existing_repo in self.files:
+            if value.startswith(existing_repo):
+                raise ValueError("'%s' part of existing repo %s"\
+                                 %(value, existing_repo))
+            if existing_repo.startswith(value):
+                raise ValueError("'%s' conflicts with existing repo %s"\
+                                 %(value, existing_repo))
+            # else: continue
         self.files[value] = SharingContainer(value)
         
     def remove_repository(self, value):
@@ -630,6 +653,12 @@ class CacheDocument(AbstractDocument):
         AbstractDocument.share_files(self, triplet)
         path, names, share = triplet
         self._get_sharing_container(path).share_files(path, names, share)
+
+    def share_file(self, pair):
+        """forward command to cache"""
+        AbstractDocument.share_file(self, pair)
+        path, share = pair
+        self._get_sharing_container(path).share_file(path, share)
         
     def tag_files(self, triplet):
         """sets new value for tagged file"""
@@ -654,6 +683,10 @@ class CacheDocument(AbstractDocument):
             if container._shared:
                 result[name] = container._tag
         return result
+
+    def get_container(self, full_path):
+        """returns File/DirContainer correspondind to full_path"""
+        return self._get_sharing_container(full_path)[full_path]
 
     def _get_sharing_container(self, value):
         """return SharingContainer which root is value"""
@@ -968,12 +1001,18 @@ class FileDocument(AbstractDocument):
     def add_repository(self, value):
         """create new SharingContainer"""
         AbstractDocument.add_repository(self, value)
-        # retreive list of repositories
-        values = self.get_repositories()
+        existing_repos = self.get_repositories()
         # update list of repositories
-        if value not in values:
-            values.append(value)
-        self._set_repositories(values)
+        for existing_repo in existing_repos:
+            if value.startswith(existing_repo):
+                raise ValueError("'%s' part of existing repo %s"\
+                                 %(value, existing_repo))
+            if existing_repo.startswith(value):
+                raise ValueError("'%s' conflicts with existing repo %s"\
+                                 %(value, existing_repo))
+            # else: continue
+        existing_repos.append(value)
+        self._set_repositories(existing_repos)
         
     def remove_repository(self, value):
         """create new SharingContainer"""
@@ -988,7 +1027,8 @@ class FileDocument(AbstractDocument):
         """return list of repos"""
         try:
             return  [unicode(repo, self.encoding) for repo
-                     in  self.config.get(SECTION_CUSTOM, "repositories").split(',')
+                     in  self.config.get(SECTION_CUSTOM, "repositories")\
+                     .split(',')
                      if repo.strip() != '']
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
             return []
@@ -1028,6 +1068,12 @@ class FileDocument(AbstractDocument):
         dir_path, names, share = triplet
         for name in names:
             self._set_file(os.path.join(dir_path, name), share=share)
+
+    def share_file(self, pair):
+        """forward command to cache"""
+        AbstractDocument.share_file(self, pair)
+        full_path, share = pair
+        self._set_file(full_path, share=share)
                 
     def tag_files(self, triplet):
         """sets new value for tagged file"""
@@ -1051,8 +1097,10 @@ class FileDocument(AbstractDocument):
         old_share, old_tag = False, DEFAULT_TAG
         if self.config.has_option(SECTION_FILE, path):
             try:
-                old_share, old_tag = self.config.get(SECTION_FILE, path).split(',')
-            except (ValueError, ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+                old_share, old_tag = self.config.get(SECTION_FILE, path)\
+                                     .split(',')
+            except (ValueError, ConfigParser.NoSectionError,
+                    ConfigParser.NoOptionError):
                 old_share, old_tag = False, DEFAULT_TAG
         # merge old values & new ones
         if tag is None:
@@ -1071,24 +1119,28 @@ class FileDocument(AbstractDocument):
         # >> repositories
         containers = self._get_containers()
         # >> files
+        if not self.config.has_section(SECTION_FILE):
+            print >> sys.stderr, "profile file corrupted: "\
+                  "does not has [FILES] section"
+            return {}
         for option in self.config.options(SECTION_FILE):
             try:
                 option_description = self.config.get(SECTION_FILE, option)
                 if isinstance(option_description, str):
-                    option_description =  unicode(option_description, self.encoding)
+                    option_description =  unicode(option_description,
+                                                  self.encoding)
                 option_share, option_tag = option_description.split(',')
                 option_share = bool(option_share)
-            except (ValueError, ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+            except (ValueError, ConfigParser.NoSectionError,
+                    ConfigParser.NoOptionError):
+                print >> stderr, "option %s not well formated"% option
                 option_share, option_tag = False, DEFAULT_TAG
-            print "---", option, option_share, option_tag
-            for root_path, container in containers.iteritems():
+            for root_path in dict.keys(containers):
                 if option.startswith(root_path):
                     containers[root_path].share_file(option,
                                                      option_share)
                     containers[root_path].tag_file(option,
                                                    option_tag)
-                    print "***", root_path, containers
-                    print '\n*   '.join(containers[root_path].flat())
                     break
         return containers
     
@@ -1102,16 +1154,27 @@ class FileDocument(AbstractDocument):
                 try:
                     option_description = self.config.get(SECTION_FILE, option)
                     if isinstance(option_description, str):
-                        option_description =  unicode(option_description, self.encoding)
+                        option_description =  unicode(option_description,
+                                                      self.encoding)
                     option_share, option_tag = option_description.split(',')
                     option_share = bool(option_share)
-                except (ValueError, ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+                except (ValueError, ConfigParser.NoSectionError,
+                        ConfigParser.NoOptionError):
                     option_share, option_tag = False, DEFAULT_TAG
-                result[option] = option_tag
+                if option_share:
+                    result[option] = option_tag
             else:
                 continue
         return result
 
+    def get_container(self, full_path):
+        """returns File/DirContainer correspondind to full_path"""
+        files = self.get_files()
+        for root_path in files:
+            if full_path.startswith(root_path):
+                return files[root_path][full_path]
+        raise KeyError("%s not in %s"% (full_path, str(files.keys())))
+    
     def _get_containers(self):
         """return list of repos"""
         repo_list = self.get_repositories()
@@ -1145,7 +1208,8 @@ class FileDocument(AbstractDocument):
                     opt = unicode(opt, self.encoding)
                 try:
                     # expected format is friend, path
-                    friend, path =self.config.get(SECTION_OTHERS, opt).split(",")
+                    friend, path = self.config.get(SECTION_OTHERS, opt)\
+                                   .split(",")
                 except ValueError:
                     # if format does not match, guess for path or friend
                     value = unicode(self.config.get(SECTION_OTHERS, opt),

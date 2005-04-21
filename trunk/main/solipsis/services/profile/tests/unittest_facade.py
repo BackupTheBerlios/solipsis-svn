@@ -102,16 +102,13 @@ class FacadeTest(unittest.TestCase):
     # FILE TAB
     def test_repository(self):
         """sets new value for repository"""
-        self.assertEquals([abspath(u".")],
-                          self.facade.documents["cache"].get_repositories())
-        self.assertRaises(KeyError, self.facade.remove_repository,
-                          abspath(u"data"))
-        self.facade.add_repository(abspath(u"data"))
-        self.assertEquals([abspath(u"data"), abspath(u".")],
-                          self.facade.documents["cache"].get_repositories())
-        self.facade.remove_repository(abspath(u"data"))
-        self.assertEquals([abspath(u".")],
-                          self.facade.documents["cache"].get_repositories())
+        doc = CacheDocument()
+        facade = get_facade(doc, PrintView(doc, self.result))
+        facade.add_repository(abspath(u"data/profiles"))
+        self.assertRaises(KeyError, facade.remove_repository, abspath(u"data"))
+        self.assertRaises(ValueError, facade.add_repository, abspath(u"data"))
+        facade.add_repository(abspath(u"data/emptydir"))
+        facade.remove_repository(abspath(u"data/emptydir"))
 
     def test_expand_dir(self):
         """expand dir"""

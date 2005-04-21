@@ -48,8 +48,7 @@ class FileTest(unittest.TestCase):
         self.assertEquals({'repositories': REPO, 'color': u'blue', 'homepage': u'manu.com'},
                           doc.get_custom_attributes())
         # assert correct sharing
-        self.assertEquals({REPO + u'/data/date.txt': u'tagos',
-                           REPO + u'/data/subdir1/subsubdir/null': u'empty',
+        self.assertEquals({REPO + u'/data/subdir1/subsubdir/null': u'empty',
                            REPO + u'/data/subdir1': u'none',
                            REPO + u'/data/subdir1/subsubdir/dummy.txt': u'empty',
                            REPO + u'/data/routage': u'none',
@@ -57,16 +56,16 @@ class FileTest(unittest.TestCase):
                           doc.get_shared(REPO))
         files = doc.get_files()
         self.assertEquals(files.has_key(REPO), True)
-        self.assertEquals(files[REPO][u"data"]._shared, False)
-        self.assertEquals(files[REPO][u"data/routage"]._shared, True)
-        self.assertEquals(files[REPO][u"data/emptydir"]._shared, True)
-        self.assertEquals(files[REPO][u"data/subdir1"]._shared, True)
-        self.assertEquals(files[REPO][u"data/subdir1/"]._shared, True)
-        self.assertEquals(files[REPO].has_key(u"data/subdir1/date.doc"), False)
-        self.assertEquals(files[REPO][u"data/subdir1/subsubdir"]._shared, False)
-        self.assertEquals(files[REPO][u"data/subdir1/subsubdir/null"]._shared, True)
-        self.assertEquals(files[REPO][u"data/subdir1/subsubdir/dummy.txt"]._shared, True)
-        self.assertEquals(files[REPO].has_key(u"data/subdir1/subsubdir/default.solipsis"), False)
+        self.assertEquals(files[REPO][abspath(u"data")]._shared, False)
+        self.assertEquals(files[REPO][abspath(u"data/routage")]._shared, True)
+        self.assertEquals(files[REPO][abspath(u"data/emptydir")]._shared, True)
+        self.assertEquals(files[REPO][abspath(u"data/subdir1")]._shared, True)
+        self.assertEquals(files[REPO][abspath(u"data/subdir1/")]._shared, True)
+        self.assertEquals(files[REPO].has_key(abspath(u"data/subdir1/date.doc")), False)
+        self.assertEquals(files[REPO][abspath(u"data/subdir1/subsubdir")]._shared, False)
+        self.assertEquals(files[REPO][abspath(u"data/subdir1/subsubdir/null")]._shared, True)
+        self.assertEquals(files[REPO][abspath(u"data/subdir1/subsubdir/dummy.txt")]._shared, True)
+        self.assertEquals(files[REPO].has_key(abspath(u"data/subdir1/subsubdir/default.solipsis")), False)
         # peers
         peers = doc.get_peers()
         self.assertEquals(peers.has_key(u'nico'), True)
@@ -165,9 +164,8 @@ Paris
 France
 anything
 [u'blabla', u'bla bla bla', u'']
-{'dirs': u'data,data/emptydir,data/subdir1,data/subdir1/subsubdir', 'color': u'blue', 'homepage': u'manu.com'}
-[u'data', u'data/emptydir', u'data/subdir1', u'data/subdir1/subsubdir']
-{u'data/subdir1': data/subdir1(subdir1) [1] {u'date.doc': data/subdir1/date.doc [shared] [none]}, u'data/emptydir': data/emptydir(emptydir) [0] {}, u'data/subdir1/subsubdir': data/subdir1/subsubdir(subsubdir) [3] {u'dummy.txt': data/subdir1/subsubdir/dummy.txt [shared] [empty], u'null': data/subdir1/subsubdir/null [shared] [empty], u'default.solipsis': data/subdir1/subsubdir/default.solipsis [shared] [none]}, u'data': data(data) [3] {u'routage': data/routage [shared] [none], u'.path': data/.path [shared] [none], u'date.txt': data/date.txt [shared] [none]}}
+{'color': u'blue', 'homepage': u'manu.com', 'repositories': u'/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests'}
+{u'/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests': {'data': {Dc:data(?-,'none',#3) : [('emptydir', {Dc:emptydir(?Y,'none',#-1) : []}), ('routage', Fc:routage(?Y,'none')), ('date.txt', Fc:date.txt(?-,'tagos')), ('subdir1', {Dc:subdir1(?Y,'none',#-1) : [('subsubdir', {Dc:subsubdir(?-,'none',#2) : [('null', Fc:null(?Y,'empty')), ('dummy.txt', Fc:dummy.txt(?Y,'empty'))]})]})]}}}
 {u'nico': [nico (%s), None]}
 """% PeerDescriptor.FRIEND)
         result.close()
