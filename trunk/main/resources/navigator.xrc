@@ -40,6 +40,8 @@
       <object class="wxMenuItem" name="menu_quit">
         
         <label>Quit</label>
+      
+        <bitmap stock_id="wxART_QUIT"></bitmap>
       </object>
     </object>
     <object class="wxMenu" name="edit_menu">
@@ -48,7 +50,7 @@
         
         <label>My address</label>
         
-        <bitmap stock_id="wxART_TIP"></bitmap>
+        <bitmap stock_id="wxART_COPY"></bitmap>
         
       
         <accel>Ctrl+C</accel>

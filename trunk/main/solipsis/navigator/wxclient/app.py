@@ -450,9 +450,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             clipboard.Open()
             clipboard.SetData(wx.TextDataObject(address_str))
             clipboard.Close()
-            msg = _("Your address has been copied to the clipboard. \n"
-                + "If you paste it and send it to your friends, \n"
-                + "they will be able to jump near you in the Solipsis world.")
+            msg = _("Your address has been copied to the clipboard. \nIf you paste it and send it to your friends, \nthey will be able to jump near you in the Solipsis world.")
             msg += "\n\n" + _("For reminder, here is your address:") + "\n" + address_str
             dialog = wx.MessageDialog(self.main_window,
                 message=msg,
