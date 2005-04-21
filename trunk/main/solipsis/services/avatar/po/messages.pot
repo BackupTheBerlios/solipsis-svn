@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-03-18 16:04+0100\n"
+"POT-Creation-Date: 2005-04-21 16:27+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,57 +16,65 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: plugin.py:43
+#: plugin.py:57
 msgid "Avatars"
 msgstr ""
 
-#: plugin.py:46
+#: plugin.py:60
 msgid "Exchange avatars to customize your appearance"
 msgstr ""
 
-#: plugin.py:68
+#: plugin.py:85
 msgid "&Configure"
 msgstr ""
 
-#: plugin.py:70
+#: plugin.py:88
+msgid "Stretch avatars"
+msgstr ""
+
+#: plugin.py:92
+msgid "Shrink avatars"
+msgstr ""
+
+#: plugin.py:95
 msgid "Avatar"
 msgstr ""
 
-#: gui.py:52
+#: gui.py:53
 msgid "Images"
 msgstr ""
 
-#: gui.py:52
+#: gui.py:53
 msgid "All files"
 msgstr ""
 
-#: gui.py:53
+#: gui.py:64
 msgid "Choose your avatar"
 msgstr ""
 
-#: gui.py:67
+#: gui.py:78
 msgid "The file you chose could not be opened."
 msgstr ""
 
-#: gui.py:82
-msgid "Your avatar has been changed."
+#: gui.py:95
+msgid "Your avatar has been updated."
 msgstr ""
 
-#: gui.py:83
-msgid "Avatar configured"
+#: gui.py:96
+msgid "Avatar updated"
 msgstr ""
 
-#: gui.py:87
+#: gui.py:100
 #, python-format
 msgid ""
 "The file you chose does not belong to the \n"
 "supported image types (%s)."
 msgstr ""
 
-#: gui.py:90
+#: gui.py:103
 msgid "Please choose another file."
 msgstr ""
 
-#: gui.py:91
+#: gui.py:104
 msgid "Error"
 msgstr ""

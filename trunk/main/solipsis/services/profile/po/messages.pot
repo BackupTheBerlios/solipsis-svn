@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-03-18 16:04+0100\n"
+"POT-Creation-Date: 2005-04-21 16:27+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,34 +16,298 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: plugin.py:55
+#: gui/CustomPanel.py:19 gui/FilePanel.py:32
+msgid "Actions"
+msgstr ""
+
+#: gui/CustomPanel.py:20
+msgid "Hobbies, special interests... (one per line)"
+msgstr ""
+
+#: gui/CustomPanel.py:44
+msgid "MetaData"
+msgstr ""
+
+#: gui/CustomPanel.py:45
+msgid "Custom value"
+msgstr ""
+
+#: gui/ProfileFrame.py:28
+msgid "&Online\tCtrl+O"
+msgstr ""
+
+#: gui/ProfileFrame.py:28
+msgid "Allow users seeing profile"
+msgstr ""
+
+#: gui/ProfileFrame.py:30
+msgid "&Export HTML ...\tCtrl+E"
+msgstr ""
+
+#: gui/ProfileFrame.py:30
+msgid "Write profile as HTML File"
+msgstr ""
+
+#: gui/ProfileFrame.py:33
+msgid "&Load ... \tCtrl+L"
+msgstr ""
+
+#: gui/ProfileFrame.py:33
+msgid "Load profile from file"
+msgstr ""
+
+#: gui/ProfileFrame.py:35
+msgid "&Save ...\tCtrl+S"
+msgstr ""
+
+#: gui/ProfileFrame.py:35
+msgid "Save profile into file"
+msgstr ""
+
+#: gui/ProfileFrame.py:37
+msgid "&Quit\tCtrl+Q"
+msgstr ""
+
+#: gui/ProfileFrame.py:37
+msgid "Exit profile management"
+msgstr ""
+
+#: gui/ProfileFrame.py:39 plugin.py:56
 msgid "Profile"
 msgstr ""
 
-#: plugin.py:62
+#: gui/ProfileFrame.py:41
+msgid "&Add...\tCtrl+A"
+msgstr ""
+
+#: gui/ProfileFrame.py:44
+msgid "Anonymous"
+msgstr ""
+
+#: gui/ProfileFrame.py:46
+msgid "Friend"
+msgstr ""
+
+#: gui/ProfileFrame.py:48
+msgid "Black listed"
+msgstr ""
+
+#: gui/ProfileFrame.py:51
+msgid "&Find...\tCtrl+F"
+msgstr ""
+
+#: gui/ProfileFrame.py:51
+msgid "Search profile in surrounding area"
+msgstr ""
+
+#: gui/ProfileFrame.py:53
+msgid "Filters...\tCtrl+H"
+msgstr ""
+
+#: gui/ProfileFrame.py:53
+msgid "Create active filters to get notified on peers approach"
+msgstr ""
+
+#: gui/ProfileFrame.py:55
+msgid "Peers"
+msgstr ""
+
+#: gui/ProfileFrame.py:57
+msgid "Auto refresh"
+msgstr ""
+
+#: gui/ProfileFrame.py:57
+msgid "Automatically call refresh on any change in profile"
+msgstr ""
+
+#: gui/ProfileFrame.py:59
+msgid "&Refresh\tCtrl+R"
+msgstr ""
+
+#: gui/ProfileFrame.py:61
+msgid "Display"
+msgstr ""
+
+#: gui/ProfileFrame.py:63
+msgid "About"
+msgstr ""
+
+#: gui/ProfileFrame.py:181
+msgid "profile_frame"
+msgstr ""
+
+#: gui/ProfileFrame.py:188
+msgid "status"
+msgstr ""
+
+#: gui/ProfileFrame.py:198
+msgid "Preview"
+msgstr ""
+
+#: gui/ProfileFrame.py:199
+msgid "Personal"
+msgstr ""
+
+#: gui/ProfileFrame.py:200
+msgid "Special Interests"
+msgstr ""
+
+#: gui/ProfileFrame.py:201
+msgid "Files"
+msgstr ""
+
+#: gui/ProfileFrame.py:202
+msgid "Contacts"
+msgstr ""
+
+#: gui/FilePanel.py:60
+msgid "Name"
+msgstr ""
+
+#: gui/FilePanel.py:61
+msgid "Tag"
+msgstr ""
+
+#: gui/FilePanel.py:62
+msgid "Shared"
+msgstr ""
+
+#: gui/FilePanel.py:75
+msgid "Explorer"
+msgstr ""
+
+#: gui/FilePanel.py:76
+msgid "#shared"
+msgstr ""
+
+#: gui/FilePanel.py:77
+msgid "full path"
+msgstr ""
+
+#: gui/FilePanel.py:81
+msgid "File System..."
+msgstr ""
+
+#: gui/FilePanel.py:101
+msgid "Choose your repository"
+msgstr ""
+
+#: gui/FilePanel.py:238
+msgid "Complementary information on file"
+msgstr ""
+
+#: gui/PersonalPanel.py:16
+msgid "Address"
+msgstr ""
+
+#: gui/PersonalPanel.py:17
+msgid "Description"
+msgstr ""
+
+#: gui/PersonalPanel.py:18
+msgid "Identity"
+msgstr ""
+
+#: gui/PersonalPanel.py:19
+msgid "Mr"
+msgstr ""
+
+#: gui/PersonalPanel.py:19
+msgid "Mrs"
+msgstr ""
+
+#: gui/PersonalPanel.py:19
+msgid "Ms"
+msgstr ""
+
+#: gui/PersonalPanel.py:20
+msgid "First name"
+msgstr ""
+
+#: gui/PersonalPanel.py:21
+msgid "Last Name"
+msgstr ""
+
+#: gui/PersonalPanel.py:22
+msgid "Pseudo: "
+msgstr ""
+
+#: gui/PersonalPanel.py:24
+msgid "E-mail: "
+msgstr ""
+
+#: gui/PersonalPanel.py:26
+msgid "Birthday: "
+msgstr ""
+
+#: gui/PersonalPanel.py:27
+msgid "dd/mm/yyyy"
+msgstr ""
+
+#: gui/PersonalPanel.py:28
+msgid "Language: "
+msgstr ""
+
+#: gui/PersonalPanel.py:29
+msgid "French"
+msgstr ""
+
+#: gui/PersonalPanel.py:29
+msgid "English"
+msgstr ""
+
+#: gui/PersonalPanel.py:31
+msgid "Road"
+msgstr ""
+
+#: gui/PersonalPanel.py:32
+msgid "Postcode"
+msgstr ""
+
+#: gui/PersonalPanel.py:33
+msgid "City"
+msgstr ""
+
+#: gui/PersonalPanel.py:34
+msgid "Country"
+msgstr ""
+
+#: gui/PersonalPanel.py:105
+msgid "Choose your picture"
+msgstr ""
+
+#: gui/PersonalPanel.py:142
+msgid "How you appear to other peers"
+msgstr ""
+
+#: view.py:344
+msgid "no data available for"
+msgstr ""
+
+#: plugin.py:63
 msgid "Manage personal information and share it with people"
 msgstr ""
 
-#: plugin.py:73
+#: plugin.py:74
 msgid "Modify ..."
 msgstr ""
 
-#: plugin.py:74
+#: plugin.py:75
 msgid "Add files ..."
 msgstr ""
 
-#: plugin.py:75
+#: plugin.py:76
 msgid "Delete files ..."
 msgstr ""
 
-#: plugin.py:76
+#: plugin.py:77
 msgid "Search ..."
 msgstr ""
 
-#: plugin.py:83
+#: plugin.py:84
 msgid "Show info"
 msgstr ""
 
-#: plugin.py:84
+#: plugin.py:85
 msgid "Request profile"
 msgstr ""
