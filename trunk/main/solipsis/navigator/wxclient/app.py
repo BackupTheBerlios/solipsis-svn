@@ -781,6 +781,5 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
 
     def SendServiceData(self, peer_id, service_id, data):
         if self._CheckNodeProxy(False):
-            print "App: sendServiceData",peer_id, service_id, data
             d = ServiceData(peer_id, service_id, data)
             self.node_proxy.SendServiceData(d.ToStruct())
