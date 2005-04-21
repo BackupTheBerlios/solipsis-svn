@@ -20,7 +20,7 @@ function do_po() {
 
 	echo "" | $GETTEXT_FIRST -
 	if [ "$XRC_FILES" != "" ] ; then
-		wxrc -g $XRC_FILES | $GETTEXT --no-location -
+		pywxrc -g $XRC_FILES | $GETTEXT --no-location -
 	fi
 	$GETTEXT $PY_FILES
 
