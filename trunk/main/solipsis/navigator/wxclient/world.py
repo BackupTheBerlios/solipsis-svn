@@ -178,6 +178,15 @@ class World(UIProxyReceiver):
                 item.avatar_id = None
             self._CreatePeerAvatar(item)
 
+    def GetNode(self):
+        """
+        Returns the node.
+        """
+        try:
+            return self.node_item.peer
+        except AttributeError:
+            return None
+
     def GetPeer(self, peer_id):
         """
         Returns the peer with the given ID.

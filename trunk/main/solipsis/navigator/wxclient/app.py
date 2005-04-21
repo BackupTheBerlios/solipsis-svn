@@ -47,6 +47,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     """
     Main application class. Derived from wxPython "wx.App".
     """
+    version = "0.8.1"
     config_file = os.sep.join(["state", "config.bin"])
 
     def __init__(self, params, *args, **kargs):
@@ -213,6 +214,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         wx.EVT_MENU(self, XRCID("menu_preferences"), self._Preferences)
         wx.EVT_MENU(self, XRCID("menu_quit"), self._Quit)
         wx.EVT_MENU(self, XRCID("menu_autorotate"), self._ToggleAutoRotate)
+        wx.EVT_MENU(self, XRCID("menu_nodeaddr"), self._DisplayNodeAddress)
         wx.EVT_CLOSE(self.main_window, self._Quit)
 
         # UI events in about dialog
@@ -315,7 +317,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """
         Displays a dialog warning that a function is not implemented.
         """
-        #self.not_implemented_dialog.ShowModal()
         msg = _("This function is not yet implemented.\nSorry! Please come back later...")
         dialog = wx.MessageDialog(None, msg, caption=_("Not implemented"), style=wx.OK | wx.ICON_EXCLAMATION)
         dialog.ShowModal()
@@ -383,7 +384,10 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """
         Called on "about" event (menu -> Help -> About).
         """
-        self.about_dialog.ShowModal()
+        #~ self.about_dialog.ShowModal()
+        msg = _("Solipsis Navigator") + " " + self.version + "\n\n" + _("Licensed under the GNU LGPL") + "\n(c) France Telecom R&D"
+        dialog = wx.MessageDialog(None, msg, caption=_("About..."), style=wx.OK | wx.ICON_INFORMATION)
+        dialog.ShowModal()
 
     def _CreateNode(self, evt):
         """
@@ -436,9 +440,30 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             self.statusbar.SetText(_("Not connected"))
             self.services.RemoveAllPeers()
 
+    def _DisplayNodeAddress(self, evt):
+        """
+        Called on "node address" event (menu -> Actions -> Jump Near).
+        """
+        if self._CheckNodeProxy():
+            address_str = self.world.GetNode().address.ToString()
+            clipboard = wx.TheClipboard
+            clipboard.Open()
+            clipboard.SetData(wx.TextDataObject(address_str))
+            clipboard.Close()
+            msg = _("Your address has been copied to the clipboard. \n"
+                + "If you paste it and send it to your friends, \n"
+                + "they will be able to jump near you in the Solipsis world.")
+            msg += "\n\n" + _("For reminder, here is your address:") + "\n" + address_str
+            dialog = wx.MessageDialog(self.main_window,
+                message=msg,
+                caption=_("Your Solipsis address"),
+                style=wx.OK|wx.CENTRE|wx.ICON_INFORMATION
+                )
+            dialog.ShowModal()
+
     def _JumpNear(self, evt):
         """
-        Called on "jump near" event (menu -> Edit -> Jump Near).
+        Called on "jump near" event (menu -> Actions -> Node address).
         """
         if self._CheckNodeProxy():
             dialog = wx.TextEntryDialog(self.main_window,
@@ -702,7 +727,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self._DestroyProgress()
         self._SetWaiting(False)
         self.node_proxy = TwistedProxy(node_proxy, self.reactor)
-        #~ self.node_proxy.SetNodeInfo(self.config_data.GetNode().ToStruct())
         self.statusbar.SetText(_("Connected"))
 
     def NodeConnectionFailed(self, error):
