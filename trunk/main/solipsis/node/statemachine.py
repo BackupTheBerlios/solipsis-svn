@@ -216,7 +216,7 @@ class StateMachine(object):
             # Call state initialization function
             try:
                 func = self.state_dispatch[_class]
-            except:
+            except KeyError:
                 func = getattr(self, 'state_' + _class.__name__, None)
                 self.state_dispatch[_class] = func
             if func is not None:
@@ -236,7 +236,7 @@ class StateMachine(object):
         """
         try:
             func = self.peer_dispatch[request]
-        except:
+        except KeyError:
             self.logger.info("Ignoring unexpected message '%s' in state '%s'" % (request, self.state.__class__.__name__))
         else:
             func(args)
