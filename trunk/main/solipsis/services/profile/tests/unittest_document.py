@@ -161,6 +161,15 @@ class DocumentTest(unittest.TestCase):
             document.remove_custom_attributes(u"homepage")
         
     # FILE TAB
+    def test_reset_files(self):
+        """reset files"""
+        for document in self.documents:
+            document.add((abspath(u"data")))
+            document.share_file((abspath(u"data"), True))
+            self.assertEquals(document.get_container(abspath(u"data"))._shared, True)
+            document.reset_files()
+            self.assertEquals(document.get_files(), {})
+        
     def test_repository(self):
         """repository valid path"""
         for document in self.documents:
@@ -274,6 +283,14 @@ class DocumentTest(unittest.TestCase):
         self.assertRaises(ValueError, document.add_repository, REPO + "/data")
             
     # OTHERS TAB
+    def test_reset_peers(self):
+        """reset files"""
+        for document in self.documents:
+            document.add_peer(u"nico")
+            self.assert_(document.get_peers().has_key(u"nico"))
+            document.reset_peers()
+            self.assertEquals(document.get_peers(), {})
+            
     def test_adding_peer(self):
         self.assertRaises(NotImplementedError, self.abstract_doc.get_peers)
         """pseudo as unicode"""

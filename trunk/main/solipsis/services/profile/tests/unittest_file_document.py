@@ -118,6 +118,29 @@ class FileTest(unittest.TestCase):
         new_doc = CacheDocument()
         new_doc.import_document(self.document)
         self._assertContent(new_doc)
+
+    def test_save_and_load(self):
+        """save & load"""
+        self.document.load(TEST_PROFILE)
+        self.document.share_file((REPO+"/data/subdir1/TOtO.txt", True))
+        self.document.save("tata.prf")
+        new_doc = FileDocument()
+        new_doc.load("tata.prf")
+        container = new_doc.get_container(REPO+u"/data/subdir1")
+        self.assert_(dict.has_key(container, "TOtO.txt"))
+
+    def test_load_and_save(self):
+        """load & save"""
+        self.document.load(TEST_PROFILE)
+        new_doc = CacheDocument()
+        new_doc.import_document(self.document)
+        new_doc.remove_repository(REPO)
+        self.assertEquals(new_doc.get_files(), {})
+        new_doc.add_repository(REPO+u"/data/profiles")
+        new_doc.add_repository(REPO+u"/data/subdir1")
+        self.assertEquals(new_doc.get_files()[REPO+u"/data/profiles"]._shared, False)
+        self.assert_(new_doc.get_files()[REPO+u"/data/subdir1"] != None)
+        new_doc.save("toto.prf")
         
     def test_default(self):
         """load default"""

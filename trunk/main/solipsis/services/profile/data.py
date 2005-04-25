@@ -130,11 +130,15 @@ class DirContainer(dict, ContainerMixin):
         local_path = self._format_path(full_path)
         local_keys = [path for path in local_path.split(os.path.sep) if path]
         for local_key in local_keys:
-            if not dict.has_key(self, local_key):
-                container = container._add(local_key)
+            if value and container.path == os.path.dirname(full_path):
+                # add value if defined AND right place to do so
+                dict.__setitem__(container, os.path.basename(full_path), value)
             else:
-                container = dict.__getitem__(container, local_key)
-        container.import_data(value)
+                # create intermediary containers
+                if not dict.has_key(container, local_key):
+                    container = container._add(local_key)
+                else:
+                    container = dict.__getitem__(container, local_key)
 
     def __delitem__(self, full_path):
         full_path = ContainerMixin._validate(self, full_path)
@@ -204,11 +208,9 @@ class DirContainer(dict, ContainerMixin):
             result[key] = self[key]
         return result
             
-    def add(self, full_path, share=False, tag=DEFAULT_TAG):
+    def add(self, full_path):
         """add File/DirContainer"""
         container = self[full_path]
-        container.tag(tag)
-        container.share(share)
         
     def expand_dir(self, full_path):
         """put into cache new information when dir expanded in tree"""

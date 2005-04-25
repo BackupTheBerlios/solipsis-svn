@@ -7,7 +7,7 @@ import wx, wx.gizmos
 import sys
 from os.path import abspath
 from solipsis.services.profile.facade import get_facade
-from solipsis.services.profile.data import SharingContainer, DirContainer
+from solipsis.services.profile.data import DirContainer
 from solipsis.services.profile.data import SHARING_ALL
 
 # tree list

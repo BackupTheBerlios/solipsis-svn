@@ -171,6 +171,26 @@ class DataTest(unittest.TestCase):
         self.assertEquals(self.container[REPO + "data/subdir1/subsubdir"].nb_shared(), 0)
         self.container.share_container(REPO + "data/subdir1/subsubdir/dummy.txt", True)
         self.assertEquals(self.container[REPO + "data/subdir1/subsubdir"].nb_shared(), 1)
+        
+    def test_persistency(self):
+        """share, expand and checks sharing info remains correct"""
+        data = REPO + "data/"
+        self.container.add(data)
+        self.container.share_container([data + "date.txt", data + "profiles", data + "routage"], True)
+        self.assertEquals(self.container[data]._shared, False)
+        self.assertEquals(self.container[data + "subdir1"]._shared, False)
+        self.assertEquals(self.container[data + ".svn"]._shared, False)
+        self.assertEquals(self.container[data + "date.txt"]._shared, True)
+        self.assertEquals(self.container[data + "profiles"]._shared, True)
+        self.assertEquals(self.container[data + "routage"]._shared, True)
+        # expand
+        self.container.expand_dir(data)
+        self.assertEquals(self.container[data]._shared, False)
+        self.assertEquals(self.container[data + "subdir1"]._shared, False)
+        self.assertEquals(self.container[data + ".svn"]._shared, False)
+        self.assertEquals(self.container[data + "date.txt"]._shared, True)
+        self.assertEquals(self.container[data + "profiles"]._shared, True)
+        self.assertEquals(self.container[data + "routage"]._shared, True)
 
     def test_tagging(self):
         """tag data"""

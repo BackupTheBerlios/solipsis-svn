@@ -124,12 +124,14 @@ class AbstractDocument:
         for key, val in attributes.iteritems():
             self.add_custom_attributes((key, val))
         # file data
+        self.reset_files()
         for repo, sharing_container in other_document.get_files().iteritems():
             self.add_repository(repo)
             for full_path, container in sharing_container.flat().iteritems():
                 self.share_file((full_path, container._shared))
                 self.tag_file((full_path, container._tag))
         # others' data
+        self.reset_peers()
         peers = other_document.get_peers()
         for pseudo, (peer_desc, peer_doc) in peers.iteritems():
             self.add_peer(pseudo)
@@ -146,11 +148,15 @@ class AbstractDocument:
     # MENU
     def save(self, path=None):
         """fill document with information from .profile file"""
-        pass
+        doc = FileDocument()
+        doc.import_document(self)
+        doc.save(path)
 
     def load(self, path=None):
         """fill document with information from .profile file"""
-        pass
+        doc = FileDocument()
+        doc.load(path)
+        self.import_document(doc)
     
     # PERSONAL TAB
     def set_title(self, value):
@@ -288,6 +294,10 @@ class AbstractDocument:
         raise NotImplementedError
         
     # FILE TAB
+    def reset_files(self):
+        """empty all information concerning files"""
+        raise NotImplementedError
+        
     def add_repository(self, value):
         """sets new value for repository"""
         if not isdir(value):
@@ -390,6 +400,10 @@ class AbstractDocument:
         raise NotImplementedError
             
     # OTHERS TAB
+    def reset_peers(self):
+        """empty all information concerning peers"""
+        raise NotImplementedError
+        
     def add_peer(self, pseudo):
         """stores Peer object"""
         if not isinstance(pseudo, unicode):
@@ -604,6 +618,10 @@ class CacheDocument(AbstractDocument):
         return self.custom_attributes
 
     # FILE TAB
+    def reset_files(self):
+        """empty all information concerning files"""
+        self.files = {}
+    
     def add_repository(self, value):
         """create new DirContainer"""
         AbstractDocument.add_repository(self, value)
@@ -699,6 +717,10 @@ class CacheDocument(AbstractDocument):
         raise KeyError("%s not in %s"% (value, str(self.files.keys())))
 
     # OTHERS TAB
+    def reset_peers(self):
+        """empty all information concerning peers"""
+        self.peers = {}
+        
     def add_peer(self, pseudo):
         """stores Peer object"""
         AbstractDocument.add_peer(self, pseudo)
@@ -748,6 +770,12 @@ class CacheDocument(AbstractDocument):
 
 
 # FILEDOCUMENT
+class CustomConfigParser(ConfigParser.ConfigParser):
+
+    def optionxform(self, option):
+        """override default implementation to make it case sensitive"""
+        return str(option)
+
 class FileDocument(AbstractDocument):
     """data container on file"""
 
@@ -755,7 +783,7 @@ class FileDocument(AbstractDocument):
         AbstractDocument.__init__(self, name)
         self.file_name = os.path.join(PROFILE_DIR, PROFILE_FILE)
         self.encoding = ENCODING
-        self.config = ConfigParser.ConfigParser()
+        self.config = CustomConfigParser()
         self.config.add_section(SECTION_PERSONAL)
         self.config.add_section(SECTION_CUSTOM)
         self.config.add_section(SECTION_FILE)
@@ -779,6 +807,7 @@ class FileDocument(AbstractDocument):
         file_obj = open(self.file_name, 'w')
         file_obj.write("#%s\n"% self.encoding)
         self.config.write(file_obj)
+        file_obj.close()
 
     def load(self, path=None):
         """fill document with information from .profile file"""
@@ -789,8 +818,9 @@ class FileDocument(AbstractDocument):
         # else: continue
         file_obj = open(self.file_name)
         self.encoding = file_obj.readline()[1:]
-        self.config = ConfigParser.ConfigParser()
+        self.config = CustomConfigParser()
         self.config.readfp(file_obj)
+        file_obj.close()
         return True
         
     # PERSONAL TAB
@@ -1001,6 +1031,12 @@ class FileDocument(AbstractDocument):
             return result
 
     # FILE TAB
+    def reset_files(self):
+        """empty all information concerning files"""
+        self._set_repositories([])
+        self.config.remove_section(SECTION_FILE)
+        self.config.add_section(SECTION_FILE)
+        
     def add_repository(self, value):
         """create new DirContainer"""
         AbstractDocument.add_repository(self, value)
@@ -1188,6 +1224,11 @@ class FileDocument(AbstractDocument):
 
         
     # OTHERS TAB
+    def reset_peers(self):
+        """empty all information concerning peers"""
+        self.config.remove_section(SECTION_OTHERS)
+        self.config.add_section(SECTION_OTHERS)
+        
     def add_peer(self, pseudo):
         """stores Peer object"""
         AbstractDocument.add_peer(self, pseudo)
