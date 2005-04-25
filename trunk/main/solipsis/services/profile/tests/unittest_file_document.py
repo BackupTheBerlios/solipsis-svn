@@ -11,7 +11,7 @@ from difflib import Differ
 from StringIO import StringIO
 from solipsis.services.profile.document import FileDocument, CacheDocument, PeerDescriptor
 from solipsis.services.profile.view import PrintView, HtmlView
-from solipsis.services.profile.data import SharingContainer
+from solipsis.services.profile.data import DirContainer
 from solipsis.services.profile import PROFILE_DIR
 
 TEST_PROFILE = "data/profiles/test.prf"
@@ -141,7 +141,7 @@ class FileTest(unittest.TestCase):
                           self.document.get_custom_attributes())
         # assert correct sharing
         self.assertEquals({}, self.document.get_shared(REPO))
-        self.assertEquals({REPO: SharingContainer(REPO)}, self.document.get_files())
+        self.assertEquals({REPO: DirContainer(REPO)}, self.document.get_files())
         # peers
         self.assertEquals({}, self.document.get_peers())
         
@@ -165,7 +165,7 @@ France
 anything
 [u'blabla', u'bla bla bla', u'']
 {'color': u'blue', 'homepage': u'manu.com', 'repositories': u'/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests'}
-{u'/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests': {'data': {Dc:data(?-,'none',#3) : [('emptydir', {Dc:emptydir(?Y,'none',#-1) : []}), ('routage', Fc:routage(?Y,'none')), ('date.txt', Fc:date.txt(?-,'tagos')), ('subdir1', {Dc:subdir1(?Y,'none',#-1) : [('subsubdir', {Dc:subsubdir(?-,'none',#2) : [('null', Fc:null(?Y,'empty')), ('dummy.txt', Fc:dummy.txt(?Y,'empty'))]})]})]}}}
+{u'/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests': {Dc:tests(?-,'none',#0) : [{Dc:data(?-,'none',#3) : [{Dc:emptydir(?Y,'none',#-1) : []}, Fc:routage(?Y,'none'), Fc:date.txt(?-,'tagos'), {Dc:subdir1(?Y,'none',#-1) : [{Dc:subsubdir(?-,'none',#2) : [Fc:null(?Y,'empty'), Fc:dummy.txt(?Y,'empty')]}]}]}]}}
 {u'nico': [nico (%s), None]}
 """% PeerDescriptor.FRIEND)
         result.close()

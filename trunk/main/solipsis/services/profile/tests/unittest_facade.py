@@ -125,7 +125,7 @@ class FacadeTest(unittest.TestCase):
                            abspath(u'data/subdir1'): u'none',
                            abspath(u'data/profiles'): u'none',
                            abspath(u'data/emptydir'): u'none'})
-        self.assertRaises(AttributeError, self.facade.expand_dir,
+        self.assertRaises(AssertionError, self.facade.expand_dir,
                           abspath(u"data/routage"))
         self.facade.expand_dir(abspath(u"data/emptydir"))
         self.assertEquals(self._build_check_dict(self.facade.documents["cache"], self.repo),
@@ -165,7 +165,7 @@ class FacadeTest(unittest.TestCase):
     def test_share_dir(self):
         """share all content of dir"""
         files = self.facade.documents["cache"].get_files()[self.repo]
-        self.assertRaises(ValueError, self.facade.share_dirs,
+        self.assertRaises(AssertionError, self.facade.share_dirs,
                           ([abspath(u"data/routage")], True))
         self.assertRaises(AssertionError, self.facade.share_dirs,
                           ([abspath(u"data/ghost")], True))

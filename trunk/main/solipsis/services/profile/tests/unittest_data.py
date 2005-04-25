@@ -43,7 +43,7 @@ class DataTest(unittest.TestCase):
 
         
     def test_setting(self):
-        """get data"""
+        """set data"""
         # setting bad values
         self.assertRaises(AssertionError, self.container.__setitem__, \
                           *(REPO, "youpi"))
@@ -91,23 +91,29 @@ class DataTest(unittest.TestCase):
         self.assertEquals(self.container[REPO + "data/subdir1/subsubdir/default.solipsis"].name, "default.solipsis")
         
     def test_deleting(self):
-        """get data"""
+        """delete data"""
         # add data
+        root_str = REPO + "runtests.py"
         dir_str = REPO + u"data/emptydir"
         file_str = REPO + "data/subdir1/subsubdir/default.solipsis"
+        self.assertEquals(self.container.has_key(root_str), False)
         self.assertEquals(self.container.has_key(dir_str), False)
         self.assertEquals(self.container.has_key(file_str), False)
+        self.container[root_str] = FileContainer(root_str)
         self.container[dir_str] = DirContainer(dir_str)
         self.container[file_str] = FileContainer(file_str)
         self.assertEquals(self.container.has_key(dir_str), True)
+        self.assertEquals(self.container.has_key(dir_str), True)
         self.assertEquals(self.container.has_key(file_str), True)
+        del self.container[root_str]
         del self.container[dir_str]
         del self.container[file_str]
+        self.assertEquals(self.container.has_key(root_str), False)
         self.assertEquals(self.container.has_key(dir_str), False)
         self.assertEquals(self.container.has_key(file_str), False)
 
     def test_adding(self):
-        """get data"""
+        """add data"""
         # dir
         self.assertRaises(AssertionError, self.container.add, REPO + "data/dummy")
         self.assertRaises(AssertionError, self.container.add, REPO + "data/dummy.txt")
@@ -119,7 +125,7 @@ class DataTest(unittest.TestCase):
         self.container.add(REPO + "runtests.py")
         
     def test_expanding(self):
-        """good completion of dirs on expanding command"""
+        """expanding command"""
         self.container.add(REPO + "data")
         self.container.add(REPO + "data/subdir1")
         self.assert_(self.container.has_key(REPO + "data/subdir1"))
@@ -167,7 +173,7 @@ class DataTest(unittest.TestCase):
         self.assertEquals(self.container[REPO + "data/subdir1/subsubdir"].nb_shared(), 1)
 
     def test_tagging(self):
-        """coherent listing of content"""
+        """tag data"""
         self.container.add(REPO + "data")
         self.container.tag_container([REPO + u"data/routage", REPO + u"data/date.txt", REPO + u"data/subdir1"], u"tag1")
         self.assertEquals(self.container[REPO + "data/routage"]._tag, u"tag1")

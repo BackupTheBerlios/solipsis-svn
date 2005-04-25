@@ -26,7 +26,7 @@ import os.path
 import sys
 from os.path import isfile, isdir
 from StringIO import StringIO
-from solipsis.services.profile.data import SharingContainer
+from solipsis.services.profile.data import DirContainer
 from solipsis.services.profile import ENCODING, \
      PROFILE_DIR, PROFILE_FILE
 from solipsis.services.profile.images import DEFAULT_PIC
@@ -328,7 +328,7 @@ class AbstractDocument:
     def share_files(self, triplet):
         """forward command to cache"""
         if not isinstance(triplet, list) and not isinstance(triplet, tuple):
-            raise TypeError("argument of tag_file expected as list or tuple")
+            raise TypeError("argument of tag_container expected as list or tuple")
         elif len(triplet) != 3:
             raise TypeError("argument of  expected as triplet"
                             " (dir_path, file_path, share)")
@@ -460,7 +460,7 @@ class CacheDocument(AbstractDocument):
         self.hobbies = []
         # dictionary of file. {att_name : att_value}
         self.custom_attributes = {}
-        # {root: SharingContainers}
+        # {root: DirContainers}
         self.files = {}
         # dictionary of peers. {pseudo : PeerDescriptor}
         self.peers = {}
@@ -605,7 +605,7 @@ class CacheDocument(AbstractDocument):
 
     # FILE TAB
     def add_repository(self, value):
-        """create new SharingContainer"""
+        """create new DirContainer"""
         AbstractDocument.add_repository(self, value)
         for existing_repo in self.files:
             if value.startswith(existing_repo):
@@ -615,10 +615,10 @@ class CacheDocument(AbstractDocument):
                 raise ValueError("'%s' conflicts with existing repo %s"\
                                  %(value, existing_repo))
             # else: continue
-        self.files[value] = SharingContainer(value)
+        self.files[value] = DirContainer(value)
         
     def remove_repository(self, value):
-        """create new SharingContainer"""
+        """create new DirContainer"""
         AbstractDocument.remove_repository(self, value)
         del self.files[value]
 
@@ -634,6 +634,7 @@ class CacheDocument(AbstractDocument):
     def remove(self, value):
         """sets new value for repository"""
         AbstractDocument.remove(self, value)
+        container = self._get_sharing_container(value)
         del self._get_sharing_container(value)[value]
         
     def expand_dir(self, value):
@@ -646,34 +647,36 @@ class CacheDocument(AbstractDocument):
         AbstractDocument.share_dirs(self, pair)
         paths, share = pair
         for path in paths:
-            self._get_sharing_container(path).share_dirs([path], share)
+            self._get_sharing_container(path).share_content(path, share)
 
     def share_files(self, triplet):
         """forward command to cache"""
         AbstractDocument.share_files(self, triplet)
         path, names, share = triplet
-        self._get_sharing_container(path).share_files(path, names, share)
+        files = [os.path.join(path, name) for name in names]
+        self._get_sharing_container(path).share_container(files, share)
 
     def share_file(self, pair):
         """forward command to cache"""
         AbstractDocument.share_file(self, pair)
         path, share = pair
-        self._get_sharing_container(path).share_file(path, share)
+        self._get_sharing_container(path).share_container(path, share)
         
     def tag_files(self, triplet):
         """sets new value for tagged file"""
         AbstractDocument.tag_files(self, triplet)
         path, names, tag = triplet
-        self._get_sharing_container(path).tag_files(path, names, tag)
+        files = [os.path.join(path, name) for name in names]
+        self._get_sharing_container(path).tag_container(files, tag)
         
     def tag_file(self, pair):
         """sets new value for tagged file"""
         AbstractDocument.tag_file(self, pair)
         path, tag = pair
-        self._get_sharing_container(path).tag_file(path, tag)
+        self._get_sharing_container(path).tag_container(path, tag)
         
     def get_files(self):
-        """returns {root: SharingContainer}"""
+        """returns {root: DirContainer}"""
         return self.files
         
     def get_shared(self, repo_path):
@@ -689,7 +692,7 @@ class CacheDocument(AbstractDocument):
         return self._get_sharing_container(full_path)[full_path]
 
     def _get_sharing_container(self, value):
-        """return SharingContainer which root is value"""
+        """return DirContainer which root is value"""
         for root_path in self.files:
             if value.startswith(root_path):
                 return self.files[root_path]
@@ -999,7 +1002,7 @@ class FileDocument(AbstractDocument):
 
     # FILE TAB
     def add_repository(self, value):
-        """create new SharingContainer"""
+        """create new DirContainer"""
         AbstractDocument.add_repository(self, value)
         existing_repos = self.get_repositories()
         # update list of repositories
@@ -1015,7 +1018,7 @@ class FileDocument(AbstractDocument):
         self._set_repositories(existing_repos)
         
     def remove_repository(self, value):
-        """create new SharingContainer"""
+        """create new DirContainer"""
         AbstractDocument.remove_repository(self, value)
         # delete entry
         values = [repo for repo in self.get_repositories()
@@ -1115,7 +1118,7 @@ class FileDocument(AbstractDocument):
         self.config.set(SECTION_FILE, path, ','.join((share, tag)))
         
     def get_files(self):
-        """returns {root: SharingContainer}"""
+        """returns {root: DirContainer}"""
         # >> repositories
         containers = self._get_containers()
         # >> files
@@ -1137,9 +1140,9 @@ class FileDocument(AbstractDocument):
                 option_share, option_tag = False, DEFAULT_TAG
             for root_path in dict.keys(containers):
                 if option.startswith(root_path):
-                    containers[root_path].share_file(option,
+                    containers[root_path].share_container(option,
                                                      option_share)
-                    containers[root_path].tag_file(option,
+                    containers[root_path].tag_container(option,
                                                    option_tag)
                     break
         return containers
@@ -1180,7 +1183,7 @@ class FileDocument(AbstractDocument):
         repo_list = self.get_repositories()
         result = {}
         for repo in repo_list:
-            result[repo] = SharingContainer(repo)
+            result[repo] = DirContainer(repo)
         return result
 
         

@@ -111,7 +111,7 @@ class DirContainer(dict, ContainerMixin):
         full_path = ContainerMixin._validate(self, full_path)
         container = self
         local_path = self._format_path(full_path)
-        local_keys = local_path.split(os.path.sep)
+        local_keys = [path for path in local_path.split(os.path.sep) if path]
         for local_key in local_keys:
             if not dict.has_key(container, local_key):
                 container = container._add(local_key)
@@ -128,7 +128,7 @@ class DirContainer(dict, ContainerMixin):
                % (value, full_path)
         container = self
         local_path = self._format_path(full_path)
-        local_keys = local_path.split(os.path.sep)
+        local_keys = [path for path in local_path.split(os.path.sep) if path]
         for local_key in local_keys:
             if not dict.has_key(self, local_key):
                 container = container._add(local_key)
@@ -212,6 +212,7 @@ class DirContainer(dict, ContainerMixin):
         
     def expand_dir(self, full_path):
         """put into cache new information when dir expanded in tree"""
+        assert_dir(full_path)
         container = self[full_path]
         for full_path in [os.path.join(container.path, path) for path in os.listdir(container.path)]:
             container.add(full_path)
@@ -219,7 +220,8 @@ class DirContainer(dict, ContainerMixin):
     def share_content(self, full_path, share=True):
         """wrapps sharing methods matching 'full_path' with list or path"""
         if isinstance(full_path, str) or isinstance(full_path, unicode):
-            self._share_dir(full_path, share)
+            assert_dir(full_path)
+            self[full_path]._share_dir(share)
         elif isinstance(full_path, list) or isinstance(full_path, tuple):
             self._share_dirs(full_path, share)
         else:
