@@ -23,27 +23,29 @@
 import wx
 import wx.xrc
 
-locale = None
+# Global variables
+_locale = None
+_art_provider = None
 
 def InitLocale():
     """
     Locale initialization.
     """
-    global locale, charset
+    global _locale
     print "Getting locale:",
-    locale = wx.GetLocale()
-    if locale is None:
+    _locale = wx.GetLocale()
+    if _locale is None:
         print "Failed to get locale!"
     else:
-        print locale.GetName()
+        print _locale.GetName()
 
 def _(orig_string):
     """
     Translation function for wxWidgets.
     """
-    if locale is None:
+    if _locale is None:
         InitLocale()
-    if locale is None:
+    if _locale is None:
         return orig_string
     return wx.GetTranslation(orig_string)
 
@@ -52,6 +54,18 @@ def GetCharset():
     Get the name of the current charset.
     """
     return str(wx.Locale.GetSystemEncodingName())
+
+def GetStockBitmap(art_id, art_client=None):
+    """
+    Get a stock bitmap from its wx.ART_xxx ID
+    """
+    global _art_provider
+    if _art_provider is None:
+        _art_provider = wx.ArtProvider()
+    return _art_provider.GetBitmap(id=art_id, client=art_client or wx.ART_OTHER)
+
+def GetStockToolbarBitmap(art_id):
+    return GetStockBitmap(art_id, wx.ART_TOOLBAR)
 
 
 class IdPool(object):

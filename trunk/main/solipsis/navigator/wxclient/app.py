@@ -39,6 +39,7 @@ from statusbar import StatusBar
 from network import NetworkLoop
 from config import ConfigUI, ConfigData
 from launch import Launcher
+from BookmarksDialog import BookmarksDialog
 
 from solipsis.services.wxcollector import WxServiceCollector
 
@@ -107,7 +108,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         Load UI layout from XML file(s).
         """
         self.dialogs = [
-            "about_dialog",
             "connect_dialog",
             "prefs_dialog",
         ]
@@ -216,10 +216,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         wx.EVT_MENU(self, XRCID("menu_autorotate"), self._ToggleAutoRotate)
         wx.EVT_MENU(self, XRCID("menu_nodeaddr"), self._DisplayNodeAddress)
         wx.EVT_CLOSE(self.main_window, self._Quit)
-
-        # UI events in about dialog
-        wx.EVT_CLOSE(self.about_dialog, self._CloseAbout)
-        wx.EVT_BUTTON(self, XRCID("about_ok"), self._CloseAbout)
 
         # UI events in connect dialog
         wx.EVT_CLOSE(self.connect_dialog, self._CloseConnect)
@@ -384,10 +380,11 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """
         Called on "about" event (menu -> Help -> About).
         """
-        #~ self.about_dialog.ShowModal()
         msg = _("Solipsis Navigator") + " " + self.version + "\n\n" + _("Licensed under the GNU LGPL") + "\n(c) France Telecom R&D"
-        dialog = wx.MessageDialog(None, msg, caption=_("About..."), style=wx.OK | wx.ICON_INFORMATION)
-        dialog.ShowModal()
+        #~ dialog = wx.MessageDialog(None, msg, caption=_("About..."), style=wx.OK | wx.ICON_INFORMATION)
+        #~ dialog.ShowModal()
+        dialog = BookmarksDialog(parent=self.main_window)
+        dialog.Show()
 
     def _CreateNode(self, evt):
         """
