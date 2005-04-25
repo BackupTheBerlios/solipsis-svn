@@ -3,41 +3,11 @@
 
 import wx, wx.html
 from solipsis.services.profile.facade import get_facade
+from solipsis.services.profile.document import PeerDescriptor
+from solipsis.services.profile.view import HtmlView
 
 # begin wxGlade: dependencies
 # end wxGlade
-
-class MyHtmlListBox(wx.HtmlListBox):
-
-    def __init__(self, parent, id):
-        self.peers = {}
-        wx.HtmlListBox.__init__(self, parent, id)
-        self.SetItemCount(0)
-        
-    def add_peer(self, descriptor, document):
-        """store peer in cache as wx.HtmlListBox is virtual"""
-        self.peers[descriptor.pseudo] = (descriptor, document)
-        self.SetItemCount(len(self.peers))
-
-    def get_peer_descriptor(self, pseudo):
-        """return PeerDescriptor associated with peer"""
-        return self.peers[pseudo][0]
-
-    def get_peer_document(self, pseudo):
-        """return CacheDocument associated with peer"""
-        return self.peers[pseudo][1]
-
-    def get_peer_selected(self):
-        """return pseudo of selected peer"""
-        selected = self.GetSelection()
-        if selected == -1:
-            return None
-        else:
-            return self.peers.values()[selected][0].pseudo
-
-    def OnGetItem(self, n):
-        """callback to display item"""
-        return self.peers.values()[n][0].html()
 
 class OthersPanel(wx.Panel):
     def __init__(self, *args, **kwds):
@@ -47,27 +17,86 @@ class OthersPanel(wx.Panel):
         self.other_split = wx.SplitterWindow(self, -1, style=wx.SP_3D|wx.SP_BORDER)
         self.details_panel = wx.Panel(self.other_split, -1)
         self.peers_panel = wx.Panel(self.other_split, -1)
-        self.peers_list = MyHtmlListBox(self.peers_panel, -1)
+        self.peers_list = wx.TreeCtrl(self.peers_panel, -1, style=wx.TR_HAS_BUTTONS|wx.TR_DEFAULT_STYLE|wx.SUNKEN_BORDER)
         self.detail_preview = wx.html.HtmlWindow(self.details_panel, -1)
 
         self.__set_properties()
         self.__do_layout()
         # end wxGlade
+
+        root = self.peers_list.AddRoot(_("Peers"))
+        self.friends = self.peers_list.AppendItem(root, _("Friends"))
+        self.anonymous = self.peers_list.AppendItem(root, _("Anonymous"))
+        self.blacklisted = self.peers_list.AppendItem(root, _("Blacklisted"))
         
         self.facade = get_facade()
+        self.peers = None
         self.bind_controls()
 
+    def get_peer_selected(self):
+        """returns selected pseudo"""
+        return self.peers_list.GetItemText(self.peers_list.GetSelection())
+
+    def refresh_view(self, active_doc):
+        """refresh html view of peer"""
+        if active_doc:
+            view = HtmlView(active_doc)
+            self.detail_preview.SetPage(view.get_view(True))
+        else:
+            self.detail_preview.SetPage("<font color='blue'>%s</font>"\
+                                        % _("no neighbors yet"))
+    
     # EVENTS
     
     def bind_controls(self):
         """bind all controls with facade"""
-#         self.peers_list.Bind(wx.EVT_COMMAND_LISTBOX_SELECT, self.on_selected)
-        wx.EVT_LISTBOX(self, self.peers_list.GetId(), self.on_selected)
+        self.peers_list.Bind(wx.EVT_TREE_SEL_CHANGED, self.on_selected)
 
+    def cb_update_peers(self, peers):
+        """called when peers have been modifies"""
+        self.peers = peers
+        # retreive pseudos
+        friends = [peer[0].pseudo for peer in peers.values()
+                   if peer[0].state == PeerDescriptor.FRIEND]
+        anonymous = [peer[0].pseudo for peer in peers.values()
+                     if peer[0].state == PeerDescriptor.ANONYMOUS]
+        blacklisted = [peer[0].pseudo for peer in peers.values()
+                       if peer[0].state == PeerDescriptor.BLACKLISTED]
+        # sort
+        friends.sort()
+        anonymous.sort()
+        blacklisted.sort()
+        # display
+        self.peers_list.DeleteChildren(self.friends)
+        self.peers_list.DeleteChildren(self.anonymous)
+        self.peers_list.DeleteChildren(self.blacklisted)
+        for pseudo in friends:
+            self.peers_list.AppendItem(self.friends, pseudo)
+        for pseudo in anonymous:
+            self.peers_list.AppendItem(self.anonymous, pseudo)
+        for pseudo in blacklisted:
+            self.peers_list.AppendItem(self.blacklisted, pseudo)
+        # get peer to display
+        to_display = self.get_peer_selected()
+        if peers.has_key(to_display):
+            active_doc = peers[to_display][1]
+        else:
+            all = friends + anonymous
+            if all:
+                to_display = all[0]
+                active_doc = peers[to_display][1]
+            else:
+                active_doc = None
+        # refresh HTMLView
+        self.refresh_view(active_doc)
+        
     def on_selected(self, evt):
         """peer selected"""
-        self.facade.display_peer_preview(self.peers_list.get_peer_selected())
-        
+        pseudo = self.get_peer_selected()
+        if self.peers.has_key(pseudo):
+            active_doc = self.peers[pseudo][1]
+            self.refresh_view(active_doc)
+
     def __set_properties(self):
         # begin wxGlade: OthersPanel.__set_properties
         pass
@@ -88,7 +117,7 @@ class OthersPanel(wx.Panel):
         self.details_panel.SetSizer(details_sizer)
         details_sizer.Fit(self.details_panel)
         details_sizer.SetSizeHints(self.details_panel)
-        self.other_split.SplitVertically(self.peers_panel, self.details_panel, 100)
+        self.other_split.SplitVertically(self.peers_panel, self.details_panel, 150)
         other_size.Add(self.other_split, 1, wx.EXPAND, 0)
         self.SetAutoLayout(True)
         self.SetSizer(other_size)

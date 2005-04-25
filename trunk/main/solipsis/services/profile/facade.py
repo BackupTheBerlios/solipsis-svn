@@ -312,11 +312,6 @@ class Facade:
 
     # SPECIFIC ACTIONS
     
-    def display_peer_preview(self, pseudo):
-        """sets new preview for peer"""
-        if "gui" in self.views:
-            self.views["gui"].update_peer_preview(pseudo)
-    
     def set_auto_refresh_html(self, enable):
         """sets new preview for peer"""
         if "gui" in self.views:

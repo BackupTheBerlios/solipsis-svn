@@ -107,7 +107,6 @@ class ProfileFrame(wx.Frame):
             loader.load(path)
             self.facade.add_peer(loader.get_pseudo())
             self.facade.fill_data((loader.get_pseudo(), loader))
-            self.facade.display_peer_preview(loader.get_pseudo())
 
     def on_load(self, evt):
         """load profile .prf"""
@@ -152,19 +151,19 @@ class ProfileFrame(wx.Frame):
 
     def on_make_friend(self, evt):
         """end application"""
-        pseudo = self.other_tab.peers_list.get_peer_selected()
+        pseudo = self.other_tab.get_peer_selected()
         if pseudo:
             self.facade.make_friend(pseudo)
 
     def on_blacklist(self, evt):
         """end application"""
-        pseudo = self.other_tab.peers_list.get_peer_selected()
+        pseudo = self.other_tab.get_peer_selected()
         if pseudo:
             self.facade.blacklist_peer(pseudo)
 
     def on_anonymous(self, evt):
         """end application"""
-        pseudo = self.other_tab.peers_list.get_peer_selected()
+        pseudo = self.other_tab.get_peer_selected()
         if pseudo:
             self.facade.unmark_peer(pseudo)
 

@@ -327,21 +327,7 @@ class GuiView(AbstractView):
     # OTHERS TAB : frame.other_tab  
     def update_peers(self):
         """peer"""
-        self.frame.other_tab.peers_list.Clear()
-        peers = self.document.get_peers()
-        for peer_and_doc in peers.values():
-            self.frame.other_tab.peers_list.add_peer(*peer_and_doc)
-        self.frame.other_tab.peers_list.RefreshAll()
-        
-    def update_peer_preview(self, pseudo, text=u""):
-        """peer"""
-        document = self.frame.other_tab.peers_list.get_peer_document(pseudo)
-        if document:
-            view = HtmlView(document)
-            self.frame.other_tab.detail_preview.SetPage(text + view.get_view(True))
-        else:
-            self.frame.other_tab.detail_preview.SetPage(text or "<font color='red'>%s %s</font>"\
-                                                        % (_("no data available for"), pseudo))
+        self.frame.other_tab.cb_update_peers(self.document.get_peers())
         
 
 class HtmlView(AbstractView):
