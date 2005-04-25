@@ -46,32 +46,26 @@ class DataTest(unittest.TestCase):
         """get data"""
         # setting bad values
         self.assertRaises(AssertionError, self.container.__setitem__, \
-                          *(REPO + "data", "youpi"))
+                          *(REPO, "youpi"))
         self.assertRaises(AssertionError, self.container.__setitem__, \
-                          *(REPO + "data", None))
+                          *(REPO, None))
+        self.assertRaises(AssertionError, self.container.__setitem__, \
+                          *(REPO, 1))
         dir_c = DirContainer("data/emptydir")
         file_c = FileContainer("data/subdir1/date.doc")
         self.assertRaises(AssertionError, self.container.__setitem__, \
-                          *(REPO + "data", dir_c))
+                          *(REPO, dir_c))
         self.assertRaises(AssertionError, self.container.__setitem__, \
-                          *(REPO + "data", file_c))
+                          *(REPO, file_c))
+        self.assertRaises(AssertionError, self.container.__setitem__, \
+                          *(REPO, dir_c))
         # simple sets
         self.container[REPO + u"data/"] = DirContainer(REPO + u"data/")
         self.container[REPO + u"data/"] = DirContainer(REPO + u"data")
-        self.container[REPO + "data"] = DirContainer(REPO + u"data/subdir1/subsubdir")
         self.container[REPO + "data/subdir1/subsubdir"] = DirContainer(REPO + u"data/subdir1/subsubdir")
         self.container[REPO + u"data/subdir1/date.doc"] = FileContainer(REPO + u"data/subdir1/date.doc")
         self.container[REPO + "data/subdir1/subsubdir/null"] = FileContainer(REPO + u"data/subdir1/subsubdir/null")
         self.container[REPO + "runtests.py"] = FileContainer(REPO + u"runtests.py")
-        # setting correct values
-        dir_c = DirContainer(REPO + "data/emptydir")
-        self.container[REPO + "data/emptydir"] = dir_c
-        file_c = FileContainer(REPO + "data/subdir1/date.doc")
-        self.container[REPO + "data/subdir1/date.doc"] = file_c
-        self.assertRaises(AssertionError, self.container.__setitem__, \
-                          *(REPO + "data", dir_c))
-        self.assertRaises(AssertionError, self.container.__setitem__, \
-                          *(REPO + "data/subdir1", file_c))
 
     def test_getting(self):
         """get data"""
@@ -93,14 +87,16 @@ class DataTest(unittest.TestCase):
         file_c = FileContainer(REPO + "data/subdir1/subsubdir/default.solipsis")
         self.container[REPO + "data/emptydir"] = dir_c
         self.container[REPO + "data/subdir1/subsubdir/default.solipsis"] = file_c
-        self.assertEquals(self.container[REPO + "data/emptydir"], dir_c)
-        self.assertEquals(self.container[REPO + "data/subdir1/subsubdir/default.solipsis"], file_c)
+        self.assertEquals(self.container[REPO + "data/emptydir"].name, "emptydir")
+        self.assertEquals(self.container[REPO + "data/subdir1/subsubdir/default.solipsis"].name, "default.solipsis")
         
     def test_deleting(self):
         """get data"""
         # add data
         dir_str = REPO + u"data/emptydir"
         file_str = REPO + "data/subdir1/subsubdir/default.solipsis"
+        self.assertEquals(self.container.has_key(dir_str), False)
+        self.assertEquals(self.container.has_key(file_str), False)
         self.container[dir_str] = DirContainer(dir_str)
         self.container[file_str] = FileContainer(file_str)
         self.assertEquals(self.container.has_key(dir_str), True)
@@ -151,11 +147,11 @@ class DataTest(unittest.TestCase):
         self.container.expand_dir(REPO + "data")
         self.container.expand_dir(REPO + "data/subdir1")
         self.assertEquals(self.container[REPO + "data"].nb_shared(), 0)
-        self.container.share_container(REPO + u"data", [".path", "date.txt"], True)
+        self.container.share_container([REPO + u"data/.path", REPO + u"data/date.txt"], True)
         self.assertEquals(self.container[REPO + "data"].nb_shared(), 2)
-        self.container.share_container(REPO + u"data/subdir1", ["subsubdir"], True)
+        self.container.share_container(REPO + u"data/subdir1/subsubdir", True)
         self.assertEquals(self.container[REPO + "data/subdir1/subsubdir"].nb_shared(), -1)
-        self.container.share_container(REPO + u"data/subdir1", ["subsubdir"], False)
+        self.container.share_container(REPO + u"data/subdir1/subsubdir", False)
         self.container.share_content([REPO + "data/subdir1/subsubdir"], True)
         self.assertEquals(self.container[REPO + "data/subdir1/subsubdir"].nb_shared(), 0)
         self.container.expand_dir(REPO + "data/subdir1/subsubdir")
@@ -167,17 +163,17 @@ class DataTest(unittest.TestCase):
         self.assertEquals(self.container[REPO + "data"].nb_shared(), 0)
         self.container.share_content([REPO + "data/subdir1/subsubdir"], False)
         self.assertEquals(self.container[REPO + "data/subdir1/subsubdir"].nb_shared(), 0)
-        self.container.share_container(REPO + "data/subdir1/subsubdir", ["dummy.txt"], True)
+        self.container.share_container(REPO + "data/subdir1/subsubdir/dummy.txt", True)
         self.assertEquals(self.container[REPO + "data/subdir1/subsubdir"].nb_shared(), 1)
 
     def test_tagging(self):
         """coherent listing of content"""
         self.container.add(REPO + "data")
-        self.container.tag_container(REPO + u"data", ["routage", "date.txt", "subdir1"], u"tag1")
-        self.assertEquals(self.container[REPO + "data"]["routage"]._tag, u"tag1")
-        self.assertEquals(self.container[REPO + "data"]["date.txt"]._tag, u"tag1")
-        self.assertEquals(self.container[REPO + "data"]["subdir1"]._tag, u"tag1")
-        self.assertRaises(KeyError, self.container[REPO + "data"].__getitem__, ".path")
+        self.container.tag_container([REPO + u"data/routage", REPO + u"data/date.txt", REPO + u"data/subdir1"], u"tag1")
+        self.assertEquals(self.container[REPO + "data/routage"]._tag, u"tag1")
+        self.assertEquals(self.container[REPO + "data/date.txt"]._tag, u"tag1")
+        self.assertEquals(self.container[REPO + "data/subdir1"]._tag, u"tag1")
+        self.assertRaises(AssertionError, self.container[REPO + "data"].__getitem__, ".path")
 
 if __name__ == '__main__':
     unittest.main()

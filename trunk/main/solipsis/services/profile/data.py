@@ -41,7 +41,7 @@ class ContainerMixin:
         self._data = None
         # init path
         self.path = ContainerMixin._validate(self, path)
-        self.name = os.path.basename(path)
+        self.name = os.path.basename(self.path)
 
     def tag(self, tag):
         """set tag"""
@@ -65,7 +65,15 @@ class ContainerMixin:
         """assert path is valid"""
         if path.endswith('/'):
             path = path[:-1]
+        assert os.path.exists(path), "[%s] does not exist"% path
         return path
+
+    def import_data(self, container):
+        """copy data from container"""
+        assert self.path == container.path, "containers %s & %s not compatible"% (self, container)
+        self._tag = container._tag
+        self._shared = container._shared
+        self._data = container._data
         
 class FileContainer(ContainerMixin):
     """Structure to store files info in cache"""
@@ -79,7 +87,6 @@ class FileContainer(ContainerMixin):
     def _validate(self, path):
         """assert path exists and is a file"""
         path = ContainerMixin._validate(self, path)
-        assert os.path.exists(path), "[%s] does not exist"% path
         assert_file(path)
         return path
         
@@ -90,58 +97,49 @@ class DirContainer(dict, ContainerMixin):
 
     def __init__(self, path, share=False, tag=DEFAULT_TAG):
         ContainerMixin.__init__(self, path, share, tag)
+        assert_dir(path)
         dict.__init__(self)
         
     def __str__(self):
         return "{Dc:%s(?%s,'%s',#%d) : %s}"\
                %(self.name, self._shared and "Y" or "-",
-                 self._tag  or "-", self.nb_shared(), list(self.iteritems()))
+                 self._tag  or "-", self.nb_shared(), str(self.values()))
     def __repr__(self):
         return str(self)
 
     def __getitem__(self, full_path):
-        if self.path == full_path:
-            return self
-        #else: check children
-        local_path = self._validate(full_path)
-        local_key = local_path.split(os.path.sep)[0]
-        if not dict.has_key(self, local_key):
-            self._add(local_key)
-        return dict.__getitem__(self, local_key)[full_path]
+        full_path = ContainerMixin._validate(self, full_path)
+        container = self
+        local_path = self._format_path(full_path)
+        local_keys = local_path.split(os.path.sep)
+        for local_key in local_keys:
+            if not dict.has_key(container, local_key):
+                container = container._add(local_key)
+            else:
+                container = dict.__getitem__(container, local_key)
+        return container
 
     def __setitem__(self, full_path, value):
-        # remove last '/'
-        if full_path.endswith('/'):
-            full_path = full_path[:-1]
-        print "***", full_path, value
+        full_path = ContainerMixin._validate(self, full_path)
         assert isinstance(value, ContainerMixin), \
                "Added value '%s' must be a sharable object" % value
         assert value.path.startswith(full_path), \
                "Added value '%s' not coherent with path '%s'"\
                % (value, full_path)
-        local_path = self._validate(full_path)
-        local_key = local_path.split(os.path.sep)[0]
-        print "***", local_path, local_key
-        if self.path == os.path.dirname(full_path):
-            dict.__setitem__(self, local_key, value)
-        else:
-            dict.__getitem__(self, local_key)[full_path] = value
+        container = self
+        local_path = self._format_path(full_path)
+        local_keys = local_path.split(os.path.sep)
+        for local_key in local_keys:
+            if not dict.has_key(self, local_key):
+                container = container._add(local_key)
+            else:
+                container = dict.__getitem__(container, local_key)
+        container.import_data(value)
 
     def __delitem__(self, full_path):
-        # remove last '/'
-        if full_path.endswith('/'):
-            full_path = full_path[:-1]
-        if self.path == os.path.dirname(full_path):
-            if dict.has_key(self, local_key):
-                container = dict.__getitem__(self, os.path.basename(full_path))
-                del container
-            else:
-                print >> sys.stderr, "%s already deleted"% full_path
-        else:
-            local_path = self._validate(full_path)
-            local_key = local_path.split(os.path.sep)[0]
-            container = dict.__getitem__(self, local_key)
-            del container
+        full_path = ContainerMixin._validate(self, full_path)
+        container = self[os.path.dirname(full_path)]
+        dict.__delitem__(container, os.path.basename(full_path))
 
     def _validate(self, path):
         """assert path exists and is a file"""
@@ -150,30 +148,41 @@ class DirContainer(dict, ContainerMixin):
         assert path.startswith(self.path), "'%s' not in container '%s'"\
                % (path, self.path)
         # check validity
-        assert os.path.exists(path), "[%s] does not exist"% path
         assert_dir(path)
         # make path relative
-        return path[len(self.path):]
+        return path
+
+    def _format_path(self, path):
+        """assert path exists and is a file"""
+        # check included in self.path
+        assert path.startswith(self.path), "'%s' not in container '%s'"\
+               % (path, self.path)
+        # make path relative
+        return path[len(self.path)+1:]
 
     def _add(self, local_key, value=None):
         """add File/DirContainer"""
         path = os.path.join(self.path, local_key)
         if os.path.isdir(path):
-            self[local_key] = value or DirContainer(path)
+            dict.__setitem__(self, local_key, value or DirContainer(path))
         elif os.path.isfile(path):
-            self[local_key] = value or FileContainer(path)
+            dict.__setitem__(self, local_key, value or FileContainer(path))
         else:
             print >> sys.stderr, "%s not a valid file/dir" % path
+        return dict.__getitem__(self, local_key)
 
     def has_key(self, full_path):
         """overrides dict method"""
-        #else: check children
-        local_path = self._validate(full_path)
-        local_key = local_path.split(os.path.sep)[0]
-        if dict.has_key(self, local_key):
-            return True
-        else:
-            return dict.__getitem__(self, local_key).has_key(full_path)
+        full_path = ContainerMixin._validate(self, full_path)
+        container = self
+        local_path = self._format_path(full_path)
+        local_keys = local_path.split(os.path.sep)
+        for local_key in local_keys:
+            if not dict.has_key(container, local_key):
+                return False
+            else:
+                container = dict.__getitem__(container, local_key)
+        return True
 
     def keys(self):
         """overrides dict methode"""
@@ -204,7 +213,7 @@ class DirContainer(dict, ContainerMixin):
     def expand_dir(self, full_path):
         """put into cache new information when dir expanded in tree"""
         container = self[full_path]
-        for full_path in os.listdir(self.path):
+        for full_path in [os.path.join(container.path, path) for path in os.listdir(container.path)]:
             container.add(full_path)
 
     def share_content(self, full_path, share=True):
@@ -220,7 +229,7 @@ class DirContainer(dict, ContainerMixin):
     def _share_dirs(self, full_paths, share=True):
         """forward command to cache"""
         for full_path in full_paths:
-            self[full_path].share_dir(share)
+            self[full_path]._share_dir(share)
 
     def _share_dir(self, share=True):
         """(un)share all files of directory; item by item"""
