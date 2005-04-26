@@ -34,7 +34,7 @@ class BookmarksDialog(wx.Frame):
         self.toolbar.AddLabelTool(TOOL_ADD_BOOKMARK, _("Add bookmark"), (TB(wx.ART_ADD_BOOKMARK)), wx.NullBitmap, wx.ITEM_NORMAL, _("Bookmark a node"), "")
         self.toolbar.AddLabelTool(TOOL_DEL_BOOKMARK, _("Remove"), (TB(wx.ART_DEL_BOOKMARK)), wx.NullBitmap, wx.ITEM_NORMAL, _("Remove selected bookmark"), "")
         # Tool Bar end
-        self.list_ctrl = wx.ListCtrl(self.panel_1, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+        self.list_ctrl = wx.ListCtrl(self.panel_1, -1, style=wx.LC_REPORT|wx.LC_NO_HEADER|wx.SUNKEN_BORDER)
         self.button_close = wx.Button(self.panel_1, wx.ID_CLOSE, "")
 
         self.__set_properties()
@@ -48,7 +48,7 @@ class BookmarksDialog(wx.Frame):
     def __set_properties(self):
         # begin wxGlade: BookmarksDialog.__set_properties
         self.SetTitle(_("Bookmarks"))
-        self.SetMinSize((300, 200))
+        self.SetMinSize((309, 223))
         self.toolbar.Realize()
         self.button_close.SetDefault()
         # end wxGlade

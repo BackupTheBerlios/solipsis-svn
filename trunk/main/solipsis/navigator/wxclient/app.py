@@ -627,10 +627,16 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         # We display a contextual menu
         menu = wx.Menu()
         if self._CheckNodeProxy(False):
+            # MenuItem #1: bookmark peer
             id_ = self.viewport.HoveredItem()
             if id_ is not None:
-                menu.Append(wx.NewId(), _('Peer "%s"') % self.world.GetPeer(id_).pseudo)
+                item_id = wx.NewId()
+                peer = self.world.GetPeer(id_)
+                menu.Append(item_id, _('Bookmark peer "%s"') % peer.pseudo)
                 menu.AppendSeparator()
+                wx.EVT_MENU(self.main_window, item_id,
+                    lambda evt: self.config_data.bookmarks.AddPeer(peer))
+            # Following MenuItems are filled by service plugins
             l = self.services.GetPopupMenuItems(menu, id_)
             if len(l) > 0:
                 for item in l:
