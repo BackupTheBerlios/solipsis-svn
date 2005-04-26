@@ -138,7 +138,7 @@ class ChatWindow(wx.EvtHandler, XRCLoader, UIProxyReceiver):
         Show chat interface.
         """
         self.chat_window.Show()
-        self.chat_window.Raise()
+        #~ self.chat_window.Raise()
         self.chat_edit.SetFocus()
 
     def _PeerData(self, peer_id):

@@ -9,6 +9,15 @@ from solipsis.util.wxutils import GetStockToolbarBitmap as TB
 # begin wxGlade: dependencies
 # end wxGlade
 
+# ID allocation
+_ids = [
+    "TOOL_ADD_BOOKMARK",
+    "TOOL_DEL_BOOKMARK",
+]
+for _id in _ids:
+    locals()[_id] = wx.NewId()
+
+
 class BookmarksDialog(wx.Frame):
     def __init__(self, *args, **kwds):
         # begin wxGlade: BookmarksDialog.__init__
@@ -17,12 +26,10 @@ class BookmarksDialog(wx.Frame):
         self.panel_1 = wx.Panel(self, -1)
         
         # Tool Bar
-        self.bookmarks_dialog_toolbar = wx.ToolBar(self, -1)
-        self.SetToolBar(self.bookmarks_dialog_toolbar)
-        self.bookmarks_dialog_toolbar.AddLabelTool(1, _("Add"), (TB(wx.ART_ADD_BOOKMARK)), wx.NullBitmap, wx.ITEM_NORMAL, _("Add a bookmark"), "")
-        self.bookmarks_dialog_toolbar.AddLabelTool(2, _("Remove"), (TB(wx.ART_DEL_BOOKMARK)), wx.NullBitmap, wx.ITEM_NORMAL, _("Remove bookmark"), "")
-        self.bookmarks_dialog_toolbar.AddSeparator()
-        self.bookmarks_dialog_toolbar.AddSeparator()
+        self.toolbar = wx.ToolBar(self, -1, style=wx.TB_HORIZONTAL|wx.TB_TEXT|wx.TB_HORZ_LAYOUT|wx.TB_HORZ_TEXT)
+        self.SetToolBar(self.toolbar)
+        self.toolbar.AddLabelTool(TOOL_ADD_BOOKMARK, _("Add bookmark"), (TB(wx.ART_ADD_BOOKMARK)), wx.NullBitmap, wx.ITEM_NORMAL, _("Bookmark a node"), "")
+        self.toolbar.AddLabelTool(TOOL_DEL_BOOKMARK, _("Remove"), (TB(wx.ART_DEL_BOOKMARK)), wx.NullBitmap, wx.ITEM_NORMAL, _("Remove selected bookmark"), "")
         # Tool Bar end
         self.list_ctrl = wx.ListCtrl(self.panel_1, -1, style=wx.LC_REPORT|wx.LC_AUTOARRANGE|wx.SUNKEN_BORDER)
         self.button_close = wx.Button(self.panel_1, wx.ID_CLOSE, "")
@@ -30,17 +37,19 @@ class BookmarksDialog(wx.Frame):
         self.__set_properties()
         self.__do_layout()
 
-        self.Bind(wx.EVT_TOOL, self.OnAddBookmark, id=1)
-        self.Bind(wx.EVT_TOOL, self.OnDelBookmark, id=2)
+        self.Bind(wx.EVT_TOOL, self.OnAddBookmark, id=TOOL_ADD_BOOKMARK)
+        self.Bind(wx.EVT_TOOL, self.OnDelBookmark, id=TOOL_DEL_BOOKMARK)
         self.Bind(wx.EVT_BUTTON, self.OnClose, id=wx.ID_CLOSE)
         # end wxGlade
 
     def __set_properties(self):
         # begin wxGlade: BookmarksDialog.__set_properties
         self.SetTitle(_("Bookmarks"))
-        self.bookmarks_dialog_toolbar.Realize()
+        self.SetMinSize((300, 200))
+        self.toolbar.Realize()
         self.button_close.SetDefault()
         # end wxGlade
+        self.toolbar.EnableTool(TOOL_DEL_BOOKMARK, False)
 
     def __do_layout(self):
         # begin wxGlade: BookmarksDialog.__do_layout
@@ -55,8 +64,6 @@ class BookmarksDialog(wx.Frame):
         sizer_1.Add(self.panel_1, 1, wx.EXPAND, 0)
         self.SetAutoLayout(True)
         self.SetSizer(sizer_1)
-        sizer_1.Fit(self)
-        sizer_1.SetSizeHints(self)
         self.Layout()
         self.Centre()
         # end wxGlade

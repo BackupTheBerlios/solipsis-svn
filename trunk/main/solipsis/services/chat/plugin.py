@@ -79,8 +79,7 @@ class Plugin(ServicePlugin):
     
     def SendMessage(self, text):
         # This method is called in UI context (i.e. wx Thread)
-        data = text        print "send Message ", data
-        for peer_id in self.hosts.keys():
+        data = text        for peer_id in self.hosts.keys():
             self.service_api.SendData(peer_id, data)
         self.ui.AppendSelfMessage(self.service_api.GetNode().id_, text)
 
