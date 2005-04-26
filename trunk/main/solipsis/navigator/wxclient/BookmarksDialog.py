@@ -19,9 +19,9 @@ for _id in _ids:
 
 
 class BookmarksDialog(wx.Frame):
-    def __init__(self, world, config_data, *args, **kwds):
+    def __init__(self, world, bookmarks, *args, **kwds):
         self.world = world
-        self.config_data = config_data
+        self.bookmarks = bookmarks
 
         # begin wxGlade: BookmarksDialog.__init__
         kwds["style"] = wx.DEFAULT_FRAME_STYLE

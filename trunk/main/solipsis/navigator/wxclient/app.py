@@ -394,7 +394,8 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """
         Called on "edit bookmarks" event (menu -> Bookmarks -> Edit bookmarks).
         """
-        dialog = BookmarksDialog(parent=self.main_window)
+        dialog = BookmarksDialog(world=self.world,
+            bookmarks=self.config_data.bookmarks, parent=self.main_window)
         dialog.Show()
 
     def _CreateNode(self, evt):
