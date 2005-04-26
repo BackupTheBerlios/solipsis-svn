@@ -197,6 +197,12 @@ class World(UIProxyReceiver):
             return self.items[peer_id].peer
         else:
             return None
+    
+    def GetAllPeers(self):
+        """
+        Returns a list of all peers.
+        """
+        return [item.peer for item in self.items.values()]
 
     def GetItemPseudo(self, id_):
         """

@@ -25,6 +25,8 @@ from solipsis.util.entity import Entity, Service
 from solipsis.util.address import Address
 from solipsis.util.wxutils import _, ManagedData
 
+from bookmarks import BookmarkList
+
 
 class ConfigData(ManagedData):
     """
@@ -50,6 +52,7 @@ class ConfigData(ManagedData):
         self.services = []
         self.solipsis_port = 6010
         self.service_config = {}
+        self.bookmarks = BookmarkList()
 
     def Compute(self):
         """

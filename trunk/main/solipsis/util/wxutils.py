@@ -149,9 +149,18 @@ class ManagedData(object):
         Update the attributes with a dictionnary containing values.
         """
         for k, v in d.iteritems():
-            try:
+            if k in self._dict:
+                expected_type = type(self._dict[k][0])
+                # If the value is not of the attribute's current type,
+                # try to convert it
+                if expected_type != type(v):
+                    try:
+                        v = expected_type(v)
+                    except Exception, e:
+                        print "Could not update attribute '%s' in ManagedData: wrong type '%s'" % (k, type(v).__name__)
+                        continue
                 self._dict[k][0] = v
-            except KeyError:
+            else:
                 self._dict[k] = [v]
 
     def Ref(self, name):

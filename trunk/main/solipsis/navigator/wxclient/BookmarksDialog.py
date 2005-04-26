@@ -19,7 +19,10 @@ for _id in _ids:
 
 
 class BookmarksDialog(wx.Frame):
-    def __init__(self, *args, **kwds):
+    def __init__(self, world, config_data, *args, **kwds):
+        self.world = world
+        self.config_data = config_data
+
         # begin wxGlade: BookmarksDialog.__init__
         kwds["style"] = wx.DEFAULT_FRAME_STYLE
         wx.Frame.__init__(self, *args, **kwds)
@@ -31,7 +34,7 @@ class BookmarksDialog(wx.Frame):
         self.toolbar.AddLabelTool(TOOL_ADD_BOOKMARK, _("Add bookmark"), (TB(wx.ART_ADD_BOOKMARK)), wx.NullBitmap, wx.ITEM_NORMAL, _("Bookmark a node"), "")
         self.toolbar.AddLabelTool(TOOL_DEL_BOOKMARK, _("Remove"), (TB(wx.ART_DEL_BOOKMARK)), wx.NullBitmap, wx.ITEM_NORMAL, _("Remove selected bookmark"), "")
         # Tool Bar end
-        self.list_ctrl = wx.ListCtrl(self.panel_1, -1, style=wx.LC_REPORT|wx.LC_AUTOARRANGE|wx.SUNKEN_BORDER)
+        self.list_ctrl = wx.ListCtrl(self.panel_1, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
         self.button_close = wx.Button(self.panel_1, wx.ID_CLOSE, "")
 
         self.__set_properties()
