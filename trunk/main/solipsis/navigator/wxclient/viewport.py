@@ -114,8 +114,6 @@ class Viewport(object):
         """
         Refresh the viewport.
         """
-        #~ self.last_redraw_duration = 0.001
-        #~ return
         # Spare machine time if the window is hidden or if there is something wrong
         try:
             if not self.window.IsShown() or self.window.IsBeingDeleted():
@@ -153,7 +151,6 @@ class Viewport(object):
             dc = wx.BufferedDC(client_dc, self.draw_buffer)
 
         # Begin drawing
-        dc.SetOptimization(True)
         dc.BeginDrawing()
         nb_blits = 0
 

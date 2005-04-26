@@ -13,7 +13,9 @@
       <object class="wxMenuItem" name="menu_create">
         
         
+        
         <label>&amp;New node</label>
+        
         
         
         <accel>Ctrl-N</accel>
@@ -21,10 +23,13 @@
       <object class="wxMenuItem" name="menu_connect">
         
         
+        
         <label>&amp;Connect to existing node</label>
         
         
+        
         <bitmap stock_id="wxART_FILE_OPEN"></bitmap>
+        
         
         
         <accel>Ctrl-O</accel>
@@ -32,7 +37,9 @@
       <object class="wxMenuItem" name="menu_disconnect">
         
         
+        
         <label>&amp;Disconnect</label>
+        
         
         
         <accel>Ctrl-W</accel>
@@ -40,7 +47,9 @@
       <object class="wxMenuItem" name="menu_kill">
         
         
+        
         <label>&amp;Kill node</label>
+        
         
         
         <accel>Ctrl+K</accel>
@@ -49,8 +58,10 @@
       <object class="wxMenuItem" name="menu_quit">
         
         
+        
         <label>Quit</label>
       
+        
         
         <bitmap stock_id="wxART_QUIT"></bitmap>
       </object>
@@ -60,33 +71,42 @@
       <object class="wxMenuItem" name="menu_nodeaddr">
         
         
+        
         <label>My address</label>
+        
         
         
         <bitmap stock_id="wxART_COPY"></bitmap>
         
       
         
+        
         <accel>Ctrl+C</accel>
+        
         
         <help>Paste your address so that your friend can jump near you</help>
       </object>
       <object class="wxMenuItem" name="menu_jumpnear">
         
         
+        
         <label>&amp;Jump near...</label>
+        
         
         
         <bitmap stock_id="wxART_GO_FORWARD"></bitmap>
         
         
+        
         <accel>Ctrl+G</accel>
       
+        
         
         <help>Jump near another node</help>
       </object>
       <object class="separator"/>
       <object class="wxMenuItem" name="menu_preferences">
+        
         
         
         <label>Preferences</label>
@@ -97,12 +117,22 @@
       <object class="wxMenuItem" name="menu_autorotate">
         
         
+        
         <label>Automatic Rotation</label>
+        
         
         
         <help>Choose whether display orientation changes when moving</help>
         
+        
         <checkable>1</checkable>
+      </object>
+    </object>
+    <object class="wxMenu" name="bookmarks_menu">
+      <label>&amp;Bookmarks</label>
+      <object class="wxMenuItem" name="menu_edit_bookmarks">
+        <label>Edit bookmarks</label>
+        <accel>Ctrl+B</accel>
       </object>
     </object>
     <object class="wxMenu" name="help_menu">
@@ -110,8 +140,10 @@
       <object class="wxMenuItem" name="menu_about">
         
         
+        
         <label>About</label>
       
+        
         
         <bitmap stock_id="wxART_TIP"></bitmap>
       </object>
@@ -124,6 +156,7 @@
       <object class="spacer">
         
         
+        
         <size>20,20</size>
       </object>
       <object class="sizeritem">
@@ -132,14 +165,17 @@
           <object class="spacer">
             
             
+            
             <size>20,20</size>
           </object>
           <object class="sizeritem">
             <object class="wxStaticText">
               
               
+              
               <label>Name or pseudo</label>
             </object>
+            
             
             
             <flag>wxLEFT</flag>
@@ -148,9 +184,11 @@
             <object class="wxTextCtrl" name="connect_pseudo"/>
             
             
+            
             <flag>wxEXPAND</flag>
           </object>
           <object class="spacer">
+            
             
             
             <size>20,20</size>
@@ -166,8 +204,10 @@
                     <object class="wxStaticText" name="">
                       
                       
+                      
                       <label>Host: </label>
                     </object>
+                    
                     
                     
                     <flag>wxALIGN_CENTRE_VERTICAL</flag>
@@ -176,12 +216,15 @@
                     <object class="wxTextCtrl" name="connect_host"/>
                     
                     
+                    
                     <option>1</option>
+                    
                     
                     
                     <flag>wxEXPAND|wxGROW|wxALIGN_CENTRE_VERTICAL</flag>
                   </object>
                 </object>
+                
                 
                 
                 <flag>wxEXPAND|wxGROW</flag>
@@ -193,8 +236,10 @@
                     <object class="wxStaticText" name="">
                       
                       
+                      
                       <label>Port: </label>
                     </object>
+                    
                     
                     
                     <flag>wxALIGN_CENTRE_VERTICAL</flag>
@@ -203,9 +248,11 @@
                     <object class="wxTextCtrl" name="connect_port"/>
                     
                     
+                    
                     <flag>wxEXPAND|wxGROW|wxALIGN_CENTRE_VERTICAL</flag>
                   </object>
                 </object>
+                
                 
                 
                 <flag>wxEXPAND|wxGROW</flag>
@@ -213,9 +260,11 @@
             </object>
             
             
+            
             <flag>wxLEFT|wxEXPAND</flag>
           </object>
           <object class="spacer">
+            
             
             
             <size>20,20</size>
@@ -227,16 +276,20 @@
                 <object class="wxButton" name="connect_ok">
                   
                   
+                  
                   <label>&amp;Ok</label>
+                  
                   
                   
                   <default>1</default>
                 </object>
                 
                 
+                
                 <flag>wxBOTTOM</flag>
               </object>
               <object class="spacer">
+                
                 
                 
                 <size>20,20</size>
@@ -245,8 +298,10 @@
                 <object class="wxButton" name="connect_cancel">
                   
                   
+                  
                   <label>&amp;Cancel</label>
                 </object>
+                
                 
                 
                 <flag>wxEXPAND</flag>
@@ -254,7 +309,9 @@
             </object>
             
             
+            
             <flag>wxALIGN_CENTRE_HORIZONTAL</flag>
+            
             
             
             <border>10</border>
@@ -262,14 +319,17 @@
           <object class="spacer">
             
             
+            
             <size>20,20</size>
           </object>
         </object>
         
         
+        
         <flag>wxEXPAND</flag>
       </object>
       <object class="spacer">
+        
         
         
         <size>20,20</size>
@@ -301,20 +361,26 @@
                       <object class="wxCheckBox" name="node_autokill">
                         
                         
+                        
                         <label>Kill node when exiting</label>
+                        
                         
                         
                         <checked>1</checked>
                         
                         
+                        
                         <style></style>
+                        
                         
                         
                         <tooltip>Uncheck this box if you want to remain connected to the Solipsis world even when you exit the navigator.</tooltip>
                       </object>
                       
                       
+                      
                       <flag>wxALL</flag>
+                      
                       
                       
                       <border>1</border>
@@ -322,13 +388,16 @@
                   </object>
                   
                   
+                  
                   <flag>wxALL</flag>
+                  
                   
                   
                   <border>4</border>
                 </object>
               </object>
             </object>
+            
             
             
             <selected>1</selected>
@@ -344,16 +413,20 @@
                       <object class="wxStaticText">
                         
                         
+                        
                         <label>If you want to connect to a remote node
 instead of running a node on this computer,
 you might have to adjust the HTTP proxy settings.</label>
+                        
                         
                         
                         <style>wxALIGN_LEFT</style>
                       </object>
                       
                       
+                      
                       <flag>wxALL</flag>
+                      
                       
                       
                       <border>4</border>
@@ -362,17 +435,22 @@ you might have to adjust the HTTP proxy settings.</label>
                       <object class="wxRadioButton" name="proxymode_auto">
                         
                         
+                        
                         <label>Automatic proxy detection</label>
                         
                         
+                        
                         <value>1</value>
+                        
                         
                         
                         <style>wxRB_GROUP</style>
                       </object>
                       
                       
+                      
                       <flag>wxALL</flag>
+                      
                       
                       
                       <border>1</border>
@@ -381,16 +459,20 @@ you might have to adjust the HTTP proxy settings.</label>
                       <object class="wxRadioButton" name="proxymode_none">
                         
                         
+                        
                         <label>No proxy</label>
                       </object>
+                      
                       
                       
                       <flag>wxALL</flag>
                       
                       
+                      
                       <border>1</border>
                     </object>
                     <object class="spacer">
+                      
                       
                       
                       <size>8,8</size>
@@ -399,11 +481,14 @@ you might have to adjust the HTTP proxy settings.</label>
                       <object class="wxRadioButton" name="proxymode_manual">
                         
                         
+                        
                         <label>Manual configuration</label>
                       </object>
                       
                       
+                      
                       <flag>wxALL</flag>
+                      
                       
                       
                       <border>1</border>
@@ -415,11 +500,14 @@ you might have to adjust the HTTP proxy settings.</label>
                           <object class="wxStaticText">
                             
                             
+                            
                             <label>Host: </label>
                           </object>
                           
                           
+                          
                           <flag>wxLEFT|wxALIGN_CENTRE_VERTICAL</flag>
+                          
                           
                           
                           <border>10</border>
@@ -428,7 +516,9 @@ you might have to adjust the HTTP proxy settings.</label>
                           <object class="wxTextCtrl" name="proxy_host"/>
                           
                           
+                          
                           <option>1</option>
+                          
                           
                           
                           <flag>wxEXPAND|wxGROW</flag>
@@ -437,11 +527,14 @@ you might have to adjust the HTTP proxy settings.</label>
                           <object class="wxStaticText">
                             
                             
+                            
                             <label>Port: </label>
                           </object>
                           
                           
+                          
                           <flag>wxLEFT|wxALIGN_CENTRE_VERTICAL</flag>
+                          
                           
                           
                           <border>10</border>
@@ -452,7 +545,9 @@ you might have to adjust the HTTP proxy settings.</label>
                       </object>
                       
                       
+                      
                       <flag>wxALL|wxEXPAND|wxGROW</flag>
+                      
                       
                       
                       <border>4</border>
@@ -461,7 +556,9 @@ you might have to adjust the HTTP proxy settings.</label>
                   </object>
                   
                   
+                  
                   <flag>wxALL</flag>
+                  
                   
                   
                   <border>4</border>
@@ -474,7 +571,9 @@ you might have to adjust the HTTP proxy settings.</label>
         </object>
         
         
+        
         <flag>wxTOP|wxEXPAND|wxGROW</flag>
+        
         
         
         <border>6</border>
@@ -485,17 +584,21 @@ you might have to adjust the HTTP proxy settings.</label>
       <object class="spacer">
         
         
+        
         <size>10,10</size>
       </object>
       <object class="sizeritem">
         <object class="wxButton" name="prefs_close">
           
           
+          
           <label>&amp;Close</label>
+          
           
           
           <default>1</default>
         </object>
+        
         
         
         <flag>wxALIGN_CENTRE</flag>

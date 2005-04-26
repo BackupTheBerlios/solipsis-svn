@@ -183,6 +183,11 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.services.EnableServices()
         self.config_data.SetServices(self.services.GetServices())
 
+        # If the menu has become too wide because of the entries added by services,
+        # resize main window so that the menu fits
+        # BUG: this doesn't work :(
+        #~ self.main_window.SetSize(self.main_window.GetBestSize())
+
     def OnInit(self):
         """
         Main initialization handler.
@@ -215,6 +220,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         wx.EVT_MENU(self, XRCID("menu_quit"), self._Quit)
         wx.EVT_MENU(self, XRCID("menu_autorotate"), self._ToggleAutoRotate)
         wx.EVT_MENU(self, XRCID("menu_nodeaddr"), self._DisplayNodeAddress)
+        wx.EVT_MENU(self, XRCID("menu_edit_bookmarks"), self._OpenBookmarksDialog)
         wx.EVT_CLOSE(self.main_window, self._Quit)
 
         # UI events in connect dialog
@@ -381,8 +387,13 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         Called on "about" event (menu -> Help -> About).
         """
         msg = _("Solipsis Navigator") + " " + self.version + "\n\n" + _("Licensed under the GNU LGPL") + "\n(c) France Telecom R&D"
-        #~ dialog = wx.MessageDialog(None, msg, caption=_("About..."), style=wx.OK | wx.ICON_INFORMATION)
-        #~ dialog.ShowModal()
+        dialog = wx.MessageDialog(None, msg, caption=_("About..."), style=wx.OK | wx.ICON_INFORMATION)
+        dialog.ShowModal()
+
+    def _OpenBookmarksDialog(self, evt):
+        """
+        Called on "edit bookmarks" event (menu -> Bookmarks -> Edit bookmarks).
+        """
         dialog = BookmarksDialog(parent=self.main_window)
         dialog.Show()
 
