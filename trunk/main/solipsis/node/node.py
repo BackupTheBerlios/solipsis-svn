@@ -85,7 +85,12 @@ class Node(Entity):
 
         # Random pseudos for unnamed nodes
         if not self.pseudo:
-            self.pseudo = unicode(random.choice(self.random_pseudos))
+            #~ self.pseudo = unicode(random.choice(self.random_pseudos))
+            a = random.randrange(ord('A'), ord('Z') + 1)
+            b = random.randrange(0, 10)
+            c = random.choice(['ga', 'bu', 'zo', 'meu'])
+            #~ d = random.randrange(1, 100)
+            self.pseudo = '%s%s-%s' % (chr(a), str(b), c)
 
         # Dummy test data
         self.languages = ['fr', 'en']
