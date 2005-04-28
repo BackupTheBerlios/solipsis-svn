@@ -6,6 +6,11 @@ import wx
 from solipsis.util.wxutils import _
 from solipsis.util.wxutils import GetStockToolbarBitmap as TB
 
+try:
+    set
+except NameError:
+    from sets import Set as set
+
 # begin wxGlade: dependencies
 # end wxGlade
 
@@ -17,11 +22,17 @@ _ids = [
 for _id in _ids:
     locals()[_id] = wx.NewId()
 
+COL_PSEUDO = 0
+
 
 class BookmarksDialog(wx.Frame):
     def __init__(self, world, bookmarks, *args, **kwds):
         self.world = world
         self.bookmarks = bookmarks
+        # Item index => peer
+        self.item_map = {}
+        # Peer IDs
+        self.selected_items = set()
 
         # begin wxGlade: BookmarksDialog.__init__
         kwds["style"] = wx.DEFAULT_FRAME_STYLE
@@ -34,7 +45,7 @@ class BookmarksDialog(wx.Frame):
         self.toolbar.AddLabelTool(TOOL_ADD_BOOKMARK, _("Add bookmark"), (TB(wx.ART_ADD_BOOKMARK)), wx.NullBitmap, wx.ITEM_NORMAL, _("Bookmark a node"), "")
         self.toolbar.AddLabelTool(TOOL_DEL_BOOKMARK, _("Remove"), (TB(wx.ART_DEL_BOOKMARK)), wx.NullBitmap, wx.ITEM_NORMAL, _("Remove selected bookmark"), "")
         # Tool Bar end
-        self.list_ctrl = wx.ListCtrl(self.panel_1, -1, style=wx.LC_REPORT|wx.LC_NO_HEADER|wx.SUNKEN_BORDER)
+        self.list_ctrl = wx.ListCtrl(self.panel_1, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
         self.button_close = wx.Button(self.panel_1, wx.ID_CLOSE, "")
 
         self.__set_properties()
@@ -42,17 +53,23 @@ class BookmarksDialog(wx.Frame):
 
         self.Bind(wx.EVT_TOOL, self.OnAddBookmark, id=TOOL_ADD_BOOKMARK)
         self.Bind(wx.EVT_TOOL, self.OnDelBookmark, id=TOOL_DEL_BOOKMARK)
+        self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.OnDeselectItem, self.list_ctrl)
+        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnSelectItem, self.list_ctrl)
         self.Bind(wx.EVT_BUTTON, self.OnClose, id=wx.ID_CLOSE)
         # end wxGlade
+        self.Bind(wx.EVT_SHOW, self.OnShow)
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
 
     def __set_properties(self):
         # begin wxGlade: BookmarksDialog.__set_properties
         self.SetTitle(_("Bookmarks"))
-        self.SetMinSize((309, 223))
+        self.SetMinSize((300, 200))
         self.toolbar.Realize()
         self.button_close.SetDefault()
         # end wxGlade
-        self.toolbar.EnableTool(TOOL_DEL_BOOKMARK, False)
+
+        self.UpdateToolbarState()
+        self.list_ctrl.InsertColumn(COL_PSEUDO, _("Pseudo"))
 
     def __do_layout(self):
         # begin wxGlade: BookmarksDialog.__do_layout
@@ -80,11 +97,52 @@ class BookmarksDialog(wx.Frame):
         event.Skip()
 
     def OnDelBookmark(self, event): # wxGlade: BookmarksDialog.<event_handler>
-        print "Del Bookmark"
-        event.Skip()
+        for peer_id in self.selected_items:
+            self.bookmarks.RemoveById(peer_id)
+        self.selected_items.clear()
+        self.UpdateUI()
+
+    def OnSelectItem(self, event): # wxGlade: BookmarksDialog.<event_handler>
+        index = event.GetIndex()
+        peer_id = self.item_map[index].id_
+        self.selected_items.add(peer_id)
+        self.UpdateToolbarState()
+
+    def OnDeselectItem(self, event): # wxGlade: BookmarksDialog.<event_handler>
+        index = event.GetIndex()
+        peer_id = self.item_map[index].id_
+        if peer_id in self.selected_items:
+            self.selected_items.remove(peer_id)
+        self.UpdateToolbarState()
 
     def OnClose(self, event): # wxGlade: BookmarksDialog.<event_handler>
         self.Hide()
-        event.Skip()
+    
+    def OnShow(self, event):
+        self.selected_items.clear()
+        self.UpdateUI()
+        print "on show"
+
+
+    #
+    # Helper methods
+    #
+    def UpdateUI(self):
+        self.selected_items.clear()
+        self.UpdateBookmarks()
+        self.UpdateToolbarState()
+
+    def UpdateBookmarks(self):
+        peers = self.bookmarks.GetAllPeers()
+        self.list_ctrl.DeleteAllItems()
+        self.item_map.clear()
+        for peer in peers:
+            index = self.list_ctrl.GetItemCount()
+            self.list_ctrl.InsertStringItem(index, peer.pseudo)
+            self.item_map[index] = peer
+        self.list_ctrl.SetColumnWidth(COL_PSEUDO, wx.LIST_AUTOSIZE)
+    
+    def UpdateToolbarState(self):
+        self.toolbar.EnableTool(TOOL_DEL_BOOKMARK, len(self.selected_items) > 0)
 
 # end of class BookmarksDialog

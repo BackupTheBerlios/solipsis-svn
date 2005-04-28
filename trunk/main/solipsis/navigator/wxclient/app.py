@@ -208,6 +208,8 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
 
         self.world = World(self.viewport)
         self.config_ui = ConfigUI(self.config_data, self.prefs_dialog)
+        self.bookmarks_dialog = BookmarksDialog(world=self.world,
+            bookmarks=self.config_data.bookmarks, parent=self.main_window)
 
         # UI events in main window
         wx.EVT_MENU(self, XRCID("menu_about"), self._About)
@@ -394,9 +396,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """
         Called on "edit bookmarks" event (menu -> Bookmarks -> Edit bookmarks).
         """
-        dialog = BookmarksDialog(world=self.world,
-            bookmarks=self.config_data.bookmarks, parent=self.main_window)
-        dialog.Show()
+        self.bookmarks_dialog.Show()
 
     def _CreateNode(self, evt):
         """
@@ -634,8 +634,12 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
                 peer = self.world.GetPeer(id_)
                 menu.Append(item_id, _('Bookmark peer "%s"') % peer.pseudo)
                 menu.AppendSeparator()
-                wx.EVT_MENU(self.main_window, item_id,
-                    lambda evt: self.config_data.bookmarks.AddPeer(peer))
+                # TODO: model-view-controller ?
+                def _clicked(evt):
+                    self.config_data.bookmarks.AddPeer(peer)
+                    self.bookmarks_dialog.UpdateUI()
+                wx.EVT_MENU(self.main_window, item_id, _clicked)
+
             # Following MenuItems are filled by service plugins
             l = self.services.GetPopupMenuItems(menu, id_)
             if len(l) > 0:
