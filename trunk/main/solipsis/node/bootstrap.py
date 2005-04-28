@@ -57,6 +57,7 @@ class NodeLauncher(object):
         self.port = self.params.port + pool_num
         node = Node(self.reactor, self.params)
         node.position = Position((random.random() * 2**128, random.random() * 2**128, 0))
+        node.SetRandomPseudo()
         self.state_machine = StateMachine(self.reactor, self.params, node)
         self.node_connector = NodeConnector(self.reactor, self.params, self.state_machine)
         self.remote_control = RemoteControl(self.reactor, self.params, self.state_machine)

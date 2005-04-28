@@ -71,6 +71,8 @@ class Node(Entity):
         u'shrubbery',
         u'wine shop',
     ]
+    
+    world_size = 2**128
 
     def __init__(self, reactor, params):
         self.reactor = reactor
@@ -85,12 +87,7 @@ class Node(Entity):
 
         # Random pseudos for unnamed nodes
         if not self.pseudo:
-            #~ self.pseudo = unicode(random.choice(self.random_pseudos))
-            a = random.randrange(ord('A'), ord('Z') + 1)
-            b = random.randrange(0, 10)
-            c = random.choice(['ga', 'bu', 'zo', 'meu'])
-            #~ d = random.randrange(1, 100)
-            self.pseudo = '%s%s-%s' % (chr(a), str(b), c)
+            self.SetRandomPseudo()
 
         # Dummy test data
         self.languages = ['fr', 'en']
@@ -104,3 +101,16 @@ class Node(Entity):
         id_ = "%d_%d_%s" % (self.params.port, Node.count, CreateSecureId())
         Node.count += 1
         return id_
+
+    def SetRandomPseudo(self):
+        x, y = self.position.GetXY()
+        #~ self.pseudo = unicode(random.choice(self.random_pseudos))
+        #~ a = random.randrange(ord('A'), ord('Z') + 1)
+        #~ b = random.randrange(0, 10)
+        a = x * (10.0 / self.world_size)
+        b = y * (10.0 / self.world_size)
+        #~ print a, b
+        c = random.choice(['ga', 'bu', 'zo', 'meu'])
+        self.pseudo = '%s%s-%s' % (chr(int(a) + ord('a')), str(int(b) + 1), c)
+        #~ d = random.randrange(1, 100)
+        #~ self.pseudo = '%s%s-%s' % (chr(a), str(b), c)
