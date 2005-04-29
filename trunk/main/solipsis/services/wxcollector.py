@@ -58,6 +58,17 @@ class WxServiceCollector(ServiceCollector):
     
         super(WxServiceCollector, self).InitService(service_id, plugin)
 
+    # FIXME: need to abstract plugins so that enabling them does not
+    # depend on navigator mode (in our case: netclient or wxclient)
+    def EnableServices(self):
+        """
+        Enable all services.
+        """
+        for service_id, plugin in self.plugins.items():
+            plugin.Enable()
+            self.enabled_services.add(service_id)
+            
+    # FIXME factorize first half with collector.GetPointToPointActions
     def GetPopupMenuItems(self, menu, peer_id):
         """
         Get specific service items for the UI pop-up menu.

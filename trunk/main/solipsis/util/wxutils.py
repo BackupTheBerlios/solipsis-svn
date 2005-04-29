@@ -116,7 +116,7 @@ class XRCLoader(object):
             raise NameError("resource object '%s' does not exist" % name)
         return attr
 
-
+# FIXME: does not depend on wx => move to utils
 class ManagedData(object):
     """
     Derive this class to create Managed data for use with validators.

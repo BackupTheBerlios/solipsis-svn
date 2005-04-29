@@ -101,6 +101,13 @@ class Plugin(ServicePlugin):
     # Service setup
     #
 
+    # FIXME: need to abstract action layer of plugins so that it does
+    # not depend on navigator mode (in our case: netclient or
+    # wxclient)
+    def EnableBasic(self):
+        """enable non graphic part"""
+        print "Profile: enable"
+        
     def Enable(self):
         """
         All real actions involved in initializing the service should
@@ -119,7 +126,6 @@ class Plugin(ServicePlugin):
                 self.DoAction(it)
             wx.EVT_MENU(main_window, item_id, _clicked)
         self.service_api.SetMenu(self.GetTitle(), menu)
-        print "Profile: enable"
     
     def Disable(self):
         """

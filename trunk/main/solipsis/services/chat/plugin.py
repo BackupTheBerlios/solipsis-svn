@@ -58,6 +58,13 @@ class Plugin(ServicePlugin):
     #
     # Here comes the real action
     #
+    # FIXME: need to abstract action layer of plugins so that it does
+    # not depend on navigator mode (in our case: netclient or
+    # wxclient)
+    def EnableBasic(self):
+        """enable navigator-independant part"""
+        print "Chat: enable"
+        
     def Enable(self):
         # Set up chat GUI
         window = ChatWindow(self, self.service_api.GetDirectory())

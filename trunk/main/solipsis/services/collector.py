@@ -118,12 +118,14 @@ class ServiceCollector(object):
         # properly initialized for the plugin to interact with it.
         plugin.Init()
 
+    # FIXME: need to abstract plugins so that enabling them does not
+    # depend on navigator mode (in our case: netclient or wxclient)
     def EnableServices(self):
         """
         Enable all services.
         """
         for service_id, plugin in self.plugins.items():
-            plugin.Enable()
+            plugin.EnableBasic()
             self.enabled_services.add(service_id)
 
     def GetServices(self):
@@ -231,6 +233,19 @@ class ServiceCollector(object):
         else:
             plugin.GotServiceData(peer_id, data)
 
+    def GetPointToPointActions(self, peer_id):
+        """returns titles of available p2p actions"""
+        for service_id in self._Services():
+            plugin = self.plugins[service_id]
+            if peer_id is not None and peer_id in self.peers:
+                if self.peers[peer_id].GetService(service_id) is not None:
+                    titles = plugin.GetPointToPointActions()
+                else:
+                    titles = []
+            else:
+                titles = plugin.GetActions()
+        return titles
+ 
     #
     # API callable from service plugins
     #

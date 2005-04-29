@@ -71,6 +71,18 @@ class Plugin(ServicePlugin):
     #
     # Here comes the real action
     #
+    # FIXME: need to abstract action layer of plugins so that it does
+    # not depend on navigator mode (in our case: netclient or
+    # wxclient)
+    def EnableBasic(self):
+        """enable navigator-independant part"""
+        # Set up network handler
+        network = NetworkLauncher(self.reactor, self, self.port)
+        self.network = TwistedProxy(network, self.reactor)
+        # Start network
+        self.network.Start()
+        print "Avatar: enable"
+        
     def Enable(self):
         """
         Enable the service.
