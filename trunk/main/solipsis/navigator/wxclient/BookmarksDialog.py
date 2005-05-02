@@ -26,13 +26,18 @@ COL_PSEUDO = 0
 
 
 class BookmarksDialog(wx.Frame):
-    def __init__(self, world, bookmarks, *args, **kwds):
+    def __init__(self, app, world, bookmarks, menu, *args, **kwds):
+        self.app = app
         self.world = world
         self.bookmarks = bookmarks
+        self.menu = menu
+
         # Item index => peer
         self.item_map = {}
         # Peer IDs
         self.selected_items = set()
+        # Menu items
+        self.menu_items = []
 
         # begin wxGlade: BookmarksDialog.__init__
         kwds["style"] = wx.DEFAULT_FRAME_STYLE
@@ -131,6 +136,20 @@ class BookmarksDialog(wx.Frame):
         self.selected_items.clear()
         self.UpdateBookmarks()
         self.UpdateToolbarState()
+        self.UpdateMenubar()
+
+    def UpdateMenubar(self):
+        for menu_item in self.menu_items:
+            self.menu.DeleteItem(menu_item)
+        self.menu_items = []
+        peers = self.bookmarks.GetAllPeers()
+        for peer in peers:
+            def _clicked(evt, address=peer.address):
+                self.app._JumpNearAddress(address)
+            item_id = wx.NewId()
+            menu_item = self.menu.Append(item_id, peer.pseudo)
+            wx.EVT_MENU(self.app.main_window, item_id, _clicked)
+            self.menu_items.append(menu_item)
 
     def UpdateBookmarks(self):
         peers = self.bookmarks.GetAllPeers()

@@ -208,8 +208,14 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
 
         self.world = World(self.viewport)
         self.config_ui = ConfigUI(self.config_data, self.prefs_dialog)
-        self.bookmarks_dialog = BookmarksDialog(world=self.world,
-            bookmarks=self.config_data.bookmarks, parent=self.main_window)
+        bookmarks_menu = self.main_menubar.GetMenu(self.main_menubar.FindMenu(_("&Bookmarks")))
+        assert bookmarks_menu is not None
+        self.bookmarks_dialog = BookmarksDialog(app=self,
+            world=self.world,
+            bookmarks=self.config_data.bookmarks,
+            menu=bookmarks_menu,
+            parent=self.main_window)
+        self.bookmarks_dialog.UpdateUI()
 
         # UI events in main window
         wx.EVT_MENU(self, XRCID("menu_about"), self._About)
@@ -348,6 +354,10 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         #~ print "\ngarbage:", gc.garbage
         print "\n\n"
     
+    def _JumpNearAddress(self, address):
+        if self._CheckNodeProxy():
+            self.node_proxy.JumpNear(address.ToStruct())
+    
     def _TryConnect(self):
         """
         Tries to connect to the configured node.
@@ -484,7 +494,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
                 except ValueError, e:
                     print str(e)
                 else:
-                    self.node_proxy.JumpNear(address.ToStruct())
+                    self._JumpNearAddress(address)
 
     def _Kill(self, evt):
         """
