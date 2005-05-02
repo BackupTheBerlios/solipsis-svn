@@ -98,8 +98,17 @@ class BookmarksDialog(wx.Frame):
     #
 
     def OnAddBookmark(self, event): # wxGlade: BookmarksDialog.<event_handler>
-        print "Add Bookmark"
-        event.Skip()
+        all_peers = self.world.GetAllPeers()
+        bookmarked_peers = set([peer.id_ for peer in self.bookmarks.GetAllPeers()])
+        peers = [peer for peer in all_peers if peer.id_ not in bookmarked_peers]
+        dialog = wx.SingleChoiceDialog(parent=self,
+            message=_("Please choose the peer to add to your bookmarks list."),
+            caption=_("Add bookmark"),
+            choices=[peer.pseudo for peer in peers])
+        if dialog.ShowModal() == wx.ID_OK:
+            peer = peers[dialog.GetSelection()]
+            self.bookmarks.AddPeer(peer)
+            self.UpdateUI()
 
     def OnDelBookmark(self, event): # wxGlade: BookmarksDialog.<event_handler>
         for peer_id in self.selected_items:
@@ -126,7 +135,6 @@ class BookmarksDialog(wx.Frame):
     def OnShow(self, event):
         self.selected_items.clear()
         self.UpdateUI()
-        print "on show"
 
 
     #
