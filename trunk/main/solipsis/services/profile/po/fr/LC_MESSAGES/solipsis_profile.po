@@ -1,4 +1,4 @@
-#: gui/FilePanel.py:76
+#: gui/FilePanel.py:77
 msgid "#shared"
 msgstr ""
 
@@ -38,7 +38,7 @@ msgstr ""
 msgid "About"
 msgstr ""
 
-#: gui/CustomPanel.py:19 gui/FilePanel.py:32
+#: gui/CustomPanel.py:19 gui/FilePanel.py:33
 msgid "Actions"
 msgstr ""
 
@@ -54,7 +54,7 @@ msgstr ""
 msgid "Allow users seeing profile"
 msgstr ""
 
-#: gui/ProfileFrame.py:44
+#: gui/ProfileFrame.py:44 gui/OthersPanel.py:29
 msgid "Anonymous"
 msgstr ""
 
@@ -74,11 +74,15 @@ msgstr ""
 msgid "Black listed"
 msgstr ""
 
+#: gui/OthersPanel.py:30
+msgid "Blacklisted"
+msgstr ""
+
 #: gui/PersonalPanel.py:105
 msgid "Choose your picture"
 msgstr ""
 
-#: gui/FilePanel.py:101
+#: gui/FilePanel.py:102
 msgid "Choose your repository"
 msgstr ""
 
@@ -90,7 +94,7 @@ msgstr ""
 msgid "Complementary information on file"
 msgstr ""
 
-#: gui/ProfileFrame.py:202
+#: gui/ProfileFrame.py:201
 msgid "Contacts"
 msgstr ""
 
@@ -130,15 +134,15 @@ msgstr ""
 msgid "Exit profile management"
 msgstr ""
 
-#: gui/FilePanel.py:75
+#: gui/FilePanel.py:76
 msgid "Explorer"
 msgstr ""
 
-#: gui/FilePanel.py:81
+#: gui/FilePanel.py:82
 msgid "File System..."
 msgstr ""
 
-#: gui/ProfileFrame.py:201
+#: gui/ProfileFrame.py:200
 msgid "Files"
 msgstr ""
 
@@ -156,6 +160,10 @@ msgstr ""
 
 #: gui/ProfileFrame.py:46
 msgid "Friend"
+msgstr ""
+
+#: gui/OthersPanel.py:28
+msgid "Friends"
 msgstr ""
 
 #: gui/CustomPanel.py:20
@@ -206,15 +214,15 @@ msgstr ""
 msgid "Ms"
 msgstr ""
 
-#: gui/FilePanel.py:60
+#: gui/FilePanel.py:61
 msgid "Name"
 msgstr ""
 
-#: gui/ProfileFrame.py:55
+#: gui/ProfileFrame.py:55 gui/OthersPanel.py:27
 msgid "Peers"
 msgstr ""
 
-#: gui/ProfileFrame.py:199
+#: gui/ProfileFrame.py:198
 msgid "Personal"
 msgstr ""
 
@@ -222,7 +230,7 @@ msgstr ""
 msgid "Postcode"
 msgstr ""
 
-#: gui/ProfileFrame.py:198
+#: gui/ProfileFrame.py:197
 msgid "Preview"
 msgstr ""
 
@@ -254,7 +262,7 @@ msgstr ""
 msgid "Search profile in surrounding area"
 msgstr ""
 
-#: gui/FilePanel.py:62
+#: gui/FilePanel.py:63
 msgid "Shared"
 msgstr ""
 
@@ -262,11 +270,11 @@ msgstr ""
 msgid "Show info"
 msgstr ""
 
-#: gui/ProfileFrame.py:200
+#: gui/ProfileFrame.py:199
 msgid "Special Interests"
 msgstr ""
 
-#: gui/FilePanel.py:61
+#: gui/FilePanel.py:62
 msgid "Tag"
 msgstr ""
 
@@ -278,18 +286,18 @@ msgstr ""
 msgid "dd/mm/yyyy"
 msgstr ""
 
-#: gui/FilePanel.py:77
+#: gui/FilePanel.py:78
 msgid "full path"
 msgstr ""
 
-#: view.py:344
-msgid "no data available for"
+#: gui/OthersPanel.py:47
+msgid "no neighbors yet"
 msgstr ""
 
-#: gui/ProfileFrame.py:181
+#: gui/ProfileFrame.py:180
 msgid "profile_frame"
 msgstr ""
 
-#: gui/ProfileFrame.py:188
+#: gui/ProfileFrame.py:187
 msgid "status"
 msgstr ""

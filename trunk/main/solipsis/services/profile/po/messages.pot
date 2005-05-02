@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-04-21 16:27+0200\n"
+"POT-Creation-Date: 2005-05-02 16:56+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: gui/CustomPanel.py:19 gui/FilePanel.py:32
+#: gui/CustomPanel.py:19 gui/FilePanel.py:33
 msgid "Actions"
 msgstr ""
 
@@ -80,7 +80,7 @@ msgstr ""
 msgid "&Add...\tCtrl+A"
 msgstr ""
 
-#: gui/ProfileFrame.py:44
+#: gui/ProfileFrame.py:44 gui/OthersPanel.py:29
 msgid "Anonymous"
 msgstr ""
 
@@ -108,7 +108,7 @@ msgstr ""
 msgid "Create active filters to get notified on peers approach"
 msgstr ""
 
-#: gui/ProfileFrame.py:55
+#: gui/ProfileFrame.py:55 gui/OthersPanel.py:27
 msgid "Peers"
 msgstr ""
 
@@ -132,63 +132,63 @@ msgstr ""
 msgid "About"
 msgstr ""
 
-#: gui/ProfileFrame.py:181
+#: gui/ProfileFrame.py:180
 msgid "profile_frame"
 msgstr ""
 
-#: gui/ProfileFrame.py:188
+#: gui/ProfileFrame.py:187
 msgid "status"
 msgstr ""
 
-#: gui/ProfileFrame.py:198
+#: gui/ProfileFrame.py:197
 msgid "Preview"
 msgstr ""
 
-#: gui/ProfileFrame.py:199
+#: gui/ProfileFrame.py:198
 msgid "Personal"
 msgstr ""
 
-#: gui/ProfileFrame.py:200
+#: gui/ProfileFrame.py:199
 msgid "Special Interests"
 msgstr ""
 
-#: gui/ProfileFrame.py:201
+#: gui/ProfileFrame.py:200
 msgid "Files"
 msgstr ""
 
-#: gui/ProfileFrame.py:202
+#: gui/ProfileFrame.py:201
 msgid "Contacts"
 msgstr ""
 
-#: gui/FilePanel.py:60
+#: gui/FilePanel.py:61
 msgid "Name"
 msgstr ""
 
-#: gui/FilePanel.py:61
+#: gui/FilePanel.py:62
 msgid "Tag"
 msgstr ""
 
-#: gui/FilePanel.py:62
+#: gui/FilePanel.py:63
 msgid "Shared"
 msgstr ""
 
-#: gui/FilePanel.py:75
+#: gui/FilePanel.py:76
 msgid "Explorer"
 msgstr ""
 
-#: gui/FilePanel.py:76
+#: gui/FilePanel.py:77
 msgid "#shared"
 msgstr ""
 
-#: gui/FilePanel.py:77
+#: gui/FilePanel.py:78
 msgid "full path"
 msgstr ""
 
-#: gui/FilePanel.py:81
+#: gui/FilePanel.py:82
 msgid "File System..."
 msgstr ""
 
-#: gui/FilePanel.py:101
+#: gui/FilePanel.py:102
 msgid "Choose your repository"
 msgstr ""
 
@@ -280,8 +280,16 @@ msgstr ""
 msgid "How you appear to other peers"
 msgstr ""
 
-#: view.py:344
-msgid "no data available for"
+#: gui/OthersPanel.py:28
+msgid "Friends"
+msgstr ""
+
+#: gui/OthersPanel.py:30
+msgid "Blacklisted"
+msgstr ""
+
+#: gui/OthersPanel.py:47
+msgid "no neighbors yet"
 msgstr ""
 
 #: plugin.py:63

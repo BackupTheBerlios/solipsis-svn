@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-04-21 16:27+0200\n"
+"POT-Creation-Date: 2005-05-02 16:54+0200\n"
 "PO-Revision-Date: 2005-04-21 16:27+0200\n"
 "Last-Translator: Antoine Pitrou <solipsis@pitrou.net>\n"
 "Language-Team: \n"
@@ -11,7 +11,7 @@ msgstr ""
 "Content-Type: text/plain; charset=iso-8859-1\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: plugin.py:85
+#: plugin.py:97
 msgid "&Configure"
 msgstr "&Configurer"
 
@@ -19,7 +19,7 @@ msgstr "&Configurer"
 msgid "All files"
 msgstr "Tous les fichiers"
 
-#: plugin.py:95
+#: plugin.py:107
 msgid "Avatar"
 msgstr "Avatar"
 
@@ -51,11 +51,11 @@ msgstr "Images"
 msgid "Please choose another file."
 msgstr "Veuillez choisir un autre fichier."
 
-#: plugin.py:92
+#: plugin.py:104
 msgid "Shrink avatars"
 msgstr "Rapetisser les avatars"
 
-#: plugin.py:88
+#: plugin.py:100
 msgid "Stretch avatars"
 msgstr "Agrandir les avatars"
 
