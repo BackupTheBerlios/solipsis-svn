@@ -18,25 +18,22 @@
 # </copyright>
 
 import sys
-import logging
-try:
-    set
-except NameError:
-    from sets import Set as set
 
 from twisted.internet.protocol import DatagramProtocol
 
+from solipsis.util.utils import set
 import protocol
 
 
 class NodeConnector(DatagramProtocol):
     no_log = set(['HEARTBEAT'])
 
-    def __init__(self, reactor, params, state_machine):
+    def __init__(self, reactor, params, state_machine, logger):
         self.reactor = reactor
         self.params = params
         self.state_machine = state_machine
         self.parser = protocol.Parser()
+        self.logger = logger
 
     def datagramReceived(self, data, address):
         """
@@ -46,7 +43,7 @@ class NodeConnector(DatagramProtocol):
         try:
             message = self.parser.ParseMessage(data)
             if message.request not in self.no_log:
-                logging.debug("<<<< received from %s:%d\n%s" % (host, port, data))
+                self.logger.debug("<<<< received from %s:%d\n%s" % (host, port, data))
         except Exception, e:
             print str(e)
         else:
@@ -79,5 +76,5 @@ class NodeConnector(DatagramProtocol):
 
         data = self.parser.BuildMessage(message)
         if message.request not in self.no_log:
-            logging.debug(">>>> sending to %s:%d\n%s" % (host, port, data))
+            self.logger.debug(">>>> sending to %s:%d\n%s" % (host, port, data))
         self.transport.write(data, (host, port))

@@ -54,11 +54,12 @@ class RemoteControl(object):
     max_notif_delay = 4.0
     connection_timeout = 60.0
 
-    def __init__(self, reactor, params, state_machine):
+    def __init__(self, reactor, params, state_machine, logger):
         self.reactor = reactor
         self.params = params
         self.state_machine = state_machine
         self.caller = DelayedCaller(self.reactor)
+        self.logger = logger
 
         # (connect_id -> Connection) dictionnary
         self.connections = {}

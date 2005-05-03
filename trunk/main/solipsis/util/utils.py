@@ -19,6 +19,11 @@
 
 import sha
 import random
+# Compatibility with Python < 2.4
+try:
+    set = set
+except NameError:
+    from sets import Set as set
 
 def CreateSecureId():
     """

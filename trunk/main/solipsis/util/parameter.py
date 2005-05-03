@@ -126,6 +126,5 @@ class Parameters(object):
         # (note: only the root logger is used at the moment)
         #
         logging.config.fileConfig(self._config_file, defaults={'logid': self.port})
-        self._logger = logging.getLogger('root')
+        self._logger = logging.getLogger()
         self._logger.info("Parameters initialized")
-        return

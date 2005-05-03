@@ -18,7 +18,6 @@
 # </copyright>
 
 import sys
-import logging
 import math
 import random
 import time
@@ -111,7 +110,7 @@ class StateMachine(object):
         'UPDATE':       [],
     }
 
-    def __init__(self, reactor, params, node, logger=None):
+    def __init__(self, reactor, params, node, logger):
         """
         Initialize the state machine.
         """
@@ -119,7 +118,7 @@ class StateMachine(object):
         self.params = params
         self.node = node
         self.topology = Topology()
-        self.logger = logger or logging.getLogger("root")
+        self.logger = logger
         self.parser = protocol.Parser()
 
         # Expected number of neighbours (in awareness radius)
