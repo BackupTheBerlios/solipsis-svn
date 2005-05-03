@@ -39,7 +39,7 @@ COMMANDS = {"check": ["chech status of connection", ""],
             "jump": ["jump to node", "192.33.178.29:5010"],
             "pref": ["change preferences", ""],
             "quit": ["close navigator", ""],
-            "display": ["display current address", '192.33.178.29:5010'""],
+            "display": ["display current address", ""],
             "go": ["go to position", "0,0"],
             "menu": ["display peer menu", ""],
             "hover": ["emumate hover on peer", "0,0"],
@@ -107,17 +107,18 @@ class SolipsisUiProtocol(basic.LineReceiver):
             try:
                 cmd = "do_" + cmd_passed
                 self.cmd = getattr(self.factory, cmd)
-                if COMMANDS[cmd_passed][1]:
-                    # display default param 
-                    self.transport.write("[%s]"% COMMANDS[cmd_passed][1])
-                else:
-                    # call function if none needed
-                    out_msg = self.cmd("")
-                    if out_msg:
-                        self.transport.write(out_msg+"\r\n")
-                    self.cmd = None
             except AttributeError:
-                self.transport.write("%s not a valid command\n"% line)
+                self.transport.write("%s not a valid command\n"% cmd)
+                return
+            if COMMANDS[cmd_passed][1]:
+                # display default param 
+                self.transport.write("[%s]"% COMMANDS[cmd_passed][1])
+            else:
+                # call function if none needed
+                out_msg = self.cmd("")
+                if out_msg:
+                    self.transport.write(out_msg+"\r\n")
+                self.cmd = None
         else:
             # call function with param
             out_msg = self.cmd(line)
@@ -167,9 +168,8 @@ class SolipsisUiFactory(protocol.ServerFactory):
         self.app._Kill(arg)
 
     def do_jump(self, arg):
-        args = self.address_val._Validate(arg)
-        if not args:
-            args = self.address_val._Validate(COMMANDS['jump'][1])
+        if not self.address_val._Validate(arg):
+            arg = COMMANDS['jump'][1]
         return self.app._JumpNear(arg)
 
     def do_pref(self, arg):
@@ -186,9 +186,9 @@ class SolipsisUiFactory(protocol.ServerFactory):
     def do_go(self, arg):
         # arg must be like 'x,y'
         try:
-            position = [int(coord) for coord in arg.split(',')]
+            position = [float(coord)*2**128 for coord in arg.split(',')]
             if len(position) == 2:
-                self.app._LeftClickViewport(position)
+                return self.app._LeftClickViewport(position)
             else:
                 return "enter position as 'x,y'"
         except ValueError:
@@ -198,8 +198,15 @@ class SolipsisUiFactory(protocol.ServerFactory):
         return self.app._RightClickViewport(arg)
 
     def do_hover(self, arg):
-        print "calling _HoverViewport" 
-        self.app._HoverViewport(arg)
+        # arg must be like 'x,y'
+        try:
+            position = [float(coord)*2**128 for coord in arg.split(',')]
+            if len(position) == 2:
+                return self.app._HoverViewport(position)
+            else:
+                return "enter position as 'x,y'"
+        except ValueError:
+            return "enter position as 'x,y'"
 
     def do_help(self, arg):
         str_stream = StringIO()

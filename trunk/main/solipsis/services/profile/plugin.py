@@ -165,7 +165,7 @@ class Plugin(ServicePlugin):
         """
         Called when a peer bearing the service is changed.
         """
-        print "Profile: ChangedPeer", peer.id_, service.address
+        pass
 
     def LostPeer(self, peer_id):
         """

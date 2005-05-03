@@ -57,6 +57,7 @@ class World:
         """
         # Dictionnary of peer ID -> world item
         self.items = {}
+        self.peer_by_pos = {}
         self.viewport.Reset()
         if self.node_item:
             self.UpdateNode(self.node_item.peer)
@@ -157,6 +158,13 @@ class World:
             return self.node_item.peer
         except AttributeError:
             return None
+
+    def GetHoveredPeer(self, position):
+        """
+        Returns the peer on given position.
+        """
+        if position in self.peer_by_pos:
+            return self.GetPeer(self.peer_by_pos[position])
 
     def GetPeer(self, peer_id):
         """

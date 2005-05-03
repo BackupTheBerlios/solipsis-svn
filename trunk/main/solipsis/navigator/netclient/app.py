@@ -131,10 +131,10 @@ class NavigatorApp(UIProxyReceiver):
         self.reactor.run()
 
     def Redraw(self):
-        print "ui Redraw"
+        pass
 
     def AskRedraw(self):
-        print "ui AskRedraw"
+        pass
 
     def OnIdle(self, event):
         raise NotImplementedError
@@ -383,15 +383,22 @@ class NavigatorApp(UIProxyReceiver):
         Called on right click event.
         """
         stream = StringIO()
+        # We display a contextual menu
         if self._CheckNodeProxy(False):
-            l = self.services.GetPointToPointActions(id_)
-            if len(l) > 0:
-                for item in l:
-                    print >> stream, item
-                print  >> stream,'---'
+            # MenuItem #1: bookmark peer
+            peer = self.world.GetHoveredPeer(evt)
+            if peer is not None:
+                print >> stream, _('Bookmark peer "%s"') % peer.pseudo
+                # Following MenuItems are filled by service plugins
+                l = self.services.GetPointToPointActions(peer.id_)
+                if len(l) > 0:
+                    for item in l:
+                        print >> stream, item
+                    print  >> stream,'---'
             print >> stream, _("Disconnect")
         else:
             print >> stream, _("Connect to node")
+        print >> stream, _("About Solipsis")
         return stream.getvalue()
 
     def _HoverViewport(self, evt):
@@ -399,7 +406,7 @@ class NavigatorApp(UIProxyReceiver):
         Called on mouse movement in the viewport.
         """
         if self._CheckNodeProxy(False):
-            x, y = evt.GetPositionTuple()
+            x, y = evt
             changed, id_ = self.viewport.Hover((x, y))
             if changed and id_:
                 self.statusbar.SetTemp(self.world.GetPeer(id_).pseudo)
