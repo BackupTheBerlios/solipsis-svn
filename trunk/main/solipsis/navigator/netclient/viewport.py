@@ -17,6 +17,10 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
 
+def _pretty_pos((x, y)):
+    """returns pretty formated position"""
+    return "%f,%f"% (x/float(2**128), y/float(2**128))
+
 class Viewport(object):
 
     overview_ratio = 1.15
@@ -49,16 +53,16 @@ class Viewport(object):
         print "Viewport: Remove %s"% name
 
     def MoveObject(self, name, position):
-        print "Viewport: Move object %s to %s"% (obj_name, position)
+        print "Viewport: Move object %s to %s"% (name, _pretty_pos(position))
 
     def JumpTo(self, position):
-        print "Viewport: Jump to %s"% position
+        print "Viewport: Jump to %s"% _pretty_pos(position)
 
     def MoveTo(self, position):
-        print "Viewport: Move to %s"% position
+        print "Viewport: Move to %s"% _pretty_pos(position)
 
     def MoveToPixels(self, position, strafe=False):
-        print "Viewport: Move to pixels %s"% position
+        print "Viewport: Move to pixels %s"% _pretty_pos(position)
     
     def MoveToRelative(self, (dx, dy)):
         print "Viewport: Move to relative %s"% str((dx, dy))

@@ -131,10 +131,10 @@ class NavigatorApp(UIProxyReceiver):
         self.reactor.run()
 
     def Redraw(self):
-        raise NotImplementedError
+        print "ui Redraw"
 
     def AskRedraw(self):
-        raise NotImplementedError
+        print "ui AskRedraw"
 
     def OnIdle(self, event):
         raise NotImplementedError

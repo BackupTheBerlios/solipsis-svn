@@ -21,7 +21,7 @@ import cPickle as pickle
 
 from solipsis.util.entity import Entity, Service
 from solipsis.util.address import Address
-from solipsis.util.wxutils import ManagedData
+from solipsis.util.utils import ManagedData
 
 
 class ConfigData(ManagedData):

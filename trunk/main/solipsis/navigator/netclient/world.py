@@ -203,4 +203,4 @@ class World:
         print "World: Create label %s"% item.peer.pseudo
 
     def _CreatePeerAvatar(self, item):
-        print "World: Create avatar %s"% item.peer._id
+        print "World: Create avatar %s"% item.peer.id_

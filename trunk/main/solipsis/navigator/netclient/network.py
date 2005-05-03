@@ -21,7 +21,7 @@ import threading
 from pprint import pprint
 from cStringIO import StringIO
 
-from solipsis.util.uiproxy import UIProxy
+from solipsis.util.uiproxy import TwistedProxy
 from solipsis.util.remote import RemoteConnector
 
 from twisted.internet import protocol, reactor, defer
@@ -45,7 +45,8 @@ COMMANDS = {"check": ["chech status of connection", ""],
             "hover": ["emumate hover on peer", "0,0"],
             "help": ["display help [on cmd]", "all"]}
 
-class NetworkLoop(threading.Thread):
+class NetworkLoop(object):
+# class NetworkLoop(threading.Thread):
     """
     NetworkLoop is an event loop running in its own thread.
     It manages socket-based communication with the Solipsis node
@@ -58,7 +59,7 @@ class NetworkLoop(threading.Thread):
         super(NetworkLoop, self).__init__()
         self.repeat_hello = True
         self.repeat_count = 0
-        self.ui = UIProxy(ui_service)
+        self.ui = TwistedProxy(ui_service, reactor)
         self.reactor = reactor
 
         self.angle = 0.0
@@ -69,6 +70,12 @@ class NetworkLoop(threading.Thread):
         Run the reactor loop.
         """
         self.reactor.run(installSignalHandlers=0)
+
+    def start(self, *args):
+        pass
+
+    def setDaemon(self, *args):
+        pass
 
     #
     # Actions from the UI thread
