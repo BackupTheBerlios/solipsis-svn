@@ -23,6 +23,7 @@ import bisect
 import gettext
 _ = gettext.gettext
 from pprint import pprint
+from cStringIO import StringIO
 from threading import Timer
 
 from solipsis.util.entity import ServiceData
@@ -39,6 +40,8 @@ from statusbar import StatusBar
 from network import NetworkLoop, SolipsisUiFactory
 from config import ConfigData
 from launch import Launcher
+
+USE_SERVICE = ['profile']
 
 class NavigatorApp(UIProxyReceiver):
     version = "0.1.1"
@@ -91,7 +94,10 @@ class NavigatorApp(UIProxyReceiver):
         Initialize all services.
         """
         self.services = ServiceCollector(self.params, self.reactor)
-        self.services.ReadServices()
+        for service in USE_SERVICE:
+            service_path = self.services._ServiceDirectory(service)
+            service_id, plugin =self.services.LoadService(service_path, service)
+            self.services.InitService(service_id, plugin)
         self.services.SetNode(self.config_data.GetNode())
         self.services.EnableServices()
         self.config_data.SetServices(self.services.GetServices())
@@ -115,7 +121,7 @@ class NavigatorApp(UIProxyReceiver):
         self.InitResources()
         print "creating world"
         self.world = World(self.viewport)
-        print "UI launched"
+        print "setting network and services"
         # Other tasks 
         self.InitTwisted()
         self.InitNetwork()
@@ -155,19 +161,25 @@ class NavigatorApp(UIProxyReceiver):
         """
         if self.node_proxy is not None:
             return True
-        if display_error:
-            print _("This action cannot be performed, \nbecause you are not connected to a node.")
-        return False
+        else:
+            if display_error:
+                print _("This action cannot be performed, because you are not connected to a node.")
+            return False
     
     def _MemDebug(self):
-        gc.collect()
-        self.memsizer.sizeall()
-        print "\n... memdump ...\n"
-        items = self.memsizer.get_deltas()
-        print "\n".join(items)
-        t = Timer(10, self._MemDebug)
-        t.start()
-        print "\n\n"
+        if self.memsizer:
+            stream = StringIO()
+            gc.collect()
+            self.memsizer.sizeall()
+            print >> stream, "\n... memdump ...\n"
+            items = self.memsizer.get_deltas()
+            print >> stream, "\n".join(items)
+            t = Timer(10, self._MemDebug)
+            t.start()
+            print >> stream, "\n\n"
+            return stream.getvalue()
+        else:
+            return "navigator not launched in debug mode"
     
     def _TryConnect(self):
         """
@@ -181,6 +193,7 @@ class NavigatorApp(UIProxyReceiver):
         self.statusbar.SetText(_("Connecting"))
         self.services.RemoveAllPeers()
         self.services.SetNode(self.config_data.GetNode())
+        return "connecting to %s:%d"% (self.config_data.host, self.config_data.port)
     
     def _DestroyProgress(self):
         raise NotImplementedError
@@ -200,7 +213,7 @@ class NavigatorApp(UIProxyReceiver):
         """
         Called on "about" event (menu -> Help -> About).
         """
-        print _("Solipsis Navigator") + " " + self.version + "\n\n" + _("Licensed under the GNU LGPL") + "\n(c) France Telecom R&D"
+        return _("Solipsis Navigator") + " " + self.version + "\n\n" + _("Licensed under the GNU LGPL") + "\n(c) France Telecom R&D"
 
     def _OpenBookmarksDialog(self, evt):
         """Not necessary in cmdClient"""
@@ -210,13 +223,14 @@ class NavigatorApp(UIProxyReceiver):
         """
         Called on "create node" event (menu -> File -> New node).
         """
-        print "creating node for", self.config_data.pseudo
+        stream = StringIO()
+        print >> stream, "creating node for", self.config_data.pseudo
         l = Launcher(port=self.config_data.solipsis_port)
         # First try to spawn the node
         if not l.Launch():
             self.viewport.Disable()
-            print _("Node creation failed. \nPlease check you have sufficient rights.")
-            return
+            print >> stream, _("Node creation failed. \nPlease check you have sufficient rights.")
+            return stream.getvalue()
         # Then connect using its XMLRPC daemon
         self.config_data.host = 'localhost'
         self.config_data.port = 8550
@@ -226,12 +240,13 @@ class NavigatorApp(UIProxyReceiver):
         self.config_data.Compute()
         # Hack so that the node has the time to launch
         self.connection_trials = 5
-        self._TryConnect()
+        print >> stream, self._TryConnect()
+        return stream.getvalue()
 
     def _OpenConnect(self, evt):
         self.config_data.Compute()
         self.connection_trials = 0
-        self._TryConnect()
+        return self._TryConnect()
         
     def _Disconnect(self, evt):
         """
@@ -244,26 +259,32 @@ class NavigatorApp(UIProxyReceiver):
             self.viewport.Disable()
             self.statusbar.SetText(_("Not connected"))
             self.services.RemoveAllPeers()
+            return _("Not connected")
+        else:
+            return "not connected"
 
     def _DisplayNodeAddress(self, evt):
         """
         Called on "node address" event (menu -> Actions -> Jump Near).
         """
         if self._CheckNodeProxy():
-            print self.world.GetNode().address.ToString()
+            return self.world.GetNode().address.ToString()
+        else:
+            return "not connected"
 
     def _JumpNear(self, evt):
         """
         Called on "jump near" event (menu -> Actions -> Node address).
         """
         if self._CheckNodeProxy():
-            defaultValue='192.33.178.29:5010'
             try:
-                address = Address.FromString(defaultValue)
+                address = Address.FromString(evt)
             except ValueError, e:
-                print str(e)
+                return str(e)
             else:
                 self.node_proxy.JumpNear(address.ToStruct())
+        else:
+            return "not connected"
 
     def _Kill(self, evt):
         """
@@ -272,12 +293,17 @@ class NavigatorApp(UIProxyReceiver):
         if self._CheckNodeProxy():
             self.network.KillNode()
             self.services.RemoveAllPeers()
+        else:
+            return "not connected"
 
     def _Preferences(self, evt):
         """
         Called on "preferences" event (menu -> File -> Preferences).
         """
+        stream = StringIO()
         self.config_data.Compute()
+        pprint(self.config_data.__dict__["_dict"], stream)
+        return stream.getvalue()
 
     def _Quit(self, evt):
         """
@@ -309,8 +335,6 @@ class NavigatorApp(UIProxyReceiver):
         # and network -> UI events will be discarded
         self.DisableProxy()
         self.network.DisableProxy()
-        # Process the last pending events
-        self.ProcessPendingEvents()
         # Finish running services
         self.services.Finish()
         # Now we are sure that no more events are pending, kill everything
@@ -348,23 +372,27 @@ class NavigatorApp(UIProxyReceiver):
         Called on left click event.
         """
         if self._CheckNodeProxy(False):
-            x, y = self.viewport.MoveToPixels(evt.GetPositionTuple())
+            x, y = evt
             self.world.UpdateNodePosition(Position((x, y, 0)))
             self.node_proxy.Move(str(long(x)), str(long(y)), str(0))
+        else:
+            return "not connected"
 
     def _RightClickViewport(self, evt):
         """
         Called on right click event.
         """
+        stream = StringIO()
         if self._CheckNodeProxy(False):
             l = self.services.GetPointToPointActions(id_)
             if len(l) > 0:
                 for item in l:
-                    print item
-                print '---'
-            print _("Disconnect")
+                    print >> stream, item
+                print  >> stream,'---'
+            print >> stream, _("Disconnect")
         else:
-            print _("Connect to node")
+            print >> stream, _("Connect to node")
+        return stream.getvalue()
 
     def _HoverViewport(self, evt):
         """
@@ -377,6 +405,8 @@ class NavigatorApp(UIProxyReceiver):
                 self.statusbar.SetTemp(self.world.GetPeer(id_).pseudo)
             elif changed and not id_:
                 self.statusbar.Reset()
+        else:
+            return "not connected"
 
 
     #===-----------------------------------------------------------------===#
@@ -453,6 +483,7 @@ class NavigatorApp(UIProxyReceiver):
         self._SetWaiting(False)
         self.node_proxy = TwistedProxy(node_proxy, self.reactor)
         self.statusbar.SetText(_("Connected"))
+        print "NodeConnectionSucceeded", node_proxy
 
     def NodeConnectionFailed(self, error):
         """
@@ -475,6 +506,7 @@ class NavigatorApp(UIProxyReceiver):
         else:
             # If not alive, then we are in the quit phase
             self._Quit2()
+        print "NodeKillSucceeded"
 
     def NodeKillFailed(self):
         """
@@ -488,6 +520,7 @@ class NavigatorApp(UIProxyReceiver):
         else:
             # If not alive, then we are in the quit phase
             self._Quit2()
+        print "NodeKillFailed"
 
     #===-----------------------------------------------------------------===#
     # Actions from the services

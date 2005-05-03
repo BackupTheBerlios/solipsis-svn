@@ -67,6 +67,16 @@ class HostnameValidator(_RegexpValidator):
         self.message = "Please enter a valid hostname or address"
 
 
+class AddressValidator(_RegexpValidator):
+    """
+    Validator for hostnames.
+    """
+    regexp = re.compile(r'^(?P<host>[-_\w\.]+):(?P<port>\d+)$')
+
+    def __init__(self, *args, **kargs):
+        self.message = "Please enter a valid host:port"
+
+
 class NicknameValidator(_RegexpValidator):
     """
     Validator for nicknames.
