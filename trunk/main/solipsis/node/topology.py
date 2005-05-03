@@ -22,12 +22,7 @@ import math
 import bisect
 import random
 
-# Python 2.3 compatibility
-try:
-    set
-except:
-    from sets import Set as set
-
+from solipsis.util.utils import set
 from solipsis.util.exception import *
 
 

@@ -20,11 +20,7 @@
 import os
 import os.path
 
-try:
-    set
-except:
-    from sets import Set as set
-
+from solipsis.util.utils import set
 from solipsis.util.entity import Service
 
 

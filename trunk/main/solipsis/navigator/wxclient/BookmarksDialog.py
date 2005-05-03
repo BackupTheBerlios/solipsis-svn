@@ -3,13 +3,9 @@
 
 import wx
 
+from solipsis.util.utils import set
 from solipsis.util.wxutils import _
 from solipsis.util.wxutils import GetStockToolbarBitmap as TB
-
-try:
-    set
-except NameError:
-    from sets import Set as set
 
 # begin wxGlade: dependencies
 # end wxGlade

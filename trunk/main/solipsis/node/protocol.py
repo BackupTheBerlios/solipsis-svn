@@ -26,11 +26,7 @@ import re
 import new
 import logging
 
-try:
-    set
-except:
-    from sets import Set as set
-
+from solipsis.util.utils import set
 from solipsis.util.exception import *
 from solipsis.util.position import Position
 from solipsis.util.address import Address

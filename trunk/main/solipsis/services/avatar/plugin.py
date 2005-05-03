@@ -21,11 +21,7 @@ import socket
 import wx
 import random
 
-try:
-    set
-except NameError:
-    from sets import Set as set
-
+from solipsis.util.utils import set
 from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import TwistedProxy, UIProxy
 from solipsis.services.plugin import ServicePlugin

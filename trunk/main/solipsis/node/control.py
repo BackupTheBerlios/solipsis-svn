@@ -20,13 +20,10 @@
 import sha
 import random
 import time
-try:
-    set
-except NameError:
-    from sets import Set as set
 
 from twisted.internet import defer
 
+from solipsis.util.utils import set
 from solipsis.util.exception import *
 from solipsis.util.entity import Entity, Service, ServiceData
 from solipsis.util.address import Address

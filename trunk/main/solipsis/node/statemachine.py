@@ -22,6 +22,7 @@ import math
 import random
 import time
 
+from solipsis.util.utils import set
 from solipsis.util.exception import *
 from solipsis.util.position import Position
 from solipsis.util.address import Address
@@ -30,13 +31,6 @@ import protocol
 import states
 from topology import Topology
 from delayedcaller import DelayedCaller
-
-
-# Forward compatibility with built-in "set" types
-try:
-    set
-except NameError:
-    from sets import Set as set
 
 
 class StateMachine(object):

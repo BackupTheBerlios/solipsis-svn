@@ -18,11 +18,8 @@
 # </copyright>
 
 import logging
-try:
-    set
-except:
-    from sets import Set as set
 
+from solipsis.util.utils import set
 from solipsis.util.position import Position
 from solipsis.util.address import Address
 from solipsis.util.marshal import Marshallable
