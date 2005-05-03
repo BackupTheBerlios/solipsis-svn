@@ -116,61 +116,6 @@ class XRCLoader(object):
             raise NameError("resource object '%s' does not exist" % name)
         return attr
 
-# FIXME: does not depend on wx => move to utils
-class ManagedData(object):
-    """
-    Derive this class to create Managed data for use with validators.
-    """
-    def __init__(self):
-        object.__setattr__(self, '_dict', {})
-
-    def __setattr__(self, name, value):
-        try:
-            self._dict[name][0] = value
-        except KeyError:
-            self._dict[name] = [value]
-
-    def __getattr__(self, name):
-        assert name != "_dict"
-        return self._dict[name][0]
-
-    def GetDict(self):
-        """
-        Returns a dict containing managed data in an unmanaged way.
-        Changes to this dict will not be propagated to the object attributes.
-        """
-        d = {}
-        for k, v in self._dict.iteritems():
-            d[k] = v[0]
-        return d
-
-    def UpdateDict(self, d):
-        """
-        Update the attributes with a dictionnary containing values.
-        """
-        for k, v in d.iteritems():
-            if k in self._dict:
-                expected_type = type(self._dict[k][0])
-                # If the value is not of the attribute's current type,
-                # try to convert it
-                if expected_type != type(v):
-                    try:
-                        v = expected_type(v)
-                    except Exception, e:
-                        print "Could not update attribute '%s' in ManagedData: wrong type '%s'" % (k, type(v).__name__)
-                        continue
-                self._dict[k][0] = v
-            else:
-                self._dict[k] = [v]
-
-    def Ref(self, name):
-        """
-        Returns a reference to an attribute, i.e. the list that contains
-        the attribute as sole element.
-        """
-        return self._dict[name]
-
-
 class Validator(wx.PyValidator):
     """
     This class holds the basic primitives for writing validators,

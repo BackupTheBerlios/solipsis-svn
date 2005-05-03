@@ -17,9 +17,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
 
-import wx
-import wx.lib.newevent
-
 
 class TwistedProxy(object):
     """ This is a Twisted proxy. Delegate method calls to this object and
@@ -60,6 +57,7 @@ class UIProxy(object):
         self._target = realobj
 
     def __getattr__(self, name):
+        import wx
         attr = getattr(self._target, name)
         if callable(attr):
             def fun(*args, **kargs):

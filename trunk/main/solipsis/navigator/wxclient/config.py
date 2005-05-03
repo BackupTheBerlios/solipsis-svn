@@ -23,7 +23,8 @@ from wx.xrc import XRCCTRL, XRCID
 
 from solipsis.util.entity import Entity, Service
 from solipsis.util.address import Address
-from solipsis.util.wxutils import _, ManagedData
+from solipsis.util.wxutils import _ 
+from solipsis.util.utils import ManagedData
 
 from bookmarks import BookmarkList
 
