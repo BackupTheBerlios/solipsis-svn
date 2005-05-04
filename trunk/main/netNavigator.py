@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import os,sys
-from solipsis.navigator.cmdclient.main import main
+from solipsis.navigator.netclient.main import main
 
 # add current directory to the python search path
 # it is needed in case solipsis is not installed in the standard python
