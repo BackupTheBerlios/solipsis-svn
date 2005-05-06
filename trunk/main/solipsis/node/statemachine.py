@@ -810,11 +810,12 @@ class StateMachine(object):
             # We still have the global connectivity,
             # so we simply notify our peers of the position change
             self.node.position = position
-            self.future_position = None
             # This handles the case when the user continues moving
             # while we are changing topologies
             if self.future_topology is not None:
                 self.future_topology.SetOrigin((x, y))
+            else:
+                self.future_position = None
             self._SendUpdates()
         else:
             # Otherwise, do a full-fledged teleport from the current position
