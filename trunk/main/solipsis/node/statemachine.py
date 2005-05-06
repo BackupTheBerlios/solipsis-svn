@@ -647,7 +647,12 @@ class StateMachine(object):
         # 2. Or we find the closest peer around the target position and in the right half-plane
         else:
             # Search for a peer around target position
-            around = self.topology.GetPeerAround(target, peer_id)
+            around = self.topology.GetPeerAround(target, peer_id, clockwise=True)
+            if around is not None:
+                self._SendToAddress(args.address, self._PeerMessage('AROUND', remote_peer=around))
+            else:
+                self.logger.info('QUERYAROUND received, but no peer around position: %s' % str(target))
+            around = self.topology.GetPeerAround(target, peer_id, clockwise=False)
             if around is not None:
                 self._SendToAddress(args.address, self._PeerMessage('AROUND', remote_peer=around))
             else:
