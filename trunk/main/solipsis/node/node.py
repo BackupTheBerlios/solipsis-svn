@@ -28,7 +28,46 @@ from solipsis.util.entity import Entity, Service
 
 class Node(Entity):
     count = 0
-    
+
+    # Translation of the word "home" in many languages
+    # (see:
+    # - http://www.majstro.com/
+    # - http://free.translated.net/
+    # - ...
+    # )
+    home_translations = [
+        u'llar',                # Catalan
+        u'hjem',                # Danish
+        u'thuis',               # Dutch
+        u'ham',                 # Old English
+        u'hejmen',              # Esperanto
+        u'heim',                # Faeroese
+        u'koti',                # Finnish
+        u'maison',              # French
+        u'th\xfas',             # Frisian
+        u'Heim',                # German
+        u'\u03c3\u03c0\u03af\u03c4\u03b9', # Greek
+        u'haza',                # Hungarian
+        u'b\xfasta\xf0ur',      # Icelandic
+        u'Rumah',               # Indonesian
+        u'casa',                # Italian
+        #~ u'uti',                 # Japanese
+        u'\u5bb6',              # Japanese
+        u'\uac00\uc815',        # Korean
+        u'atrium',              # Latin
+        u'bolig',               # Norwegian
+        u'kas',                 # Papiamento
+        u'dom',                 # Polish
+        u'casa',                # Portuguese
+        u'\u0434\u043e\u043c\u043e\u0439', # Russian
+        u'dhachaidh',           # Scottish Gaelic
+        u'\u5bb6\u5ead',        # Simplified Chinese
+        u'casa',                # Spanish
+        u'hem',                 # Swedish
+        u'otoch',               # Yucatec
+        u'ikhaya',              # Zulu
+    ]
+
     random_pseudos = [
         u'aardvark',
         u'cat',
@@ -110,7 +149,8 @@ class Node(Entity):
         a = x * (10.0 / self.world_size)
         b = y * (10.0 / self.world_size)
         #~ print a, b
-        c = random.choice(['ga', 'bu', 'zo', 'meu'])
+        #~ c = random.choice(['ga', 'bu', 'zo', 'meu'])
+        c = random.choice(self.home_translations)
         self.pseudo = '%s%s-%s' % (chr(int(a) + ord('a')), str(int(b) + 1), c)
         #~ d = random.randrange(1, 100)
         #~ self.pseudo = '%s%s-%s' % (chr(a), str(b), c)

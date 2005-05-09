@@ -324,7 +324,6 @@ class Parser(object):
         Parse and extract message from protocol data.
         """
         # Parse raw data to construct message (strip empty lines)
-        #~ lines = [line.strip() for line in data.splitlines() if line.strip() != ""]
         lines = data.split(self.line_separator)
         # If message is empty, return false
         if not lines:
