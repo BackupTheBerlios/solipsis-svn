@@ -167,6 +167,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         loop.start()
         self.network_loop = loop
         self.network = TwistedProxy(loop, self.reactor)
+        self.network.StartURLListener(self.params.url_port)
 
     def InitServices(self):
         """

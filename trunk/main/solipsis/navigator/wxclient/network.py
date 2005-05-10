@@ -22,6 +22,8 @@ import threading
 from solipsis.util.uiproxy import UIProxy
 from solipsis.util.remote import RemoteConnector
 
+from urllistener import URLListenFactory
+
 
 class NetworkLoop(threading.Thread):
     """
@@ -29,18 +31,21 @@ class NetworkLoop(threading.Thread):
     It manages socket-based communication with the Solipsis node
     and event-based communication with the User Interface (UI).
     """
-    def __init__(self, reactor, wxEvtHandler):
+    def __init__(self, reactor, ui):
         """
         Builds a network loop from a Twisted reactor and a Wx event handler.
         """
         super(NetworkLoop, self).__init__()
-        self.repeat_hello = True
-        self.repeat_count = 0
-        self.ui = UIProxy(wxEvtHandler)
+        self.ui = UIProxy(ui)
         self.reactor = reactor
 
         self.angle = 0.0
         self.remote_connector = RemoteConnector(self.reactor, self.ui)
+
+    def StartURLListener(self, url_port):
+        self.reactor.listenTCP(url_port,
+            factory=URLListenFactory(self.ui),
+            interface="127.0.0.1")
 
     def run(self):
         """
