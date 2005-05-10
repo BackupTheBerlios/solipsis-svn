@@ -38,13 +38,4 @@ class URLListenFactory(protocol.ServerFactory):
         self.url_pattern = re.compile(self.url_regexp)
 
     def ProcessURL(self, url):
-        print url
-        m = self.url_pattern.match(url)
-        if m is not None:
-            host = m.group(1)
-            port = m.group(2)
-            print host, port
-            self.ui._JumpNearAddress(Address(host, port))
-
-#~ reactor.listenTCP(1079, FingerFactory())
-#~ reactor.run()
+        self.ui._JumpNearURL(url)

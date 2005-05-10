@@ -22,6 +22,7 @@ import gc
 import wx
 import wx.xrc
 import bisect
+import re
 from wx.xrc import XRCCTRL, XRCID
 
 from solipsis.util.entity import ServiceData
@@ -68,6 +69,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.menubars = None
 
         self.progress_dialog = None
+        self.url_jump = self.params.url_jump or None
 
         # Caution : wx.App.__init__ automatically calls OnInit(),
         # thus all data must be initialized before
@@ -358,6 +360,19 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     def _JumpNearAddress(self, address):
         if self._CheckNodeProxy():
             self.node_proxy.JumpNear(address.ToStruct())
+    
+    def _JumpNearURL(self, url):
+        print "Received:", url
+        if self._CheckNodeProxy(False):
+            url_pattern = r'^slp://(\d+\.\d+\.\d+\.\d+):(\d+)/?$'
+            m = re.match(url_pattern, url)
+            if m is not None:
+                host = m.group(1)
+                port = m.group(2)
+                self._JumpNearAddress(Address(host, port))
+            self.url_jump = None
+        else:
+            self.url_jump = url
     
     def _TryConnect(self):
         """
@@ -758,6 +773,8 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             self.viewport.Disable()
             self.Redraw()
             self.statusbar.SetText(_("Not connected"))
+        if self.url_jump:
+            self._JumpNearURL(self.url_jump)
 
     def NodeConnectionSucceeded(self, node_proxy):
         """

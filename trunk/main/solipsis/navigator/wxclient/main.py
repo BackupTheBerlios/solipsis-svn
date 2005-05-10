@@ -18,6 +18,7 @@
 # </copyright>
 
 import sys
+import socket
 from optparse import OptionParser
 
 # Solipsis Packages
@@ -26,13 +27,29 @@ from app import NavigatorApp
 
 def main():
     config_file = "conf/solipsis.conf"
-    usage = "usage: %prog [-f <config file>]"
+    usage = "usage: %prog [-f <config file>] [--url <url>]"
     parser = OptionParser(usage)
     parser.add_option("-f", "--file", dest="config_file", default=config_file,
                         help="configuration file")
+    parser.add_option("", "--url", dest="url_jump", default="",
+                        help="URL to jump to")
     parser.add_option("-M", "--memdebug", dest="memdebug", action="store_true", default=False,
                         help="dump memory occupation statistics")
     params = Parameters(parser, config_file=config_file)
+
+    # If an URL has been specified, try to connect to an already running navigator
+    # TODO: make it multi-user proof (by using a specific file containing port
+    # number in the state/ directory)
+    if params.url_jump:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            s.connect(('127.0.0.1', params.url_port))
+        except socket.error:
+            pass
+        else:
+            s.send(params.url_jump + '\r\n')
+            s.close()
+            sys.exit(0)
 
     application = NavigatorApp(redirect=False, params=params)
     application.MainLoop()
