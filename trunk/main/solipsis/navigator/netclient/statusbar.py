@@ -26,10 +26,10 @@ class StatusBar(object):
         self.SetText(self.status)
 
     def SetText(self, text):
-        print "StatusBar:", text
+        pass
 
     def SetTemp(self, text):
-        print "StatusBar:", text
+        pass
 
     def Reset(self):
-        print "StatusBar:", self.status
+        pass

@@ -21,10 +21,11 @@ import os
 import gc
 import bisect
 import gettext
+import threading
+import sys
 _ = gettext.gettext
 from pprint import pprint
 from cStringIO import StringIO
-from threading import Timer
 
 from solipsis.util.entity import ServiceData
 from solipsis.util.address import Address
@@ -32,6 +33,8 @@ from solipsis.util.position import Position
 from solipsis.util.uiproxy import TwistedProxy, UIProxyReceiver
 from solipsis.util.memdebug import MemSizer
 from solipsis.services.collector import ServiceCollector
+from solipsis.util.parameter import Parameters
+from solipsis.navigator.netclient import get_log_stream, set_log_stream
 
 from validators import *
 from viewport import Viewport
@@ -47,17 +50,38 @@ class NavigatorApp(UIProxyReceiver):
     version = "0.1.1"
     config_file = os.sep.join(["state", "config.bin"])
 
-    def __init__(self, params, *args, **kargs):
+    def __init__(self, params=None, *args, **kargs):
+        """available kargs: port"""
         self.params = params
         self.alive = True
         self.config_data = ConfigData()
         self.node_proxy = None
+        self.port = kargs.get("port", 1079)
+        log_file = kargs.get("log_file", None)
+        if log_file:
+            set_log_stream(open(log_file, "w"))
+        self.listener = None
         if self.params.memdebug:
             self.memsizer = MemSizer()
         else:
             self.memsizer = None
         UIProxyReceiver.__init__(self)
         self.OnInit()
+
+    def startListening(self):
+        if not self.listener:
+            self.listener = self.reactor.listenTCP(self.port, SolipsisUiFactory(self))
+        else:
+            print >> get_log_stream(),  "already listening"
+
+    def stopListening(self):
+        if self.listener:
+            defered = self.listener.stopListening()
+            self.listener = None
+            return defered
+        else:
+            print >> get_log_stream(),  "not listening"
+            return None
 
     def InitTwisted(self):
         """
@@ -112,23 +136,20 @@ class NavigatorApp(UIProxyReceiver):
             self.config_data.Load(f)
         except (IOError, EOFError):
             if os.path.exists(self.config_file):
-                print "Config file '%s' broken, erasing"
+                print >> get_log_stream(),  "Config file '%s' broken, erasing"
                 os.remove(self.config_file)
         # creating components
         if self.memsizer:
             self._MemDebug()
-        print "setting resources"
         self.InitResources()
-        print "creating world"
         self.world = World(self.viewport)
-        print "setting network and services"
         # Other tasks 
         self.InitTwisted()
         self.InitNetwork()
         self.InitServices()
-        print "UI launched"
-        self.reactor.listenTCP(1079, SolipsisUiFactory(self))
-        self.reactor.run()
+
+    def run(self):
+        self.reactor.run()        
 
     def Redraw(self):
         pass
@@ -152,7 +173,7 @@ class NavigatorApp(UIProxyReceiver):
         """
         Displays a dialog warning that a function is not implemented.
         """
-        print _("This function is not yet implemented.\nSorry! Please come back later...")
+        print >> get_log_stream(),  _("This function is not yet implemented.\nSorry! Please come back later...")
 
     def _CheckNodeProxy(self, display_error=True):
         """
@@ -163,7 +184,7 @@ class NavigatorApp(UIProxyReceiver):
             return True
         else:
             if display_error:
-                print _("This action cannot be performed, because you are not connected to a node.")
+                print >> get_log_stream(),  _("This action cannot be performed, because you are not connected to a node.")
             return False
     
     def _MemDebug(self):
@@ -174,7 +195,7 @@ class NavigatorApp(UIProxyReceiver):
             print >> stream, "\n... memdump ...\n"
             items = self.memsizer.get_deltas()
             print >> stream, "\n".join(items)
-            t = Timer(10, self._MemDebug)
+            t = threading.Timer(10, self._MemDebug)
             t.start()
             print >> stream, "\n\n"
             return stream.getvalue()
@@ -200,9 +221,9 @@ class NavigatorApp(UIProxyReceiver):
     
     def _SetWaiting(self, waiting):
         if waiting:
-            print "Waiting ..."
+            print >> get_log_stream(),  "Waiting ..."
         else:
-            print "Wait ended."
+            print >> get_log_stream(),  "Wait ended."
 
 
     #===-----------------------------------------------------------------===#
@@ -283,6 +304,7 @@ class NavigatorApp(UIProxyReceiver):
                 return str(e)
             else:
                 self.node_proxy.JumpNear(address.ToStruct())
+                return address.ToString()
         else:
             return "not connected"
 
@@ -293,6 +315,7 @@ class NavigatorApp(UIProxyReceiver):
         if self._CheckNodeProxy():
             self.network.KillNode()
             self.services.RemoveAllPeers()
+            return "node killed"
         else:
             return "not connected"
 
@@ -316,13 +339,13 @@ class NavigatorApp(UIProxyReceiver):
             self.config_data.Save(f)
             f.close()
         except IOError, e:
-            print str(e)
+            print >> get_log_stream(),  str(e)
         # Kill the node if necessary
         if self.config_data.node_autokill and self._CheckNodeProxy(False):
             self.network.KillNode()
             self._SetWaiting(True)
             # Timeout in case the Kill request takes too much time to finish
-            t = Timer(1, self._Quit2)
+            t = threading.Timer(1, self._Quit2)
             t.start()
         else:
             self._Quit2()
@@ -375,6 +398,7 @@ class NavigatorApp(UIProxyReceiver):
             x, y = evt
             self.world.UpdateNodePosition(Position((x, y, 0)))
             self.node_proxy.Move(str(long(x)), str(long(y)), str(0))
+            return "moved to %s,%s"% (str(x/2**128), str(y/2**128))
         else:
             return "not connected"
 
@@ -490,7 +514,7 @@ class NavigatorApp(UIProxyReceiver):
         self._SetWaiting(False)
         self.node_proxy = TwistedProxy(node_proxy, self.reactor)
         self.statusbar.SetText(_("Connected"))
-        print "NodeConnectionSucceeded", node_proxy
+        print >> get_log_stream(),  "NodeConnectionSucceeded", node_proxy
 
     def NodeConnectionFailed(self, error):
         """
@@ -499,7 +523,7 @@ class NavigatorApp(UIProxyReceiver):
         self._SetWaiting(False)
         self.node_proxy = None
         self.statusbar.SetText(_("Not connected"))
-        print _("Connection to the node has failed. \nPlease the check the node is running, then retry.")
+        print >> get_log_stream(),  _("Connection to the node has failed. \nPlease the check the node is running, then retry.")
 
     def NodeKillSucceeded(self):
         """
@@ -513,7 +537,7 @@ class NavigatorApp(UIProxyReceiver):
         else:
             # If not alive, then we are in the quit phase
             self._Quit2()
-        print "NodeKillSucceeded"
+        print >> get_log_stream(),  "NodeKillSucceeded"
 
     def NodeKillFailed(self):
         """
@@ -523,17 +547,17 @@ class NavigatorApp(UIProxyReceiver):
             self.node_proxy = None
             self._SetWaiting(False)
             self.viewport.Disable()
-            print _("You cannot kill this node.")
+            print >> get_log_stream(),  _("You cannot kill this node.")
         else:
             # If not alive, then we are in the quit phase
             self._Quit2()
-        print "NodeKillFailed"
+        print >> get_log_stream(),  "NodeKillFailed"
 
     #===-----------------------------------------------------------------===#
     # Actions from the services
     #
     def SetServiceMenu(self, service_id, title, menu):
-        print "SetServiceMenu:", title, service_id
+        print >> get_log_stream(),  "SetServiceMenu:", title, service_id
 
     def SendServiceData(self, peer_id, service_id, data):
         if self._CheckNodeProxy(False):

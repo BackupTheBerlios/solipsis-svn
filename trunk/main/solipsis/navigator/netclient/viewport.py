@@ -17,6 +17,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
 
+from solipsis.navigator.netclient import get_log_stream
+
 def _pretty_pos((x, y)):
     """returns pretty formated position"""
     return "%f,%f"% (x/float(2**128), y/float(2**128))
@@ -31,72 +33,71 @@ class Viewport(object):
         self.disabled = True
 
     def Reset(self):
-        print "Viewport: reset"
+        pass
 
     def Draw(self, onPaint = False):
-        print "Viewport: Draw"
+        pass
 
     def NeedsFurtherRedraw(self):
-        print "Viewport: does not NeedFurtherRedraw"
         return False
  
     def AddObject(self, name, obj, position):
-        print "Viewport: Add object %s"% name
+        print >> get_log_stream(),  "Viewport: Add object %s"% name
 
     def AddDrawable(self, obj_name, drawable, rel_pos, z_order=0):
-        print "Viewport: Add %s"% obj_name
+        print >> get_log_stream(),  "Viewport: Add %s"% obj_name
     
     def RemoveDrawable(self, obj_name, id_):
-        print "Viewport: Remove %s"% obj_name
+        print >> get_log_stream(),  "Viewport: Remove %s"% obj_name
 
     def RemoveObject(self, name):
-        print "Viewport: Remove %s"% name
+        print >> get_log_stream(),  "Viewport: Remove %s"% name
 
     def MoveObject(self, name, position):
-        print "Viewport: Move object %s to %s"% (name, _pretty_pos(position))
+        print >> get_log_stream(),  "Viewport: Move object %s to %s"% (name, _pretty_pos(position))
 
     def JumpTo(self, position):
-        print "Viewport: Jump to %s"% _pretty_pos(position)
+        print >> get_log_stream(),  "Viewport: Jump to %s"% _pretty_pos(position)
 
     def MoveTo(self, position):
-        print "Viewport: Move to %s"% _pretty_pos(position)
+        print >> get_log_stream(),  "Viewport: Move to %s"% _pretty_pos(position)
 
     def MoveToPixels(self, position, strafe=False):
-        print "Viewport: Move to pixels %s"% _pretty_pos(position)
+        print >> get_log_stream(),  "Viewport: Move to pixels %s"% _pretty_pos(position)
     
     def MoveToRelative(self, (dx, dy)):
-        print "Viewport: Move to relative %s"% str((dx, dy))
+        print >> get_log_stream(),  "Viewport: Move to relative %s"% str((dx, dy))
 
     def Hover(self, (px, py)):
-        print "Viewport: Hover %s"% str((px, py))
+        print >> get_log_stream(),  "Viewport: Hover %s"% str((px, py))
         return (False, "")
 
     def PendingRedraw(self):
-        print "Viewport: no PendingRedraw"
+        print >> get_log_stream(),  "Viewport: no PendingRedraw"
         return False
     
     def HoveredItem(self):
-        print "Viewport: no Hovered"
+        print >> get_log_stream(),  "Viewport: no Hovered"
         return None
     
     def LastRedrawDuration(self):
-        print "Viewport: no LastRedrawDuration"
+        print >> get_log_stream(),  "Viewport: no LastRedrawDuration"
         return 1
 
     def Empty(self):
-        print "Viewport: empty"
+        print >> get_log_stream(),  "Viewport: empty"
         return True
     
     def Disable(self):
-        print "Viewport: Disable"
+        print >> get_log_stream(),  "Viewport: Disable"
         self.disabled = True
 
     def Enable(self):
-        print "Viewport: Enable"
+        print >> get_log_stream(),  "Viewport: Enable"
         self.disabled = False
     
     def AutoRotate(self, flag):
-        print "Viewport: AutoRotate %s"% flag
+        print >> get_log_stream(),  "Viewport: AutoRotate %s"% flag
 
     # Private methods: object management
     def _RemoveDrawableItem(self, item):

@@ -17,6 +17,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
 
+from solipsis.navigator.netclient import get_log_stream
+
 class World:
     """
     This class represents the navigator's view of the world.
@@ -94,7 +96,7 @@ class World:
         """
         Called when the node's characteristics are updated.
         """
-        print "World: node update: ", node.pseudo
+        print >> get_log_stream(),  "World: node update: ", node.pseudo
         # Reinitialize in case the node ID has changed
         if self.node_id == node.id_:
             self.viewport.RemoveObject(self.node_id)
@@ -204,11 +206,11 @@ class World:
         """
         self.node_item = self.Item(node)
         x, y = node.position.GetXY()
-        print "World: node index = ", self.viewport.AddObject(node.id_, None, position=(x, y))
+        print >> get_log_stream(),  "World: node index = ", self.viewport.AddObject(node.id_, None, position=(x, y))
         self.UpdateNodePosition(node.position, jump=True)
 
     def _CreatePeerLabel(self, item):
-        print "World: Create label %s"% item.peer.pseudo
+        print >> get_log_stream(),  "World: Create label %s"% item.peer.id_
 
     def _CreatePeerAvatar(self, item):
-        print "World: Create avatar %s"% item.peer.id_
+        print >> get_log_stream(),  "World: Create avatar %s"% item.peer.id_

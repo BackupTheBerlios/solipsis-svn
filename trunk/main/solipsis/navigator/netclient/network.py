@@ -23,6 +23,7 @@ from cStringIO import StringIO
 
 from solipsis.util.uiproxy import TwistedProxy
 from solipsis.util.remote import RemoteConnector
+from solipsis.navigator.netclient import get_log_stream
 
 from twisted.internet import protocol, reactor, defer
 from twisted.protocols import basic
@@ -164,7 +165,7 @@ class SolipsisUiFactory(protocol.ServerFactory):
         return self.app._Disconnect(arg)
 
     def do_kill(self, arg):
-        print "calling _Kill" 
+        print >> get_log_stream(),  "calling _Kill" 
         self.app._Kill(arg)
 
     def do_jump(self, arg):
@@ -176,7 +177,7 @@ class SolipsisUiFactory(protocol.ServerFactory):
         return self.app._Preferences(arg)
 
     def do_quit(self, arg):
-        print "calling _Quit" 
+        print >> get_log_stream(),  "calling _Quit" 
         self.app._Quit(arg)
 
     def do_display(self, arg):
@@ -184,15 +185,20 @@ class SolipsisUiFactory(protocol.ServerFactory):
 
     # UI events in viewport
     def do_go(self, arg):
-        # arg must be like 'x,y'
+        stream = StringIO()
+        # parsing
+        position = arg.split(',')
+        if len(position) != 2:
+            position = COMMANDS['go'][1].split(',')
+            print >> stream, "%d parameters instead of 2, using default"% len(position)
+        # convert
         try:
-            position = [float(coord)*2**128 for coord in arg.split(',')]
-            if len(position) == 2:
-                return self.app._LeftClickViewport(position)
-            else:
-                return "enter position as 'x,y'"
+            position = [float(coord)*2**128 for coord in position]
         except ValueError:
-            return "enter position as 'x,y'"
+            position = [float(coord)*2**128 for coord in COMMANDS['go'][1].split(',')]
+            print >> stream, "parameters expected as x,y. using default"
+        print >> stream,  self.app._LeftClickViewport(position)
+        return stream.getvalue()
 
     def do_menu(self, arg):
         return self.app._RightClickViewport(arg)

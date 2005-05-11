@@ -24,7 +24,7 @@ from optparse import OptionParser
 from solipsis.util.parameter import Parameters
 from app import NavigatorApp
 
-def main():
+def build_params():
     config_file = "conf/solipsis.conf"
     usage = "usage: %prog [-f <config file>]"
     parser = OptionParser(usage)
@@ -33,8 +33,12 @@ def main():
     parser.add_option("-M", "--memdebug", dest="memdebug", action="store_true", default=False,
                         help="dump memory occupation statistics")
     params = Parameters(parser, config_file=config_file)
-
-    application = NavigatorApp(params=params)
+    return params
+    
+def main():
+    application = NavigatorApp(params=build_params(), log_file="session.log")
+    application.startListening()
+    application.run()
 
 if __name__ == "__main__":
     main()
