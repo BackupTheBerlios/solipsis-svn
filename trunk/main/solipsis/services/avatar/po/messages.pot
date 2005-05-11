@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-05-02 16:56+0200\n"
+"POT-Creation-Date: 2005-05-11 15:04+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,27 +16,27 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: plugin.py:57
+#: plugin.py:53
 msgid "Avatars"
 msgstr ""
 
-#: plugin.py:60
+#: plugin.py:56
 msgid "Exchange avatars to customize your appearance"
 msgstr ""
 
-#: plugin.py:97
+#: plugin.py:93
 msgid "&Configure"
 msgstr ""
 
-#: plugin.py:100
+#: plugin.py:96
 msgid "Stretch avatars"
 msgstr ""
 
-#: plugin.py:104
+#: plugin.py:100
 msgid "Shrink avatars"
 msgstr ""
 
-#: plugin.py:107
+#: plugin.py:103
 msgid "Avatar"
 msgstr ""
 
