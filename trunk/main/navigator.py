@@ -1,16 +1,15 @@
 #!/usr/bin/python
-import os,sys
-from solipsis.navigator.wxclient.main import main
+import os, sys
 
-# add current directory to the python search path
-# it is needed in case solipsis is not installed in the standard python
-# directory (e.g: /usr/lib/python2.3 in linux)
-
-currentDir = sys.path[0]
-if os.environ.has_key('PYTHONPATH'):
-    os.environ['PYTHONPATH'] = os.environ['PYTHONPATH'] + ':' + currentDir
-else:
-    os.environ['PYTHONPATH'] = currentDir
+import os
+import os.path
+import sys
 
 if __name__ == '__main__':
-    main()
+    current_file = sys.argv[0]
+    current_path = os.path.normcase(os.path.dirname(os.path.abspath(current_file)))
+    os.chdir(current_path)
+    sys.path.insert(0, current_path)
+    #print sys.path
+    from solipsis.navigator.wxclient import main
+    main.main()
