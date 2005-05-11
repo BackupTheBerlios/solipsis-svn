@@ -18,6 +18,7 @@
 # </copyright>
 
 import sys
+import os
 import socket
 from optparse import OptionParser
 
@@ -38,18 +39,24 @@ def main():
     params = Parameters(parser, config_file=config_file)
 
     # If an URL has been specified, try to connect to an already running navigator
-    # TODO: make it multi-user proof (by using a specific file containing port
-    # number in the state/ directory)
     if params.url_jump:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        filename = os.path.join('state', 'url_jump.port')
         try:
-            s.connect(('127.0.0.1', params.url_port))
-        except socket.error:
+            f = file(filename, 'rb')
+            url_port = int(f.read())
+            f.close()
+        except (IOError, EOFError, ValueError):
             pass
         else:
-            s.send(params.url_jump + '\r\n')
-            s.close()
-            sys.exit(0)
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            try:
+                s.connect(('127.0.0.1', url_port))
+            except socket.error:
+                pass
+            else:
+                s.send(params.url_jump + '\r\n')
+                s.close()
+                sys.exit(0)
 
     application = NavigatorApp(redirect=False, params=params)
     application.MainLoop()

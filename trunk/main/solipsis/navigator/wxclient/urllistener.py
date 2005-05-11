@@ -31,11 +31,9 @@ class URLListenProtocol(basic.LineReceiver):
 
 class URLListenFactory(protocol.ServerFactory):
     protocol = URLListenProtocol
-    url_regexp = r'^slp://(\d+\.\d+\.\d+\.\d+):(\d+)/?$'
 
     def __init__(self, ui):
         self.ui = ui
-        self.url_pattern = re.compile(self.url_regexp)
 
     def ProcessURL(self, url):
         self.ui._JumpNearURL(url)

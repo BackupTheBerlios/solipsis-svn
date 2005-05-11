@@ -169,7 +169,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         loop.start()
         self.network_loop = loop
         self.network = TwistedProxy(loop, self.reactor)
-        self.network.StartURLListener(self.params.url_port)
+        self.network.StartURLListener(self.params.url_port_min, self.params.url_port_max)
 
     def InitServices(self):
         """
@@ -373,6 +373,12 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             self.url_jump = None
         else:
             self.url_jump = url
+    
+    def _UpdateURLPort(self, url_port):
+        filename = os.path.join('state', 'url_jump.port')
+        f = file(filename, 'wb')
+        f.write(str(url_port))
+        f.close()
     
     def _TryConnect(self):
         """

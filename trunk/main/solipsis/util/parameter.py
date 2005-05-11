@@ -46,7 +46,8 @@ class Parameters(object):
     navigator_section = {
         'translation_dir': ('translation_dir', os.path.normcase, None),
         'pseudo': ('pseudo', unicode, u""),
-        'url_port': ('url_port', int, 5998),
+        'url_port_min': ('url_port_min', int, 0),
+        'url_port_max': ('url_port_max', int, 0),
     }
 
     services_section = {

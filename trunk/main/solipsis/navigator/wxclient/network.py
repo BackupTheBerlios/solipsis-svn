@@ -18,6 +18,7 @@
 # </copyright>
 
 import threading
+import random
 
 from solipsis.util.uiproxy import UIProxy
 from solipsis.util.remote import RemoteConnector
@@ -42,10 +43,19 @@ class NetworkLoop(threading.Thread):
         self.angle = 0.0
         self.remote_connector = RemoteConnector(self.reactor, self.ui)
 
-    def StartURLListener(self, url_port):
-        self.reactor.listenTCP(url_port,
-            factory=URLListenFactory(self.ui),
-            interface="127.0.0.1")
+    def StartURLListener(self, url_port_min, url_port_max=0):
+        if url_port_max:
+            url_port = random.randrange(url_port_min, url_port_max + 1)
+        else:
+            url_port = url_port_min
+        try:
+            self.reactor.listenTCP(url_port,
+                factory=URLListenFactory(self.ui),
+                interface="127.0.0.1")
+        except Exception, e:
+            print "Cannot listen to jump URLs: %s" % str(e)
+        else:
+            self.ui._UpdateURLPort(url_port)
 
     def run(self):
         """
