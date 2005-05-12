@@ -18,6 +18,7 @@
 # </copyright>
 
 import os
+import sys
 import gc
 import wx
 import wx.xrc
@@ -31,6 +32,7 @@ from solipsis.util.position import Position
 from solipsis.util.uiproxy import TwistedProxy, UIProxyReceiver
 from solipsis.util.wxutils import _
 from solipsis.util.wxutils import *        # '*' doesn't import '_'
+from solipsis.util.urlhandlers import SetURLHandler
 from solipsis.util.memdebug import MemSizer
 
 from validators import *
@@ -170,6 +172,8 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.network_loop = loop
         self.network = TwistedProxy(loop, self.reactor)
         self.network.StartURLListener(self.params.url_port_min, self.params.url_port_max)
+        script_path = os.path.abspath(sys.argv[0])
+        SetURLHandler('slp', 'python', script_path, '--url', '%s')
 
     def InitServices(self):
         """
