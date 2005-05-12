@@ -17,7 +17,6 @@ class CommandTestCase(unittest.TestCase):
     """Test good completion of basic commands"""
     
     def __init__(self, *args):
-        unittest.TestCase.__init__(self, *args)
         # creating environment
         solipsis_dir =  os.path.dirname(solipsis.__file__)
         main_dir = os.path.dirname(solipsis_dir)
@@ -355,6 +354,17 @@ About Solipsis""")
         """call back on failure of action which required connection"""
         self.done = True
         self.assertEquals(msg, """not connected""")
-            
+
+def main(test_case=None):
+    sys.path.insert(0, os.getcwd())
+    if test_case:
+        os.system("trial %s.%s"% (__file__.split('.')[0], test_case))
+    else:
+        os.system("trial %s"% __file__)
+    
 if __name__ == '__main__':
-    unittest.main()
+    if len(sys.argv)>1:
+        print sys.argv
+        main(sys.argv[1])
+    else:
+        main()
