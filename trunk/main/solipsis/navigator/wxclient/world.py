@@ -108,7 +108,6 @@ class World(UIProxyReceiver):
         """
         Called when the node's characteristics are updated.
         """
-        print "node update: ", node.pseudo
         # Reinitialize in case the node ID has changed
         if self.node_id == node.id_:
             self.viewport.RemoveObject(self.node_id)

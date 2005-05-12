@@ -18,23 +18,42 @@
 # </copyright>
 
 import os
+import sys
+import re
 
-def _GnomeSetURLHandler(scheme, progname, *args):
+def _GnomeSetURLHandler(scheme, cmd_args):
     try:
         import gconf
         client = gconf.client_get_default()
     except:
         return
     basepath = '/desktop/gnome/url-handlers/%s' % scheme
-    command = progname + ' ' + ' '.join([a.replace('%s', '%s') for a in args])
+    command = ' '.join([a.replace('%s', '"%s"') for a in cmd_args])
     print "Setting up Gnome URL handler:", command
     client.set_string(basepath + '/command', command)
     client.set_bool(basepath + '/enabled', True)
     client.set_bool(basepath + '/needs_terminal', False)
 
-def _WindowsSetURLHandler(scheme, progname, *args):
+def _WindowsSetURLHandler(scheme, cmd_args):
     pass
 
-def SetURLHandler(scheme, progname, *args):
-    _GnomeSetURLHandler(scheme, progname, *args)
-    _WindowsSetURLHandler(scheme, progname, *args)
+def SetURLHandler(scheme, cmd_args):
+    _GnomeSetURLHandler(scheme, cmd_args)
+    _WindowsSetURLHandler(scheme, cmd_args)
+
+def SetSolipsisURLHandlers(prog_name=None):
+    """
+    Setup all Solipsis URL handlers. If you are calling this function from
+    the navigator itself, you can leave the parameter empty, otherwise you
+    *must* give the name/path of the program used to open Solipsis URLs.
+    """
+    if prog_name is None:
+        prog_name = os.path.basename(sys.argv[0])
+    prog_path = os.path.abspath(prog_name)
+    # In some cases the main program won't be a .py file (e.g. pyexe-generated
+    # executable under Windows)
+    if re.match(r'.*\.py[cow]?$', prog_name, re.IGNORECASE):
+        base_args = ['python', prog_path]
+    else:
+        base_args = [prog_path]
+    SetURLHandler('slp', base_args + ['--url', '%s'])
