@@ -44,7 +44,7 @@ def _WindowsSetURLHandler(scheme, cmd_args):
     winreg.SetValueEx(slp_k, "URL Protocol", None, winreg.REG_SZ, "")
     shell_k = winreg.CreateKey(slp_k, "shell")
     open_k = winreg.CreateKey(shell_k, "open")
-    command_k = winreg.CreateKey(open_k, "open")
+    command_k = winreg.CreateKey(open_k, "command")
     command = ' '.join([a.replace('%s', '"%1"') for a in cmd_args])
     print "Setting up Windows URL handler:", command
     winreg.SetValueEx(command_k, "", None, winreg.REG_SZ, command)
