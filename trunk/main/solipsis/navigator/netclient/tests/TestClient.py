@@ -26,16 +26,17 @@ class TestProtocol(LineReceiver):
         if deferred:
             if isinstance(deferred, WaitingDeferred):
                 if deferred.msg == data:
-                    print "!!!", data
+#                     print "!!!", data
                     deferred.callback(data)
                 else:
-                    print "...", data
+#                     print "...", data
                     self.factory.expected_response.append(deferred)
             else:
-                print "---", data
+#                 print "---", data
                 deferred.callback(data)
         else:
-            print ">>>", data
+            pass
+#             print ">>>", data
 
 # store persistent data (user_name)
 # echo steps of connecting

@@ -35,7 +35,7 @@ class RemoteConnector(object):
         self.proxy = None
         self.remote_node = None
 
-    def Connect(self, config_data):
+    def Connect(self, config_data, deferred=None):
         """
         Connect to the node.
         """
@@ -62,6 +62,8 @@ class RemoteConnector(object):
             config_data.host, config_data.port, proxy_host, proxy_port)
         d = self.remote_node.Connect(self)
         d.addCallbacks(_success, _failure)
+        if deferred:
+            d.addCallback(deferred.callback)
 
     def Disconnect(self):
         """

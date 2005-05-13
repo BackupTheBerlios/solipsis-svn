@@ -42,23 +42,28 @@ class Viewport(object):
         return False
  
     def AddObject(self, name, obj, position):
-        print >> get_log_stream(),  "Viewport: Add object %s"% name
+        pass
+#         print >> get_log_stream(),  "Viewport: Add object %s"% name
 
     def AddDrawable(self, obj_name, drawable, rel_pos, z_order=0):
-        print >> get_log_stream(),  "Viewport: Add %s"% obj_name
+        pass
+#         print >> get_log_stream(),  "Viewport: Add %s"% obj_name
     
     def RemoveDrawable(self, obj_name, id_):
-        print >> get_log_stream(),  "Viewport: Remove %s"% obj_name
+        pass
+#         print >> get_log_stream(),  "Viewport: Remove %s"% obj_name
 
     def RemoveObject(self, name):
-        print >> get_log_stream(),  "Viewport: Remove %s"% name
+        pass
+#         print >> get_log_stream(),  "Viewport: Remove %s"% name
 
     def MoveObject(self, name, position):
         pass
 #         print >> get_log_stream(),  "Viewport: Move object %s to %s"% (name, _pretty_pos(position))
 
     def JumpTo(self, position):
-        print >> get_log_stream(),  "Viewport: Jump to %s"% _pretty_pos(position)
+        pass
+#         print >> get_log_stream(),  "Viewport: Jump to %s"% _pretty_pos(position)
 
     def MoveTo(self, position):
         pass

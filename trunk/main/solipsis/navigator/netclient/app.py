@@ -175,7 +175,7 @@ class NavigatorApp(UIProxyReceiver):
         """
         print >> get_log_stream(),  _("This function is not yet implemented.\nSorry! Please come back later...")
 
-    def _CheckNodeProxy(self, display_error=True):
+    def _CheckNodeProxy(self, display_error=False):
         """
         Checks if we are connected to a node, if not, displays a message box.
         Returns True if we are connected, False otherwise.
@@ -220,10 +220,11 @@ class NavigatorApp(UIProxyReceiver):
         raise NotImplementedError
     
     def _SetWaiting(self, waiting):
-        if waiting:
-            print >> get_log_stream(),  "Waiting ..."
-        else:
-            print >> get_log_stream(),  "Wait ended."
+        pass
+#         if waiting:
+#             print >> get_log_stream(),  "Waiting ..."
+#         else:
+#             print >> get_log_stream(),  "Wait ended."
 
 
     #===-----------------------------------------------------------------===#
@@ -514,7 +515,7 @@ class NavigatorApp(UIProxyReceiver):
         self._SetWaiting(False)
         self.node_proxy = TwistedProxy(node_proxy, self.reactor)
         self.statusbar.SetText(_("Connected"))
-        print >> get_log_stream(),  "NodeConnectionSucceeded", node_proxy
+#         print >> get_log_stream(),  "NodeConnectionSucceeded", node_proxy
 
     def NodeConnectionFailed(self, error):
         """
@@ -537,7 +538,7 @@ class NavigatorApp(UIProxyReceiver):
         else:
             # If not alive, then we are in the quit phase
             self._Quit2()
-        print >> get_log_stream(),  "NodeKillSucceeded"
+#         print >> get_log_stream(),  "NodeKillSucceeded"
 
     def NodeKillFailed(self):
         """

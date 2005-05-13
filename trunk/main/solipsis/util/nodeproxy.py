@@ -106,7 +106,8 @@ class _BaseNode(object):
         """
         Returns a proxy object when connecting.
         """
-        print "connect_id:", connect_id
+        # emb: removing print because of unittests
+        #print "connect_id:", connect_id
         self._proxy = self._Proxy(self, connect_id)
         return self._proxy
         
@@ -146,11 +147,13 @@ class XMLRPCNode(_BaseNode):
         self.receiver = receiver
         control_url = 'http://%s:%d/RPC2' % (self.host, self.port)
         if self.proxy_host and self.proxy_port:
-            print "HTTP proxy is (%s, %d)" % (self.proxy_host, self.proxy_port)
+            # emb: removing print because of unittests
+            #print "HTTP proxy is (%s, %d)" % (self.proxy_host, self.proxy_port)
             xmlrpc_control = httpproxy.ProxiedXMLRPC(self.reactor,
                 control_url, self.proxy_host, self.proxy_port)
         else:
-            print "no HTTP proxy"
+            # emb: removing print because of unittests
+            #print "no HTTP proxy"
             xmlrpc_control = xmlrpc.Proxy(control_url)
 
         def _success(connect_id):

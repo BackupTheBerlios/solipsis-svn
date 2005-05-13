@@ -96,7 +96,7 @@ class World:
         """
         Called when the node's characteristics are updated.
         """
-        print >> get_log_stream(),  "World: node update: ", node.pseudo
+#         print >> get_log_stream(),  "World: node update: ", node.pseudo
         # Reinitialize in case the node ID has changed
         if self.node_id == node.id_:
             self.viewport.RemoveObject(self.node_id)
@@ -206,7 +206,7 @@ class World:
         """
         self.node_item = self.Item(node)
         x, y = node.position.GetXY()
-        print >> get_log_stream(),  "World: node index = ", self.viewport.AddObject(node.id_, None, position=(x, y))
+#         print >> get_log_stream(),  "World: node index = ", self.viewport.AddObject(node.id_, None, position=(x, y))
         self.UpdateNodePosition(node.position, jump=True)
 
     def _CreatePeerLabel(self, item):

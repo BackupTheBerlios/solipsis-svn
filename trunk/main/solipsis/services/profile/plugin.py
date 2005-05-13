@@ -106,7 +106,8 @@ class Plugin(ServicePlugin):
     # wxclient)
     def EnableBasic(self):
         """enable non graphic part"""
-        print "Profile: enable"
+        pass
+#         print "Profile: enable"
         
     def Enable(self):
         """
@@ -133,7 +134,8 @@ class Plugin(ServicePlugin):
         Enable() method.  It is called when the user chooses to
         disable the service.
         """
-        print "Profile: Disable"
+        pass
+#         print "Profile: Disable"
 
     #
     # UI event responses
@@ -177,7 +179,8 @@ class Plugin(ServicePlugin):
         """
         Called when the node has changed.
         """
-        print "Profile: ChangedNode", node.id_
+        pass
+#         print "Profile: ChangedNode", node.id_
 
     def GotServiceData(self, peer_id, data):
         """
