@@ -35,7 +35,19 @@ def _GnomeSetURLHandler(scheme, cmd_args):
     client.set_bool(basepath + '/needs_terminal', False)
 
 def _WindowsSetURLHandler(scheme, cmd_args):
-    pass
+    try:
+        import _winreg as winreg
+    except ImportError:
+        return
+    slp_k = winreg.CreateKey(winreg.HKEY_CLASSES_ROOT, r'slp')
+    winreg.SetValueEx(slp_k, "", None, winreg.REG_SZ, "URL: Solipsis Protocol")
+    winreg.SetValueEx(slp_k, "URL Protocol", None, winreg.REG_SZ, "")
+    shell_k = winreg.CreateKey(slp_k, "shell")
+    open_k = winreg.CreateKey(shell_k, "open")
+    command_k = winreg.CreateKey(open_k, "open")
+    command = ' '.join([a.replace('%s', '"%1"') for a in cmd_args])
+    print "Setting up Windows URL handler:", command
+    winreg.SetValueEx(command_k, "", None, winreg.REG_SZ, command)
 
 def SetURLHandler(scheme, cmd_args):
     _GnomeSetURLHandler(scheme, cmd_args)
