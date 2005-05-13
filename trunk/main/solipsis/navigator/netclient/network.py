@@ -94,9 +94,6 @@ class SolipsisUiProtocol(basic.LineReceiver):
 
     def __init__(self):
         self.cmd = None
-
-    def connectionMade(self):
-        self.transport.write("type help to get available commands\r\n")
         
     def lineReceived(self, line):
         cmd_passed = line.strip().lower()
@@ -109,11 +106,11 @@ class SolipsisUiProtocol(basic.LineReceiver):
                 cmd = "do_" + cmd_passed
                 self.cmd = getattr(self.factory, cmd)
             except AttributeError:
-                self.transport.write("%s not a valid command\n"% cmd)
+                self.transport.write("%s not a valid command\r\n"% cmd)
                 return
             if COMMANDS[cmd_passed][1]:
                 # display default param 
-                self.transport.write("[%s]"% COMMANDS[cmd_passed][1])
+                self.transport.write("[%s]\r\n"% COMMANDS[cmd_passed][1])
             else:
                 # call function if none needed
                 out_msg = self.cmd("")

@@ -54,13 +54,15 @@ class Viewport(object):
         print >> get_log_stream(),  "Viewport: Remove %s"% name
 
     def MoveObject(self, name, position):
-        print >> get_log_stream(),  "Viewport: Move object %s to %s"% (name, _pretty_pos(position))
+        pass
+#         print >> get_log_stream(),  "Viewport: Move object %s to %s"% (name, _pretty_pos(position))
 
     def JumpTo(self, position):
         print >> get_log_stream(),  "Viewport: Jump to %s"% _pretty_pos(position)
 
     def MoveTo(self, position):
-        print >> get_log_stream(),  "Viewport: Move to %s"% _pretty_pos(position)
+        pass
+#         print >> get_log_stream(),  "Viewport: Move to %s"% _pretty_pos(position)
 
     def MoveToPixels(self, position, strafe=False):
         print >> get_log_stream(),  "Viewport: Move to pixels %s"% _pretty_pos(position)

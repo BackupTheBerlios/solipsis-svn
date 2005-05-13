@@ -7,6 +7,7 @@ import solipsis
 from twisted.trial import unittest
 from twisted.internet import reactor, error, defer
 from twisted.trial.util import deferredResult
+from solipsis.navigator.netclient.tests import waiting
 from solipsis.navigator.netclient.tests.TestClient import TestClientFactory
 from solipsis.navigator.netclient.app import NavigatorApp
 from solipsis.navigator.netclient.main import build_params
@@ -21,7 +22,8 @@ class CommandTestCase(unittest.TestCase):
         solipsis_dir =  os.path.dirname(solipsis.__file__)
         main_dir = os.path.dirname(solipsis_dir)
         os.chdir(main_dir)
-        # reset arguments otherwise build_params tries them on NavigatorApp and gets confused
+        # reset arguments otherwise build_params tries them on
+        # NavigatorApp and gets confused
         sys.argv = []
         params = build_params()
         # launching navigator
@@ -38,53 +40,72 @@ class CommandTestCase(unittest.TestCase):
     def _finished(self):
         """complete test by setting flag done to True"""
         self.done = True
-        print "finished"
         
     def setUp(self):
         """overrides TestCase method"""
         self.navigator.startListening()
         self.connector = reactor.connectTCP("localhost", PORT, self.factory)
-        self.deferred = defer.Deferred()
+        # set timeout
         self.timeout = reactor.callLater(4, self._failed, "timeout")
         self.done = False
 
     def tearDown(self):
         """overrides TestCase method"""
+        # close connection
+        self.factory.stopTrying()
+        self.connector.disconnect()
         self.done = True
+        # remove timeout
         try:
             self.timeout.cancel()
+            reactor.iterate(0.1)
         except (error.AlreadyCancelled, error.AlreadyCalled):
             pass
-        self.connector.disconnect()
+        # stop listening
         defered = self.navigator.stopListening()
         if defered:
             self.done = False
             defered.addCallback(self._finished)
             defered.addErrback(self._failed)
             while not self.done:
-               reactor.iterate(0.1) 
+                waiting()
 
     def test_not_valid(self):
         """command not valid"""
+        # assert using 'deferredResult'
+        deferred = self.factory.check("dummy")
+        self.assertEquals(unittest.deferredResult(deferred),
+                          """do_dummy not a valid command""")
+        # assert using custom callback
+        deferred = self.factory.check("")
+        deferred.addCallback(self._assert_not_valid)
         while not self.done:
             reactor.iterate(0.1)
-            self.deferred.addCallback(self._assert_not_valid)
-            self.factory.write("dummy", self.deferred)
+            
+    def _assert_not_valid(self, msg):
+        """call back expected on not valid command'"""
+        self.done = True
+        self.assertEquals(msg, "do_ not a valid command")
 
     def test_about(self):
         """command about"""
-        self.assertEquals(unittest.deferredResult(self.factory.write("about"),
-                                                 """Solipsis NAVIGATOR 0.1.1
- 
- Licensed under the GNU LGPL
- (c) France Telecom R&D)"""))
+        deferred = self.factory.check("about")
+        self.assertEquals(unittest.deferredResult(deferred),
+                          """Solipsis Navigator 0.1.1
+
+Licensed under the GNU LGPL
+(c) France Telecom R&D""")
 
     def test_check(self):
         """command check"""
-        while not self.done:
-            reactor.iterate(0.1)
-            self.deferred.addCallback(self._assert_check)
-            self.factory.write("check", self.deferred)
+        deferred = self.factory.check("check")
+        self.assertEquals(unittest.deferredResult(deferred),
+                          """False""")
+        self.factory.write("connect")
+        self.factory.write("bots.netofpeers.net:8555")
+        deferred = self.factory.check("check")
+        self.assertEquals(unittest.deferredResult(deferred),
+                          """True""")
 
     def test_connect(self):
         """command connect"""
@@ -228,11 +249,6 @@ class CommandTestCase(unittest.TestCase):
             self.deferred.addCallback(self._assert_quit)
             self.factory.write("quit", self.deferred)
             
-    def _assert_not_valid(self, msg):
-        """call back expected on not valid command'"""
-        self.done = True
-        self.assertEquals(msg, "do_dummy not a valid command")
-            
     def _assert_about(self, msg):
         """call back expected on 'about'"""
         print "2 *****", msg
@@ -364,7 +380,6 @@ def main(test_case=None):
     
 if __name__ == '__main__':
     if len(sys.argv)>1:
-        print sys.argv
         main(sys.argv[1])
     else:
         main()

@@ -210,7 +210,9 @@ class World:
         self.UpdateNodePosition(node.position, jump=True)
 
     def _CreatePeerLabel(self, item):
-        print >> get_log_stream(),  "World: Create label %s"% item.peer.id_
+        pass
+#         print >> get_log_stream(),  "World: Create label %s"% item.peer.id_
 
     def _CreatePeerAvatar(self, item):
-        print >> get_log_stream(),  "World: Create avatar %s"% item.peer.id_
+        pass
+#         print >> get_log_stream(),  "World: Create avatar %s"% item.peer.id_
