@@ -94,6 +94,9 @@ class SolipsisUiProtocol(basic.LineReceiver):
 
     def __init__(self):
         self.cmd = None
+
+    def connectionMade(self):
+        self.factory.transport = self.transport
         
     def lineReceived(self, line):
         cmd_passed = line.strip().lower()
@@ -155,7 +158,10 @@ class SolipsisUiFactory(protocol.ServerFactory):
         host, port = args.groups()
         self.app.config_data.host = host
         self.app.config_data.port = int(port)
-        print >> stream,  self.app._OpenConnect(arg)
+        deferred = defer.Deferred()
+        deferred.addCallback(
+            lambda res : self.transport.write("Connected\r\n"))
+        print >> stream,  self.app._OpenConnect(arg, deferred)
         return stream.getvalue()
         
     def do_disconnect(self, arg):

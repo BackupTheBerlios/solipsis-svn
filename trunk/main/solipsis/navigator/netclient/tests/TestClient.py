@@ -6,6 +6,12 @@ from solipsis.navigator.netclient.tests import waiting
 
 import sys
 
+class WaitingDeferred(defer.Deferred):
+
+    def __init__(self, msg):
+        defer.Deferred.__init__(self)
+        self.msg = msg
+
 # connect to server with user_name (defined in factory)
 # print received data
 class TestProtocol(LineReceiver):
@@ -18,7 +24,16 @@ class TestProtocol(LineReceiver):
             raise AssertionError("unexpected response: %s"% data)
         deferred = self.factory.expected_response.pop()
         if deferred:
-            deferred.callback(data)
+            if isinstance(deferred, WaitingDeferred):
+                if deferred.msg == data:
+                    print "!!!", data
+                    deferred.callback(data)
+                else:
+                    print "...", data
+                    self.factory.expected_response.append(deferred)
+            else:
+                print "---", data
+                deferred.callback(data)
         else:
             print ">>>", data
 
@@ -36,6 +51,14 @@ class TestClientFactory(ReconnectingClientFactory):
         # !! do not forget to set factory attribute
         setattr(instance, 'factory', self)
         return instance
+
+    def wait(self, msg):
+        while not self.transport:
+            waiting()
+        # wait for msg
+        deferred = WaitingDeferred(msg)
+        self.expected_response.insert(0, deferred)
+        return deferred
 
     def write(self, msg):
         while not self.transport:

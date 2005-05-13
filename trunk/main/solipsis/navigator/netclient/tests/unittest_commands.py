@@ -31,6 +31,7 @@ class CommandTestCase(unittest.TestCase):
         # create TCP client
         self.factory = TestClientFactory()
         self.done = False
+        self.waiting = False
 
     def _failed(self, why):
         """used by callbacks when self.assertXxx not available"""
@@ -40,13 +41,24 @@ class CommandTestCase(unittest.TestCase):
     def _finished(self):
         """complete test by setting flag done to True"""
         self.done = True
+
+    def _stop_waiting(self, data):
+        """complete test by setting flag done to True"""
+        self.waiting = False
+
+    def _wait_for(self, msg):
+        self.waiting = True
+        deferred = self.factory.wait(msg)
+        deferred.addCallback(self._stop_waiting)
+        while self.waiting:
+            waiting()
         
     def setUp(self):
         """overrides TestCase method"""
         self.navigator.startListening()
         self.connector = reactor.connectTCP("localhost", PORT, self.factory)
         # set timeout
-        self.timeout = reactor.callLater(4, self._failed, "timeout")
+        self.timeout = reactor.callLater(5, self._failed, "timeout")
         self.done = False
 
     def tearDown(self):
@@ -103,6 +115,7 @@ Licensed under the GNU LGPL
                           """False""")
         self.factory.write("connect")
         self.factory.write("bots.netofpeers.net:8555")
+        self._wait_for("Connected")
         deferred = self.factory.check("check")
         self.assertEquals(unittest.deferredResult(deferred),
                           """True""")

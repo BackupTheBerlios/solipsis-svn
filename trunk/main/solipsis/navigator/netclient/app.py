@@ -202,7 +202,7 @@ class NavigatorApp(UIProxyReceiver):
         else:
             return "navigator not launched in debug mode"
     
-    def _TryConnect(self):
+    def _TryConnect(self, deferred=None):
         """
         Tries to connect to the configured node.
         """
@@ -210,7 +210,7 @@ class NavigatorApp(UIProxyReceiver):
             self.network.DisconnectFromNode()
         self._SetWaiting(True)
         self.viewport.Reset()
-        self.network.ConnectToNode(self.config_data)
+        self.network.ConnectToNode(self.config_data, deferred)
         self.statusbar.SetText(_("Connecting"))
         self.services.RemoveAllPeers()
         self.services.SetNode(self.config_data.GetNode())
@@ -264,10 +264,10 @@ class NavigatorApp(UIProxyReceiver):
         print >> stream, self._TryConnect()
         return stream.getvalue()
 
-    def _OpenConnect(self, evt):
+    def _OpenConnect(self, evt, deferred=None):
         self.config_data.Compute()
         self.connection_trials = 0
-        return self._TryConnect()
+        return self._TryConnect(deferred)
         
     def _Disconnect(self, evt):
         """
