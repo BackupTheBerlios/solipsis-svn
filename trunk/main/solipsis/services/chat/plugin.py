@@ -32,10 +32,7 @@ class Plugin(ServicePlugin):
 
     def Init(self):
         self.reactor = self.service_api.GetReactor()
-        # TODO: smartly discover our own address IP
-        # (this is where duplicated code starts to appear...)
-        self.host = socket.gethostbyname(socket.gethostname())
-        self.port = random.randrange(7000, 7100)
+        # FIXME: we can use a set here
         self.hosts = {}
         self.str_action = _("Chat with all peers")
         self.node_id = None
@@ -53,7 +50,8 @@ class Plugin(ServicePlugin):
         return []
     
     def DescribeService(self, service):
-        service.address = "%s:%d" % (self.host, self.port)
+        # HACK: backwarks compatibility with broken chat service
+        service.address = "127.0.0.1:9999"
 
     #
     # Here comes the real action
@@ -96,23 +94,23 @@ class Plugin(ServicePlugin):
     
     def NewPeer(self, peer, service):
         try:
-            host, port = self._ParseAddress(service.address)            print "New Peer ", host, ":", port
+            address = self._ParseAddress(service.address)            print "New Peer ", address
         except ValueError:
             pass
         else:
             self.ui.AddPeer(peer)
-            self.hosts[peer.id_] = host, port
+            self.hosts[peer.id_] = address
 
     def ChangedPeer(self, peer, service):
         try:
-            host, port = self._ParseAddress(service.address)
+            address = self._ParseAddress(service.address)
         except ValueError:
             if peer.id_ in self.hosts:
                 del self.hosts[peer.id_]
                 self.ui.RemovePeer(peer.id_)
         else:
             self.ui.UpdatePeer(peer)
-            self.hosts[peer.id_] = host, port
+            self.hosts[peer.id_] = address
 
     def LostPeer(self, peer_id):
         if peer_id in self.hosts:
@@ -128,17 +126,4 @@ class Plugin(ServicePlugin):
         self.ui.AddPeer(node)
 
     def _ParseAddress(self, address):
-        try:
-            t = address.split(':')
-            if len(t) != 2:
-                raise ValueError
-            host = str(t[0]).strip()
-            port = int(t[1])
-            if not host:
-                raise ValueError
-            if port < 1 or port > 65535:
-                raise ValueError
-            return host, port
-        except ValueError:
-            #~ print "Wrong chat address '%s'" % address
-            raise
+        return address
