@@ -95,7 +95,10 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         import locale as system_locale
         wx.InitAllImageHandlers()
         self.locale = wx.Locale()
-        self.locale.Init2()
+        if not self.locale.Init2():
+            print "Error: failed to initialize wx.Locale!"
+            print "If you are under Linux, check the LC_MESSAGES or LANG environment variable is properly set."
+            sys.exit(1)
         try:
             translation_dir = self.params.translation_dir
         except AttributeError:
