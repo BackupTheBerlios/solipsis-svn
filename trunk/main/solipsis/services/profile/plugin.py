@@ -25,11 +25,10 @@ import wx
 from solipsis.util.wxutils import _
 from solipsis.services.plugin import ServicePlugin
 
+      
 class Plugin(ServicePlugin):
-    """
-    This the working class for services plugins. The plugin is the class that
-    communicates with the navigator core. It MUST be named 'Plugin'.
-    """
+    """This the working class for services plugins."""
+
     
     def Init(self):
         """
@@ -42,64 +41,16 @@ class Plugin(ServicePlugin):
         # (this is where duplicated code starts to appear...)
         self.host = socket.gethostbyname(socket.gethostname())
         self.port = random.randrange(7000, 7100)
-        self.profile = None
+        # peer_ip: connector
+        self.peers = {}
+        # declare actions
+        self.MAIN_ACTION = {"Modify ...": self.modify_profile,}
+        self.POINT_ACTIONS = {"Get profile": self.get_profile,
+                              "Get files...": self.get_files,
+                              "Send profile": self.send_profile,
+                              }
 
-    #
-    # Service description methods
-    #
-
-    def GetTitle(self):
-        """
-        Returns a short title of the plugin.
-        (e.g. 'Chat', 'File transfer', etc.)
-        """
-        return _("Profile")
-
-    def GetDescription(self):
-        """
-        Returns a short description of the plugin.  (e.g. 'talk with
-        people around you', 'send or receive files and documents')
-        """
-        return _("Manage personal information and share it with people")
-
-    def GetActions(self):
-        """
-        Returns an array of strings advertising possible actions with
-        all peers, or None if no such action is allowed.
-        """
-        # TODO: what about a dictionary mapping function to be
-        # called. This would easier DoAction...  Drawback: what about
-        # complex menus... dictonary to include a function to create
-        # item?
-        return [_("Modify ..."),
-                _("Add files ..."),
-                _("Delete files ..."),
-                _("Search ..."),]
-
-    def GetPointToPointActions(self):
-        """
-        Returns an array of strings advertising point-to-point actions
-        with another peer, or None if point-to-point actions are not allowed.
-        """
-        return [_("Show info"),
-                _("Request profile"),]
-
-    def GetIcon(self, size):
-        """
-        Returns the file name of an icon representing the plugin.
-        There should be at least a 16x16 icon (for pop-up menus).
-        """
-        return "images/icon.gif"
-    
-    def DescribeService(self, service):
-        """
-        Fills the Service object used to describe the service to other peers.
-        """
-        service.address = "%s:%d" % (self.host, self.port)
-
-    #
     # Service setup
-    #
 
     # FIXME: need to abstract action layer of plugins so that it does
     # not depend on navigator mode (in our case: netclient or
@@ -107,7 +58,6 @@ class Plugin(ServicePlugin):
     def EnableBasic(self):
         """enable non graphic part"""
         pass
-#         print "Profile: enable"
         
     def Enable(self):
         """
@@ -120,70 +70,81 @@ class Plugin(ServicePlugin):
         menu = wx.Menu()
         # TODO: if GetActions returns dictionary, we could map
         # _clicked with the right function at once
-        for index, action in enumerate(self.GetActions()):
+        for action, method in self.MAIN_ACTION.iteritems():
             item_id = wx.NewId()
-            menu.Append(item_id, action)
-            def _clicked(event, it=index):
-                self.DoAction(it)
+            menu.Append(item_id, _(action))
+            def _clicked(event):
+                method()
             wx.EVT_MENU(main_window, item_id, _clicked)
         self.service_api.SetMenu(self.GetTitle(), menu)
     
     def Disable(self):
-        """
-        This routine should invalidate all actions take in the
-        Enable() method.  It is called when the user chooses to
-        disable the service.
-        """
+        """It is called when the user chooses to disable the service."""
         pass
-#         print "Profile: Disable"
 
-    #
-    # UI event responses
-    #
+    # Service methods
+    def modify_profile(self):
+        pass
     
+    def get_profile(self, peer_id):
+        pass
+
+    def get_files(self, peer_id):
+        pass
+
+    def send_profile(self, peer_id):
+        pass
+
+    # Service description methods
+    def GetTitle(self):
+        """Returns a short title of the plugin."""
+        return _("Profile")
+
+    def GetDescription(self):
+        """Returns a short description of the plugin. """
+        return _("Manage personal information and share it with people")
+
+    def GetActions(self):
+        """Returns an array of strings advertising possible actions
+        with all peers, or None if no such action is allowed.
+        """
+        return [_(desc) for desc in self.MAIN_ACTION]
+
+    def GetPointToPointActions(self):
+        """Returns an array of strings advertising point-to-point
+        actions with another peer, or None if point-to-point actions
+        are not allowed.
+        """
+        return [_(desc) for desc in self.POINT_ACTIONS]
+
+    def DescribeService(self, service):
+        """
+        Fills the Service object used to describe the service to other peers.
+        """
+        service.address = "%s:%d" % (self.host, self.port)
+
+    # UI event responses
     def DoAction(self, it):
-        """
-        Called when the general action is invoked, if available.
-        """
+        """Called when the general action is invoked, if available."""
         print "Profile: DoAction", it
 
     def DoPointToPointAction(self, it, peer):
-        """
-        Called when a point-to-point action is invoked, if available.
-        """
+        """Called when a point-to-point action is invoked, if available."""
         print "Profile: DoPointToPointAction", it, peer.id_
 
-    #
     # Peer management
-    #
-
     def NewPeer(self, peer, service):
-        """
-        Called when a new peer bearing the service appears.
-        """
-        print "Profile: NewPeer", service.address
+        # probe its server (service.address)
+        pass
 
     def ChangedPeer(self, peer, service):
-        """
-        Called when a peer bearing the service is changed.
-        """
         pass
 
     def LostPeer(self, peer_id):
-        """
-        Called when a peer bearing the service disappears.
-        """
         print "Profile: LostPeer", peer_id
 
     def ChangedNode(self, node):
-        """
-        Called when the node has changed.
-        """
         pass
-#         print "Profile: ChangedNode", node.id_
 
     def GotServiceData(self, peer_id, data):
-        """
-        Called when some service-specific data has been received.
-        """
         print "Profile: GotServiceData", peer_id, data

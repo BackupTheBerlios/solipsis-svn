@@ -179,7 +179,7 @@ Licensed under the GNU LGPL
         self.factory.write("go")
         deferred = self.factory.check("0.25,0.43")
         self.assertEquals(unittest.deferredResult(deferred),
-                          """moved to 0.25,0.43""")
+                          """moved to 0.25,0.43\n""")
 
     def test_help(self):
         """command help"""
