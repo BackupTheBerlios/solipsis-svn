@@ -64,7 +64,7 @@ class BookmarksDialog(wx.Frame):
     def __set_properties(self):
         # begin wxGlade: BookmarksDialog.__set_properties
         self.SetTitle(_("Bookmarks"))
-        self.SetMinSize((300, 200))
+        self.SetMinSize((319, 216))
         self.toolbar.Realize()
         self.button_close.SetDefault()
         # end wxGlade

@@ -43,6 +43,7 @@ from network import NetworkLoop
 from config import ConfigUI, ConfigData
 from launch import Launcher
 from BookmarksDialog import BookmarksDialog
+from ConnectDialog import ConnectDialog
 
 from solipsis.services.wxcollector import WxServiceCollector
 
@@ -482,7 +483,9 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """
         Called on "connect" event (menu -> File -> Connect).
         """
-        self.connect_dialog.ShowModal()
+        connect_dialog = ConnectDialog(config_data=self.config_data, parent=self.main_window)
+        print connect_dialog.ShowModal()
+        #~ self.connect_dialog.ShowModal()
 
     def _Disconnect(self, evt):
         """

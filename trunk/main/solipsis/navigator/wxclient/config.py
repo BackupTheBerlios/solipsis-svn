@@ -37,9 +37,15 @@ class ConfigData(ManagedData):
     def __init__(self, host=None, port=None, pseudo=None):
         ManagedData.__init__(self)
         # Initialize all values
-        self.pseudo = pseudo or u"Guest"
+        
+        # 1. Basic connection data
+        self.pseudo = pseudo or u""
         self.host = host or "localhost"
         self.port = port or 8550
+        self.connection_type = 'local'
+        self.solipsis_port = 6010
+
+        # 2. HTTP proxy configuration (for XMLRPC)
         self.always_try_without_proxy = True
         self.proxymode_auto = True
         self.proxymode_manual = False
@@ -49,10 +55,15 @@ class ConfigData(ManagedData):
         self.proxy_host = ""
         self.proxy_port = 0
         self.proxy_autodetect_done = False
+        
+        # 3. Other preferences
         self.node_autokill = True
+
+        # 4. Service-specific configuration data
         self.services = []
-        self.solipsis_port = 6010
         self.service_config = {}
+
+        # 5. User-defined bookmarks
         self.bookmarks = BookmarkList()
 
     def Compute(self):
