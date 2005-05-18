@@ -52,7 +52,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     """
     Main application class. Derived from wxPython "wx.App".
     """
-    version = "0.8.1"
+    version = "0.8.2"
     config_file = os.sep.join(["state", "config.bin"])
 
     def __init__(self, params, *args, **kargs):
@@ -196,7 +196,9 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         # If the menu has become too wide because of the entries added by services,
         # resize main window so that the menu fits
         # BUG: this doesn't work :(
-        #~ self.main_window.SetSize(self.main_window.GetBestSize())
+        self.main_menubar.Layout()
+        self.main_window.Layout()
+        self.main_window.SetSize(self.main_window.GetBestVirtualSize())
 
     def OnInit(self):
         """
@@ -228,34 +230,33 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.bookmarks_dialog.UpdateUI()
 
         # UI events in main window
-        wx.EVT_MENU(self, XRCID("menu_about"), self._About)
-        wx.EVT_MENU(self, XRCID("menu_create"), self._CreateNode)
-        wx.EVT_MENU(self, XRCID("menu_connect"), self._OpenConnect)
-        wx.EVT_MENU(self, XRCID("menu_disconnect"), self._Disconnect)
-        wx.EVT_MENU(self, XRCID("menu_kill"), self._Kill)
-        wx.EVT_MENU(self, XRCID("menu_jumpnear"), self._JumpNear)
-        wx.EVT_MENU(self, XRCID("menu_preferences"), self._Preferences)
-        wx.EVT_MENU(self, XRCID("menu_quit"), self._Quit)
-        wx.EVT_MENU(self, XRCID("menu_autorotate"), self._ToggleAutoRotate)
-        wx.EVT_MENU(self, XRCID("menu_nodeaddr"), self._DisplayNodeAddress)
-        wx.EVT_MENU(self, XRCID("menu_edit_bookmarks"), self._OpenBookmarksDialog)
-        wx.EVT_CLOSE(self.main_window, self._Quit)
+        wx.EVT_MENU(self, XRCID("menu_about"), self._OnAbout)
+        wx.EVT_MENU(self, XRCID("menu_connect"), self._OnConnect)
+        wx.EVT_MENU(self, XRCID("menu_disconnect"), self._OnDisconnect)
+        wx.EVT_MENU(self, XRCID("menu_kill"), self._OnKill)
+        wx.EVT_MENU(self, XRCID("menu_jumpnear"), self._OnJumpNear)
+        wx.EVT_MENU(self, XRCID("menu_preferences"), self._OnPreferences)
+        wx.EVT_MENU(self, XRCID("menu_quit"), self._OnQuit)
+        wx.EVT_MENU(self, XRCID("menu_autorotate"), self._OnToggleAutoRotate)
+        wx.EVT_MENU(self, XRCID("menu_nodeaddr"), self._OnDisplayAddress)
+        wx.EVT_MENU(self, XRCID("menu_edit_bookmarks"), self._OnEditBookmarks)
+        wx.EVT_CLOSE(self.main_window, self._OnQuit)
 
         # UI events in connect dialog
-        wx.EVT_CLOSE(self.connect_dialog, self._CloseConnect)
-        wx.EVT_BUTTON(self, XRCID("connect_cancel"), self._CloseConnect)
-        wx.EVT_BUTTON(self, XRCID("connect_ok"), self._ConnectOk)
+        #~ wx.EVT_CLOSE(self.connect_dialog, self._CloseConnect)
+        #~ wx.EVT_BUTTON(self, XRCID("connect_cancel"), self._CloseConnect)
+        #~ wx.EVT_BUTTON(self, XRCID("connect_ok"), self._ConnectOk)
 
         # UI events in world viewport
         wx.EVT_IDLE(self.viewport_panel, self.OnIdle)
         wx.EVT_PAINT(self.viewport_panel, self.OnPaint)
         wx.EVT_SIZE(self.viewport_panel, self.OnResize)
-        wx.EVT_LEFT_DOWN(self.viewport_panel, self._LeftClickViewport)
-        wx.EVT_RIGHT_DOWN(self.viewport_panel, self._RightClickViewport)
-        wx.EVT_MOTION(self.viewport_panel, self._HoverViewport)
+        wx.EVT_LEFT_DOWN(self.viewport_panel, self._OnLeftClickViewport)
+        wx.EVT_RIGHT_DOWN(self.viewport_panel, self._OnRightClickViewport)
+        wx.EVT_MOTION(self.viewport_panel, self._OnHoverViewport)
         # For portability we need both
-        wx.EVT_CHAR(self.main_window, self._KeyPressViewport)
-        wx.EVT_CHAR(self.viewport_panel, self._KeyPressViewport)
+        wx.EVT_CHAR(self.main_window, self._OnKeyPressViewport)
+        wx.EVT_CHAR(self.viewport_panel, self._OnKeyPressViewport)
 
         # Let's go...
         # 1. Show UI on screen
@@ -275,6 +276,9 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         wx.CallAfter(self.InitTwisted)
         wx.CallAfter(self.InitNetwork)
         wx.CallAfter(self.InitServices)
+        
+        # 4. Automatic connection window at start
+        #~ wx.CallAfter()
         
         return True
 
@@ -399,6 +403,26 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.statusbar.SetText(_("Connecting"))
         self.services.RemoveAllPeers()
         self.services.SetNode(self.config_data.GetNode())
+
+    def _LaunchNode(self):
+        l = Launcher(port=self.config_data.solipsis_port)
+        # First try to spawn the node
+        if not l.Launch():
+            self.viewport.Disable()
+            msg = _("Node creation failed. \nPlease check you have sufficient rights.")
+            dialog = wx.MessageDialog(None, msg, caption=_("Kill refused"), style=wx.OK | wx.ICON_ERROR)
+            dialog.ShowModal()
+            return
+        # Then connect using its XMLRPC daemon
+        self.config_data.host = 'localhost'
+        self.config_data.port = 8550
+        self.config_data.proxymode_auto = False
+        self.config_data.proxymode_manual = False
+        self.config_data.proxymode_none = True
+        self.config_data.Compute()
+        # Hack so that the node has the time to launch
+        self.connection_trials = 5
+        self._TryConnect()
     
     def _DestroyProgress(self):
         """
@@ -434,7 +458,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     # Event handlers for the main window
     # (in alphabetical order)
     #
-    def _About(self, evt):
+    def _OnAbout(self, evt):
         """
         Called on "about" event (menu -> Help -> About).
         """
@@ -442,52 +466,44 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         dialog = wx.MessageDialog(None, msg, caption=_("About..."), style=wx.OK | wx.ICON_INFORMATION)
         dialog.ShowModal()
 
-    def _OpenBookmarksDialog(self, evt):
+    def _OnEditBookmarks(self, evt):
         """
         Called on "edit bookmarks" event (menu -> Bookmarks -> Edit bookmarks).
         """
         self.bookmarks_dialog.Show()
 
-    def _CreateNode(self, evt):
-        """
-        Called on "create node" event (menu -> File -> New node).
-        """
-        dialog = wx.TextEntryDialog(self.main_window,
-            message=_("Please choose your nickname"),
-            caption=_("Nickname"),
-            defaultValue=self.config_data.pseudo
-            )
-        if dialog.ShowModal() != wx.ID_OK:
-            return
-        self.config_data.pseudo = unicode(dialog.GetValue())
-        l = Launcher(port=self.config_data.solipsis_port)
-        # First try to spawn the node
-        if not l.Launch():
-            self.viewport.Disable()
-            msg = _("Node creation failed. \nPlease check you have sufficient rights.")
-            dialog = wx.MessageDialog(None, msg, caption=_("Kill refused"), style=wx.OK | wx.ICON_ERROR)
-            dialog.ShowModal()
-            return
-        # Then connect using its XMLRPC daemon
-        self.config_data.host = 'localhost'
-        self.config_data.port = 8550
-        self.config_data.proxymode_auto = False
-        self.config_data.proxymode_manual = False
-        self.config_data.proxymode_none = True
-        self.config_data.Compute()
-        # Hack so that the node has the time to launch
-        self.connection_trials = 5
-        self._TryConnect()
+    #~ def _CreateNode(self, evt):
+        #~ """
+        #~ Called on "create node" event (menu -> File -> New node).
+        #~ """
+        #~ dialog = wx.TextEntryDialog(self.main_window,
+            #~ message=_("Please choose your nickname"),
+            #~ caption=_("Nickname"),
+            #~ defaultValue=self.config_data.pseudo
+            #~ )
+        #~ if dialog.ShowModal() != wx.ID_OK:
+            #~ return
+        #~ self.config_data.pseudo = unicode(dialog.GetValue())
+        #~ self._LaunchNode()
 
-    def _OpenConnect(self, evt):
+    def _OnConnect(self, evt):
         """
         Called on "connect" event (menu -> File -> Connect).
         """
         connect_dialog = ConnectDialog(config_data=self.config_data, parent=self.main_window)
-        print connect_dialog.ShowModal()
+        if connect_dialog.ShowModal() != wx.ID_OK:
+            return
+        self.config_data.Compute()
+        if self.config_data.connection_type == 'local':
+            # Local connection mode: create a dedicated Solipsis node
+            self._LaunchNode()
+        else:
+            # Remote connection mode: connect to an existing node
+            self.connection_trials = 0
+            self._TryConnect()
         #~ self.connect_dialog.ShowModal()
 
-    def _Disconnect(self, evt):
+    def _OnDisconnect(self, evt):
         """
         Called on "disconnect" event (menu -> File -> Disconnect).
         """
@@ -501,7 +517,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             self.statusbar.SetText(_("Not connected"))
             self.services.RemoveAllPeers()
 
-    def _DisplayNodeAddress(self, evt):
+    def _OnDisplayAddress(self, evt):
         """
         Called on "node address" event (menu -> Actions -> Jump Near).
         """
@@ -520,7 +536,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
                 )
             dialog.ShowModal()
 
-    def _JumpNear(self, evt):
+    def _OnJumpNear(self, evt):
         """
         Called on "jump near" event (menu -> Actions -> Node address).
         """
@@ -538,7 +554,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
                 else:
                     self._JumpNearAddress(address)
 
-    def _Kill(self, evt):
+    def _OnKill(self, evt):
         """
         Called on "kill" event (menu -> File -> Kill).
         """
@@ -546,14 +562,14 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             self.network.KillNode()
             self.services.RemoveAllPeers()
 
-    def _Preferences(self, evt):
+    def _OnPreferences(self, evt):
         """
         Called on "preferences" event (menu -> File -> Preferences).
         """
         self.config_data.Compute()
         self.prefs_dialog.Show()
 
-    def _Quit(self, evt):
+    def _OnQuit(self, evt):
         """
         Called on quit event (menu -> File -> Quit, window close box).
         """
@@ -597,7 +613,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             except:
                 pass
 
-    def _ToggleAutoRotate(self, evt):
+    def _OnToggleAutoRotate(self, evt):
         """
         Called on autorotate event (menu -> View -> Autorotate).
         """
@@ -617,27 +633,27 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     #===-----------------------------------------------------------------===#
     # Event handlers for the connect dialog
     #
-    def _CloseConnect(self, evt):
-        """
-        Called on close "connect dialog" event (Cancel button, window close box).
-        """
-        self.connect_dialog.Hide()
+    #~ def _CloseConnect(self, evt):
+        #~ """
+        #~ Called on close "connect dialog" event (Cancel button, window close box).
+        #~ """
+        #~ self.connect_dialog.Hide()
 
-    def _ConnectOk(self, evt):
-        """
-        Called on connect submit event (Ok button).
-        """
-        if (self.connect_dialog.Validate()):
-            self.connect_dialog.Hide()
-            self.config_data.Compute()
-            self.connection_trials = 0
-            self._TryConnect()
+    #~ def _ConnectOk(self, evt):
+        #~ """
+        #~ Called on connect submit event (Ok button).
+        #~ """
+        #~ if (self.connect_dialog.Validate()):
+            #~ self.connect_dialog.Hide()
+            #~ self.config_data.Compute()
+            #~ self.connection_trials = 0
+            #~ self._TryConnect()
 
 
     #===-----------------------------------------------------------------===#
     # Event handlers for the world viewport
     #
-    def _KeyPressViewport(self, evt):
+    def _OnKeyPressViewport(self, evt):
         """
         Called when a key is pressed.
         """
@@ -662,7 +678,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         else:
             evt.Skip()
 
-    def _LeftClickViewport(self, evt):
+    def _OnLeftClickViewport(self, evt):
         """
         Called on left click event.
         """
@@ -675,7 +691,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             self.node_proxy.Move(str(long(x)), str(long(y)), str(0))
         evt.Skip()
 
-    def _RightClickViewport(self, evt):
+    def _OnRightClickViewport(self, evt):
         """
         Called on right click event.
         """
@@ -711,7 +727,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.viewport_panel.PopupMenu(menu)
         evt.Skip()
 
-    def _HoverViewport(self, evt):
+    def _OnHoverViewport(self, evt):
         """
         Called on mouse movement in the viewport.
         """

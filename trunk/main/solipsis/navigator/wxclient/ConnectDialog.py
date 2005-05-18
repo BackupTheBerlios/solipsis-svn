@@ -5,6 +5,7 @@ import wx
 
 from solipsis.util.wxutils import _
 
+from ConnectionTypeDialog import ConnectionTypeDialog
 
 # begin wxGlade: dependencies
 # end wxGlade
@@ -19,7 +20,7 @@ class ConnectDialog(wx.Dialog):
         self.sizer_5_staticbox = wx.StaticBox(self, -1, _("Connection type"))
         self.label_pseudo = wx.StaticText(self, -1, _("Name or pseudo"))
         self.text_ctrl_pseudo = wx.TextCtrl(self, -1, "")
-        self.label_conntype = wx.StaticText(self, -1, _("Blablabla blabla"))
+        self.label_conntype = wx.StaticText(self, -1, "")
         self.button_change_conntype = wx.Button(self, -1, _("Change"))
         self.button_ok = wx.Button(self, wx.ID_OK, "")
         self.button_cancel = wx.Button(self, wx.ID_CANCEL, "")
@@ -64,12 +65,14 @@ class ConnectDialog(wx.Dialog):
         self.Centre()
         # end wxGlade
 
+    #
+    # Event handlers
+    #
     def OnPseudoChanged(self, event): # wxGlade: ConnectDialog.<event_handler>
         self._UpdateUI()
 
     def OnChangeConnType(self, event): # wxGlade: ConnectDialog.<event_handler>
-        dialog = wx.MessageDialog(self, "Not implemented", "Title", 
-            wx.OK | wx.ICON_EXCLAMATION)
+        dialog = ConnectionTypeDialog(self.config_data, parent=self) 
         dialog.ShowModal()
         self._UpdateUI()
 
@@ -93,8 +96,7 @@ class ConnectDialog(wx.Dialog):
     def _UpdateUI(self):
         # Display proper textual information about connection type
         if self.config_data.connection_type == 'local':
-            conntype_text = _("A dedicated Solipsis node will be launched\non UDP port %d.") \
-                % self.config_data.solipsis_port
+            conntype_text = _("A dedicated Solipsis node will be launched.")
         else:
             conntype_text = _("A remote Solipsis node will be contacted\nat the following address: %s.") \
                 % ("%s:%d" % (self.config_data.host, self.config_data.port))
