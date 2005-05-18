@@ -82,6 +82,7 @@ class ConnectionTypeDialog(wx.Dialog):
         sizer_6.Fit(self)
         sizer_6.SetSizeHints(self)
         self.Layout()
+        self.Centre()
         # end wxGlade
 
     #
@@ -141,7 +142,7 @@ class ConnectionTypeDialog(wx.Dialog):
             self.config_data.solipsis_port = int(self.text_ctrl_local_port.GetValue())
         elif self.radio_btn_remote.GetValue():
             self.config_data.connection_type = 'remote'
-            self.config_data.host = self.text_ctrl_remote_host.GetValue()
+            self.config_data.host = str(self.text_ctrl_remote_host.GetValue())
             self.config_data.port = int(self.text_ctrl_remote_port.GetValue())
 
 

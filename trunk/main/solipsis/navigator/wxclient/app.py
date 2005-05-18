@@ -278,7 +278,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         wx.CallAfter(self.InitServices)
         
         # 4. Automatic connection window at start
-        #~ wx.CallAfter()
+        wx.CallAfter(self._OpenConnectDialog)
         
         return True
 
@@ -391,6 +391,19 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         f.write(str(url_port))
         f.close()
     
+    def _OpenConnectDialog(self):
+        connect_dialog = ConnectDialog(config_data=self.config_data, parent=self.main_window)
+        if connect_dialog.ShowModal() != wx.ID_OK:
+            return
+        self.config_data.Compute()
+        if self.config_data.connection_type == 'local':
+            # Local connection mode: create a dedicated Solipsis node
+            self._LaunchNode()
+        else:
+            # Remote connection mode: connect to an existing node
+            self.connection_trials = 0
+            self._TryConnect()
+    
     def _TryConnect(self):
         """
         Tries to connect to the configured node.
@@ -490,17 +503,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """
         Called on "connect" event (menu -> File -> Connect).
         """
-        connect_dialog = ConnectDialog(config_data=self.config_data, parent=self.main_window)
-        if connect_dialog.ShowModal() != wx.ID_OK:
-            return
-        self.config_data.Compute()
-        if self.config_data.connection_type == 'local':
-            # Local connection mode: create a dedicated Solipsis node
-            self._LaunchNode()
-        else:
-            # Remote connection mode: connect to an existing node
-            self.connection_trials = 0
-            self._TryConnect()
+        self._OpenConnectDialog()
         #~ self.connect_dialog.ShowModal()
 
     def _OnDisconnect(self, evt):

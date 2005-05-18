@@ -34,8 +34,8 @@ class ConnectDialog(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
         # end wxGlade
 
-        # This will automatically call self.OnPseudoChanged
         self.text_ctrl_pseudo.SetValue(config_data.pseudo)
+        self._UpdateUI()
 
     def __set_properties(self):
         # begin wxGlade: ConnectDialog.__set_properties
