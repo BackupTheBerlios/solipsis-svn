@@ -88,7 +88,7 @@ class Plugin(ServicePlugin):
         """
         # init windows
         main_window = self.service_api.GetMainWindow()
-        self.profile_frame = ProfileFrame(main_window, -1, "")
+        self.profile_frame = ProfileFrame(False, main_window, -1, "")
         # create views & doc
         file_doc = FileDocument()
         file_doc.load(os.path.join(PROFILE_DIR, PROFILE_FILE))

@@ -17,7 +17,7 @@ def run():
     gettext.install("app") # replace with the appropriate catalog name
     app = wx.PySimpleApp(0)
     wx.InitAllImageHandlers()
-    profile_frame = ProfileFrame(None, -1, "")
+    profile_frame = ProfileFrame(True, None, -1, "")
 
     #set up facade
     facade = get_facade()

@@ -767,6 +767,13 @@ class CacheDocument(AbstractDocument):
             self.add_peer(pseudo)
         peer_obj = self.peers[pseudo][0]
         peer_obj.state = PeerDescriptor.ANONYMOUS
+        
+    def get_peer_status(self, pseudo):
+        """return friendship of peers"""
+        if not self.peers.has_key(pseudo):
+            return PeerDescriptor.ANONYMOUS
+        else:
+            return self.peers[pseudo][0].state
 
 
 # FILEDOCUMENT
@@ -1318,4 +1325,11 @@ class FileDocument(AbstractDocument):
             return self.config.get(SECTION_OTHERS, pseudo).split(",")
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
             return [PeerDescriptor.ANONYMOUS, NO_PATH]
+
+    def get_peer_status(self, pseudo):
+        """return friendship of peers from value (friendship, path)"""
+        try:
+            return self.config.get(SECTION_OTHERS, pseudo).split(",")[0]
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+            return PeerDescriptor.ANONYMOUS
 

@@ -310,6 +310,12 @@ class Facade:
                                "unmark_peer",
                                "update_peers")
 
+    def get_peer_status(self, pseudo):
+        if 'cache' in self.documents:
+            return self.documents["cache"].get_peer_status(pseudo)
+        else:
+            return self.documents[0].get_peer_status(pseudo)
+
     # SPECIFIC ACTIONS
     
     def set_auto_refresh_html(self, enable):

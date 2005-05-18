@@ -29,23 +29,33 @@ class OthersPanel(wx.Panel):
         self.friends = self.peers_list.AppendItem(root, _("Friends"))
         self.anonymous = self.peers_list.AppendItem(root, _("Anonymous"))
         self.blacklisted = self.peers_list.AppendItem(root, _("Blacklisted"))
-        
+
+        self.frame = self
+        # FIXME dirty but isinstance on ProfileFrame not working...
+        while self.frame and (not hasattr(self.frame, 'enable_peer_states')):
+            self.frame = self.frame.GetParent()
         self.facade = get_facade()
         self.peers = None
         self.bind_controls()
 
     def get_peer_selected(self):
         """returns selected pseudo"""
-        return self.peers_list.GetItemText(self.peers_list.GetSelection())
+        pseudo = self.peers_list.GetItemText(self.peers_list.GetSelection())
+        if self.peers.has_key(pseudo):
+            return pseudo
+        else:
+            return None
 
-    def refresh_view(self, active_doc):
+    def refresh_view(self, pseudo, active_doc):
         """refresh html view of peer"""
         if active_doc:
             view = HtmlView(active_doc)
             self.detail_preview.SetPage(view.get_view(True))
+            self.frame.enable_peer_states(True, self.facade.get_peer_status(pseudo))
         else:
             self.detail_preview.SetPage("<font color='blue'>%s</font>"\
-                                        % _("no neighbors yet"))
+                                        % _("select neighbor to display"))
+            self.frame.enable_peer_states(False)
     
     # EVENTS
     
@@ -79,24 +89,20 @@ class OthersPanel(wx.Panel):
             self.peers_list.AppendItem(self.blacklisted, pseudo)
         # get peer to display
         to_display = self.get_peer_selected()
-        if peers.has_key(to_display):
+        if to_display:
             active_doc = peers[to_display][1]
         else:
-            all = friends + anonymous
-            if all:
-                to_display = all[0]
-                active_doc = peers[to_display][1]
-            else:
-                active_doc = None
+            # TODO: set default view
+            active_doc = None
         # refresh HTMLView
-        self.refresh_view(active_doc)
+        self.refresh_view(to_display, active_doc)
         
     def on_selected(self, evt):
         """peer selected"""
         pseudo = self.get_peer_selected()
-        if self.peers.has_key(pseudo):
+        if pseudo:
             active_doc = self.peers[pseudo][1]
-            self.refresh_view(active_doc)
+            self.refresh_view(pseudo, active_doc)
 
     def __set_properties(self):
         # begin wxGlade: OthersPanel.__set_properties

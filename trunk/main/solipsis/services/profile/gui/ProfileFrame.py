@@ -4,7 +4,7 @@
 import wx, os, os.path
 from solipsis.util.wxutils import _
 from solipsis.services.profile.facade import get_facade
-from solipsis.services.profile.document import FileDocument
+from solipsis.services.profile.document import FileDocument, PeerDescriptor
 from solipsis.services.profile import PROFILE_DIR, PROFILE_FILE
 
 # begin wxGlade: dependencies
@@ -16,9 +16,15 @@ from PreviewPanel import PreviewPanel
 # end wxGlade
 
 class ProfileFrame(wx.Frame):
-    def __init__(self, *args, **kwds):
+    def __init__(self, standalone, *args, **kwds):
+        # quite different initialisation according to launched by navigator or not
+        self.standalone = standalone
+        if self.standalone:
+            kwds["style"] = wx.DEFAULT_FRAME_STYLE
+        else:
+            kwds["style"] = wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER
+        # FIXME XXX remove following line concerning kwds["style"]
         # begin wxGlade: ProfileFrame.__init__
-        kwds["style"] = wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER
         wx.Frame.__init__(self, *args, **kwds)
         self.profile_book = wx.Notebook(self, -1, style=0)
         
@@ -35,18 +41,18 @@ class ProfileFrame(wx.Frame):
         self.profile_item.AppendItem(self.load_item)
         self.save_item = wx.MenuItem(self.profile_item, wx.NewId(), _("&Save ...\tCtrl+S"), _("Save profile into file"), wx.ITEM_NORMAL)
         self.profile_item.AppendItem(self.save_item)
-        self.quit_item = wx.MenuItem(self.profile_item, wx.NewId(), _("&Quit\tCtrl+Q"), _("Exit profile management"), wx.ITEM_NORMAL)
+        self.quit_item = wx.MenuItem(self.profile_item, wx.NewId(), _("&Close\tCtrl+W"), _("Close profile management"), wx.ITEM_NORMAL)
         self.profile_item.AppendItem(self.quit_item)
         self.profile_menu.Append(self.profile_item, _("Profile"))
         self.peers_item = wx.Menu()
-        self.addpeer_item = wx.MenuItem(self.peers_item, wx.NewId(), _("&Add...\tCtrl+A"), "", wx.ITEM_NORMAL)
+        self.addpeer_item = wx.MenuItem(self.peers_item, wx.NewId(), _("&Import...\tCtrl+I"), _("Import profile file into tab 'Contacts'"), wx.ITEM_NORMAL)
         self.peers_item.AppendItem(self.addpeer_item)
         self.peers_item.AppendSeparator()
-        self.anonymous_item = wx.MenuItem(self.peers_item, wx.NewId(), _("Anonymous"), "", wx.ITEM_RADIO)
+        self.anonymous_item = wx.MenuItem(self.peers_item, wx.NewId(), _("&Anonymous\tCtrl+A"), "", wx.ITEM_RADIO)
         self.peers_item.AppendItem(self.anonymous_item)
-        self.friend_item = wx.MenuItem(self.peers_item, wx.NewId(), _("Friend"), "", wx.ITEM_RADIO)
+        self.friend_item = wx.MenuItem(self.peers_item, wx.NewId(), _("Frie&nd\tCtrl+N"), "", wx.ITEM_RADIO)
         self.peers_item.AppendItem(self.friend_item)
-        self.blacklisted_item = wx.MenuItem(self.peers_item, wx.NewId(), _("Black listed"), "", wx.ITEM_RADIO)
+        self.blacklisted_item = wx.MenuItem(self.peers_item, wx.NewId(), _("&Black listed\tCtrl+B"), "", wx.ITEM_RADIO)
         self.peers_item.AppendItem(self.blacklisted_item)
         self.peers_item.AppendSeparator()
         self.raw_item = wx.MenuItem(self.peers_item, wx.NewId(), _("&Find...\tCtrl+F"), _("Search profile in surrounding area"), wx.ITEM_NORMAL)
@@ -147,8 +153,11 @@ class ProfileFrame(wx.Frame):
             self.facade.export_profile(path)
 
     def on_quit(self, evt):
-        """end application"""
-        self.Hide()
+        """hide  application"""
+        if self.standalone:
+            self.Close()
+        else:
+            self.Hide()
 
     def on_make_friend(self, evt):
         """end application"""
@@ -189,6 +198,10 @@ class ProfileFrame(wx.Frame):
         for i in range(len(profile_statusbar_fields)):
             self.profile_statusbar.SetStatusText(profile_statusbar_fields[i], i)
         # end wxGlade
+
+        self.raw_item.Enable(False)
+        self.filters_item.Enable(False)
+        self.enable_peer_states(True)
         self.activate_item.Check()
         self.autorefresh_item.Check()
 
@@ -206,6 +219,21 @@ class ProfileFrame(wx.Frame):
         self.Layout()
         self.Centre()
         # end wxGlade
+
+    def enable_peer_states(self, enable, status=PeerDescriptor.ANONYMOUS):
+        """(Dis)Activate menu items"""
+        # select correct status
+        if status == PeerDescriptor.FRIEND:
+            self.friend_item.Check(True)
+        elif status == PeerDescriptor.BLACKLISTED:
+            self.blacklisted_item.Check(True)
+        else:
+            self.anonymous_item.Check(True)
+        # (dis)activate items
+        self.anonymous_item.Enable(enable)
+        self.blacklisted_item.Enable(enable)
+        self.friend_item.Enable(enable)
+            
 
 # end of class ProfileFrame
 
