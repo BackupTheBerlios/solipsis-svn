@@ -314,12 +314,12 @@ class Facade:
     
     def set_auto_refresh_html(self, enable):
         """sets new preview for peer"""
-        if "gui" in self.views:
+        if "html" in self.views:
             self.views["html"].set_auto_refresh(enable)
     
     def refresh_html_preview(self):
         """sets new preview for peer"""
-        if "gui" in self.views:
+        if "html" in self.views:
             self.views["html"].update_view()
 
     def get_keys(self, path):

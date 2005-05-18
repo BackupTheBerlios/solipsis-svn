@@ -21,9 +21,18 @@
 import socket
 import random
 import wx
+import os
+
+from StringIO import StringIO
 
 from solipsis.util.wxutils import _
 from solipsis.services.plugin import ServicePlugin
+from solipsis.services.profile import PROFILE_DIR, PROFILE_FILE
+from solipsis.services.profile.facade import get_facade
+from solipsis.services.profile.network import ProfileNetwork
+from solipsis.services.profile.document import CacheDocument, FileDocument
+from solipsis.services.profile.view import GuiView, HtmlView, PrintView
+from solipsis.services.profile.gui.ProfileFrame import ProfileFrame
 
       
 class Plugin(ServicePlugin):
@@ -41,13 +50,15 @@ class Plugin(ServicePlugin):
         # (this is where duplicated code starts to appear...)
         self.host = socket.gethostbyname(socket.gethostname())
         self.port = random.randrange(7000, 7100)
-        # peer_ip: connector
-        self.peers = {}
+        self.network = ProfileNetwork(self.service_api)
+        # init facade. Views will be initialized in Enable
+        # (views depend on graphical mode)
+        self.facade = get_facade()
         # declare actions
-        self.MAIN_ACTION = {"Modify ...": self.modify_profile,}
+        self.MAIN_ACTION = {"Modify ...": self.modify_profile,
+                            }
         self.POINT_ACTIONS = {"Get profile": self.get_profile,
                               "Get files...": self.get_files,
-                              "Send profile": self.send_profile,
                               }
 
     # Service setup
@@ -57,7 +68,17 @@ class Plugin(ServicePlugin):
     # wxclient)
     def EnableBasic(self):
         """enable non graphic part"""
-        pass
+        # TODO: expose interface of facade to netClient
+        # create views & doc
+        file_doc = FileDocument()
+        file_doc.load(os.path.join(PROFILE_DIR, PROFILE_FILE))
+        cache_doc = CacheDocument()
+        cache_doc.import_document(file_doc)
+        print_view = PrintView(cache_doc)
+        self.facade.add_document(cache_doc)
+        self.facade.add_view(print_view)
+        # launch network
+        self.network.start_listening()
         
     def Enable(self):
         """
@@ -65,35 +86,56 @@ class Plugin(ServicePlugin):
         be defined here, not in the constructor.  This includes
         e.g. opening sockets, collecting data from directories, etc.
         """
-        # Set up main GUI hooks
+        # init windows
         main_window = self.service_api.GetMainWindow()
+        self.profile_frame = ProfileFrame(main_window, -1, "")
+        # create views & doc
+        file_doc = FileDocument()
+        file_doc.load(os.path.join(PROFILE_DIR, PROFILE_FILE))
+        cache_doc = CacheDocument()
+        cache_doc.import_document(file_doc)
+        gui_view = GuiView(cache_doc, self.profile_frame)
+        html_view = HtmlView(cache_doc,
+                             self.profile_frame.preview_tab.html_preview,
+                             True)
+        self.facade.add_document(file_doc)
+        self.facade.add_document(cache_doc)
+        self.facade.add_view(gui_view)
+        self.facade.add_view(html_view)
+        self.facade.refresh_html_preview()
+        # Set up main GUI hooks
         menu = wx.Menu()
-        # TODO: if GetActions returns dictionary, we could map
-        # _clicked with the right function at once
         for action, method in self.MAIN_ACTION.iteritems():
             item_id = wx.NewId()
             menu.Append(item_id, _(action))
             def _clicked(event):
+                """call profile from main menu"""
                 method()
             wx.EVT_MENU(main_window, item_id, _clicked)
         self.service_api.SetMenu(self.GetTitle(), menu)
+        # launch network
+        self.network.start_listening()
     
     def Disable(self):
         """It is called when the user chooses to disable the service."""
-        pass
+        self.network.stop_listening()
 
     # Service methods
     def modify_profile(self):
-        pass
+        self.profile_frame.Show()
+
+    def _on_new_profile(self, pseudo, profile):
+        """store and display file object corresponding to profile"""
+        stream = StringIO(profile)
+        document = FileDocument()
+        document.read(stream)
+        self.facade.fill_data((pseudo, document))
     
     def get_profile(self, peer_id):
-        pass
+        self.network.get_profile(peer_id, self._on_new_profile)
 
-    def get_files(self, peer_id):
-        pass
-
-    def send_profile(self, peer_id):
-        pass
+    def get_files(self, peer_id, file_names):
+        self.network.get_file(peer_id, file_names)
 
     # Service description methods
     def GetTitle(self):
@@ -126,25 +168,32 @@ class Plugin(ServicePlugin):
     # UI event responses
     def DoAction(self, it):
         """Called when the general action is invoked, if available."""
-        print "Profile: DoAction", it
+        raise NotImplementedError
 
     def DoPointToPointAction(self, it, peer):
         """Called when a point-to-point action is invoked, if available."""
-        print "Profile: DoPointToPointAction", it, peer.id_
+        # retreive corect method
+        actions = self.POINT_ACTIONS.values()
+        # call method on peer
+        actions[it](peer)
 
     # Peer management
     def NewPeer(self, peer, service):
-        # probe its server (service.address)
-        pass
+        """delegate to network"""
+        self.network.on_new_peer(peer, service)
 
     def ChangedPeer(self, peer, service):
-        pass
+        """delegate to network"""
+        self.network.on_change_peer(peer, service)
 
     def LostPeer(self, peer_id):
-        print "Profile: LostPeer", peer_id
-
-    def ChangedNode(self, node):
-        pass
+        """delegate to network"""
+        self.network.on_lost_peer(peer_id)
 
     def GotServiceData(self, peer_id, data):
-        print "Profile: GotServiceData", peer_id, data
+        """delegate to network"""
+        self.network.on_service_data(peer_id, data)
+
+    def ChangedNode(self, node):
+        # new IP ? what consequence on network?
+        print "ChangedNode", node.id_

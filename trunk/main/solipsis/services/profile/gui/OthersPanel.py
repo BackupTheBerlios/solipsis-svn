@@ -53,7 +53,7 @@ class OthersPanel(wx.Panel):
         self.peers_list.Bind(wx.EVT_TREE_SEL_CHANGED, self.on_selected)
 
     def cb_update_peers(self, peers):
-        """called when peers have been modifies"""
+        """called when peers have been modified"""
         self.peers = peers
         # retreive pseudos
         friends = [peer[0].pseudo for peer in peers.values()

@@ -809,6 +809,12 @@ class FileDocument(AbstractDocument):
         self.config.write(file_obj)
         file_obj.close()
 
+    def read(self, stream):
+        """import profile from given stream (file object like)"""
+        self.encoding = stream.readline()[1:]
+        self.config = CustomConfigParser()
+        self.config.readfp(stream)
+
     def load(self, path=None):
         """fill document with information from .profile file"""
         if path and os.path.exists(path):
@@ -817,9 +823,7 @@ class FileDocument(AbstractDocument):
             return False
         # else: continue
         file_obj = open(self.file_name)
-        self.encoding = file_obj.readline()[1:]
-        self.config = CustomConfigParser()
-        self.config.readfp(file_obj)
+        self.read(file_obj)
         file_obj.close()
         return True
         
