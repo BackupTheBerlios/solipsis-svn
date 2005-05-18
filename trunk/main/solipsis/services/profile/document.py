@@ -452,6 +452,11 @@ class AbstractDocument:
         if not isinstance(pseudo, unicode):
             raise TypeError("pseudo expected as unicode")
         
+    def get_peer_status(self, pseudo):
+        """return friendship of peers from value (friendship, path)"""
+        if not isinstance(pseudo, unicode):
+            raise TypeError("pseudo expected as unicode")
+        
 
 class CacheDocument(AbstractDocument):
     """data container on cache"""
@@ -770,6 +775,7 @@ class CacheDocument(AbstractDocument):
         
     def get_peer_status(self, pseudo):
         """return friendship of peers"""
+        AbstractDocument.get_peer_status(self, pseudo)        
         if not self.peers.has_key(pseudo):
             return PeerDescriptor.ANONYMOUS
         else:
@@ -1328,6 +1334,7 @@ class FileDocument(AbstractDocument):
 
     def get_peer_status(self, pseudo):
         """return friendship of peers from value (friendship, path)"""
+        AbstractDocument.get_peer_status(self, pseudo)        
         try:
             return self.config.get(SECTION_OTHERS, pseudo).split(",")[0]
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):

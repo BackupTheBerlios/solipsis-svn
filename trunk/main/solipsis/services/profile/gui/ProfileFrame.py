@@ -9,10 +9,11 @@ from solipsis.services.profile import PROFILE_DIR, PROFILE_FILE
 
 # begin wxGlade: dependencies
 from FilePanel import FilePanel
-from PersonalPanel import PersonalPanel
 from OthersPanel import OthersPanel
-from CustomPanel import CustomPanel
+from PersonalPanel import PersonalPanel
+from BlogPanel import BlogPanel
 from PreviewPanel import PreviewPanel
+from CustomPanel import CustomPanel
 # end wxGlade
 
 class ProfileFrame(wx.Frame):
@@ -73,6 +74,7 @@ class ProfileFrame(wx.Frame):
         self.preview_tab = PreviewPanel(self.profile_book, -1)
         self.personal_tab = PersonalPanel(self.profile_book, -1)
         self.custom_tab = CustomPanel(self.profile_book, -1)
+        self.blog_tab = BlogPanel(self.profile_book, -1)
         self.file_tab = FilePanel(self.profile_book, -1)
         self.other_tab = OthersPanel(self.profile_book, -1)
 
@@ -191,7 +193,7 @@ class ProfileFrame(wx.Frame):
         _icon = wx.EmptyIcon()
         _icon.CopyFromBitmap(wx.Bitmap("/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/icon.gif", wx.BITMAP_TYPE_ANY))
         self.SetIcon(_icon)
-        self.SetSize((700, 979))
+        self.SetSize((708, 1018))
         self.profile_statusbar.SetStatusWidths([-1])
         # statusbar fields
         profile_statusbar_fields = [_("status")]
@@ -211,6 +213,7 @@ class ProfileFrame(wx.Frame):
         self.profile_book.AddPage(self.preview_tab, _("Preview"))
         self.profile_book.AddPage(self.personal_tab, _("Personal"))
         self.profile_book.AddPage(self.custom_tab, _("Special Interests"))
+        self.profile_book.AddPage(self.blog_tab, _("Blog"))
         self.profile_book.AddPage(self.file_tab, _("Files"))
         self.profile_book.AddPage(self.other_tab, _("Contacts"))
         frame_sizer.Add(wx.NotebookSizer(self.profile_book), 1, wx.EXPAND, 0)

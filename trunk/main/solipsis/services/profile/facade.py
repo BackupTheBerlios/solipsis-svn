@@ -314,7 +314,7 @@ class Facade:
         if 'cache' in self.documents:
             return self.documents["cache"].get_peer_status(pseudo)
         else:
-            return self.documents[0].get_peer_status(pseudo)
+            return self.documents.values()[0].get_peer_status(pseudo)
 
     # SPECIFIC ACTIONS
     

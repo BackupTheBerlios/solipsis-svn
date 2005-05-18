@@ -232,11 +232,16 @@ class FilePanel(wx.Panel):
     def __set_properties(self):
         """init widgets properties"""
         # begin wxGlade: FilePanel.__set_properties
+        self.add_button.SetToolTipString(_("Add repository"))
         self.add_button.SetSize(self.add_button.GetBestSize())
+        self.del_button.SetToolTipString(_("Remove repository"))
         self.del_button.SetSize(self.del_button.GetBestSize())
+        self.share_button.SetToolTipString(_("Share"))
         self.share_button.SetSize(self.share_button.GetBestSize())
+        self.unshare_button.SetToolTipString(_("Unshare"))
         self.unshare_button.SetSize(self.unshare_button.GetBestSize())
         self.tag_value.SetToolTipString(_("Complementary information on file"))
+        self.edit_button.SetToolTipString(_("Apply comment"))
         self.edit_button.SetSize(self.edit_button.GetBestSize())
         # end wxGlade
 

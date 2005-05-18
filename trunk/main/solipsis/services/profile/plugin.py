@@ -54,11 +54,12 @@ class Plugin(ServicePlugin):
         # init facade. Views will be initialized in Enable
         # (views depend on graphical mode)
         self.facade = get_facade()
+        self.profile_frame = None
         # declare actions
-        self.MAIN_ACTION = {"Modify ...": self.modify_profile,
+        self.MAIN_ACTION = {"Modify ...": self.show_profile,
                             }
         self.POINT_ACTIONS = {"Get profile": self.get_profile,
-                              "Get files...": self.get_files,
+                              "Get files...": self.select_files,
                               }
 
     # Service setup
@@ -121,8 +122,9 @@ class Plugin(ServicePlugin):
         self.network.stop_listening()
 
     # Service methods
-    def modify_profile(self):
-        self.profile_frame.Show()
+    def show_profile(self):
+        if self.profile_frame:
+            self.profile_frame.Show()
 
     def _on_new_profile(self, pseudo, profile):
         """store and display file object corresponding to profile"""
@@ -136,6 +138,10 @@ class Plugin(ServicePlugin):
 
     def get_files(self, peer_id, file_names):
         self.network.get_file(peer_id, file_names)
+
+    def select_files(self, peer_id):
+        # display dialog to select files
+        pass
 
     # Service description methods
     def GetTitle(self):
