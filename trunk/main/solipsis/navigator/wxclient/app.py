@@ -52,7 +52,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     """
     Main application class. Derived from wxPython "wx.App".
     """
-    version = "0.8.2"
+    version = "0.8.3svn"
     config_file = os.sep.join(["state", "config.bin"])
 
     def __init__(self, params, *args, **kargs):
