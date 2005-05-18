@@ -3,6 +3,7 @@
 
 import os
 import wx, wx.lib.editor
+from solipsis.util.wxutils import _
 from solipsis.services.profile.facade import get_facade
 
 # begin wxGlade: dependencies

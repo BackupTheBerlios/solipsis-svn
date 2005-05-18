@@ -6,6 +6,7 @@ import os, os.path
 import wx, wx.gizmos
 import sys
 from os.path import abspath
+from solipsis.util.wxutils import _
 from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile.data import DirContainer
 from solipsis.services.profile.data import SHARING_ALL

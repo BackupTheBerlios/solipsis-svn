@@ -26,8 +26,9 @@ def parse_address(address):
 class ProfileNetwork:
     """high level class managing clients and servers for each peer"""
 
-    def __init__(self):
+    def __init__(self, service_api):
         # service api (UDP transports)
+        self.service_api = service_api
         # client & server status
         # deferred downloads (especially profiles)
         # listening to well-known ports

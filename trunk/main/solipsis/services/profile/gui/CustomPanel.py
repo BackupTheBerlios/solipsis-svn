@@ -5,6 +5,7 @@ import sys
 import wx, wx.lib.editor 
 import wx.lib.mixins.listctrl  as  listmix
 from solipsis.services.profile.facade import get_facade
+from solipsis.util.wxutils import _
 from wx import ImageFromStream, BitmapFromImage
 from StringIO import StringIO
 
