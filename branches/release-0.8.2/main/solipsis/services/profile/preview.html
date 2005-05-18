@@ -1,0 +1,92 @@
+<html>
+<head>
+  <title>user preview</title>
+  <style>
+#contact { 
+	 text-align: left;
+ }
+
+#email {
+          color:blue;
+}
+
+#description {
+          font-style:italic;
+	  max-width:400px;
+	  border:thin solid black;
+}
+
+.header { 
+          font-weight: bold;
+	  text-decoration:underline;
+          margin-top: .5em;
+ }</style>
+</head>
+<body>
+
+  <div id="contact">
+    <img tal:attributes="src photo" 
+	 src="images/question_mark.gif"/>
+    <div tal:content="pseudo">emb</div>
+  </div>
+
+  <h2 class="header">Personal Information</h2>
+  <div> 
+    <span tal:content="title">Mr</span>
+    <span tal:content="firstname">Emmanuel</span>
+    <span tal:content="lastname">Bréton</span>
+  </div>
+  <div id="email"
+       tal:content="email">manu@logilab.fr
+  </div>
+  <div>
+    <span tal:content="birthday">12/01/2005</span>
+    <span tal:content="language">(fr)</span>
+  </div>
+  <div>       
+    <span tal:content="address">12 r V Hugo</span>
+    <span tal:content="postcode">92</span>
+    <span tal:content="city">Suresnes</span>
+    <span tal:content="country">France</span>
+  </div>
+  <div id="description"
+       tal:content="description">Anything
+  </div>
+
+  <h2 class="header">Special Interests</h2>
+  <div>
+     <div tal:repeat="hobby hobbies" tal:omit-tag=""><span tal:content="hobby">element</span> | </div>
+  </div>
+  <div>
+    <div tal:repeat="name attributes/keys" tal:omit-tag=""><div><b tal:content="name">name</b>: <span tal:content="python:attributes[name]">value</span></div></div>
+  </div>
+
+  <h2 class="header">Personal Files</h2>
+  <table tal:repeat ="repository files/keys">
+    <caption tal:content="repository">
+	repository
+    </caption>
+    <thead>
+      <tr>
+	<th>name</th>
+	<th>tag</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr tal:repeat ="name python:files[repository].keys()">
+	<td tal:content="name">name</td>
+	<td tal:content="python:files[repository][name]">tag</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2 class="header">Known Neighbors</h2>
+  <table>
+    <tr tal:repeat="info ordered_peers">
+      <td tal:content="python:info[0]">pseudo</td>
+      <td tal:content="python:info[1][1] and info[1][1].get_id() or 'NA'">name</td>
+      <td tal:content="python:info[1][0] and info[1][0].state or '--'">state</td>
+    </tr>
+  </table>
+</body>
+</html>

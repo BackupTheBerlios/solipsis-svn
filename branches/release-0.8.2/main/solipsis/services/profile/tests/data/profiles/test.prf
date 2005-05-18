@@ -1,0 +1,33 @@
+#ISO-8859-1
+[Personal]
+city = Paris
+language = fr
+firstname = manu
+title = Mr
+lastname = breton
+address = 12 rue V Hugo
+pseudo = emb
+birthday = 12/01/2005
+postcode = 34000
+photo = /usr/lib/python2.3/unittest.pyc
+country = France
+email = manu@ft.com
+description = anything
+
+[Files]
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/date.txt = ,tagos
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/subsubdir/null = shared,empty
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1 = shared,none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/subsubdir/dummy.txt = shared,empty
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/routage = shared,none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/emptydir = shared,none
+
+[Others]
+nico = Friend,none
+
+[Custom]
+color = blue
+homepage = manu.com
+repositories = /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests
+hobbies = blabla,bla bla bla,
+

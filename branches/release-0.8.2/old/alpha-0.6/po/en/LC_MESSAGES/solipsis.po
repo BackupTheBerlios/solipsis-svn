@@ -1,0 +1,136 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2004-11-19 13:34+0100\n"
+"PO-Revision-Date: 2004-11-19 13:03+0100\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: entrée standard:19
+msgid "&Cancel"
+msgstr "&Cancel"
+
+#: entrée standard:3
+msgid "&Connect"
+msgstr "&Connect"
+
+#: entrée standard:4
+msgid "&Disconnect"
+msgstr "&Disconnect"
+
+#: entrée standard:12 standard:18 standard:22
+msgid "&OK"
+msgstr "&OK"
+
+#: entrée standard:9
+msgid "About"
+msgstr "About"
+
+#: entrée standard:10
+msgid "About..."
+msgstr "About..."
+
+#: entrée standard:13
+msgid "Connect to Solipsis"
+msgstr "Connect to Solipsis"
+
+#: entrée standard:6
+msgid "Edit"
+msgstr "Edit"
+
+#: solipsis/wxnavigator/wxutils.py:102
+msgid "Error"
+msgstr "Error"
+
+#: entrée standard:2
+msgid "File"
+msgstr "File"
+
+#: entrée standard:8
+msgid "Help"
+msgstr "Help"
+
+#: entrée standard:16
+msgid "Host: "
+msgstr "Host: "
+
+#: entrée standard:14
+msgid "Name or pseudo"
+msgstr "Name or pseudo"
+
+#: entrée standard:1
+msgid "Navigator"
+msgstr "Navigator"
+
+#: entrée standard:15
+msgid "Node address"
+msgstr "Node address"
+
+#: entrée standard:20 solipsis/wxnavigator/app.py:169
+msgid "Not implemented"
+msgstr "Not implemented"
+
+#: solipsis/wxnavigator/validators.py:52
+msgid "Please enter a valid hostname or address"
+msgstr "Please enter a valid hostname or address"
+
+#: solipsis/wxnavigator/validators.py:62
+msgid "Please enter a valid nickname"
+msgstr "Please enter a valid nickname"
+
+#: solipsis/wxnavigator/wxutils.py:77
+msgid "Please fill this form correctly"
+msgstr "Please fill this form correctly"
+
+#: solipsis/wxnavigator/validators.py:29
+msgid "Port number must be between 1 and 65535"
+msgstr "Port number must be between 1 and 65535"
+
+#: entrée standard:17
+msgid "Port: "
+msgstr "Port: "
+
+#: entrée standard:7
+msgid "Preferences"
+msgstr "Preferences"
+
+#: entrée standard:5
+msgid "Quit"
+msgstr "Quit"
+
+#: entrée standard:11
+msgid ""
+"Solipsis Navigator 0.1\n"
+"\n"
+"Licensed under the GNU LGPL.\n"
+"(c) France Telecom R&&D\n"
+msgstr ""
+"Solipsis Navigator 0.1\n"
+"\n"
+"Licensed under the GNU LGPL.\n"
+"(c) France Telecom R&&D\n"
+
+#: solipsis/wxnavigator/app.py:168
+msgid ""
+"This function is not yet implemented.\n"
+"Sorry! Please come back later..."
+msgstr ""
+"This function is not yet implemented.\n"
+"Sorry! Please come back later..."
+
+#: entrée standard:21
+msgid ""
+"This function is not yet implemented.\n"
+"Sorry! please come back later...\n"
+msgstr ""
+"This function is not yet implemented.\n"
+"Sorry! please come back later...\n"

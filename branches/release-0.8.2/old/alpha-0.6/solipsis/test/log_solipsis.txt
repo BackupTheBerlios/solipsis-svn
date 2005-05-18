@@ -1,0 +1,4 @@
+2004-11-18 17:54:29,387 INFO Parameters initialized with: {'entities_file': 'entities.met', 'orientation': 0, 'bot': False, 'stat_infos': True, 'expected_neighbours': 12, 'calibre_max': 1024, 'port': 6000, 'scale': '2', 'calibre': 1024, 'control_port': 8550, 'first_peer': None, 'notif_port': 8551, 'control_host': 'localhost', 'display_avatars': True, 'host': '', 'awareness_radius': 1, 'buffer_size': 2000, 'connection_timeout': 30, 'pos_x': 4L, 'pos_y': 1L, 'display_pseudos': True, 'pseudo': 'my Solipsis', 'zoom': '1'}
+2004-11-18 17:54:29,388 DEBUG Internal connector started
+2004-11-18 17:54:29,388 DEBUG node started
+2004-11-18 17:54:29,389 DEBUG NotConnected(State)
