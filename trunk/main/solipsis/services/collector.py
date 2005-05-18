@@ -112,7 +112,13 @@ class ServiceCollector(object):
         """
         # Note: when plugin.Init() is called, everything else should have been
         # properly initialized for the plugin to interact with it.
-        plugin.Init()
+        try:
+            plugin.Init()
+        except Exception, e:
+            from traceback import print_exc
+            print "Failed to initialize plugin '%s', disabling." % service_id
+            print_exc()
+            del self.plugins[service_id]
 
     # FIXME: need to abstract plugins so that enabling them does not
     # depend on navigator mode (in our case: netclient or wxclient)
