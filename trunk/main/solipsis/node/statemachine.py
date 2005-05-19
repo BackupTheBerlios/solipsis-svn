@@ -132,6 +132,10 @@ class StateMachine(object):
         self.received_messages = {}
         self.sent_messages = {}
 
+        # Delayed calls
+        self.peer_timeouts = {}
+        self.peer_updates = {}
+        
         self.Reset()
 
     def Reset(self):
@@ -151,7 +155,11 @@ class StateMachine(object):
         self.jump_near_address = None
 
         # Delayed calls
+        for delayed in self.peer_timeouts.values():
+            delayed.Reset()
         self.peer_timeouts = {}
+        for delayed in self.peer_updates.values():
+            delayed.Reset()
         self.peer_updates = {}
         self.caller.Reset()
         

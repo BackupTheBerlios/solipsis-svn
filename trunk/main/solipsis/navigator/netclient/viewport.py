@@ -96,11 +96,11 @@ class Viewport(object):
         return True
     
     def Disable(self):
-        print >> get_log_stream(),  "Viewport: Disable"
+#         print >> get_log_stream(),  "Viewport: Disable"
         self.disabled = True
 
     def Enable(self):
-        print >> get_log_stream(),  "Viewport: Enable"
+#         print >> get_log_stream(),  "Viewport: Enable"
         self.disabled = False
     
     def AutoRotate(self, flag):

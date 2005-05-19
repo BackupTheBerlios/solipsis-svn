@@ -63,7 +63,6 @@ class RemoteControl(object):
         # (connect_id -> Deferred) dictionnary
         self.pending_notifs = {}
 
-
     #
     # Remotely callable methods
     #
@@ -81,6 +80,12 @@ class RemoteControl(object):
         self._CheckConnectId(connect_id)
         self._CloseConnection(connect_id)
         return True
+
+    def remote_Reset(self, connect_id):
+        """close all connection and cancel DelayedCalls"""
+        for connection in self.connections.values():
+            connection.Reset()
+        self.caller.Reset()
 
     def remote_Quit(self, connect_id):
         """

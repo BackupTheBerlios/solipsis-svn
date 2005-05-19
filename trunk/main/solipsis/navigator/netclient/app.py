@@ -320,6 +320,14 @@ class NavigatorApp(UIProxyReceiver):
         else:
             return "not connected"
 
+    def _Reset(self, evt):
+        """reset node (clear pending connections)"""
+        if self._CheckNodeProxy():
+            self.network.ResetNode()
+            return "node reset"
+        else:
+            return "not connected"
+
     def _Preferences(self, evt):
         """
         Called on "preferences" event (menu -> File -> Preferences).

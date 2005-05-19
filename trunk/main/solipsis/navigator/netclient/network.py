@@ -37,6 +37,7 @@ COMMANDS = {"check": ["chech status of connection", ""],
             "connect": ["connect to specified node", "bots.netofpeers.net:8551"],
             "disconnect": ["discoonnect from current node", ""],
             "kill": ["kill node", ""],
+            "reset": ["reset node", ""],
             "jump": ["jump to node", "192.33.178.29:5010"],
             "pref": ["change preferences", ""],
             "quit": ["close navigator", ""],
@@ -89,6 +90,9 @@ class NetworkLoop(object):
 
     def KillNode(self, *args, **kargs):
         self.remote_connector.Kill(*args, **kargs)
+
+    def ResetNode(self, *args, **kargs):
+        self.remote_connector.Reset(*args, **kargs)
 
 class SolipsisUiProtocol(basic.LineReceiver):
 
@@ -168,8 +172,10 @@ class SolipsisUiFactory(protocol.ServerFactory):
         return self.app._Disconnect(arg)
 
     def do_kill(self, arg):
-        print >> get_log_stream(),  "calling _Kill" 
-        self.app._Kill(arg)
+        return self.app._Kill(arg)
+
+    def do_reset(self, arg):
+        return self.app._Reset(arg)
 
     def do_jump(self, arg):
         if not self.address_val._Validate(arg):
@@ -180,8 +186,7 @@ class SolipsisUiFactory(protocol.ServerFactory):
         return self.app._Preferences(arg)
 
     def do_quit(self, arg):
-        print >> get_log_stream(),  "calling _Quit" 
-        self.app._Quit(arg)
+        return self.app._Quit(arg)
 
     def do_display(self, arg):
         return self.app._DisplayNodeAddress(arg)

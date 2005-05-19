@@ -94,6 +94,13 @@ class _BaseNode(object):
             self._proxy = None
             self._Disconnected()
 
+    def Reset(self):
+        """
+        Reset the node.
+        """
+        if self.Connected():
+            self._proxy.Reset()
+
     def _CreateMethod(self, method_name, success, failure):
         """
         This method must be overriden.

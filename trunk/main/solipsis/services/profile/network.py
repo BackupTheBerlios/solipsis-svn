@@ -47,6 +47,12 @@ class ProfileNetwork:
         # if done, display profile content
         pass
 
+    def get_blog(self, peer_id, display_callback):
+        """retreive peer's blog"""
+        # ask for blog page
+        # DEFERRED: add display callback 
+        pass
+
     def start_listening(self):
         """launching main server listening to well-known port"""
         # delegate to ProfileServerFactory
@@ -217,7 +223,7 @@ class ProfileServerFactory(ServerFactory):
         pass
 
 
-# SPECIFIC PORTS: once we'be been through main gate, use of a little
+# SPECIFIC PORTS: once we'be been through main gate, provides a little
 # more privacy...
 #---------------
 # COMMON
@@ -236,19 +242,12 @@ class PeerProtocol(basic.FileSender, basic.LineReceiver):
         # check file
         pass
 
-    def send_file(self):
+    def send_file(self, file_object):
         """senf file on request"""
         # beginFileTransfer(self, file, consumer, transform=None)
         # deferred send COMPLETE
         pass
 
-    def send_profile(self):
-        """send profile on request"""
-        # open stram on document profile
-        # beginFileTransfer(self, profile, consumer, transform=None)
-        # deferred send COMPLETE
-        pass
-    
     def lineReceived(self, line):
         """specialised in Client/Server protocol"""
         raise NotImplementedError
@@ -294,15 +293,8 @@ class PeerClientFactory(ClientFactory):
     def get_file(self):
         """in case no server at the other end: server used as 'client'
         to get a file"""
-        # connect specific server DOWNLOAD file://
+        # connect specific server DOWNLOAD [file:// , profile:// , blog://]
         # receive file
-        pass
-
-    def get_profile(self):
-        """in case no server at the other end: server used as 'client'
-        to get profile"""
-        # connect specific server DOWNLOAD profile://
-        # receive profile
         pass
 
     def upload_file(self):
@@ -310,7 +302,7 @@ class PeerClientFactory(ClientFactory):
         requested file"""
         # check file is shared
         # check ip
-        # connect remote server
+        # connect remote server UPLOAD
         pass
 
 # SERVER
@@ -365,11 +357,5 @@ class PeerServerFactory(ServerFactory):
         to get a file"""
         # connect UDP
         # send command of connection
-        # other part connects and upload file
-        pass
-
-    def get_profile(self):
-        """in case no server at the other end: server used as 'client'
-        to get profile"""
-        # call get_file on profile file
+        # other client uploads file
         pass

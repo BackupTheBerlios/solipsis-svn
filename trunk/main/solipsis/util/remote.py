@@ -81,6 +81,13 @@ class RemoteConnector(object):
             self.remote_node.Quit()
             self.remote_node = None
 
+    def Reset(self):
+        """
+        Reset the node.
+        """
+        if self.remote_node is not None:
+            self.remote_node.Reset()
+
     def Connected(self):
         """
         Returns True if connected.
@@ -99,6 +106,10 @@ class RemoteConnector(object):
             self.ui.NodeKillSucceeded()
         else:
             self.ui.NodeKillFailed()
+
+    def success_Reset(self, reply):
+        """Nothing particular to be done"""
+        print "successfully reseted node"
 
     def success_GetAllPeers(self, reply):
         """
