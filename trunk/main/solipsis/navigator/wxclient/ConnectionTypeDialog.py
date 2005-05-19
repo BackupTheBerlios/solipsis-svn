@@ -35,15 +35,6 @@ class ConnectionTypeDialog(wx.Dialog):
 
         self.Bind(wx.EVT_CLOSE, self.OnClose)
 
-        # Initialize UI values
-        conntype = self.config_data.connection_type
-        self.radio_btn_local.SetValue(conntype == 'local')
-        self.radio_btn_remote.SetValue(conntype == 'remote')
-        self.text_ctrl_local_port.SetValue(str(self.config_data.solipsis_port))
-        self.text_ctrl_remote_host.SetValue(self.config_data.host)
-        self.text_ctrl_remote_port.SetValue(str(self.config_data.port))
-        self._UpdateUI()
-
     def __set_properties(self):
         # begin wxGlade: ConnectionTypeDialog.__set_properties
         self.SetTitle(_("Connection type"))
@@ -51,6 +42,14 @@ class ConnectionTypeDialog(wx.Dialog):
         self.text_ctrl_remote_host.SetToolTipString(_("Name or IP address of the machine on which the node is running"))
         self.button_close.SetDefault()
         # end wxGlade
+
+        # Initialize UI values
+        conntype = self.config_data.connection_type
+        self.radio_btn_local.SetValue(conntype == 'local')
+        self.radio_btn_remote.SetValue(conntype == 'remote')
+        self.text_ctrl_local_port.SetValue(str(self.config_data.solipsis_port))
+        self.text_ctrl_remote_host.SetValue(self.config_data.host)
+        self.text_ctrl_remote_port.SetValue(str(self.config_data.port))
 
     def __do_layout(self):
         # begin wxGlade: ConnectionTypeDialog.__do_layout
@@ -83,6 +82,8 @@ class ConnectionTypeDialog(wx.Dialog):
         self.Layout()
         self.Centre()
         # end wxGlade
+
+        self._UpdateUI()
 
     #
     # Event handlers
