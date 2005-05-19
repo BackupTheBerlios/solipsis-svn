@@ -5,6 +5,9 @@ import wx
 import time
 from solipsis.services.profile.facade import get_facade
 
+from solipsis.util.wxutils import _
+
+
 # begin wxGlade: dependencies
 # end wxGlade
 
@@ -136,5 +139,3 @@ class BlogPanel(wx.Panel):
         # end wxGlade
 
 # end of class BlogPanel
-
-
