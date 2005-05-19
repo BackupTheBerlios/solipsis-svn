@@ -29,14 +29,14 @@ class TestProtocol(LineReceiver):
 #                     print "!!!", data
                     deferred.callback(data)
                 else:
-#                     print "...", data
+#                     print ">>>", data
                     self.factory.expected_response.append(deferred)
             else:
-#                 print "---", data
+#                 print "===", data
                 deferred.callback(data)
         else:
             pass
-#             print ">>>", data
+#             print "...", data
 
 # store persistent data (user_name)
 # echo steps of connecting

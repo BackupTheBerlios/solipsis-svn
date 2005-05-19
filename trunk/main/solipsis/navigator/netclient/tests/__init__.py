@@ -22,6 +22,6 @@ import sys
 from twisted.internet import reactor
 
 def waiting():
-    reactor.iterate(0.1)
+    reactor.iterate(0.2)
     sys.stdout.write("w")
     sys.stdout.flush()
