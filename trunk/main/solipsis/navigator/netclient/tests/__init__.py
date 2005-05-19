@@ -21,6 +21,8 @@ import sys
 
 from twisted.internet import reactor
 
+PORT = 1081
+
 def waiting():
     reactor.iterate(0.2)
     sys.stdout.write("w")
