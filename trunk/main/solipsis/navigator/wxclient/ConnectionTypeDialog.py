@@ -88,10 +88,12 @@ class ConnectionTypeDialog(wx.Dialog):
     # Event handlers
     #
     def OnRadioLocal(self, event): # wxGlade: ConnectionTypeDialog.<event_handler>
-        wx.CallAfter(self._UpdateUI)
+        self.radio_btn_remote.SetValue(False)
+        self._UpdateUI()
 
     def OnRadioRemote(self, event): # wxGlade: ConnectionTypeDialog.<event_handler>
-        wx.CallAfter(self._UpdateUI)
+        self.radio_btn_local.SetValue(False)
+        self._UpdateUI()
 
     def OnClose(self, event): # wxGlade: ConnectionTypeDialog.<event_handler>
         if self._Validate():
