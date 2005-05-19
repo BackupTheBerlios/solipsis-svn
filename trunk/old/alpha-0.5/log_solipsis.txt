@@ -1,4 +1,0 @@
-2004-10-01 10:28:50,059 DEBUG UDP connector started:('10.193.167.18', 5412)
-2004-10-01 10:28:50,060 DEBUG Internal connector started
-2004-10-01 10:28:55,169 DEBUG Received kill message
-2004-10-01 10:28:55,170 INFO End of Network Server...
