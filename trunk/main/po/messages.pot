@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-05-11 15:04+0200\n"
+"POT-Creation-Date: 2005-05-19 14:39+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,10 +22,7 @@ msgstr ""
 msgid "&Node"
 msgstr ""
 
-msgid "&New node"
-msgstr ""
-
-msgid "&Connect to existing node"
+msgid "&Connect to Solipsis"
 msgstr ""
 
 msgid "&Disconnect"
@@ -64,7 +61,7 @@ msgstr ""
 msgid "Choose whether display orientation changes when moving"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:214
+#: solipsis/navigator/wxclient/app.py:223
 msgid "&Bookmarks"
 msgstr ""
 
@@ -77,9 +74,11 @@ msgstr ""
 msgid "About"
 msgstr ""
 
+#: solipsis/navigator/wxclient/ConnectDialog.py:42
 msgid "Connect to Solipsis"
 msgstr ""
 
+#: solipsis/navigator/wxclient/ConnectDialog.py:21
 msgid "Name or pseudo"
 msgstr ""
 
@@ -142,154 +141,146 @@ msgstr ""
 msgid "Please enter a valid nickname"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:130
-#: solipsis/navigator/wxclient/app.py:346
-#: solipsis/navigator/wxclient/app.py:492
-#: solipsis/navigator/wxclient/app.py:781
-#: solipsis/navigator/wxclient/app.py:818
-#: solipsis/navigator/wxclient/app.py:832
-#: solipsis/navigator/netclient/app.py:77
-#: solipsis/navigator/netclient/app.py:260
-#: solipsis/navigator/netclient/app.py:262
-#: solipsis/navigator/netclient/app.py:483
-#: solipsis/navigator/netclient/app.py:501
-#: solipsis/navigator/netclient/app.py:512
+#: solipsis/navigator/wxclient/app.py:136
+#: solipsis/navigator/wxclient/app.py:357
+#: solipsis/navigator/wxclient/app.py:520
+#: solipsis/navigator/wxclient/app.py:809
+#: solipsis/navigator/wxclient/app.py:846
+#: solipsis/navigator/wxclient/app.py:860
+#: solipsis/navigator/netclient/app.py:101
+#: solipsis/navigator/netclient/app.py:282
+#: solipsis/navigator/netclient/app.py:284
+#: solipsis/navigator/netclient/app.py:508
+#: solipsis/navigator/netclient/app.py:526
+#: solipsis/navigator/netclient/app.py:537
 msgid "Not connected"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:333
-#: solipsis/navigator/netclient/app.py:155
+#: solipsis/navigator/wxclient/app.py:344
+#: solipsis/navigator/netclient/app.py:176
 msgid ""
 "This function is not yet implemented.\n"
 "Sorry! Please come back later..."
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:334
+#: solipsis/navigator/wxclient/app.py:345
 msgid "Not implemented"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:345
+#: solipsis/navigator/wxclient/app.py:356
 msgid ""
 "This action cannot be performed, \n"
 "because you are not connected to a node."
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:392
-#: solipsis/navigator/netclient/app.py:193
+#: solipsis/navigator/wxclient/app.py:416
+#: solipsis/navigator/netclient/app.py:214
 msgid "Connecting"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:434
-#: solipsis/navigator/netclient/app.py:216
-msgid "Solipsis Navigator"
-msgstr ""
-
-#: solipsis/navigator/wxclient/app.py:434
-#: solipsis/navigator/netclient/app.py:216
-msgid "Licensed under the GNU LGPL"
-msgstr ""
-
-#: solipsis/navigator/wxclient/app.py:435
-msgid "About..."
-msgstr ""
-
-#: solipsis/navigator/wxclient/app.py:449
-msgid "Please choose your nickname"
-msgstr ""
-
-#: solipsis/navigator/wxclient/app.py:450
-msgid "Nickname"
-msgstr ""
-
-#: solipsis/navigator/wxclient/app.py:460
-#: solipsis/navigator/netclient/app.py:232
+#: solipsis/navigator/wxclient/app.py:425
+#: solipsis/navigator/netclient/app.py:254
 msgid ""
 "Node creation failed. \n"
 "Please check you have sufficient rights."
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:461
-#: solipsis/navigator/wxclient/app.py:846
+#: solipsis/navigator/wxclient/app.py:426
+#: solipsis/navigator/wxclient/app.py:874
 msgid "Kill refused"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:505
+#: solipsis/navigator/wxclient/app.py:478
+#: solipsis/navigator/netclient/app.py:238
+msgid "Solipsis Navigator"
+msgstr ""
+
+#: solipsis/navigator/wxclient/app.py:478
+#: solipsis/navigator/netclient/app.py:238
+msgid "Licensed under the GNU LGPL"
+msgstr ""
+
+#: solipsis/navigator/wxclient/app.py:479
+msgid "About..."
+msgstr ""
+
+#: solipsis/navigator/wxclient/app.py:533
 msgid ""
 "Your address has been copied to the clipboard. \n"
 "If you paste it and send it to your friends, \n"
 "they will be able to jump near you in the Solipsis world."
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:506
+#: solipsis/navigator/wxclient/app.py:534
 msgid "For reminder, here is your address:"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:509
+#: solipsis/navigator/wxclient/app.py:537
 msgid "Your Solipsis address"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:520
+#: solipsis/navigator/wxclient/app.py:548
 msgid "Please enter the address to jump to"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:521
+#: solipsis/navigator/wxclient/app.py:549
 msgid "Jump near an entity"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:684
-#: solipsis/navigator/netclient/app.py:391
+#: solipsis/navigator/wxclient/app.py:712
+#: solipsis/navigator/netclient/app.py:416
 #, python-format
 msgid "Bookmark peer \"%s\""
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:698
-#: solipsis/navigator/netclient/app.py:398
+#: solipsis/navigator/wxclient/app.py:726
+#: solipsis/navigator/netclient/app.py:423
 msgid "Disconnect"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:700
-#: solipsis/navigator/netclient/app.py:400
+#: solipsis/navigator/wxclient/app.py:728
+#: solipsis/navigator/netclient/app.py:425
 msgid "Connect to node"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:701
-#: solipsis/navigator/netclient/app.py:401
+#: solipsis/navigator/wxclient/app.py:729
+#: solipsis/navigator/netclient/app.py:426
 msgid "About Solipsis"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:771
-#: solipsis/navigator/wxclient/app.py:793
-#: solipsis/navigator/netclient/app.py:475
-#: solipsis/navigator/netclient/app.py:492
+#: solipsis/navigator/wxclient/app.py:799
+#: solipsis/navigator/wxclient/app.py:821
+#: solipsis/navigator/netclient/app.py:500
+#: solipsis/navigator/netclient/app.py:517
 msgid "Connected"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:776
-#: solipsis/navigator/netclient/app.py:479
+#: solipsis/navigator/wxclient/app.py:804
+#: solipsis/navigator/netclient/app.py:504
 msgid "Searching peers"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:804
+#: solipsis/navigator/wxclient/app.py:832
 msgid "Connection progress"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:805
+#: solipsis/navigator/wxclient/app.py:833
 msgid "Connecting to the node..."
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:819
-#: solipsis/navigator/netclient/app.py:502
+#: solipsis/navigator/wxclient/app.py:847
+#: solipsis/navigator/netclient/app.py:527
 msgid ""
 "Connection to the node has failed. \n"
 "Please the check the node is running, then retry."
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:820
+#: solipsis/navigator/wxclient/app.py:848
 msgid "Connection error"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:845
-#: solipsis/navigator/netclient/app.py:526
+#: solipsis/navigator/wxclient/app.py:873
+#: solipsis/navigator/netclient/app.py:551
 msgid "You cannot kill this node."
 msgstr ""
 
@@ -322,15 +313,70 @@ msgstr ""
 msgid "Please choose the peer to add to your bookmarks list."
 msgstr ""
 
-#: solipsis/navigator/netclient/app.py:166
+#: solipsis/navigator/wxclient/ConnectDialog.py:20
+#: solipsis/navigator/wxclient/ConnectionTypeDialog.py:49
+msgid "Connection type"
+msgstr ""
+
+#: solipsis/navigator/wxclient/ConnectDialog.py:24
+msgid "Change"
+msgstr ""
+
+#: solipsis/navigator/wxclient/ConnectDialog.py:99
+msgid "A dedicated Solipsis node will be launched."
+msgstr ""
+
+#: solipsis/navigator/wxclient/ConnectDialog.py:101
+#, python-format
+msgid ""
+"A remote Solipsis node will be contacted\n"
+"at the following address: %s."
+msgstr ""
+
+#: solipsis/navigator/wxclient/ConnectionTypeDialog.py:18
+msgid ""
+"Launch a dedicated Solipsis node \n"
+"on this computer."
+msgstr ""
+
+#: solipsis/navigator/wxclient/ConnectionTypeDialog.py:19
+msgid "Use UDP port:"
+msgstr ""
+
+#: solipsis/navigator/wxclient/ConnectionTypeDialog.py:21
+msgid ""
+"Connect using an existing Solipsis node \n"
+"(possibly on a remote computer):"
+msgstr ""
+
+#: solipsis/navigator/wxclient/ConnectionTypeDialog.py:22
+msgid "Host:"
+msgstr ""
+
+#: solipsis/navigator/wxclient/ConnectionTypeDialog.py:24
+msgid "Port:"
+msgstr ""
+
+#: solipsis/navigator/wxclient/ConnectionTypeDialog.py:51
+msgid "Name or IP address of the machine on which the node is running"
+msgstr ""
+
+#: solipsis/navigator/wxclient/ConnectionTypeDialog.py:107
+msgid ""
+"Some parameters have wrong values.\n"
+"Please enter proper values."
+msgstr ""
+
+#: solipsis/navigator/wxclient/ConnectionTypeDialog.py:108
+#: solipsis/util/wxutils.py:158
+msgid "Error"
+msgstr ""
+
+#: solipsis/navigator/netclient/app.py:187
 msgid ""
 "This action cannot be performed, because you are not connected to a node."
 msgstr ""
 
 #: solipsis/util/wxutils.py:129
 msgid "Please fill this form correctly"
-msgstr ""
-
-#: solipsis/util/wxutils.py:158
-msgid "Error"
 msgstr ""

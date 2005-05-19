@@ -1,5 +1,4 @@
-# French translations for alpha package
-# Traduction anglaise du package alpha.
+# Slovenski prevod za alpha paket.
 # Copyright (C) 2004 THE alpha'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the alpha package.
 # Antoine <antoine@pitrou.net>, 2004.
@@ -9,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Solipsis\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2005-05-19 14:39+0200\n"
-"PO-Revision-Date: 2005-05-19 14:39+0100\n"
+"PO-Revision-Date: 2005-05-19 14:24+0100\n"
 "Last-Translator: Antoine Pitrou <solipsis@pitrou.net>\n"
 "Language-Team: Solipsis translators <antoine@pitrou.net>\n"
 "MIME-Version: 1.0\n"
@@ -17,45 +16,46 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 msgid "&Actions"
-msgstr "&Actions"
+msgstr "&Akcija"
 
 #: solipsis/navigator/wxclient/app.py:223
 msgid "&Bookmarks"
-msgstr "&Signets"
+msgstr "&Zaznamki"
 
 msgid "&Cancel"
-msgstr "&Annuler"
+msgstr "&Prekini"
 
 msgid "&Close"
-msgstr ""
+msgstr "&Zapri"
 
+#, fuzzy
 msgid "&Connect to Solipsis"
-msgstr "Se connecter à Solipsis"
+msgstr "Poveži z Solipsis"
 
 msgid "&Disconnect"
-msgstr "Se &déconnecter"
+msgstr "&Prekini povezavo"
 
 msgid "&Help"
-msgstr "&Aide"
+msgstr "&Pomoè"
 
 msgid "&Jump near..."
-msgstr "&Sauter près de..."
+msgstr "&Skoèi k..."
 
 msgid "&Kill node"
-msgstr "&Tuer le noeud"
+msgstr "&Ustavi node"
 
 msgid "&Node"
-msgstr "&Nœud"
+msgstr "&Node"
 
 msgid "&Ok"
-msgstr "&Valider"
+msgstr "&Potrdi"
 
 msgid "&View"
-msgstr "&Affichage"
+msgstr "&Pogled"
 
 #: solipsis/navigator/wxclient/ConnectDialog.py:99
 msgid "A dedicated Solipsis node will be launched."
-msgstr "Un nœud Solipsis dédié sera lancé."
+msgstr ""
 
 #: solipsis/navigator/wxclient/ConnectDialog.py:101
 #, python-format
@@ -63,93 +63,90 @@ msgid ""
 "A remote Solipsis node will be contacted\n"
 "at the following address: %s."
 msgstr ""
-"Un nœud Solipsis distant sera contacté \n"
-"à l'adresse suivante: %s."
 
 msgid "About"
-msgstr "À propos"
+msgstr "O Programu"
 
 #: solipsis/navigator/wxclient/app.py:729
 #: solipsis/navigator/netclient/app.py:426
 msgid "About Solipsis"
-msgstr "À propos de Solipsis"
+msgstr "O Programu Solipsis"
 
 #: solipsis/navigator/wxclient/app.py:479
 msgid "About..."
-msgstr "À propos..."
+msgstr "O Programu..."
 
 #: solipsis/navigator/wxclient/BookmarksDialog.py:46
 #: solipsis/navigator/wxclient/BookmarksDialog.py:102
 msgid "Add bookmark"
-msgstr "Ajouter un signet"
+msgstr "Dodaj zaznamek"
 
 msgid "Automatic Rotation"
-msgstr "Rotation automatique"
+msgstr "Avtomatièna Rotacija"
 
 msgid "Automatic proxy detection"
-msgstr "Détection automatique"
+msgstr "Avtomatièno zaznaj proxy"
 
 #: solipsis/navigator/wxclient/BookmarksDialog.py:46
 msgid "Bookmark a node"
-msgstr "Retenir un nœud"
+msgstr "Zaznamkaj node"
 
 #: solipsis/navigator/wxclient/app.py:712
 #: solipsis/navigator/netclient/app.py:416
 #, python-format
 msgid "Bookmark peer \"%s\""
-msgstr "Retenir le nœud \"%s\""
+msgstr "Zaznamkaj peer\"%s\""
 
 #: solipsis/navigator/wxclient/BookmarksDialog.py:66
 msgid "Bookmarks"
-msgstr "Signets"
+msgstr "Zaznamki"
 
 #: solipsis/navigator/wxclient/ConnectDialog.py:24
+#, fuzzy
 msgid "Change"
-msgstr "Modifier"
+msgstr "&Prekini"
 
 msgid "Choose whether display orientation changes when moving"
-msgstr "Choisir si l'affichage change d'orientation pendant les déplacements"
+msgstr "Izberi."
 
 #: solipsis/navigator/wxclient/ConnectDialog.py:42
 msgid "Connect to Solipsis"
-msgstr "Connexion à Solipsis"
+msgstr "Poveži z Solipsis"
 
 #: solipsis/navigator/wxclient/app.py:728
 #: solipsis/navigator/netclient/app.py:425
 msgid "Connect to node"
-msgstr "Se connecter à un nœud"
+msgstr "Poveži z node-om"
 
 #: solipsis/navigator/wxclient/ConnectionTypeDialog.py:21
 msgid ""
 "Connect using an existing Solipsis node \n"
 "(possibly on a remote computer):"
 msgstr ""
-"Se connecter via un nœud Solipsis existant \n"
-"(éventuellement sur un ordinateur distant) :"
 
 #: solipsis/navigator/wxclient/app.py:799
 #: solipsis/navigator/wxclient/app.py:821
 #: solipsis/navigator/netclient/app.py:500
 #: solipsis/navigator/netclient/app.py:517
 msgid "Connected"
-msgstr "Connecté"
+msgstr "Povezan"
 
 #: solipsis/navigator/wxclient/app.py:416
 #: solipsis/navigator/netclient/app.py:214
 msgid "Connecting"
-msgstr "Connexion en cours"
+msgstr "Povezujem..."
 
 #: solipsis/navigator/wxclient/app.py:833
 msgid "Connecting to the node..."
-msgstr "Connexion au nœud..."
+msgstr "Povezujem z node-om..."
 
 #: solipsis/navigator/wxclient/app.py:848
 msgid "Connection error"
-msgstr "Erreur de connexion"
+msgstr "Napaka med povezavo"
 
 #: solipsis/navigator/wxclient/app.py:832
 msgid "Connection progress"
-msgstr "Progression de la connexion"
+msgstr "Potek povezave"
 
 #: solipsis/navigator/wxclient/app.py:847
 #: solipsis/navigator/netclient/app.py:527
@@ -157,101 +154,101 @@ msgid ""
 "Connection to the node has failed. \n"
 "Please the check the node is running, then retry."
 msgstr ""
-"La connexion au nœud a échoué.\n"
-"Veuillez vérifiez que le nœud est lancé \n"
-"et réessayez de vous connecter."
+"Povezava z nodom je bila nevspešna.\n"
+"Poglejte èe je node prižgan in v teku \n"
+"in nato se ponovno probajte povezati."
 
 #: solipsis/navigator/wxclient/ConnectDialog.py:20
 #: solipsis/navigator/wxclient/ConnectionTypeDialog.py:49
+#, fuzzy
 msgid "Connection type"
-msgstr "Type de connexion"
+msgstr "Napaka med povezavo"
 
 #: solipsis/navigator/wxclient/app.py:726
 #: solipsis/navigator/netclient/app.py:423
 msgid "Disconnect"
-msgstr "Se déconnecter"
+msgstr "Prekini"
 
 msgid "Edit bookmarks"
-msgstr "Modifier les signets"
+msgstr "Uredi zaznamke"
 
 #: solipsis/navigator/wxclient/ConnectionTypeDialog.py:108
 #: solipsis/util/wxutils.py:158
 msgid "Error"
-msgstr "Erreur"
+msgstr "Napaka"
 
 #: solipsis/navigator/wxclient/app.py:534
 msgid "For reminder, here is your address:"
-msgstr "Pour mémoire, voici votre adresse:"
+msgstr "Da se spomnete, imate tukaj naslov:"
 
 msgid "General"
-msgstr "Général"
+msgstr "Splošno"
 
 #: solipsis/navigator/wxclient/ConnectionTypeDialog.py:22
+#, fuzzy
 msgid "Host:"
-msgstr "Hôte:"
+msgstr "Host:"
 
 msgid "Host: "
-msgstr "Hôte:"
+msgstr "Host:"
 
 msgid ""
 "If you want to connect to a remote node\n"
 "instead of running a node on this computer,\n"
 "you might have to adjust the HTTP proxy settings."
 msgstr ""
-"Si vous vous connectez à un nœud sur une\n"
-"autre machine, il vous sera peut-être nécessaire\n"
-"de changer les réglages du proxy HTTP."
+"Èe se želite povezati z node-om,\n"
+"namesto da bi ga poganjali na lastnem raèunalniku, \n"
+"boste morda morali spremeniti nastvaitve HTTP Porxy-ja."
 
 #: solipsis/navigator/wxclient/app.py:549
 msgid "Jump near an entity"
-msgstr "Sauter près d'un nœud existant"
+msgstr "Skoèi v blizino osebka"
 
 msgid "Jump near another node"
-msgstr "Sauter près d'un nœud existant"
+msgstr "Skoèi v blizino še enega node-a"
 
 msgid "Kill node when exiting"
-msgstr "Tuer le nœud à la sortie du programme"
+msgstr "Ustavi node ko zapustiš program"
 
 #: solipsis/navigator/wxclient/app.py:426
 #: solipsis/navigator/wxclient/app.py:874
 msgid "Kill refused"
-msgstr "Opération refusée"
+msgstr "Ustavitev zavrnjena"
 
 #: solipsis/navigator/wxclient/ConnectionTypeDialog.py:18
 msgid ""
 "Launch a dedicated Solipsis node \n"
 "on this computer."
 msgstr ""
-"Lancer un nœud Solipsis dédié \n"
-"sur cet ordinateur."
 
 #: solipsis/navigator/wxclient/app.py:478
 #: solipsis/navigator/netclient/app.py:238
 msgid "Licensed under the GNU LGPL"
-msgstr "Distribué sous licence GNU LGPL"
+msgstr "Patentiran pod GNU LGPL"
 
 msgid "Manual configuration"
-msgstr "Configuration manuelle"
+msgstr "Roène nastavitve"
 
 msgid "My address"
-msgstr "Mon adresse"
+msgstr "Moj naslov"
 
 #: solipsis/navigator/wxclient/ConnectionTypeDialog.py:51
 msgid "Name or IP address of the machine on which the node is running"
-msgstr "Nom ou adresse IP de la machine sur laquelle le nœud tourne"
+msgstr ""
 
 #: solipsis/navigator/wxclient/ConnectDialog.py:21
 msgid "Name or pseudo"
-msgstr "Nom ou pseudonyme"
+msgstr "Ime ali psevdonim"
 
 msgid "Navigator"
-msgstr "Navigateur"
+msgstr "Navigator"
 
 msgid "No proxy"
-msgstr "Aucun serveur proxy"
+msgstr "Nimam Proxy-a"
 
 msgid "Node address"
-msgstr "Adresse du noeud"
+msgstr "Naslov node-a"
 
 #: solipsis/navigator/wxclient/app.py:425
 #: solipsis/navigator/netclient/app.py:254
@@ -259,8 +256,8 @@ msgid ""
 "Node creation failed. \n"
 "Please check you have sufficient rights."
 msgstr ""
-"La création du nœud a échoué. \n"
-"Veuillez vérifier que vous avez des droits suffisants pour le faire."
+"Ustvaritev node-a je bila neuspešna. \n"
+"Prosim poglejte èe imate dovol velike pravice."
 
 #: solipsis/navigator/wxclient/app.py:136
 #: solipsis/navigator/wxclient/app.py:357
@@ -275,78 +272,77 @@ msgstr ""
 #: solipsis/navigator/netclient/app.py:526
 #: solipsis/navigator/netclient/app.py:537
 msgid "Not connected"
-msgstr "Déconnecté"
+msgstr "Ne povezan"
 
 #: solipsis/navigator/wxclient/app.py:345
 msgid "Not implemented"
-msgstr "Non disponible"
+msgstr "Še neuporabljeno"
 
 msgid "Paste your address so that your friend can jump near you"
-msgstr "Copier votre adresse de façon à ce que vos amis vous rejoignent"
+msgstr "Prilepi svoj naslov, da lahko tvoj prijatelj skoèi v tvojo bljižino"
 
 #: solipsis/navigator/wxclient/BookmarksDialog.py:101
 msgid "Please choose the peer to add to your bookmarks list."
-msgstr "Choisissez le nœud à ajouter à vos signets."
+msgstr "Prosimo, izberite peer, ki bi ga radi dodali v svoj spisek zaznamkov."
 
 #: solipsis/navigator/wxclient/validators.py:75
 msgid "Please enter a valid hostname or address"
-msgstr "Veuillez entrer une addresse correcte"
+msgstr "Prosimo, vnesite veljavno ime strežnika ali njegov naslov"
 
 #: solipsis/navigator/wxclient/validators.py:87
 msgid "Please enter a valid nickname"
-msgstr "Veuillez entrer un nom ou un pseudo valide"
+msgstr "Prosimo, vnesite veljaven psevdonim"
 
 #: solipsis/navigator/wxclient/app.py:548
 msgid "Please enter the address to jump to"
-msgstr "Entrez l'adresse à laquelle sauter"
+msgstr "Prosimo vpišite naslov kamor želite skoèiti"
 
 #: solipsis/util/wxutils.py:129
 msgid "Please fill this form correctly"
-msgstr "Veuillez remplir le formulaire correctement"
+msgstr "Prosimo da pravilno izpolnite ta obrazec "
 
 #: solipsis/navigator/wxclient/validators.py:51
 msgid "Port number must be between 1 and 65535"
-msgstr ""
-"Le numéro de port doit être compris\n"
-"entre 0 et 65535"
+msgstr "Številka port-a mora biti med 1 in 65535"
 
 #: solipsis/navigator/wxclient/ConnectionTypeDialog.py:24
+#, fuzzy
 msgid "Port:"
-msgstr "Numéro de port:"
+msgstr "Port:"
 
 msgid "Port: "
-msgstr "Numéro de port:"
+msgstr "Port:"
 
 msgid "Preferences"
-msgstr "Préférences"
+msgstr "Nastavitve"
 
 msgid "Proxy"
-msgstr "Serveur proxy"
+msgstr "Proxy"
 
 #: solipsis/navigator/wxclient/BookmarksDialog.py:73
 msgid "Pseudo"
-msgstr "Pseudo"
+msgstr "Psevdonim"
 
 msgid "Quit"
-msgstr "Quitter"
+msgstr "Zapusti"
 
 #: solipsis/navigator/wxclient/BookmarksDialog.py:47
 msgid "Remove"
-msgstr "Supprimer"
+msgstr "Odstrani"
 
 #: solipsis/navigator/wxclient/BookmarksDialog.py:47
 msgid "Remove selected bookmark"
-msgstr "Supprimer le signet sélectionné"
+msgstr "Odstrani oznaèeni zaznamek"
 
 #: solipsis/navigator/wxclient/app.py:804
 #: solipsis/navigator/netclient/app.py:504
 msgid "Searching peers"
-msgstr "Recherche des voisins"
+msgstr "Išèem peer-e"
 
 #: solipsis/navigator/wxclient/app.py:478
 #: solipsis/navigator/netclient/app.py:238
 msgid "Solipsis Navigator"
-msgstr "Navigateur Solipsis"
+msgstr "Solipsis Navigator"
 
 #: solipsis/navigator/wxclient/ConnectionTypeDialog.py:107
 msgid ""
@@ -359,15 +355,16 @@ msgid ""
 "This action cannot be performed, \n"
 "because you are not connected to a node."
 msgstr ""
-"Cette action n'est pas disponible \n"
-"car vous n'êtes pas connecté."
+"Te akcije ni bilo mogoèe izvesti,\n"
+"ker niste povezani z node-om."
 
 #: solipsis/navigator/netclient/app.py:187
+#, fuzzy
 msgid ""
 "This action cannot be performed, because you are not connected to a node."
 msgstr ""
-"Cette action n'est pas disponible \n"
-"car vous n'êtes pas connecté."
+"Te akcije ni bilo mogoèe izvesti,\n"
+"ker niste povezani z node-om."
 
 #: solipsis/navigator/wxclient/app.py:344
 #: solipsis/navigator/netclient/app.py:176
@@ -375,26 +372,28 @@ msgid ""
 "This function is not yet implemented.\n"
 "Sorry! Please come back later..."
 msgstr ""
+"Ta funkcija še ni na voljo\n"
+"Prosimo, vrnite se kasneje..."
 
 msgid ""
 "Uncheck this box if you want to remain connected to the Solipsis world even "
 "when you exit the navigator."
 msgstr ""
-"Décochez cette case si vous voulez rester connecté à Solipsis lorsque vous "
-"quittez le navigateur."
+"Odstranite oznako v tej škatljici èe želite ostati povezani z svetom "
+"Solipsis tudi kadar zapustite navigator."
 
 #: solipsis/navigator/wxclient/ConnectionTypeDialog.py:19
 msgid "Use UDP port:"
-msgstr "Port UDP à utiliser :"
+msgstr ""
 
 #: solipsis/navigator/wxclient/app.py:873
 #: solipsis/navigator/netclient/app.py:551
 msgid "You cannot kill this node."
-msgstr "Vous ne pouvez pas tuer ce nœud."
+msgstr "Ne morete ustaviti tega node-a."
 
 #: solipsis/navigator/wxclient/app.py:537
 msgid "Your Solipsis address"
-msgstr "Votre adresse dans Solipsis"
+msgstr "Tvoj Solipsis naslov"
 
 #: solipsis/navigator/wxclient/app.py:533
 msgid ""
@@ -402,36 +401,36 @@ msgid ""
 "If you paste it and send it to your friends, \n"
 "they will be able to jump near you in the Solipsis world."
 msgstr ""
-"Votre adresse a été copiée dans le presse-papiers. \n"
-"Si vous la collez et l'envoyez à vos amis, \n"
-"ils pourront vous rejoindre dans Solipsis."
+"Tvoj naslov je bil prekoperan v clipboard.\n"
+"Èe prilepiš in pošleš svojim priajteljem, \n"
+"bojo imeli možnost skoèiti v bližino tebe v Solipsis svetu."
 
 #~ msgid "&Connect to existing node"
-#~ msgstr "Se &connecter à un nœud"
+#~ msgstr "Poveži z ze znanim Node-om"
 
 #~ msgid "&Edit"
-#~ msgstr "&Edition"
+#~ msgstr "&Uredi"
 
 #~ msgid "&File"
-#~ msgstr "&Fichier"
+#~ msgstr "&Datoteka"
 
 #~ msgid "&New node"
-#~ msgstr "Créer un &Nœud"
+#~ msgstr "&Novi node"
 
 #~ msgid "&OK"
-#~ msgstr "&Valider"
+#~ msgstr "&Sprejmi"
 
 #~ msgid "Disconnect from node"
-#~ msgstr "Se déconnecter du nœud"
+#~ msgstr "Prekini povezavo z node"
 
 #~ msgid "Nickname"
-#~ msgstr "Pseudo"
+#~ msgstr "Psevdonim"
 
 #~ msgid "Peer \"%s\""
-#~ msgstr "Nœud \"%s\""
+#~ msgstr "Node \"%s\""
 
 #~ msgid "Please choose your nickname"
-#~ msgstr "Choisissez votre pseudo"
+#~ msgstr "Prosimo izberite svoj psevdonim"
 
 #~ msgid ""
 #~ "Solipsis Navigator 0.1\n"

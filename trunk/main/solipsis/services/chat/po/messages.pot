@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-05-11 15:04+0200\n"
+"POT-Creation-Date: 2005-05-19 14:39+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: plugin.py:44 plugin.py:78
+#: plugin.py:41 plugin.py:76
 msgid "Chat"
 msgstr ""
 
@@ -29,11 +29,11 @@ msgstr ""
 msgid "&Close"
 msgstr ""
 
-#: plugin.py:40
+#: plugin.py:37
 msgid "Chat with all peers"
 msgstr ""
 
-#: plugin.py:47
+#: plugin.py:44
 msgid "Talk with the people that are currently around you"
 msgstr ""
 

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-05-11 15:04+0200\n"
+"POT-Creation-Date: 2005-05-19 14:39+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,306 +16,282 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: gui/CustomPanel.py:19 gui/FilePanel.py:33
+#: gui/CustomPanel.py:20 gui/FilePanel.py:34
 msgid "Actions"
 msgstr ""
 
-#: gui/CustomPanel.py:20
+#: gui/CustomPanel.py:21
 msgid "Hobbies, special interests... (one per line)"
 msgstr ""
 
-#: gui/CustomPanel.py:44
+#: gui/CustomPanel.py:45
 msgid "MetaData"
 msgstr ""
 
-#: gui/CustomPanel.py:45
+#: gui/CustomPanel.py:46
 msgid "Custom value"
 msgstr ""
 
-#: gui/ProfileFrame.py:28
+#: gui/ProfileFrame.py:29
 msgid "&Online\tCtrl+O"
 msgstr ""
 
-#: gui/ProfileFrame.py:28
+#: gui/ProfileFrame.py:29
 msgid "Allow users seeing profile"
 msgstr ""
 
-#: gui/ProfileFrame.py:30
+#: gui/ProfileFrame.py:31
 msgid "&Export HTML ...\tCtrl+E"
 msgstr ""
 
-#: gui/ProfileFrame.py:30
+#: gui/ProfileFrame.py:31
 msgid "Write profile as HTML File"
 msgstr ""
 
-#: gui/ProfileFrame.py:33
+#: gui/ProfileFrame.py:34
 msgid "&Load ... \tCtrl+L"
 msgstr ""
 
-#: gui/ProfileFrame.py:33
+#: gui/ProfileFrame.py:34
 msgid "Load profile from file"
 msgstr ""
 
-#: gui/ProfileFrame.py:35
+#: gui/ProfileFrame.py:36
 msgid "&Save ...\tCtrl+S"
 msgstr ""
 
-#: gui/ProfileFrame.py:35
+#: gui/ProfileFrame.py:36
 msgid "Save profile into file"
 msgstr ""
 
-#: gui/ProfileFrame.py:37
+#: gui/ProfileFrame.py:38
 msgid "&Quit\tCtrl+Q"
 msgstr ""
 
-#: gui/ProfileFrame.py:37
+#: gui/ProfileFrame.py:38
 msgid "Exit profile management"
 msgstr ""
 
-#: gui/ProfileFrame.py:39 plugin.py:56
+#: gui/ProfileFrame.py:40 plugin.py:143
 msgid "Profile"
 msgstr ""
 
-#: gui/ProfileFrame.py:41
+#: gui/ProfileFrame.py:42
 msgid "&Add...\tCtrl+A"
 msgstr ""
 
-#: gui/ProfileFrame.py:44 gui/OthersPanel.py:29
+#: gui/ProfileFrame.py:45 gui/OthersPanel.py:30
 msgid "Anonymous"
 msgstr ""
 
-#: gui/ProfileFrame.py:46
+#: gui/ProfileFrame.py:47
 msgid "Friend"
 msgstr ""
 
-#: gui/ProfileFrame.py:48
+#: gui/ProfileFrame.py:49
 msgid "Black listed"
 msgstr ""
 
-#: gui/ProfileFrame.py:51
+#: gui/ProfileFrame.py:52
 msgid "&Find...\tCtrl+F"
 msgstr ""
 
-#: gui/ProfileFrame.py:51
+#: gui/ProfileFrame.py:52
 msgid "Search profile in surrounding area"
 msgstr ""
 
-#: gui/ProfileFrame.py:53
+#: gui/ProfileFrame.py:54
 msgid "Filters...\tCtrl+H"
 msgstr ""
 
-#: gui/ProfileFrame.py:53
+#: gui/ProfileFrame.py:54
 msgid "Create active filters to get notified on peers approach"
 msgstr ""
 
-#: gui/ProfileFrame.py:55 gui/OthersPanel.py:27
+#: gui/ProfileFrame.py:56 gui/OthersPanel.py:28
 msgid "Peers"
 msgstr ""
 
-#: gui/ProfileFrame.py:57
+#: gui/ProfileFrame.py:58
 msgid "Auto refresh"
 msgstr ""
 
-#: gui/ProfileFrame.py:57
+#: gui/ProfileFrame.py:58
 msgid "Automatically call refresh on any change in profile"
 msgstr ""
 
-#: gui/ProfileFrame.py:59
+#: gui/ProfileFrame.py:60
 msgid "&Refresh\tCtrl+R"
 msgstr ""
 
-#: gui/ProfileFrame.py:61
+#: gui/ProfileFrame.py:62
 msgid "Display"
 msgstr ""
 
-#: gui/ProfileFrame.py:63
+#: gui/ProfileFrame.py:64
 msgid "About"
 msgstr ""
 
-#: gui/ProfileFrame.py:180
+#: gui/ProfileFrame.py:181
 msgid "profile_frame"
 msgstr ""
 
-#: gui/ProfileFrame.py:187
+#: gui/ProfileFrame.py:188
 msgid "status"
 msgstr ""
 
-#: gui/ProfileFrame.py:197
+#: gui/ProfileFrame.py:198
 msgid "Preview"
 msgstr ""
 
-#: gui/ProfileFrame.py:198
+#: gui/ProfileFrame.py:199
 msgid "Personal"
 msgstr ""
 
-#: gui/ProfileFrame.py:199
+#: gui/ProfileFrame.py:200
 msgid "Special Interests"
 msgstr ""
 
-#: gui/ProfileFrame.py:200
+#: gui/ProfileFrame.py:201
 msgid "Files"
 msgstr ""
 
-#: gui/ProfileFrame.py:201
+#: gui/ProfileFrame.py:202
 msgid "Contacts"
 msgstr ""
 
-#: gui/FilePanel.py:61
+#: gui/FilePanel.py:62
 msgid "Name"
 msgstr ""
 
-#: gui/FilePanel.py:62
+#: gui/FilePanel.py:63
 msgid "Tag"
 msgstr ""
 
-#: gui/FilePanel.py:63
+#: gui/FilePanel.py:64
 msgid "Shared"
 msgstr ""
 
-#: gui/FilePanel.py:76
+#: gui/FilePanel.py:77
 msgid "Explorer"
 msgstr ""
 
-#: gui/FilePanel.py:77
+#: gui/FilePanel.py:78
 msgid "#shared"
 msgstr ""
 
-#: gui/FilePanel.py:78
+#: gui/FilePanel.py:79
 msgid "full path"
 msgstr ""
 
-#: gui/FilePanel.py:82
+#: gui/FilePanel.py:83
 msgid "File System..."
 msgstr ""
 
-#: gui/FilePanel.py:102
+#: gui/FilePanel.py:103
 msgid "Choose your repository"
 msgstr ""
 
-#: gui/FilePanel.py:238
+#: gui/FilePanel.py:239
 msgid "Complementary information on file"
 msgstr ""
 
-#: gui/PersonalPanel.py:16
+#: gui/PersonalPanel.py:17
 msgid "Address"
 msgstr ""
 
-#: gui/PersonalPanel.py:17
+#: gui/PersonalPanel.py:18
 msgid "Description"
 msgstr ""
 
-#: gui/PersonalPanel.py:18
+#: gui/PersonalPanel.py:19
 msgid "Identity"
 msgstr ""
 
-#: gui/PersonalPanel.py:19
+#: gui/PersonalPanel.py:20
 msgid "Mr"
 msgstr ""
 
-#: gui/PersonalPanel.py:19
+#: gui/PersonalPanel.py:20
 msgid "Mrs"
 msgstr ""
 
-#: gui/PersonalPanel.py:19
+#: gui/PersonalPanel.py:20
 msgid "Ms"
 msgstr ""
 
-#: gui/PersonalPanel.py:20
+#: gui/PersonalPanel.py:21
 msgid "First name"
 msgstr ""
 
-#: gui/PersonalPanel.py:21
+#: gui/PersonalPanel.py:22
 msgid "Last Name"
 msgstr ""
 
-#: gui/PersonalPanel.py:22
+#: gui/PersonalPanel.py:23
 msgid "Pseudo: "
 msgstr ""
 
-#: gui/PersonalPanel.py:24
+#: gui/PersonalPanel.py:25
 msgid "E-mail: "
 msgstr ""
 
-#: gui/PersonalPanel.py:26
+#: gui/PersonalPanel.py:27
 msgid "Birthday: "
 msgstr ""
 
-#: gui/PersonalPanel.py:27
+#: gui/PersonalPanel.py:28
 msgid "dd/mm/yyyy"
 msgstr ""
 
-#: gui/PersonalPanel.py:28
+#: gui/PersonalPanel.py:29
 msgid "Language: "
 msgstr ""
 
-#: gui/PersonalPanel.py:29
+#: gui/PersonalPanel.py:30
 msgid "French"
 msgstr ""
 
-#: gui/PersonalPanel.py:29
+#: gui/PersonalPanel.py:30
 msgid "English"
 msgstr ""
 
-#: gui/PersonalPanel.py:31
+#: gui/PersonalPanel.py:32
 msgid "Road"
 msgstr ""
 
-#: gui/PersonalPanel.py:32
+#: gui/PersonalPanel.py:33
 msgid "Postcode"
 msgstr ""
 
-#: gui/PersonalPanel.py:33
+#: gui/PersonalPanel.py:34
 msgid "City"
 msgstr ""
 
-#: gui/PersonalPanel.py:34
+#: gui/PersonalPanel.py:35
 msgid "Country"
 msgstr ""
 
-#: gui/PersonalPanel.py:105
+#: gui/PersonalPanel.py:106
 msgid "Choose your picture"
 msgstr ""
 
-#: gui/PersonalPanel.py:142
+#: gui/PersonalPanel.py:143
 msgid "How you appear to other peers"
 msgstr ""
 
-#: gui/OthersPanel.py:28
+#: gui/OthersPanel.py:29
 msgid "Friends"
 msgstr ""
 
-#: gui/OthersPanel.py:30
+#: gui/OthersPanel.py:31
 msgid "Blacklisted"
 msgstr ""
 
-#: gui/OthersPanel.py:47
+#: gui/OthersPanel.py:48
 msgid "no neighbors yet"
 msgstr ""
 
-#: plugin.py:63
+#: plugin.py:147
 msgid "Manage personal information and share it with people"
-msgstr ""
-
-#: plugin.py:74
-msgid "Modify ..."
-msgstr ""
-
-#: plugin.py:75
-msgid "Add files ..."
-msgstr ""
-
-#: plugin.py:76
-msgid "Delete files ..."
-msgstr ""
-
-#: plugin.py:77
-msgid "Search ..."
-msgstr ""
-
-#: plugin.py:84
-msgid "Show info"
-msgstr ""
-
-#: plugin.py:85
-msgid "Request profile"
 msgstr ""
