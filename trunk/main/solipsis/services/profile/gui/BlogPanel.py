@@ -3,9 +3,8 @@
 
 import wx
 import time
-from solipsis.services.profile.facade import get_facade
-
 from solipsis.util.wxutils import _
+from solipsis.services.profile.facade import get_facade
 
 
 # begin wxGlade: dependencies
