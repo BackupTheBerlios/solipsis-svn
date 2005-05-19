@@ -15,7 +15,7 @@ class ConnectionTypeDialog(wx.Dialog):
         # begin wxGlade: ConnectionTypeDialog.__init__
         kwds["style"] = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.THICK_FRAME
         wx.Dialog.__init__(self, *args, **kwds)
-        self.radio_btn_local = wx.RadioButton(self, -1, _("Launch a dedicated Solipsis node\non this computer."), style=wx.RB_GROUP)
+        self.radio_btn_local = wx.RadioButton(self, -1, _("Launch a dedicated Solipsis node\non this computer."))
         self.label_local_port = wx.StaticText(self, -1, _("Use UDP port:"))
         self.text_ctrl_local_port = wx.TextCtrl(self, -1, "")
         self.radio_btn_remote = wx.RadioButton(self, -1, _("Connect using an existing Solipsis node\n(possibly on a remote computer):"))
@@ -47,7 +47,6 @@ class ConnectionTypeDialog(wx.Dialog):
     def __set_properties(self):
         # begin wxGlade: ConnectionTypeDialog.__set_properties
         self.SetTitle(_("Connection type"))
-        self.radio_btn_local.SetValue(1)
         self.text_ctrl_remote_host.SetMinSize((160, -1))
         self.text_ctrl_remote_host.SetToolTipString(_("Name or IP address of the machine on which the node is running"))
         self.button_close.SetDefault()

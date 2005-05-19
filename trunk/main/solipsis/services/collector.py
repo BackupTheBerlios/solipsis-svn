@@ -19,6 +19,7 @@
 
 import os
 import os.path
+import traceback
 
 from solipsis.util.utils import set
 from solipsis.util.entity import Service
@@ -86,8 +87,13 @@ class ServiceCollector(object):
             path = os.path.join(self.dir, f)
             if not os.path.isdir(path):
                 continue
-            service_id, plugin = self.LoadService(path, f)
-            self.InitService(service_id, plugin)
+            try:
+                service_id, plugin = self.LoadService(path, f)
+            except Exception, e:
+                print "Failed to load plugin '%s', ignoring." % path
+                traceback.print_exc()
+            else:
+                self.InitService(service_id, plugin)
 
     def LoadService(self, path, name):
         """
@@ -115,9 +121,8 @@ class ServiceCollector(object):
         try:
             plugin.Init()
         except Exception, e:
-            from traceback import print_exc
             print "Failed to initialize plugin '%s', disabling." % service_id
-            print_exc()
+            traceback.print_exc()
             del self.plugins[service_id]
 
     # FIXME: need to abstract plugins so that enabling them does not
