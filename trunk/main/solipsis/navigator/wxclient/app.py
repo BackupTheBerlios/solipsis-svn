@@ -59,7 +59,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.params = params
         self.alive = True
         self.redraw_pending = False
-        self.config_data = ConfigData()
+        self.config_data = ConfigData(self.params)
         self.node_proxy = None
         if self.params.memdebug:
             self.memsizer = MemSizer()
@@ -116,7 +116,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         Load UI layout from XML file(s).
         """
         self.dialogs = [
-            "connect_dialog",
             "prefs_dialog",
         ]
         self.windows = ["main_window"]
@@ -151,9 +150,9 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         c = self.config_data
         validators = [
             # [ Containing window, control name, validator class, data object, data attribute ]
-            [ self.connect_dialog, "connect_host", HostnameValidator, c, "host" ],
-            [ self.connect_dialog, "connect_port", PortValidator, c, "port" ],
-            [ self.connect_dialog, "connect_pseudo", NicknameValidator, c, "pseudo" ],
+            #~ [ self.connect_dialog, "connect_host", HostnameValidator, c, "host" ],
+            #~ [ self.connect_dialog, "connect_port", PortValidator, c, "port" ],
+            #~ [ self.connect_dialog, "connect_pseudo", NicknameValidator, c, "pseudo" ],
             [ self.prefs_dialog, "proxymode_auto", BooleanValidator, c, "proxymode_auto" ],
             [ self.prefs_dialog, "proxymode_manual", BooleanValidator, c, "proxymode_manual" ],
             [ self.prefs_dialog, "proxymode_none", BooleanValidator, c, "proxymode_none" ],
@@ -222,6 +221,8 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.config_ui = ConfigUI(self.config_data, self.prefs_dialog)
         bookmarks_menu = self.main_menubar.GetMenu(self.main_menubar.FindMenu(_("&Bookmarks")))
         assert bookmarks_menu is not None
+        # Hack: we store the bookmarks dialog persistently because it
+        # also interacts with the menubar (ssshh..)
         self.bookmarks_dialog = BookmarksDialog(app=self,
             world=self.world,
             bookmarks=self.config_data.bookmarks,
@@ -418,7 +419,9 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.services.SetNode(self.config_data.GetNode())
 
     def _LaunchNode(self):
-        l = Launcher(port=self.config_data.solipsis_port)
+        self.config_data.Compute()
+        l = Launcher(port=self.config_data.solipsis_port,
+            control_port=self.config_data.local_control_port)
         # First try to spawn the node
         if not l.Launch():
             self.viewport.Disable()
@@ -427,12 +430,11 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             dialog.ShowModal()
             return
         # Then connect using its XMLRPC daemon
-        self.config_data.host = 'localhost'
-        self.config_data.port = 8550
-        self.config_data.proxymode_auto = False
-        self.config_data.proxymode_manual = False
-        self.config_data.proxymode_none = True
-        self.config_data.Compute()
+        #~ self.config_data.host = 'localhost'
+        #~ self.config_data.port = 8550
+        #~ self.config_data.proxymode_auto = False
+        #~ self.config_data.proxymode_manual = False
+        #~ self.config_data.proxymode_none = True
         # Hack so that the node has the time to launch
         self.connection_trials = 5
         self._TryConnect()
@@ -485,26 +487,11 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """
         self.bookmarks_dialog.Show()
 
-    #~ def _CreateNode(self, evt):
-        #~ """
-        #~ Called on "create node" event (menu -> File -> New node).
-        #~ """
-        #~ dialog = wx.TextEntryDialog(self.main_window,
-            #~ message=_("Please choose your nickname"),
-            #~ caption=_("Nickname"),
-            #~ defaultValue=self.config_data.pseudo
-            #~ )
-        #~ if dialog.ShowModal() != wx.ID_OK:
-            #~ return
-        #~ self.config_data.pseudo = unicode(dialog.GetValue())
-        #~ self._LaunchNode()
-
     def _OnConnect(self, evt):
         """
         Called on "connect" event (menu -> File -> Connect).
         """
         self._OpenConnectDialog()
-        #~ self.connect_dialog.ShowModal()
 
     def _OnDisconnect(self, evt):
         """
@@ -631,26 +618,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         Called on close "about dialog" event (Ok button, window close box).
         """
         self.about_dialog.Hide()
-
-
-    #===-----------------------------------------------------------------===#
-    # Event handlers for the connect dialog
-    #
-    #~ def _CloseConnect(self, evt):
-        #~ """
-        #~ Called on close "connect dialog" event (Cancel button, window close box).
-        #~ """
-        #~ self.connect_dialog.Hide()
-
-    #~ def _ConnectOk(self, evt):
-        #~ """
-        #~ Called on connect submit event (Ok button).
-        #~ """
-        #~ if (self.connect_dialog.Validate()):
-            #~ self.connect_dialog.Hide()
-            #~ self.config_data.Compute()
-            #~ self.connection_trials = 0
-            #~ self._TryConnect()
 
 
     #===-----------------------------------------------------------------===#

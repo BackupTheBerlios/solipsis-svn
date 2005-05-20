@@ -48,6 +48,8 @@ class Parameters(object):
         'pseudo': ('pseudo', unicode, u""),
         'url_port_min': ('url_port_min', int, 0),
         'url_port_max': ('url_port_max', int, 0),
+        'local_control_port_min': ('local_control_port_min', int, 0),
+        'local_control_port_max': ('local_control_port_max', int, 0),
     }
 
     services_section = {

@@ -71,7 +71,7 @@ class NetworkLoop(threading.Thread):
         proxy_port = None
         if config_data.connection_type == "local":
             host = "localhost"
-            port = 8550
+            port = config_data.local_control_port
         else:
             host = config_data.host
             port = config_data.port

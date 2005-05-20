@@ -18,6 +18,7 @@
 # </copyright>
 
 import cPickle as pickle
+import random
 import wx
 from wx.xrc import XRCCTRL, XRCID
 
@@ -34,16 +35,19 @@ class ConfigData(ManagedData):
     This class holds all configuration values that are settable from
     the user interface.
     """
-    def __init__(self, host=None, port=None, pseudo=None):
+    def __init__(self, params=None):
         ManagedData.__init__(self)
         # Initialize all values
         
         # 1. Basic connection data
-        self.pseudo = pseudo or u""
-        self.host = host or "localhost"
-        self.port = port or 8550
+        self.pseudo = params and params.pseudo or u""
+        self.host = "localhost"
+        self.port = 8550
         self.connection_type = 'local'
         self.solipsis_port = 6010
+        self.local_control_port_min = params and params.local_control_port_min or 8501
+        self.local_control_port_max = params and params.local_control_port_max or 8599
+        self.local_control_port = 0
 
         # 2. HTTP proxy configuration (for XMLRPC)
         self.always_try_without_proxy = True
@@ -68,16 +72,23 @@ class ConfigData(ManagedData):
 
     def Compute(self):
         """
-        Compute some "hidden" configuration values 
-        (like HTTP proxy URL)
+        Compute some "hidden" or temporary configuration values 
+        (e.g. HTTP proxy auto-configuration URL).
         """
         self.proxy_mode = self.proxymode_auto and "auto" or (
             self.proxymode_manual and "manual" or "none")
-        if self.proxy_mode == "auto":
-            from solipsis.util.httpproxy import discover_http_proxy
-            proxy_host, proxy_port = discover_http_proxy()
-            self.proxy_host = proxy_host or ""
-            self.proxy_port = proxy_port or 0
+        if self.connection_type == "local":
+            # Choose random control port for the local node we wish to launch
+            self.local_control_port = random.randrange(
+                self.local_control_port_min,
+                self.local_control_port_max + 1)
+        else:
+            # If necessary, autodetect proxy address
+            if self.proxy_mode == "auto":
+                from solipsis.util.httpproxy import discover_http_proxy
+                proxy_host, proxy_port = discover_http_proxy()
+                self.proxy_host = proxy_host or ""
+                self.proxy_port = proxy_port or 0
 
     def SetServices(self, services):
         """

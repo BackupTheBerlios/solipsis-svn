@@ -31,8 +31,9 @@ class Launcher(object):
     # This is a list of possible file names for the node launcher
     launcher_alternatives = ['twistednode.py', 'twistednode.exe']
 
-    def __init__(self, port, custom_args=None):
+    def __init__(self, port=None, control_port=None, custom_args=None):
         self.port = port
+        self.control_port = control_port
         if custom_args is not None:
             self.custom_args = list(custom_args)
         else:
@@ -49,8 +50,12 @@ class Launcher(object):
     def Launch(self):
         prog_name = os.path.normcase('.' + os.sep + self.launcher_name)
         args = [prog_name]
-        args +=  ['-q', '-d', '-p', str(self.port)]
-        #~ args +=  ['-d', '-p', str(self.port)]
+        args +=  ['-q', '-d']
+        if self.port:
+            args += ['-p', str(self.port)]
+        if self.control_port:
+            args += ['--control-host', '127.0.0.1']
+            args += ['--control-port', str(self.control_port)]
         args += self.custom_args
         cmdline = " ".join(args)
         print "Executing '%s'..." % cmdline
