@@ -243,11 +243,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         wx.EVT_MENU(self, XRCID("menu_edit_bookmarks"), self._OnEditBookmarks)
         wx.EVT_CLOSE(self.main_window, self._OnQuit)
 
-        # UI events in connect dialog
-        #~ wx.EVT_CLOSE(self.connect_dialog, self._CloseConnect)
-        #~ wx.EVT_BUTTON(self, XRCID("connect_cancel"), self._CloseConnect)
-        #~ wx.EVT_BUTTON(self, XRCID("connect_ok"), self._ConnectOk)
-
         # UI events in world viewport
         wx.EVT_IDLE(self.viewport_panel, self.OnIdle)
         wx.EVT_PAINT(self.viewport_panel, self.OnPaint)
@@ -430,11 +425,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             dialog.ShowModal()
             return
         # Then connect using its XMLRPC daemon
-        #~ self.config_data.host = 'localhost'
-        #~ self.config_data.port = 8550
-        #~ self.config_data.proxymode_auto = False
-        #~ self.config_data.proxymode_manual = False
-        #~ self.config_data.proxymode_none = True
         # Hack so that the node has the time to launch
         self.connection_trials = 5
         self._TryConnect()
