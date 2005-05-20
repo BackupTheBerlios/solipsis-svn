@@ -39,16 +39,17 @@ def main():
     config_file = "conf/solipsis.conf"
     usage = "usage: %prog [-dbqPM] [-p <port>] [--pool <nodes>] (-c <controller>)*"
     parser = OptionParser(usage)
-    # User options
+    # Basic options
     parser.add_option("-p", "--port", type="int", dest="port",
                         help="port number for all Solipsis connections")
     parser.add_option("-b", "--robot", action="store_true", dest="bot", default=False,
-                        help="bot mode (don't listen for navigator)")
+                        help="bot mode (no default controller)")
     parser.add_option("-d", "--daemon", action="store_true", dest="daemon", default=False,
                         help="run in the background")
     parser.add_option("-q", "--quiet", action="store_true", dest="quiet", default=False,
                         help="run quietly")
 
+    # Advanced options
     parser.add_option("-c", "--controller", action="append", dest="controllers", default=[],
                         help="specify a controller (multiple occurences allowed)")
     parser.add_option("-f", "--conf", dest="config_file", default=config_file,
@@ -57,6 +58,13 @@ def main():
                         help="pool of nodes")
     parser.add_option("", "--seed", action="store_true", dest="as_seed", default=False,
                         help="launch node as seed")
+
+    # TODO: make controller-specific options specifiable by the given controller
+    parser.add_option("", "--control-host", dest="xmlrpc_host", default="",
+                        help="control host")
+    parser.add_option("", "--control-port", type="int", dest="xmlrpc_port", default=0,
+                        help="control port")
+
     # Debug/developper options
     parser.add_option("-P", "--profile", action="store_true", dest="profile", default=False,
                         help="profile execution to node.prof")
