@@ -25,6 +25,9 @@ ENCODING = "ISO-8859-1"
 PROFILE_DIR = os.path.join(os.path.expanduser("~/"), ".solipsis/profiles")
 PROFILE_FILE = ".default.prf"
 
+KNOWN_PORT = 1160
+FREE_PORTS = range(23000, 23999)
+
 if not os.path.isdir(PROFILE_DIR):
     print "creating conf directory %s"% PROFILE_DIR
     os.makedirs(PROFILE_DIR)

@@ -1,8 +1,20 @@
 """client server module for file sharing"""
 
+import socket
+import sys
+
 from twisted.internet.protocol import ClientFactory, ServerFactory
 from twisted.internet import reactor, defer
 from twisted.protocols import basic
+
+from solipsis.services.profile import FREE_PORTS
+
+# messages
+
+REQ_CLIENT_CONNECT = ""
+MSG_CLIENT_ACK = ""
+
+MSG_SERVER_ID = ""
 
 # FIXME: common method with avatar.plugin._ParserAddress... how about putting it
 # into global service? How generic is it?
@@ -23,22 +35,105 @@ def parse_address(address):
     except ValueError:
         raise
 
-class ProfileNetwork:
+def get_free_port():
+    """return available port on localhost"""
+    free_port = FREE_PORTS.pop()
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)        
+    try:
+        # connect to the given host:port
+        sock.bind(("127.0.0.1", free_port))
+    except socket.error:
+        free_port = get_free_port()
+    else:
+        sock.close()
+    return free_port
+
+def release_port(port):
+    """call when server stops listening"""
+    FREE_PORTS.append(port)
+
+def defer_download(deferred):
+    """add method abort on a deferred object"""
+    def abort():
+        """closing active download"""
+        # TODO: what behavior expected with download in progress ?
+        pass
+    setattr(deferred, 'abort', abort)
+    return deferred
+
+class NetworkManager:
     """high level class managing clients and servers for each peer"""
 
-    def __init__(self, service_api):
-        # service api (UDP transports)
-        self.service_api = service_api
-        # client & server status
-        # deferred downloads (especially profiles)
-        # listening to well-known ports
-        pass
+    def __init__(self, known_port, service_api):
+        # servers
+        self.client = ProfileClientFactory(self, service_api)
+        self.server = ProfileServerFactory(self, known_port)
+        # {peer_id: [downloads]}
+        self.deferreds = {}
+        # {peer_id: remote_ip}
+        self.remote_ips = {}
 
-    def get_file(self, peer_id, file_name):
-        """retreive file"""
-        # get existing connection (client or uploading-server)
-        # calls get_file on it
-        pass
+    def start_listening(self):
+        """launching main server listening to well-known port"""
+        # delegate to ProfileServerFactory
+        self.server.start_listening()
+
+    def stop_listening(self):
+        """stops main server and desactivate profile sharing"""
+        # delegate to ProfileServerFactory
+        self.server.stop_listening()
+        for peer_id in self.deferreds:
+            self.on_lost_peer(peer_id)
+
+    def on_new_peer(self, peer, service):
+        """tries to connect to new peer"""
+        # delegate connection to ProfileClientFactory
+        ip, port = parse_address(service.address)
+        self.deferreds[peer.id_] = []
+        self.remote_ips[peer.id_] = ip
+        self.client.connect_peer(peer.id_, ip, port)
+
+    def on_lost_peer(self, peer_id):
+        """tries to connect to new peer"""
+        self.clear_downloads(peer_id)
+        del self.remote_ips[peer_id]
+
+    def on_change_peer(self, peer, service):
+        """tries to connect to new peer"""
+        # delegate connection to ProfileClientFactory
+        self.on_lost_peer(peer.id_)
+        self.on_new_peer(peer, service)
+
+    def get_downloads(self, peer_id):
+        """return list of deferred corresponding to active downloads"""
+        return self.deferreds.get(peer_id, [])
+
+    def add_download(self, peer_id, deferred):
+        """enqueue download"""
+        self.deferreds[peer_id].append(defer_download(deferred))
+
+    def clear_downloads(self, peer_id):
+        """clean list of deferred downloads"""
+        for download in self.deferreds[peer_id]:
+            download.abort()
+        del self.deferreds[peer_id]
+
+    def on_service_data(self, peer_id, data):
+        """demand to establish connection from peer that failed to
+        connect through TCP"""
+        # REQUEST_TCP
+        if data.startswith(REQ_CLIENT_CONNECT):
+            # get remote information
+            r_ip, r_port = parse_address(data[len(REQ_CLIENT_CONNECT):])
+            assert r_ip ==self.remote_ips[peer_id], "incoherent ip"
+            # check status
+            client = self.client.create_dedicated_client(\
+                self.remote_ips[peer_id])
+            client.set_remote(peer_id, r_port)
+            # connect TCP
+            client.connect()
+        else:
+            print "unexpected data:", data
 
     def get_profile(self, peer_id, display_callback):
         """retreive peer's profile"""
@@ -53,142 +148,120 @@ class ProfileNetwork:
         # DEFERRED: add display callback 
         pass
 
-    def start_listening(self):
-        """launching main server listening to well-known port"""
-        # delegate to ProfileServerFactory
+    def get_file(self, peer_id, file_name):
+        """retreive file"""
+        # get existing connection (client or uploading-server)
+        # calls get_file on it
         pass
-
-    def stop_listening(self):
-        """stops main server and desactivate profile sharing"""
-        # delegate to ProfileServerFactory
-        pass
-
-    def on_new_peer(self, peer, service):
-        """tries to connect to new peer"""
-        # delegate connection to ProfileClientFactory
-        pass
-
-    def on_change_peer(self, peer, service):
-        """tries to connect to new peer"""
-        # delegate connection to ProfileClientFactory
-        pass
-
-    def on_lost_peer(self, peer_id):
-        """tries to connect to new peer"""
-        # finish transfer in progress
-        # close connection
-        pass
-
-    def on_service_data(self, peer_id, data):
-        """demand to establish connection from peer that failed to
-        connect through TCP"""
-        # REQUEST_TCP
-        #    check status
-        #    connect TCP
-        pass
-
+    
 # WELL-KNOWN PORTS: main gate
 #-----------------
 # CLIENT
 class ProfileClientProtocol(basic.LineOnlyReceiver):
     """Intermediate client checking that a remote server exists."""
 
-    def __init__(self):
-        # remote: ip, port, profile
-        pass
-
     def lineReceived(self, line):
         """incomming connection from other peer"""
         # on greeting, stores info about remote host (profile id)
-        # on listenning ack, set info about remote server (address)
-        # update client status
-        # (use dedicated server instead of well-known one)
-        # close connection
-        pass
+        if line.startswith(MSG_SERVER_ID):
+            # get remote information
+            remote_host, known_port = self.transport.getPeer()
+            peer_id, remote_port = parse_address(line[len(MSG_SERVER_ID):])
+            # store remote information
+            client = self.factory.create_dedicated_client(remote_host)
+            client.set_remote(peer_id, remote_port)
+        else:
+            print "client received unexpected line:", line
+        # acknowledge
+        self.transport.sendLine(MSG_CLIENT_ACK)
         
     def connectionMade(self):
         """a peer has connected to us"""
-        # great peer (with profile._id)
-        # stores server address (transport.getPeer)
-        # set client status
-        pass
+        # stores server address
+        remote_host, remote_port = self.transport.getPeer()
+        self.factory.create_dedicated_client(remote_host)
 
 class ProfileClientFactory(ClientFactory):
     """client connecting on known port thanks to TCP. call UDP on failure."""
 
     protocol = ProfileClientProtocol
 
-    def __init__(self):
+    def __init__(self, manager, service_api):
         # service api (UDP transports)
+        self.manager = manager
+        self.service_api = service_api
         # remote info: {ips: client}
-        pass
+        self.connectors = {}
+        self.dedicated_clients = {}
 
-    def connect_peer(self, peer_ip):
+    def connect_peer(self, peer_id, remote_ip, known_port):
         """open connection to peer"""
         # if client already defined, calls its connect method
         # otherwise, tries connectTCP on well-known port
-        pass
+        if not self.dedicated_clients.has_key(remote_ip):
+            self.connectors[remote_ip] = self._connect_tcp(remote_ip, known_port)
+        else:
+            self.dedicated_clients[remote_ip].connect()
 
-    def _connect_tcp(self, peer_ip):
+    def disconnect_peer(self, remote_ip):
+        """close open connection"""
+        if self.connectors.has_key(remote_ip):
+            self.connectors[remote_ip].disconnect()
+            del self.connectors[remote_ip]
+        
+    def create_dedicated_client(self, remote_ip):
+        """returns client assigned to remote_ip"""
+        if not self.dedicated_clients.has_key(remote_ip):
+            client = PeerClientFactory(self, remote_ip)
+            self.dedicated_clients[remote_ip] = client
+            return client
+        else:
+            return self.dedicated_clients[remote_ip]
+        
+    def _connect_tcp(self, remote_ip, port):
         """tries TCP server on well-known port"""
         #connect
-        pass
+        return reactor.connectTCP(remote_ip, port, self)
 
-    def _connect_udp(self):
+    def _connect_udp(self, remote_ip):
         """declares itself through UDP when could not connect through TCP"""
+        # get address of local server
+        server = self.manager.server.get_local_server(remote_ip)
         # use service_api to send data through nodes
-        pass
+        self.service_api.SendData(remote_ip, "%s %s:%d"\
+                                  % (REQ_CLIENT_CONNECT, remote_ip, server.port))
 
     def clientConnectionFailed(self, connector, reason):
-        """Called when a connection has failed to connect."""
-        # connect through UDP to request the spawning of a remote server
-        pass
-    
-    def clientConnectionLost(self, connector, reason):
-        """Called when an established connection is lost."""
-        # assert a remote server has been defined
-        pass
+        """on TCP failure, use udp"""
+        protocol, remote_ip, remote_port = connector.getDestination()
+        self.disconnect_peer(remote_ip)
+        self._connect_udp(remote_ip)
+        
+    def lose_dedicated_client(self, remote_ip):
+        """clean dedicated client to remote_ip"""
+        if self.dedicated_clients.has_key(remote_ip):
+            self.dedicated_clients[remote_ip].stopFactory()
+            del self.dedicated_clients[remote_ip]
     
 # SERVER
 class ProfileServerProtocol(basic.LineOnlyReceiver):
     """Shake hand protocol willing to switch to dedicated server"""
 
-    def __init__(self):
-        # local info: dedicated port
-        # remote info: address, profile
-        pass
-
     def lineReceived(self, line):
         """incomming connection from other peer"""
-        # on greeting, stores info about remote client (profile id)
-        # prepare callbacks
-        # check no local server already running
-        # spawn local server
-        pass
-
-    def send_local_address(self):
-        """callback on sucessfull launch of dedicated server"""
-        # send local server address
-        # update local server status (factory)
-        pass
-
-    def fail_local_server(self):
-        """callback on failure to launch local server"""
-        # send failure
-        # update local server status (factory)
-        pass
-        
-    def connectionLost(self, reason):
-        """Called when the connection is shut down."""
-        # update local server status
-        pass
-        
+        if line.startswith(MSG_CLIENT_ACK):
+            self.loseConnection()
+        else:
+            print "server received unexpected line:", line            
+            
     def connectionMade(self):
         """a peer has connect to us"""
-        # great peer (with transport.getHost and profile._id)
-        # stores client address (transport.getPeer)
-        # set server status (factory)
-        pass
+        # great peer (with transport.getHost and profile.id_)
+        remote_ip, remote_port = self.transport.getPeer()
+        local_ip, local_port = self.transport.getHost()
+        server = self.factory.get_local_server(remote_ip)
+        self.transport.sendLine("%s %s:%d"\
+                                % (MSG_SERVER_ID, local_ip, server.port))
 
 class ProfileServerFactory(ServerFactory):
     """server listening on known port. It will spawn a dedicated
@@ -196,32 +269,44 @@ class ProfileServerFactory(ServerFactory):
 
     protocol = ProfileServerProtocol
 
-    def __init__(self):
-        # servers info: {ips: server}
-        pass
+    def __init__(self, manager, local_port):
+        # servers info
+        self.manager = manager
+        self.port = local_port
+        # {ips: server}
+        self.local_servers = {}
+        # listener
+        self.listener = None
 
     def start_listening(self):
         """launch well-known server of profiles"""
-        pass
+        self.listener = reactor.listenTCP(self.port, self)
 
     def stop_listening(self):
         """shutdown well-known server"""
-        pass
+        self.listener.stopListening()
+        for remote_ip in self.local_servers:
+            self.lose_local_server(remote_ip)
 
-    def get_local_server(self, peer_ip, deferred):
+    def get_local_server(self, remote_ip):
         """return local server bound to owner of protocol"""
-        # is server running
-        # if not, spawn it
-        pass
-        
-    def _spawn_local_server(self, peer_ip, deferred):
-        """forward opened connection on well-known port into dedicated
-        one"""
-        # build up dedicated factory
-        # start listening
-        # callback
-        pass
+        if self.local_servers.has_key(remote_ip):
+            # is server running
+            return self.local_servers[remote_ip]
+        else:
+            # if not, spawn it
+            local_port = get_free_port()
+            new_server = PeerServerFactory(remote_ip, local_port)
+            self.local_servers[remote_ip] = new_server
+            new_server.start_listening()
+            return new_server
 
+    def lose_local_server(self, remote_ip):
+        """clean local server listening to remote_ip"""
+        if self.local_servers.has_key(remote_ip):
+            self.local_servers[remote_ip].stop_listening()
+            del self.local_servers[remote_ip]
+        
 
 # SPECIFIC PORTS: once we'be been through main gate, provides a little
 # more privacy...
@@ -233,14 +318,14 @@ class PeerProtocol(basic.FileSender, basic.LineReceiver):
     def connectionLost(self, reason):
         """Called when the connection is shut down."""
         # check file complete
-        pass
+        self.factory.manager.clear_downloads()
         
     def connectionMade(self):
         """Called when a connection is made."""
         # check ip
-        # send DOWNLOAD/UPLOAD flag
-        # check file
-        pass
+        remote_host, remote_port = self.transport.getPeer()
+        assert remote_host == self.factory.remote_ip, \
+               "UNAUTHORIZED %s"% remote_host
 
     def send_file(self, file_object):
         """senf file on request"""
@@ -280,14 +365,30 @@ class PeerClientFactory(ClientFactory):
 
     protocol = PeerClientProtocol
 
-    def __init__(self):
+    def __init__(self, manager, remote_ip):
         # remote address
-        # upload/download flag
-        pass
+        self.manager = manager
+        self.remote_ip = remote_ip
+        self.remote_port  = None
+        self.peer_id = None
 
     def clientConnectionFailed(self, connector, reason):
         """Called when a connection has failed to connect."""
         # clean dictionaries of client/server in upper lever
+        print "dedicated client to %s out"% self.peer_id
+        self.manager._lose_dedicated_client(self.peer_id)
+
+    def set_remote(self, peer_id, remote_port):
+        """set host and port of remote server"""
+        self.peer_id = peer_id
+        self.remote_port = remote_port
+        
+    def connect(self):
+        """connect to remote server"""
+        # check initialized
+        if not self.remote_port:
+            return False
+        # connect
         pass
 
     def get_file(self):
@@ -340,17 +441,21 @@ class PeerServerFactory(ServerFactory):
 
     protocol = PeerServerProtocol
 
-    def __init__(self):
+    def __init__(self, remote_ip, local_port):
         # remote address
-        pass
-
+        self.remote_ip = remote_ip
+        self.port = local_port
+        # listener
+        self.listener = None
+        
     def start_listening(self):
-        """open well-known server of profiles"""
-        pass
+        """open local server of profiles"""
+        self.listener = reactor.listenTCP(self.port)
 
     def stop_listening(self):
-        """shutdown well-known server"""
-        pass
+        """shutdown local server"""
+        self.listener.stopListening()
+        release_port(self.port)
 
     def get_file(self):
         """in case no server at the other end: server used as 'client'

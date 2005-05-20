@@ -34,6 +34,7 @@ from solipsis.util.uiproxy import TwistedProxy, UIProxyReceiver
 from solipsis.util.memdebug import MemSizer
 from solipsis.services.collector import ServiceCollector
 from solipsis.util.parameter import Parameters
+from solipsis.util.launch import Launcher
 from solipsis.navigator.netclient import get_log_stream, set_log_stream
 
 from validators import *
@@ -42,7 +43,6 @@ from world import World
 from statusbar import StatusBar
 from network import NetworkLoop, SolipsisUiFactory
 from config import ConfigData
-from launch import Launcher
 
 USE_SERVICE = ['profile']
 

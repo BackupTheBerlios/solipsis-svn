@@ -27,9 +27,9 @@ from StringIO import StringIO
 
 from solipsis.util.wxutils import _
 from solipsis.services.plugin import ServicePlugin
-from solipsis.services.profile import PROFILE_DIR, PROFILE_FILE
+from solipsis.services.profile import PROFILE_DIR, PROFILE_FILE, KNOWN_PORT
 from solipsis.services.profile.facade import get_facade
-from solipsis.services.profile.network import ProfileNetwork
+from solipsis.services.profile.network import NetworkManager
 from solipsis.services.profile.document import CacheDocument, FileDocument
 from solipsis.services.profile.view import GuiView, HtmlView, PrintView
 from solipsis.services.profile.gui.ProfileFrame import ProfileFrame
@@ -50,7 +50,7 @@ class Plugin(ServicePlugin):
         # (this is where duplicated code starts to appear...)
         self.host = socket.gethostbyname(socket.gethostname())
         self.port = random.randrange(7000, 7100)
-        self.network = ProfileNetwork(self.service_api)
+        self.network = NetworkManager(KNOWN_PORT, self.service_api)
         # init facade. Views will be initialized in Enable
         # (views depend on graphical mode)
         self.facade = get_facade()
@@ -193,21 +193,26 @@ class Plugin(ServicePlugin):
         actions[it](peer)
 
     # Peer management
+    # FIXME: reactivate when efficient
     def NewPeer(self, peer, service):
         """delegate to network"""
-        self.network.on_new_peer(peer, service)
+#         self.network.on_new_peer(peer, service)
+        pass
 
     def ChangedPeer(self, peer, service):
         """delegate to network"""
-        self.network.on_change_peer(peer, service)
+#         self.network.on_change_peer(peer, service)
+        pass
 
     def LostPeer(self, peer_id):
         """delegate to network"""
-        self.network.on_lost_peer(peer_id)
+#         self.network.on_lost_peer(peer_id)
+        pass
 
     def GotServiceData(self, peer_id, data):
         """delegate to network"""
-        self.network.on_service_data(peer_id, data)
+#         self.network.on_service_data(peer_id, data)
+        pass
 
     def ChangedNode(self, node):
         # new IP ? what consequence on network?

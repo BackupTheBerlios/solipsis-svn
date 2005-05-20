@@ -7,7 +7,7 @@ from twisted.trial import unittest
 from solipsis.navigator.netclient.tests.NetTestCase import NetTestCase
 
 class NetworkTest(NetTestCase, unittest.TestCase):
-    """Test good completion of basic commands"""
+    """Test correct setup of server/client"""
     
     def test_disconnect(self):
         """command disconnect"""
@@ -16,6 +16,20 @@ class NetworkTest(NetTestCase, unittest.TestCase):
         self.write("bots.netofpeers.net:8555")
         self.wait_for("Connected")
         self.check_next("disconnect", "Not connected")
+
+    def test_server(self):
+        """assert server is listening on known port"""
+        pass
+
+    def test_full_dupleix(self):
+        """incomming peer on same network: assert local server &
+        client available"""
+        pass
+
+    def test_not_visible(self):
+        """incomming peer which server is not available: use its
+        client to download file"""
+        pass
 
 # LAUNCHER
 # ========
