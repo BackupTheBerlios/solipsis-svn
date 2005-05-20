@@ -34,6 +34,7 @@ from solipsis.util.wxutils import _
 from solipsis.util.wxutils import *        # '*' doesn't import '_'
 from solipsis.util.urlhandlers import SetSolipsisURLHandlers
 from solipsis.util.memdebug import MemSizer
+from solipsis.util.launch import Launcher
 
 from validators import *
 from viewport import Viewport
@@ -41,7 +42,6 @@ from world import World
 from statusbar import StatusBar
 from network import NetworkLoop
 from config import ConfigUI, ConfigData
-from launch import Launcher
 from BookmarksDialog import BookmarksDialog
 from ConnectDialog import ConnectDialog
 
