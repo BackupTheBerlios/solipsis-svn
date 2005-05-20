@@ -28,6 +28,7 @@ from wx.xrc import XRCCTRL, XRCID
 
 from solipsis.util.entity import ServiceData
 from solipsis.util.address import Address
+from solipsis.util.urls import SolipsisURL
 from solipsis.util.position import Position
 from solipsis.util.uiproxy import TwistedProxy, UIProxyReceiver
 from solipsis.util.wxutils import _
@@ -368,18 +369,18 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         if self._CheckNodeProxy():
             self.node_proxy.JumpNear(address.ToStruct())
     
-    def _JumpNearURL(self, url):
-        print "Received:", url
+    def _JumpNearURL(self, url_string):
+        print "Received:", url_string
         if self._CheckNodeProxy(False):
-            url_pattern = r'^slp://(\d+\.\d+\.\d+\.\d+):(\d+)/?$'
-            m = re.match(url_pattern, url)
-            if m is not None:
-                host = m.group(1)
-                port = m.group(2)
-                self._JumpNearAddress(Address(host, port))
+            try:
+                url = SolipsisURL.FromString(url_string)
+            except ValueError, e:
+                print str(e)
+            else:
+                self._JumpNearAddress(url.GetAddress())
             self.url_jump = None
         else:
-            self.url_jump = url
+            self.url_jump = url_string
     
     def _UpdateURLPort(self, url_port):
         filename = os.path.join('state', 'url_jump.port')
@@ -524,13 +525,14 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             dialog = wx.TextEntryDialog(self.main_window,
                 message=_("Please enter the address to jump to"),
                 caption=_("Jump near an entity"),
-                defaultValue='192.33.178.29:5010'
+                defaultValue='slp://192.33.178.29:5010/'
                 )
             if dialog.ShowModal() == wx.ID_OK:
+                v = dialog.GetValue()
                 try:
-                    address = Address.FromString(dialog.GetValue())
+                    address = Address.FromString(v)
                 except ValueError, e:
-                    print str(e)
+                    self._JumpNearURL(v)
                 else:
                     self._JumpNearAddress(address)
 
