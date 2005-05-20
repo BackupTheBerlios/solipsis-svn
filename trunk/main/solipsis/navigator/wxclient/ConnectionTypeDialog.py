@@ -47,6 +47,7 @@ class ConnectionTypeDialog(wx.Dialog):
     def __set_properties(self):
         # begin wxGlade: ConnectionTypeDialog.__set_properties
         self.SetTitle(_("Connection type"))
+        self.text_ctrl_local_port.SetToolTipString(_("This is the port number used to contact other peers. Usually you don't have to change its value."))
         self.text_ctrl_remote_host.SetMinSize((160, -1))
         self.text_ctrl_remote_host.SetToolTipString(_("Name or IP address of the machine on which the node is running"))
         self.button_close.SetDefault()
