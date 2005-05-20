@@ -35,7 +35,7 @@ class RemoteConnector(object):
         self.proxy = None
         self.remote_node = None
 
-    def Connect(self, config_data, deferred=None):
+    def Connect(self, host, port, proxy_host=None, proxy_port=None, deferred=None):
         """
         Connect to the node.
         """
@@ -46,20 +46,13 @@ class RemoteConnector(object):
             proxy.GetStatus()
             proxy.GetAllPeers()
             proxy.GetEvents()
-            proxy.SetNodeInfo(config_data.GetNode().ToStruct())
             self.ui.NodeConnectionSucceeded(proxy)
         def _failure(error):
             self.proxy = None
             self.ui.NodeConnectionFailed(error)
 
-        if config_data.proxy_mode != "none" and config_data.proxy_host:
-            proxy_host = config_data.proxy_host
-            proxy_port = config_data.proxy_port
-        else:
-            proxy_host = None
-            proxy_port = None
         self.remote_node = XMLRPCNode(self.reactor,
-            config_data.host, config_data.port, proxy_host, proxy_port)
+            host, port, proxy_host, proxy_port)
         d = self.remote_node.Connect(self)
         d.addCallbacks(_success, _failure)
         if deferred:

@@ -814,10 +814,11 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """
         We managed to connect to the node.
         """
-        # We must call the node proxy from the Twisted thread!
         self._DestroyProgress()
         self._SetWaiting(False)
+        # We must call the node proxy from the Twisted thread!
         self.node_proxy = TwistedProxy(node_proxy, self.reactor)
+        self.node_proxy.SetNodeInfo(self.config_data.GetNode().ToStruct())
         self.statusbar.SetText(_("Connected"))
 
     def NodeConnectionFailed(self, error):

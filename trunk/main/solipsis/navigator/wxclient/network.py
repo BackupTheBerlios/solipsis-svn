@@ -66,8 +66,19 @@ class NetworkLoop(threading.Thread):
     #
     # Actions from the UI thread
     #
-    def ConnectToNode(self, *args, **kargs):
-        self.remote_connector.Connect(*args, **kargs)
+    def ConnectToNode(self, config_data, *args, **kargs):
+        proxy_host = None
+        proxy_port = None
+        if config_data.connection_type == "local":
+            host = "localhost"
+            port = 8550
+        else:
+            host = config_data.host
+            port = config_data.port
+            if config_data.proxy_mode != "none" and config_data.proxy_host:
+                proxy_host = config_data.proxy_host
+                proxy_port = config_data.proxy_port
+        self.remote_connector.Connect(host, port, proxy_host, proxy_port, *args, **kargs)
 
     def DisconnectFromNode(self, *args, **kargs):
         self.remote_connector.Disconnect(*args, **kargs)
