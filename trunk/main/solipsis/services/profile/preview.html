@@ -62,23 +62,17 @@
   </div>
 
   <h2 class="header">Personal Files</h2>
-  <table tal:repeat ="repository files/keys">
-    <caption tal:content="repository">
+  <dl>
+    <div tal:repeat ="repository files/keys" 
+	 tal:omit-tag="">
+      <dt tal:content="repository">
 	repository
-    </caption>
-    <thead>
-      <tr>
-	<th>name</th>
-	<th>tag</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr tal:repeat ="name python:files[repository].keys()">
-	<td tal:content="name">name</td>
-	<td tal:content="python:files[repository][name]">tag</td>
-      </tr>
-    </tbody>
-  </table>
+      </dt>
+      <dd tal:content="python:'%d shared files'% len(files[repository].keys())">
+	number of files
+      </dd>
+    </div>
+  </dl>
 
   <h2 class="header">Known Neighbors</h2>
   <table>
