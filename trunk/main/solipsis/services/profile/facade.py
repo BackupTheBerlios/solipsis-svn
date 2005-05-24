@@ -109,6 +109,19 @@ class Facade:
         """save .profile.solipsis"""
         html_file = open(path, "w")
         html_file.write(self.views["html"].get_view().encode(ENCODING))
+
+    def get_profile_obj(self):
+        """return a file object like on profile"""
+#         if not "file" in self.documents:
+#             file_doc
+#         if "cache" in self.documents:
+#             self.documents["cache"].
+        pass
+
+    def get_blog_obj(self):
+        """return a file object like on blog"""
+        # TODO
+        pass
     
     # PERSONAL TAB
     def change_title(self, value):
@@ -257,12 +270,15 @@ class Facade:
                                "tag_file",
                                "update_files")
         
-    def get_files(self, view):
+    def get_file_container(self, name):
         """forward command to cache"""
-        return self.views[view].document.get_files()
+        if "cache" in self.documents:
+            return self.documents["cache"].get_container(name)
+        else:
+            return self.documents.values()[0].get_container(name)
         
     def get_container(self, view, name):
-        """forward command to cache"""
+        """forward command to document associated with given view"""
         return self.views[view].document.get_container(name)
     
     def expand_children(self, view, value):
