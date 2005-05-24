@@ -51,8 +51,8 @@ class Node(Entity):
         u'b\xfasta\xf0ur',      # Icelandic
         u'Rumah',               # Indonesian
         u'casa',                # Italian
-        #~ u'uti',                 # Japanese
-        u'\u5bb6',              # Japanese
+        #~ u'\u5bb6',              # Japanese
+        u'\u30db\u30fc\u30e0',  # Japanese
         u'\uac00\uc815',        # Korean
         u'atrium',              # Latin
         u'bolig',               # Norwegian
