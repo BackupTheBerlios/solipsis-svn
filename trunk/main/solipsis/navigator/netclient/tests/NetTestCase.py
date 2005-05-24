@@ -42,7 +42,7 @@ class NetTestCase:
         self.connector.disconnect()
         # remove timeout
         try:
-            d = self.timeout.cancel()
+            self.timeout.cancel()
         except (error.AlreadyCancelled, error.AlreadyCalled):
             print "timeout canceled"
         # stop listening
@@ -53,6 +53,10 @@ class NetTestCase:
             deferred.addErrback(self._failed)
             while self.waiting:
                 waiting()
+        pendings = reactor.getDelayedCalls()
+        for pending in pendings:
+            pending.cancel()
+        reactor.iterate()
 
 # SIDE METHODS TO EASE TESTING
 # ============

@@ -53,7 +53,7 @@ Licensed under the GNU LGPL
         self.wait_for("Connected")
         self.write("go")
         self.check_next("", "2 parameters instead of 2, using default\nmoved to 0.0,0.0\n")
-        self.factory.write("go")
+        self.write("go")
         self.check_next("0.25,0.43", "moved to 0.25,0.43\n")
 
     def test_help(self):
