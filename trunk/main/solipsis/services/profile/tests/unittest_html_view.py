@@ -67,7 +67,9 @@ TEMPLATE = """<html>
   </div>
 
   <h2 class="header">Personal Files</h2>
+  <dl>
     %s
+  </dl>
 
   <h2 class="header">Known Neighbors</h2>
   <table>
@@ -133,25 +135,10 @@ class HtmlTest(unittest.TestCase):
         repos = self.document.get_repositories()
         repos.sort()
         for repo in repos:
-            files_str = ''.join(["""<tr>
-	<td>%s</td>
-	<td>%s</td>
-      </tr>"""% (file_name[len(repo):], tag)
-                                 for file_name, tag
-                                 in self.document.get_shared(repo).iteritems()])
-            
-            html.append("""<table>
-    <caption>%s</caption>
-    <thead>
-      <tr>
-	<th>name</th>
-	<th>tag</th>
-      </tr>
-    </thead>
-    <tbody>
-%s
-    </tbody>
-  </table>"""% (repo, files_str))
+            html.append("""
+    <dt>%s</dt>
+    <dd>%d shared files</dd>
+"""% (repo, len(self.document.get_shared(repo).keys())))
         # concatenate all description of directories & return result
         return ''.join(html)
 

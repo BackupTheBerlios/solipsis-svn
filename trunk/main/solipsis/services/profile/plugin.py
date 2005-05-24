@@ -50,7 +50,7 @@ class Plugin(ServicePlugin):
         # (this is where duplicated code starts to appear...)
         self.host = socket.gethostbyname(socket.gethostname())
         self.port = random.randrange(7000, 7100)
-        self.network = NetworkManager(KNOWN_PORT, self.service_api)
+        self.network = NetworkManager(self.host,  random.randrange(7100, 7200), self.service_api)
         # init facade. Views will be initialized in Enable
         # (views depend on graphical mode)
         self.facade = get_facade()
@@ -196,22 +196,22 @@ class Plugin(ServicePlugin):
     # FIXME: reactivate when efficient
     def NewPeer(self, peer, service):
         """delegate to network"""
-#         self.network.on_new_peer(peer, service)
+        self.network.on_new_peer(peer, service)
         pass
 
     def ChangedPeer(self, peer, service):
         """delegate to network"""
-#         self.network.on_change_peer(peer, service)
+        self.network.on_change_peer(peer, service)
         pass
 
     def LostPeer(self, peer_id):
         """delegate to network"""
-#         self.network.on_lost_peer(peer_id)
+        self.network.on_lost_peer(peer_id)
         pass
 
     def GotServiceData(self, peer_id, data):
         """delegate to network"""
-#         self.network.on_service_data(peer_id, data)
+        self.network.on_service_data(peer_id, data)
         pass
 
     def ChangedNode(self, node):

@@ -22,6 +22,7 @@ import os.path
 import traceback
 
 from solipsis.util.utils import set
+from solipsis.util.uiproxy import TwistedProxy
 from solipsis.util.entity import Service
 
 
@@ -50,8 +51,10 @@ class ServiceCollector(object):
             setattr(self, name, fun)
             return fun
 
-    def __init__(self, params, reactor):
+    def __init__(self, params, reactor, ui=None):
         self.params = params
+        if ui:
+            self.ui = TwistedProxy(ui, reactor)
         self.reactor = reactor
         self.dir = self.params.services_dir
         self.node = None
@@ -284,7 +287,7 @@ class ServiceCollector(object):
         """
         Send service-specific data using the Solipsis network.
         """
-        raise NotImplementedError
+        self.ui.SendServiceData(peer_id, service_id, data)
 
     #
     # Private methods

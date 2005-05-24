@@ -117,7 +117,7 @@ class NavigatorApp(UIProxyReceiver):
         """
         Initialize all services.
         """
-        self.services = ServiceCollector(self.params, self.reactor)
+        self.services = ServiceCollector(self.params, self.reactor, self)
         for service in USE_SERVICE:
             service_path = self.services._ServiceDirectory(service)
             service_id, plugin =self.services.LoadService(service_path, service)

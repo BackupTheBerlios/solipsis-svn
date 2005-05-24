@@ -22,8 +22,8 @@ import wx
 
 from collector import ServiceCollector
 
-from solipsis.util.entity import Service
 from solipsis.util.uiproxy import UIProxy
+from solipsis.util.entity import Service
 from solipsis.util.wxutils import GetCharset, IdPool
 
 
@@ -34,9 +34,9 @@ class WxServiceCollector(ServiceCollector):
     """
     def __init__(self, params, ui, reactor):
         self.app = ui
+        self.ui = UIProxy(ui)
         self.main_window = ui.main_window
         self.config_data = ui.config_data
-        self.ui = UIProxy(ui)
         self.charset = GetCharset()
         ServiceCollector.__init__(self, params, reactor)
 
@@ -114,12 +114,6 @@ class WxServiceCollector(ServiceCollector):
         Set service-specific menu in the navigator's menubar.
         """
         self.ui.SetServiceMenu(service_id, title, menu)
-
-    def service_SendData(self, service_id, peer_id, data):
-        """
-        Send service-specific data using the Solipsis network.
-        """
-        self.ui.SendServiceData(peer_id, service_id, data)
 
     def service_SetConfig(self, service_id, data):
         """
