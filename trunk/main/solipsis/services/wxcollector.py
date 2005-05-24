@@ -89,7 +89,8 @@ class WxServiceCollector(ServiceCollector):
             # Add as many elements as there are actions for this specific service
             for title in titles:
                 item_id = self.action_ids.GetId()
-                item = wx.MenuItem(menu, item_id, title.encode(self.charset))
+                #~ item = wx.MenuItem(menu, item_id, title.encode(self.charset))
+                item = wx.MenuItem(menu, item_id, title)
                 def _clicked(evt, p=plugin, it=i):
                     if peer_id is not None and peer_id in self.peers:
                         p.DoPointToPointAction(it, self.peers[peer_id])
