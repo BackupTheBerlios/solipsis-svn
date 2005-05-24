@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-05-20 16:10+0200\n"
+"POT-Creation-Date: 2005-05-24 13:40+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -180,7 +180,7 @@ msgstr ""
 msgid "Contacts"
 msgstr ""
 
-#: gui/FilePanel.py:34 gui/BlogPanel.py:83
+#: gui/FilePanel.py:34 gui/BlogPanel.py:82
 msgid "Actions"
 msgstr ""
 
@@ -340,19 +340,19 @@ msgstr ""
 msgid "select neighbor to display"
 msgstr ""
 
-#: gui/BlogPanel.py:87
+#: gui/BlogPanel.py:86
 msgid "Enter your text here"
 msgstr ""
 
-#: gui/BlogPanel.py:117
+#: gui/BlogPanel.py:116
 msgid "New blog"
 msgstr ""
 
-#: gui/BlogPanel.py:119
+#: gui/BlogPanel.py:118
 msgid "Delete blog"
 msgstr ""
 
-#: gui/BlogPanel.py:121
+#: gui/BlogPanel.py:120
 msgid "Comment"
 msgstr ""
 

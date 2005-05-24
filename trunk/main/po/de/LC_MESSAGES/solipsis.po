@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Solipsis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-05-20 16:10+0200\n"
+"POT-Creation-Date: 2005-05-24 13:40+0200\n"
 "PO-Revision-Date: 2005-05-24 08:37+0100\n"
 "Last-Translator: Bastian Flinspach <gawes@web.de>\n"
 "Language-Team: Solipsis translators <antoine@pitrou.net>\n"
@@ -272,7 +272,9 @@ msgid "Not implemented"
 msgstr "Nicht implementiert"
 
 msgid "Paste your address so that your friend can jump near you"
-msgstr "Geben sie ihre Adresse weiter, so dass ihre Freunde in ihre Nähe springen können"
+msgstr ""
+"Geben sie ihre Adresse weiter, so dass ihre Freunde in ihre Nähe springen "
+"können"
 
 #: solipsis/navigator/wxclient/BookmarksDialog.py:101
 msgid "Please choose the peer to add to your bookmarks list."
@@ -353,8 +355,11 @@ msgstr ""
 "da sie nicht mit einem Knoten verbunden sind."
 
 #: solipsis/navigator/netclient/app.py:187
-msgid "This action cannot be performed, because you are not connected to a node."
-msgstr "Diese Aktion kann nicht ausgeführt werden, da sie nicht mit einem Knoten verbunden sind."
+msgid ""
+"This action cannot be performed, because you are not connected to a node."
+msgstr ""
+"Diese Aktion kann nicht ausgeführt werden, da sie nicht mit einem Knoten "
+"verbunden sind."
 
 #: solipsis/navigator/wxclient/app.py:341
 #: solipsis/navigator/netclient/app.py:176
@@ -366,11 +371,19 @@ msgstr ""
 "Versuchen sie es später noch einmal..."
 
 #: solipsis/navigator/wxclient/ConnectionTypeDialog.py:50
-msgid "This is the port number used to contact other peers. Usually you don't have to change its value."
-msgstr "Dies ist die Port Nummer, die genutzt wird um andere peers zu kontaktieren. Normalerweise müssen sie diesen Wert nicht ändern."
+msgid ""
+"This is the port number used to contact other peers. Usually you don't have "
+"to change its value."
+msgstr ""
+"Dies ist die Port Nummer, die genutzt wird um andere peers zu kontaktieren. "
+"Normalerweise müssen sie diesen Wert nicht ändern."
 
-msgid "Uncheck this box if you want to remain connected to the Solipsis world even when you exit the navigator."
-msgstr "Deaktivieren sie diese Option, wenn sie mit der Solipsis Welt auch dann verbunden bleiben wollen, wenn sie den Navigator schließen."
+msgid ""
+"Uncheck this box if you want to remain connected to the Solipsis world even "
+"when you exit the navigator."
+msgstr ""
+"Deaktivieren sie diese Option, wenn sie mit der Solipsis Welt auch dann "
+"verbunden bleiben wollen, wenn sie den Navigator schließen."
 
 #: solipsis/navigator/wxclient/ConnectionTypeDialog.py:19
 msgid "Use UDP port:"
@@ -397,28 +410,40 @@ msgstr ""
 
 #~ msgid "&Cancel"
 #~ msgstr "&Abbrechen"
+
 #~ msgid "&Connect to existing node"
 #~ msgstr "Mit Knoten &verbinden"
+
 #~ msgid "&Edit"
 #~ msgstr "&Edition"
+
 #~ msgid "&File"
 #~ msgstr "&Fichier"
+
 #~ msgid "&New node"
 #~ msgstr "&Neuer Knoten"
+
 #~ msgid "&OK"
 #~ msgstr "&Valider"
+
 #~ msgid "&Ok"
 #~ msgstr "&Ok"
+
 #~ msgid "Disconnect from node"
 #~ msgstr "Se déconnecter du nœud"
+
 #~ msgid "Nickname"
 #~ msgstr "Spitzname"
+
 #~ msgid "Node address"
 #~ msgstr "Adresse des Knotens"
+
 #~ msgid "Peer \"%s\""
 #~ msgstr "Nœud \"%s\""
+
 #~ msgid "Please choose your nickname"
 #~ msgstr "Bitte wählen sie ihren Spitznamen"
+
 #~ msgid ""
 #~ "Solipsis Navigator 0.1\n"
 #~ "\n"
@@ -429,6 +454,7 @@ msgstr ""
 #~ "\n"
 #~ "Distribué sous licence GNU LGPL.\n"
 #~ "(c) France Telecom R&&D\n"
+
 #~ msgid ""
 #~ "Solipsis Navigator 0.8.1\n"
 #~ "\n"
@@ -439,4 +465,3 @@ msgstr ""
 #~ "\n"
 #~ "Distribué sous licence GNU LGPL.\n"
 #~ "(c) France Telecom R&&D"
-
