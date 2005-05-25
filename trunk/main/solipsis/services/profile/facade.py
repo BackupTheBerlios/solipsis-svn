@@ -22,6 +22,7 @@ available. This facade will be used both by GUI and unittests."""
 from sys import stderr
 from solipsis.services.profile import ENCODING
 from solipsis.services.profile.data import DirContainer
+from solipsis.services.profile.document import FileDocument
 
 #TODO: add state pattern when doc modified => prompt to save
 
@@ -112,11 +113,10 @@ class Facade:
 
     def get_profile_obj(self):
         """return a file object like on profile"""
-#         if not "file" in self.documents:
-#             file_doc
-#         if "cache" in self.documents:
-#             self.documents["cache"].
-        pass
+        if "cache" in self.documents:
+            return self.documents["cache"].open()
+        else:
+            return self.documents.values()[0].open()
 
     def get_blog_obj(self):
         """return a file object like on blog"""

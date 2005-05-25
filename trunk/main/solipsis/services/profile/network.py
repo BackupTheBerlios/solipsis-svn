@@ -2,12 +2,14 @@
 
 import socket
 import threading
+import tempfile
 
 from twisted.internet.protocol import ClientFactory, ServerFactory
 from twisted.internet import reactor
 from twisted.protocols import basic
 
 from solipsis.services.profile import FREE_PORTS
+from solipsis.services.profile.document import FileDocument
 
 TIMEOUT = 60
 
@@ -24,6 +26,10 @@ MESSAGE_ERROR = "UPLOAD_IMPOSSIBLE"
 ASK_DOWNLOAD_FILES = "DOWNLOAD_FILES"
 ASK_DOWNLOAD_BLOG = "DOWNLOAD_BLOG"
 ASK_DOWNLOAD_PROFILE = "DOWNLOAD_PROFILE"
+COMPLETE_DOWNLOAD_FILES = "COMPLETE_FILES"
+COMPLETE_DOWNLOAD_BLOG = "COMPLETE_BLOG"
+COMPLETE_DOWNLOAD_PROFILE = "COMPLETE_PROFILE"
+
 ASK_UPLOAD = "UPLOAD"
 
 SERVICES_MESSAGES = [MESSAGE_HELLO, MESSAGE_PROFILE,
@@ -75,7 +81,6 @@ def parse_message(message):
 def make_message(command, host, port, data=''):
     """format message to be sent via service_api"""
     message = "%s %s:%d %s"% (command, host, port, data)
-    print "sending api", message
     return message
 
 def get_free_port():
@@ -139,14 +144,18 @@ class NetworkManager:
 
     def on_new_peer(self, peer, service):
         """tries to connect to new peer"""
-        print peer.id_
-        # parse address, set up information in cache
+        # parse address, 
         ip, port = parse_address(service.address)
-        self.deferreds[peer.id_] = []
-        self.remote_ips[peer.id_] = ip
+        # set up information in cache
+        self._init_peer(peer.id_, ip)
         # declare known port to other peer throug service_api
         message = make_message(MESSAGE_HELLO, self.host, self.port)
         self.service_api.SendData(peer.id_, message)
+
+    def _init_peer(self, peer_id, ip):
+        """set up cache for given peer"""
+        self.deferreds[peer_id] = []
+        self.remote_ips[peer_id] = ip
 
     def on_lost_peer(self, peer_id):
         """tries to connect to new peer"""
@@ -170,13 +179,16 @@ class NetworkManager:
     def on_service_data(self, peer_id, data):
         """demand to establish connection from peer that failed to
         connect through TCP"""
-        print "api received", data
         try:
             # parse message
             command, r_ip, r_port, data = parse_message(data)
+            # create client if necessary
+            if not self.remote_ips.has_key(peer_id):
+                self._init_peer(peer_id, r_ip)
             assert r_ip == self.remote_ips[peer_id], \
                    "incoherent ip %s instead of %s"\
                    % (r_ip, self.remote_ips[peer_id])
+            # get dedicated client (or None if not yet initialized)
             dedicated_client = self.client.\
                                get_dedicated_client(self.remote_ips[peer_id])
             # making tcp connection
@@ -212,12 +224,12 @@ class NetworkManager:
             server = self.server.get_local_server(self.remote_ips[peer_id])
             if server:
                 message = make_message(MESSAGE_PROFILE, self.host, server.port)
-                self.manager.service_api.SendData(peer_id, message)
+                self.service_api.SendData(peer_id, message)
                 # FIXME set callback
             else:
                 print "DOWNLOAD PROFILE IMPOSSIBLE"
 
-    def get_blog(self, peer_id, display_callback):
+    def get_blog(self, peer_id, callback):
         """retreive peer's blog"""
         client = self.client.get_dedicated_client(self.remote_ips[peer_id])
         if client:
@@ -226,26 +238,30 @@ class NetworkManager:
             server = self.server.get_local_server(self.remote_ips[peer_id])
             if server:
                 message = make_message(MESSAGE_BLOG, self.host, server.port)
-                self.manager.service_api.SendData(peer_id, message)
+                self.service_api.SendData(peer_id, message)
                 # FIXME set callback
             else:
                 print "DOWNLOAD BLOG IMPOSSIBLE"
 
-    def get_files(self, peer_id, files, callback):
+    def get_files(self, peer_id, file_names, callback):
         """retreive file"""
         client = self.client.get_dedicated_client(self.remote_ips[peer_id])
         if client:
-            client.get_files(files, callback)
+            client.get_files(file_names, callback)
         else:
             server = self.server.get_local_server(self.remote_ips[peer_id])
             if server:
-                file_names = ','.join(files)
-                message = make_message(MESSAGE_PROFILE, self.host, server.port,
-                                       file_names)
-                self.manager.service_api.SendData(peer_id, message)
+                for file_name in file_names:
+                    message = make_message(MESSAGE_PROFILE, self.host, server.port,
+                                       file_name)
+                    self.service_api.SendData(peer_id, message)
                 # FIXME set callback
             else:
                 print "DOWNLOAD FILES IMPOSSIBLE"
+
+    def _on_profile_complete(self, document):
+        """callback when autoloading of profile successful"""
+        self.facade.fill_data((document.get_pseudo(), document))
 
     def _upload_impossible(self, peer_id, remote_ip, remote_port):
         """notify via udp that upload is not possible"""
@@ -275,7 +291,6 @@ class ProfileClientProtocol(basic.LineOnlyReceiver):
 
     def lineReceived(self, line):
         """incomming connection from other peer"""
-        print "received", line
         # on greeting, stores info about remote host (profile id)
         if line.startswith(SERVER_SEND_ID):
             # get remote information
@@ -295,13 +310,14 @@ class ProfileClientProtocol(basic.LineOnlyReceiver):
         protocol, remote_host, remote_port = self.transport.getPeer()
         self.factory.create_dedicated_client(remote_host)
 
-    def connectionLost(self):
+    def connectionLost(self, reason):
         """switch to dedicated client and ask for profile"""
         # get dedicated client
         protocol, remote_host, remote_port = self.transport.getPeer()
+        basic.LineOnlyReceiver.connectionLost(self, reason)
         client = self.factory.get_dedicated_client(remote_host)
         # download profile
-        client.get_profile()
+        client.get_profile(self.factory.manager._on_profile_complete)
 
 class ProfileClientFactory(ClientFactory):
     """client connecting on known port thanks to TCP. call UDP on failure."""
@@ -353,7 +369,7 @@ class ProfileClientFactory(ClientFactory):
         protocol, remote_ip, remote_port = connector.getDestination()
         self.disconnect_tcp(remote_ip)
         # 'download' profile through server
-        self.manager.get_profile()
+        self.manager.get_profile(self.manager._on_profile_complete)
         
     def lose_dedicated_client(self, remote_ip):
         """clean dedicated client to remote_ip"""
@@ -366,7 +382,7 @@ class ProfileServerProtocol(basic.LineOnlyReceiver):
     def lineReceived(self, line):
         """incomming connection from other peer"""
         if line.startswith(CLIENT_SEND_ACK):
-            self.connectionLost(reason = "switch to dedicated server")
+            self.transport.loseConnection()
         else:
             print "server received unexpected line:", line            
             
@@ -378,7 +394,6 @@ class ProfileServerProtocol(basic.LineOnlyReceiver):
         server = self.factory.get_local_server(remote_ip)
         self.sendLine("%s %s:%d"\
                       % (SERVER_SEND_ID, local_ip, server.port))
-        print "sending %s %s:%d"% (SERVER_SEND_ID, local_ip, server.port)
 
 class ProfileServerFactory(ServerFactory):
     """server listening on known port. It will spawn a dedicated
@@ -430,7 +445,7 @@ class ProfileServerFactory(ServerFactory):
 # more privacy...
 #---------------
 # COMMON
-class PeerProtocol(basic.FileSender, basic.LineReceiver):
+class PeerProtocol(basic.LineReceiver):
     """common part of protocol between client and server"""
         
     def connectionMade(self):
@@ -453,10 +468,9 @@ class PeerProtocol(basic.FileSender, basic.LineReceiver):
 # CLIENT
 class PeerClientProtocol(PeerProtocol):
     """client part of protocol"""
-        
+    
     def lineReceived(self, line):
         """Override this for when each line is received."""
-        print "received", line
         # UPLOAD
         #     if not upload, lose connection
         # READY
@@ -470,11 +484,63 @@ class PeerClientProtocol(PeerProtocol):
         #     reset status
         pass
 
+    def rawDataReceived(self, data):
+        """write file"""
+        self.file.write(data)
+
     def connectionMade(self):
         """after ip is checked, begin connection"""
         PeerProtocol.connectionMade(self)
-        self.sendLine(self.download)
-                      
+        self.setRawMode()
+        # check action to be made
+        if self.factory.download.startswith(ASK_DOWNLOAD_FILES):
+            if self.factory.files:
+                # TODO: check place to download and existing files
+                # create file
+                self.file = open(self.factory.files.pop(), "w+b")
+                self.sendLine("%s %s"% (self.factory.download, self.factory.files.pop()))
+            else:
+                print "No more file to download!!"
+        else:
+            self.file = tempfile.NamedTemporaryFile()
+            self.sendLine(self.factory.download)
+
+    def _on_complete_profile(self):
+        """callback when finished downloading profile"""
+        self.file.seek(0)
+        file_doc = FileDocument()
+        file_doc.read(self.file)
+        self.file.close()
+        self.file = None
+        self.factory.callback(file_doc)
+
+    def _on_complete_blog(self):
+        """callback when finished downloading blog"""
+        pass
+
+    def _on_complete_file(self):
+        """callback when finished downloading file"""
+        self.file.close()
+        if self.factory.files:
+            self.factory.connect()
+        else:
+            self.factory.callback()
+        
+    def connectionLost(self, reason):
+        PeerProtocol.connectionLost(self, reason)
+        if self.factory.download.startswith(ASK_DOWNLOAD_PROFILE):
+            self._on_complete_profile()
+        elif self.factory.download.startswith(ASK_DOWNLOAD_BLOG):
+            self._on_complete_blog()
+        elif self.factory.download.startswith(ASK_DOWNLOAD_FILES):
+            self._on_complete_file()
+        else:
+            print "upload?", self.factory.download
+        
+class PeerClientFactory(ClientFactory):
+    """client part of protocol"""
+
+    protocol = PeerClientProtocol
 
     def __init__(self, manager, remote_ip):
         # remote address
@@ -485,13 +551,13 @@ class PeerClientProtocol(PeerProtocol):
         # flag download/upload
         self.connector = None
         self.download = None
+        self.callback = None
 
     def clientConnectionFailed(self, connector, reason):
         """Called when a connection has failed to connect."""
         # clean dictionaries of client/server in upper lever
-        print "failed client dedicated to %s "% self.peer_id
         self.disconnect()
-        self.manager._lose_dedicated_client(self.peer_id)
+        self.manager.lose_dedicated_client(self.remote_ip)
 
     def set_remote(self, peer_id, remote_port):
         """set host and port of remote server"""
@@ -513,25 +579,32 @@ class PeerClientProtocol(PeerProtocol):
             self.connector = None
             self.files = []
 
-    def get_profile(self):
-        """download peer profile using self.get_files. Automatically called on client creation"""
+    # FIXME: tie download & callback to protocol...
+    def get_profile(self, callback):
+        """download peer profile using self.get_file. Automatically called on client creation"""
         self.download = ASK_DOWNLOAD_PROFILE
+        self.callback = callback
         if not self.connect():
             self.download = None
             print "could not connect"
             
-    def get_blog(self):
-        """donload blog file using self.get_files"""
+    def get_blog(self, callback):
+        """donload blog file using self.get_file"""
         self.download = ASK_DOWNLOAD_BLOG
+        self.callback = callback
         if not self.connect():
             self.download = None
             print "could not connect"
             
-    def get_files(self, file_names):
+    def get_files(self, callback, file_names):
         """download given list of file"""
-        self.download = "%s %s"% DOWNLOAD_FILES + ','.join(file_names)
+        for file_name in file_names:
+            self.files.append(file_name)
+        self.download = ASK_DOWNLOAD_FILES
+        self.callback = callback
         if not self.connect():
             self.download = None
+            del self.files[:]
             print "could not connect"
 
     def upload_profile(self):
@@ -560,31 +633,29 @@ class PeerServerProtocol(PeerProtocol):
         
     def lineReceived(self, line):
         """Override this for when each line is received."""
-        print "received", line
-        # donwnload files
+        # donwnload file
         if line == ASK_DOWNLOAD_FILES:
-            file_names = line[len(ASK_DOWNLOAD_FILES)+1:].split(',')
-            # proceed each file
-            for file_name in file_names:
-                file_container = self.manager.facade.get_file_container(file_name)
-                # check exists
-                if file_container.has_key(file_name):
-                    file_desc = file_container[file_name]
-                    # check shared
-                    if file_desc._shared:
-                        deferred = beginFileTransfer(open(file_name), self.transport)
-                    else:
-                        print "permission denied"
+            file_name = line[len(ASK_DOWNLOAD_FILES)+1:].strip()
+            file_container = self.factory.manager.facade.get_file_container(file_name)
+            # check exists
+            if file_container.has_key(file_name):
+                file_desc = file_container[file_name]
+                # check shared
+                if file_desc._shared:
+                    deferred = basic.FileSender().beginFileTransfer(open(file_name), self.transport)
                 else:
-                    print "unknown file %s"% file_name
+                    print "permission denied"
+            else:
+                print "unknown file %s"% file_name
         # donwnload blog
         if line == ASK_DOWNLOAD_BLOG:
-            file_name = self.manager.facade.get_blog()
-            deferred = beginFileTransfer(open(file_name), self.transport)
+            file_name = self.factory.manager.facade.get_blog_obj()
+            deferred = basic.FileSender().beginFileTransfer(open(file_name), self.transport)
         # donwnload profile
         if line == ASK_DOWNLOAD_PROFILE:
-            file_name = self.manager.facade.get_profile()
-            deferred = beginFileTransfer(open(file_name), self.transport)
+            file_obj = self.factory.manager.facade.get_profile_obj()
+            deferred = basic.FileSender().beginFileTransfer(file_obj, self.transport)
+            deferred.addCallback(lambda x: self.transport.loseConnection())
         elif line == ASK_UPLOAD:
             # DOWNLOAD file:// | profile://
             # if not download, lose connection

@@ -23,6 +23,7 @@ independant from views"""
 import mx.DateTime
 import ConfigParser
 import os.path
+import tempfile
 import sys
 from os.path import isfile, isdir
 from StringIO import StringIO
@@ -101,6 +102,12 @@ class AbstractDocument:
     def get_id(self):
         """return identifiant of Document"""
         return self.name
+
+    def open(self):
+        """returns a file object containing values"""
+        file_doc = FileDocument()
+        file_doc.import_document(self)
+        return file_doc.open()
 
     def import_document(self, other_document):
         """copy data from another document into self"""
@@ -804,12 +811,18 @@ class FileDocument(AbstractDocument):
 
     def __str__(self):
         result = StringIO()
-        self.config.write(result)
-        return result.getvalue()
+        return self.write(result).getvalue()
 
     def get_id(self):
         """return identifiant of Document"""
         return self.file_name
+
+    def open(self):
+        """returns a file object containing values"""
+        file_obj = tempfile.TemporaryFile()
+        self.write(file_obj)
+        file_obj.seek(0)
+        return file_obj
     
     # MENU
 
@@ -818,15 +831,19 @@ class FileDocument(AbstractDocument):
         if path:
             self.file_name = path
         file_obj = open(self.file_name, 'w')
-        file_obj.write("#%s\n"% self.encoding)
-        self.config.write(file_obj)
-        file_obj.close()
+        self.write(file_obj).close()
 
     def read(self, stream):
         """import profile from given stream (file object like)"""
         self.encoding = stream.readline()[1:]
         self.config = CustomConfigParser()
         self.config.readfp(stream)
+
+    def write(self, stream):
+        """export encoding along with profile"""
+        stream.write("#%s\n"% self.encoding)
+        self.config.write(stream)
+        return stream
 
     def load(self, path=None):
         """fill document with information from .profile file"""

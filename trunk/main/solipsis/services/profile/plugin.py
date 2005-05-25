@@ -128,12 +128,9 @@ class Plugin(ServicePlugin):
         if self.profile_frame:
             self.profile_frame.Show()
 
-    def _on_new_profile(self, pseudo, profile):
+    def _on_new_profile(self, document):
         """store and display file object corresponding to profile"""
-        stream = StringIO(profile)
-        document = FileDocument()
-        document.read(stream)
-        self.facade.fill_data((pseudo, document))
+        self.facade.fill_data((document.get_pseudo(), document))
     
     def _on_new_blog(self, pseudo, profile):
         """store and display file object corresponding to blog"""
@@ -150,6 +147,7 @@ class Plugin(ServicePlugin):
         self.network.get_file(peer_id, file_names)
 
     def select_files(self, peer_id):
+        # get profile
         # display dialog to select files
         pass
 
@@ -191,29 +189,29 @@ class Plugin(ServicePlugin):
         # retreive corect method
         actions = self.POINT_ACTIONS.values()
         # call method on peer
-        actions[it](peer)
+        actions[it](peer.id_)
 
     # Peer management
     # FIXME: reactivate when efficient
     def NewPeer(self, peer, service):
         """delegate to network"""
-#         self.network.on_new_peer(peer, service)
-        pass
+        print "NewPeer"
+        self.network.on_new_peer(peer, service)
 
     def ChangedPeer(self, peer, service):
         """delegate to network"""
-#         self.network.on_change_peer(peer, service)
-        pass
+        print "ChangedPeer"
+        self.network.on_change_peer(peer, service)
 
     def LostPeer(self, peer_id):
         """delegate to network"""
-#         self.network.on_lost_peer(peer_id)
-        pass
+        print "LostPeer"
+        self.network.on_lost_peer(peer_id)
 
     def GotServiceData(self, peer_id, data):
         """delegate to network"""
-#         self.network.on_service_data(peer_id, data)
-        pass
+        print "GotServiceData"
+        self.network.on_service_data(peer_id, data)
 
     def ChangedNode(self, node):
         # new IP ? what consequence on network?
