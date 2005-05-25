@@ -45,6 +45,7 @@ from network import NetworkLoop
 from config import ConfigUI, ConfigData
 from BookmarksDialog import BookmarksDialog
 from ConnectDialog import ConnectDialog
+from PreferencesDialog import PreferencesDialog
 
 from solipsis.services.wxcollector import WxServiceCollector
 
@@ -151,9 +152,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         c = self.config_data
         validators = [
             # [ Containing window, control name, validator class, data object, data attribute ]
-            #~ [ self.connect_dialog, "connect_host", HostnameValidator, c, "host" ],
-            #~ [ self.connect_dialog, "connect_port", PortValidator, c, "port" ],
-            #~ [ self.connect_dialog, "connect_pseudo", NicknameValidator, c, "pseudo" ],
             [ self.prefs_dialog, "proxymode_auto", BooleanValidator, c, "proxymode_auto" ],
             [ self.prefs_dialog, "proxymode_manual", BooleanValidator, c, "proxymode_manual" ],
             [ self.prefs_dialog, "proxymode_none", BooleanValidator, c, "proxymode_none" ],
@@ -549,7 +547,9 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         Called on "preferences" event (menu -> File -> Preferences).
         """
         self.config_data.Compute()
-        self.prefs_dialog.Show()
+        #~ self.prefs_dialog.Show()
+        prefs_dialog = PreferencesDialog(config_data=self.config_data, parent=self.main_window)
+        prefs_dialog.ShowModal()
 
     def _OnQuit(self, evt):
         """

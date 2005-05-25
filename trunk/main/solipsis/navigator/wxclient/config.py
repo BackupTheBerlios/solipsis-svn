@@ -62,6 +62,7 @@ class ConfigData(ManagedData):
         
         # 3. Other preferences
         self.node_autokill = True
+        self.multiple_identities = False
 
         # 4. Service-specific configuration data
         self.services = []

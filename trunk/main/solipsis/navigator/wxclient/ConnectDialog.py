@@ -20,7 +20,7 @@ class ConnectDialog(wx.Dialog):
         self.sizer_5_staticbox = wx.StaticBox(self, -1, _("Connection type"))
         self.label_pseudo = wx.StaticText(self, -1, _("Name or pseudo"))
         self.text_ctrl_pseudo = wx.TextCtrl(self, -1, "")
-        self.label_conntype = wx.StaticText(self, -1, "")
+        self.label_conntype = wx.StaticText(self, -1, _("label_conntype"))
         self.button_change_conntype = wx.Button(self, -1, _("Change"))
         self.button_ok = wx.Button(self, wx.ID_OK, "")
         self.button_cancel = wx.Button(self, wx.ID_CANCEL, "")
