@@ -65,6 +65,8 @@ class PreferencesDialog(wx.Dialog):
         self.checkbox_autokill.SetToolTipString(_("Uncheck this box if you want to remain connected to the Solipsis world even when you exit the navigator."))
         self.button_close.SetDefault()
         # end wxGlade
+        self.checkbox_multiple_identities.Disable()
+        self.checkbox_multiple_identities.Hide()
 
         # BUG: this doesn't seem to work
         self.SetExtraStyle(self.GetExtraStyle() | wx.WS_EX_VALIDATE_RECURSIVELY)
