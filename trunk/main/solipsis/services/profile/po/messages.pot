@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-05-24 13:40+0200\n"
+"POT-Creation-Date: 2005-05-26 16:16+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -84,7 +84,7 @@ msgstr ""
 msgid "Close profile management"
 msgstr ""
 
-#: gui/ProfileFrame.py:47 plugin.py:158
+#: gui/ProfileFrame.py:47 plugin.py:157
 msgid "Profile"
 msgstr ""
 
@@ -356,6 +356,6 @@ msgstr ""
 msgid "Comment"
 msgstr ""
 
-#: plugin.py:162
+#: plugin.py:161
 msgid "Manage personal information and share it with people"
 msgstr ""

@@ -214,7 +214,7 @@ msgstr ""
 msgid "Load profile from file"
 msgstr ""
 
-#: plugin.py:162
+#: plugin.py:161
 msgid "Manage personal information and share it with people"
 msgstr ""
 
@@ -258,7 +258,7 @@ msgstr ""
 msgid "Preview"
 msgstr ""
 
-#: gui/ProfileFrame.py:47 plugin.py:158
+#: gui/ProfileFrame.py:47 plugin.py:157
 msgid "Profile"
 msgstr ""
 

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Solipsis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-05-24 13:40+0200\n"
+"POT-Creation-Date: 2005-05-26 16:16+0200\n"
 "PO-Revision-Date: 2005-05-24 08:37+0100\n"
 "Last-Translator: Bastian Flinspach <gawes@web.de>\n"
 "Language-Team: Solipsis translators <antoine@pitrou.net>\n"
@@ -18,7 +18,7 @@ msgstr ""
 msgid "&Actions"
 msgstr "&Aktionen"
 
-#: solipsis/navigator/wxclient/app.py:223
+#: solipsis/navigator/wxclient/app.py:221
 msgid "&Bookmarks"
 msgstr "&Lesezeichen"
 
@@ -67,7 +67,7 @@ msgstr "Über"
 msgid "About Solipsis"
 msgstr "Über Solipsis"
 
-#: solipsis/navigator/wxclient/app.py:472
+#: solipsis/navigator/wxclient/app.py:470
 msgid "About..."
 msgstr "Über..."
 
@@ -76,9 +76,14 @@ msgstr "Über..."
 msgid "Add bookmark"
 msgstr "Lesezeichen hinzufügen"
 
+#: solipsis/navigator/wxclient/PreferencesDialog.py:22
+msgid "Allow multiple identities"
+msgstr ""
+
 msgid "Automatic Rotation"
 msgstr "Automatische Drehung"
 
+#: solipsis/navigator/wxclient/PreferencesDialog.py:25
 msgid "Automatic proxy detection"
 msgstr "Automatische Proxy Erkennung"
 
@@ -99,6 +104,12 @@ msgstr "Lesezeichen"
 #: solipsis/navigator/wxclient/ConnectDialog.py:24
 msgid "Change"
 msgstr "Ändern..."
+
+#: solipsis/navigator/wxclient/PreferencesDialog.py:64
+msgid ""
+"Checking this box will allow to manage multiple identities from the "
+"connection box."
+msgstr ""
 
 msgid "Choose whether display orientation changes when moving"
 msgstr "Wählen sie, ob sich die Bildausrichtung beim Bewegen ändern soll."
@@ -127,7 +138,7 @@ msgstr ""
 msgid "Connected"
 msgstr "Verbunden"
 
-#: solipsis/navigator/wxclient/app.py:413
+#: solipsis/navigator/wxclient/app.py:411
 #: solipsis/navigator/netclient/app.py:214
 msgid "Connecting"
 msgstr "Verbinden..."
@@ -172,10 +183,11 @@ msgstr "Lesezeichen bearbeiten"
 msgid "Error"
 msgstr "Fehler"
 
-#: solipsis/navigator/wxclient/app.py:512
+#: solipsis/navigator/wxclient/app.py:510
 msgid "For reminder, here is your address:"
 msgstr "Zur Erinnerung ist hier ihre Adresse:"
 
+#: solipsis/navigator/wxclient/PreferencesDialog.py:98
 msgid "General"
 msgstr "Allgemein"
 
@@ -183,9 +195,11 @@ msgstr "Allgemein"
 msgid "Host:"
 msgstr "Host:"
 
+#: solipsis/navigator/wxclient/PreferencesDialog.py:28
 msgid "Host: "
 msgstr "Host:"
 
+#: solipsis/navigator/wxclient/PreferencesDialog.py:24
 msgid ""
 "If you want to connect to a remote node\n"
 "instead of running a node on this computer,\n"
@@ -195,17 +209,18 @@ msgstr ""
 "anstatt auf diesem Computer einen zu erstellen\n"
 "müssen sie möglicherweise ihre HTTP proxy Einstellungen anpassen."
 
-#: solipsis/navigator/wxclient/app.py:527
+#: solipsis/navigator/wxclient/app.py:525
 msgid "Jump near an entity"
 msgstr "In die Nähe einer Entität springen"
 
 msgid "Jump near another node"
 msgstr "Springe in die Nähe eines anderen Knotens"
 
+#: solipsis/navigator/wxclient/PreferencesDialog.py:23
 msgid "Kill node when exiting"
 msgstr "Knoten beim verlassen des Programs auflösen"
 
-#: solipsis/navigator/wxclient/app.py:425
+#: solipsis/navigator/wxclient/app.py:423
 #: solipsis/navigator/wxclient/app.py:834
 msgid "Kill refused"
 msgstr "Auflösen verweigert"
@@ -218,11 +233,12 @@ msgstr ""
 "Einen eigenständigen Solipsis Knoten \n"
 " auf diesem Computer starten."
 
-#: solipsis/navigator/wxclient/app.py:471
+#: solipsis/navigator/wxclient/app.py:469
 #: solipsis/navigator/netclient/app.py:238
 msgid "Licensed under the GNU LGPL"
 msgstr "Lizensiert unter GNU LGPL"
 
+#: solipsis/navigator/wxclient/PreferencesDialog.py:27
 msgid "Manual configuration"
 msgstr "Manuelle Konfiguration"
 
@@ -240,10 +256,11 @@ msgstr "Name oder Pseudonym"
 msgid "Navigator"
 msgstr "Navigator"
 
+#: solipsis/navigator/wxclient/PreferencesDialog.py:26
 msgid "No proxy"
 msgstr "Kein Proxy"
 
-#: solipsis/navigator/wxclient/app.py:424
+#: solipsis/navigator/wxclient/app.py:422
 #: solipsis/navigator/netclient/app.py:254
 msgid ""
 "Node creation failed. \n"
@@ -252,9 +269,9 @@ msgstr ""
 "Erstellen des Knotens fehlgeschlagen. \n"
 "Stellen sie sicher, dass sie über ausreichende Rechte verfügen."
 
-#: solipsis/navigator/wxclient/app.py:136
-#: solipsis/navigator/wxclient/app.py:354
-#: solipsis/navigator/wxclient/app.py:498
+#: solipsis/navigator/wxclient/app.py:137
+#: solipsis/navigator/wxclient/app.py:352
+#: solipsis/navigator/wxclient/app.py:496
 #: solipsis/navigator/wxclient/app.py:768
 #: solipsis/navigator/wxclient/app.py:806
 #: solipsis/navigator/wxclient/app.py:820
@@ -267,7 +284,7 @@ msgstr ""
 msgid "Not connected"
 msgstr "Nicht verbunden"
 
-#: solipsis/navigator/wxclient/app.py:342
+#: solipsis/navigator/wxclient/app.py:340
 msgid "Not implemented"
 msgstr "Nicht implementiert"
 
@@ -288,7 +305,7 @@ msgstr "Geben sie bitte einen gültigen Hostnamen oder Adresse ein"
 msgid "Please enter a valid nickname"
 msgstr "Geben sie bitte einen gültigen Spitznamen ein"
 
-#: solipsis/navigator/wxclient/app.py:526
+#: solipsis/navigator/wxclient/app.py:524
 msgid "Please enter the address to jump to"
 msgstr "Bitte geben sie eine Adresse ein, zu der sie springen wollen"
 
@@ -304,12 +321,15 @@ msgstr "Port muss zwischen 1 und 65535 liegen"
 msgid "Port:"
 msgstr "Port:"
 
+#: solipsis/navigator/wxclient/PreferencesDialog.py:30
 msgid "Port: "
 msgstr "Port:"
 
+#: solipsis/navigator/wxclient/PreferencesDialog.py:63
 msgid "Preferences"
 msgstr "Einstellungen"
 
+#: solipsis/navigator/wxclient/PreferencesDialog.py:99
 msgid "Proxy"
 msgstr "Proxy"
 
@@ -333,7 +353,7 @@ msgstr "Entferne gewähltes Lesezeichen"
 msgid "Searching peers"
 msgstr "Suche Peers"
 
-#: solipsis/navigator/wxclient/app.py:471
+#: solipsis/navigator/wxclient/app.py:469
 #: solipsis/navigator/netclient/app.py:238
 msgid "Solipsis Navigator"
 msgstr "Solipsis Navigator"
@@ -346,7 +366,7 @@ msgstr ""
 "Eine PArameter haben falsche Werte.\n"
 "Bitte geben sie gültige Werte ein!"
 
-#: solipsis/navigator/wxclient/app.py:353
+#: solipsis/navigator/wxclient/app.py:351
 msgid ""
 "This action cannot be performed, \n"
 "because you are not connected to a node."
@@ -361,7 +381,7 @@ msgstr ""
 "Diese Aktion kann nicht ausgeführt werden, da sie nicht mit einem Knoten "
 "verbunden sind."
 
-#: solipsis/navigator/wxclient/app.py:341
+#: solipsis/navigator/wxclient/app.py:339
 #: solipsis/navigator/netclient/app.py:176
 msgid ""
 "This function is not yet implemented.\n"
@@ -378,6 +398,7 @@ msgstr ""
 "Dies ist die Port Nummer, die genutzt wird um andere peers zu kontaktieren. "
 "Normalerweise müssen sie diesen Wert nicht ändern."
 
+#: solipsis/navigator/wxclient/PreferencesDialog.py:65
 msgid ""
 "Uncheck this box if you want to remain connected to the Solipsis world even "
 "when you exit the navigator."
@@ -394,11 +415,11 @@ msgstr "UDP-Port:"
 msgid "You cannot kill this node."
 msgstr "Sie können diesen Knoten nicht auflösen."
 
-#: solipsis/navigator/wxclient/app.py:515
+#: solipsis/navigator/wxclient/app.py:513
 msgid "Your Solipsis address"
 msgstr "Ihre Solipsis Adresse"
 
-#: solipsis/navigator/wxclient/app.py:511
+#: solipsis/navigator/wxclient/app.py:509
 msgid ""
 "Your address has been copied to the clipboard. \n"
 "If you paste it and send it to your friends, \n"
