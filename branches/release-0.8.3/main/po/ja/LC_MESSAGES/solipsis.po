@@ -1,0 +1,457 @@
+# French translations for alpha package
+# Traduction anglaise du package alpha.
+# Copyright (C) 2004 THE alpha'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the alpha package.
+# Antoine <antoine@pitrou.net>, 2004.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Solipsis\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2005-05-24 13:40+0200\n"
+"PO-Revision-Date: 2005-05-22 12:53+0900\n"
+"Last-Translator: Makoto IGUCHI <info@igucci.org>\n"
+"Language-Team: Solipsis translators <antoine@pitrou.net>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "&Actions"
+msgstr "アクション(&A)"
+
+#: solipsis/navigator/wxclient/app.py:223
+msgid "&Bookmarks"
+msgstr "ブックマーク(&B)"
+
+msgid "&Close"
+msgstr "閉じる(&C)"
+
+#, fuzzy
+msgid "&Connect to Solipsis"
+msgstr "Solipsisに接続"
+
+msgid "&Disconnect"
+msgstr "切断(&D)"
+
+msgid "&Help"
+msgstr "ヘルプ(&H)"
+
+msgid "&Jump near..."
+msgstr "ジャンプ(&J)..."
+
+msgid "&Kill node"
+msgstr "ノード削除(&K)"
+
+msgid "&Node"
+msgstr "ノード(&N)"
+
+msgid "&View"
+msgstr "ビュー(&V)"
+
+#: solipsis/navigator/wxclient/ConnectDialog.py:99
+msgid "A dedicated Solipsis node will be launched."
+msgstr ""
+
+#: solipsis/navigator/wxclient/ConnectDialog.py:101
+#, python-format
+msgid ""
+"A remote Solipsis node will be contacted\n"
+"at the following address: %s."
+msgstr ""
+
+msgid "About"
+msgstr "Solipsisについて"
+
+#: solipsis/navigator/wxclient/app.py:688
+#: solipsis/navigator/netclient/app.py:434
+msgid "About Solipsis"
+msgstr "Solipsisについて"
+
+#: solipsis/navigator/wxclient/app.py:472
+msgid "About..."
+msgstr "Solipsisについて..."
+
+#: solipsis/navigator/wxclient/BookmarksDialog.py:46
+#: solipsis/navigator/wxclient/BookmarksDialog.py:102
+msgid "Add bookmark"
+msgstr "ブックマーク追加"
+
+msgid "Automatic Rotation"
+msgstr "自動的に回転"
+
+msgid "Automatic proxy detection"
+msgstr "プロキシ自動検出"
+
+#: solipsis/navigator/wxclient/BookmarksDialog.py:46
+msgid "Bookmark a node"
+msgstr "ノードをブックマーク"
+
+#: solipsis/navigator/wxclient/app.py:671
+#: solipsis/navigator/netclient/app.py:424
+#, python-format
+msgid "Bookmark peer \"%s\""
+msgstr "ピア \"%s\" をブックマーク"
+
+#: solipsis/navigator/wxclient/BookmarksDialog.py:66
+msgid "Bookmarks"
+msgstr "ブックマーク"
+
+#: solipsis/navigator/wxclient/ConnectDialog.py:24
+#, fuzzy
+msgid "Change"
+msgstr "キャンセル(&C)"
+
+msgid "Choose whether display orientation changes when moving"
+msgstr "移動時、表示方向を自動的に変更するか選択"
+
+#: solipsis/navigator/wxclient/ConnectDialog.py:42
+msgid "Connect to Solipsis"
+msgstr "Solipsisに接続"
+
+#: solipsis/navigator/wxclient/app.py:687
+#: solipsis/navigator/netclient/app.py:433
+msgid "Connect to node"
+msgstr "ノードに接続"
+
+#: solipsis/navigator/wxclient/ConnectionTypeDialog.py:21
+msgid ""
+"Connect using an existing Solipsis node \n"
+"(possibly on a remote computer):"
+msgstr ""
+
+#: solipsis/navigator/wxclient/app.py:758
+#: solipsis/navigator/wxclient/app.py:781
+#: solipsis/navigator/netclient/app.py:508
+#: solipsis/navigator/netclient/app.py:525
+msgid "Connected"
+msgstr "接続完了"
+
+#: solipsis/navigator/wxclient/app.py:413
+#: solipsis/navigator/netclient/app.py:214
+msgid "Connecting"
+msgstr "接続中"
+
+#: solipsis/navigator/wxclient/app.py:793
+msgid "Connecting to the node..."
+msgstr "ノードに接続中..."
+
+#: solipsis/navigator/wxclient/app.py:808
+msgid "Connection error"
+msgstr "接続エラー"
+
+#: solipsis/navigator/wxclient/app.py:792
+msgid "Connection progress"
+msgstr "接続状況"
+
+#: solipsis/navigator/wxclient/app.py:807
+#: solipsis/navigator/netclient/app.py:535
+msgid ""
+"Connection to the node has failed. \n"
+"Please the check the node is running, then retry."
+msgstr ""
+"ノードへの接続に失敗しました。\n"
+"ノードの状態を確認の上、リトライしてください。"
+
+#: solipsis/navigator/wxclient/ConnectDialog.py:20
+#: solipsis/navigator/wxclient/ConnectionTypeDialog.py:49
+#, fuzzy
+msgid "Connection type"
+msgstr "接続エラー"
+
+#: solipsis/navigator/wxclient/app.py:685
+#: solipsis/navigator/netclient/app.py:431
+msgid "Disconnect"
+msgstr "切断"
+
+msgid "Edit bookmarks"
+msgstr "ブックマークを編集"
+
+#: solipsis/navigator/wxclient/ConnectionTypeDialog.py:109
+#: solipsis/util/wxutils.py:158
+msgid "Error"
+msgstr "エラー"
+
+#: solipsis/navigator/wxclient/app.py:512
+msgid "For reminder, here is your address:"
+msgstr "あなたのアドレスはこちら:"
+
+msgid "General"
+msgstr "一般"
+
+#: solipsis/navigator/wxclient/ConnectionTypeDialog.py:22
+#, fuzzy
+msgid "Host:"
+msgstr "ホスト:"
+
+msgid "Host: "
+msgstr "ホスト:"
+
+msgid ""
+"If you want to connect to a remote node\n"
+"instead of running a node on this computer,\n"
+"you might have to adjust the HTTP proxy settings."
+msgstr ""
+"自分のコンピュータ上のノードではなく、リモートノードに\n"
+"接続する場合は、HTTPプロキシの設定を変更する\n"
+"必要がある場合があります。"
+
+#: solipsis/navigator/wxclient/app.py:527
+msgid "Jump near an entity"
+msgstr "エンティティの近くにジャンプ"
+
+msgid "Jump near another node"
+msgstr "他のノードの近くにジャンプ"
+
+msgid "Kill node when exiting"
+msgstr "終了時ノードを削除"
+
+#: solipsis/navigator/wxclient/app.py:425
+#: solipsis/navigator/wxclient/app.py:834
+msgid "Kill refused"
+msgstr "削除失敗"
+
+#: solipsis/navigator/wxclient/ConnectionTypeDialog.py:18
+msgid ""
+"Launch a dedicated Solipsis node \n"
+"on this computer."
+msgstr ""
+
+#: solipsis/navigator/wxclient/app.py:471
+#: solipsis/navigator/netclient/app.py:238
+msgid "Licensed under the GNU LGPL"
+msgstr "GNU LGPLライセンス下で公開・配布されています"
+
+msgid "Manual configuration"
+msgstr "手動設定"
+
+msgid "My address"
+msgstr "マイアドレス"
+
+#: solipsis/navigator/wxclient/ConnectionTypeDialog.py:52
+msgid "Name or IP address of the machine on which the node is running"
+msgstr ""
+
+#: solipsis/navigator/wxclient/ConnectDialog.py:21
+msgid "Name or pseudo"
+msgstr "名前表示の有無"
+
+msgid "Navigator"
+msgstr "ナビゲータ"
+
+msgid "No proxy"
+msgstr "プロキシなし"
+
+#: solipsis/navigator/wxclient/app.py:424
+#: solipsis/navigator/netclient/app.py:254
+msgid ""
+"Node creation failed. \n"
+"Please check you have sufficient rights."
+msgstr ""
+"ノード作成に失敗しました。\n"
+"十分な権限を有しているか確認してください。"
+
+#: solipsis/navigator/wxclient/app.py:136
+#: solipsis/navigator/wxclient/app.py:354
+#: solipsis/navigator/wxclient/app.py:498
+#: solipsis/navigator/wxclient/app.py:768
+#: solipsis/navigator/wxclient/app.py:806
+#: solipsis/navigator/wxclient/app.py:820
+#: solipsis/navigator/netclient/app.py:101
+#: solipsis/navigator/netclient/app.py:282
+#: solipsis/navigator/netclient/app.py:284
+#: solipsis/navigator/netclient/app.py:516
+#: solipsis/navigator/netclient/app.py:534
+#: solipsis/navigator/netclient/app.py:545
+msgid "Not connected"
+msgstr "未接続"
+
+#: solipsis/navigator/wxclient/app.py:342
+msgid "Not implemented"
+msgstr "未実装"
+
+msgid "Paste your address so that your friend can jump near you"
+msgstr ""
+"あなたの友人があなたの近くへジャンプしてこれるように、あなたのアドレスを貼り"
+"付けます"
+
+#: solipsis/navigator/wxclient/BookmarksDialog.py:101
+msgid "Please choose the peer to add to your bookmarks list."
+msgstr "あなたのブックマークリストに追加するピアを選択してください。"
+
+#: solipsis/navigator/wxclient/validators.py:75
+msgid "Please enter a valid hostname or address"
+msgstr "正しいホスト名、またはアドレスを入力してください"
+
+#: solipsis/navigator/wxclient/validators.py:87
+msgid "Please enter a valid nickname"
+msgstr "正しいニックネームを入力してください"
+
+#: solipsis/navigator/wxclient/app.py:526
+msgid "Please enter the address to jump to"
+msgstr "ジャンプ先アドレスを入力してください"
+
+#: solipsis/util/wxutils.py:129
+msgid "Please fill this form correctly"
+msgstr "フォームを正しく入力してください"
+
+#: solipsis/navigator/wxclient/validators.py:51
+msgid "Port number must be between 1 and 65535"
+msgstr "ポート番号は 1 から 65535 の間で指定してください"
+
+#: solipsis/navigator/wxclient/ConnectionTypeDialog.py:24
+#, fuzzy
+msgid "Port:"
+msgstr "ポート:"
+
+msgid "Port: "
+msgstr "ポート:"
+
+msgid "Preferences"
+msgstr "環境設定"
+
+msgid "Proxy"
+msgstr "プロキシ"
+
+#: solipsis/navigator/wxclient/BookmarksDialog.py:73
+msgid "Pseudo"
+msgstr "匿名"
+
+msgid "Quit"
+msgstr "終了"
+
+#: solipsis/navigator/wxclient/BookmarksDialog.py:47
+msgid "Remove"
+msgstr "削除"
+
+#: solipsis/navigator/wxclient/BookmarksDialog.py:47
+msgid "Remove selected bookmark"
+msgstr "選択したブックマークを削除"
+
+#: solipsis/navigator/wxclient/app.py:763
+#: solipsis/navigator/netclient/app.py:512
+msgid "Searching peers"
+msgstr "ピア検索中"
+
+#: solipsis/navigator/wxclient/app.py:471
+#: solipsis/navigator/netclient/app.py:238
+msgid "Solipsis Navigator"
+msgstr "Solipsis ナビゲータ"
+
+#: solipsis/navigator/wxclient/ConnectionTypeDialog.py:108
+msgid ""
+"Some parameters have wrong values.\n"
+"Please enter proper values."
+msgstr ""
+
+#: solipsis/navigator/wxclient/app.py:353
+msgid ""
+"This action cannot be performed, \n"
+"because you are not connected to a node."
+msgstr ""
+"ノードに未接続のため、このアクションは\n"
+"実行できませんでした。"
+
+#: solipsis/navigator/netclient/app.py:187
+msgid ""
+"This action cannot be performed, because you are not connected to a node."
+msgstr "ノードに接続していないため、実行できませんでした。"
+
+#: solipsis/navigator/wxclient/app.py:341
+#: solipsis/navigator/netclient/app.py:176
+msgid ""
+"This function is not yet implemented.\n"
+"Sorry! Please come back later..."
+msgstr ""
+"この機能はまだ実装されていません。\n"
+"ごめんなさい! またチェックしてみてください..."
+
+#: solipsis/navigator/wxclient/ConnectionTypeDialog.py:50
+msgid ""
+"This is the port number used to contact other peers. Usually you don't have "
+"to change its value."
+msgstr ""
+
+msgid ""
+"Uncheck this box if you want to remain connected to the Solipsis world even "
+"when you exit the navigator."
+msgstr ""
+"ナビゲータ終了後も引き続き Solipsis と接続した場合は、このボックスをチェック"
+"してください。"
+
+#: solipsis/navigator/wxclient/ConnectionTypeDialog.py:19
+msgid "Use UDP port:"
+msgstr ""
+
+#: solipsis/navigator/wxclient/app.py:833
+#: solipsis/navigator/netclient/app.py:559
+msgid "You cannot kill this node."
+msgstr "このノードは削除できません。"
+
+#: solipsis/navigator/wxclient/app.py:515
+msgid "Your Solipsis address"
+msgstr "あなたの Solipsis アドレス"
+
+#: solipsis/navigator/wxclient/app.py:511
+msgid ""
+"Your address has been copied to the clipboard. \n"
+"If you paste it and send it to your friends, \n"
+"they will be able to jump near you in the Solipsis world."
+msgstr ""
+"あなたのアドレスがクリップボードにコピーされました。\n"
+"Solipsis ワールドで出会うために、アドレスを貼り付けたメールを\n"
+"友人に送りましょう。"
+
+#~ msgid "&Connect to existing node"
+#~ msgstr "ノードに接続(&C)"
+
+#~ msgid "&Edit"
+#~ msgstr "&Edition"
+
+#~ msgid "&File"
+#~ msgstr "&Fichier"
+
+#~ msgid "&New node"
+#~ msgstr "ノード作成(&N)"
+
+#~ msgid "&OK"
+#~ msgstr "&Valider"
+
+#~ msgid "&Ok"
+#~ msgstr "OK(&O)"
+
+#~ msgid "Disconnect from node"
+#~ msgstr "Se déconnecter du nœud"
+
+#~ msgid "Nickname"
+#~ msgstr "ニックネーム"
+
+#~ msgid "Node address"
+#~ msgstr "ノードアドレス"
+
+#~ msgid "Peer \"%s\""
+#~ msgstr "Nœud \"%s\""
+
+#~ msgid "Please choose your nickname"
+#~ msgstr "あなたのニックネームを選択してください"
+
+#~ msgid ""
+#~ "Solipsis Navigator 0.1\n"
+#~ "\n"
+#~ "Licensed under the GNU LGPL.\n"
+#~ "(c) France Telecom R&&D\n"
+#~ msgstr ""
+#~ "Navigateur Solipsis 0.1\n"
+#~ "\n"
+#~ "Distribué sous licence GNU LGPL.\n"
+#~ "(c) France Telecom R&&D\n"
+
+#~ msgid ""
+#~ "Solipsis Navigator 0.8.1\n"
+#~ "\n"
+#~ "Licensed under the GNU LGPL.\n"
+#~ "(c) France Telecom R&&D"
+#~ msgstr ""
+#~ "Navigateur Solipsis 0.8.1\n"
+#~ "\n"
+#~ "Distribué sous licence GNU LGPL.\n"
+#~ "(c) France Telecom R&&D"

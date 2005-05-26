@@ -1,0 +1,361 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2005-05-24 13:40+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: gui/CustomPanel.py:20
+msgid ""
+"Type here interests which do not fall into any precise category. (one per "
+"line)"
+msgstr ""
+
+#: gui/CustomPanel.py:21
+msgid ""
+"Specify here a field of interest. For instance: (favorite book: Harry "
+"Potter) or (instrument: piano) "
+msgstr ""
+
+#: gui/CustomPanel.py:22
+msgid "favorite book"
+msgstr ""
+
+#: gui/CustomPanel.py:23
+msgid "Harry Potter"
+msgstr ""
+
+#: gui/CustomPanel.py:45
+msgid "MetaData"
+msgstr ""
+
+#: gui/CustomPanel.py:46
+msgid "Custom value"
+msgstr ""
+
+#: gui/ProfileFrame.py:36
+msgid "&Online\tCtrl+O"
+msgstr ""
+
+#: gui/ProfileFrame.py:36
+msgid "Allow users seeing profile"
+msgstr ""
+
+#: gui/ProfileFrame.py:38
+msgid "&Export HTML ...\tCtrl+E"
+msgstr ""
+
+#: gui/ProfileFrame.py:38
+msgid "Write profile as HTML File"
+msgstr ""
+
+#: gui/ProfileFrame.py:41
+msgid "&Load ... \tCtrl+L"
+msgstr ""
+
+#: gui/ProfileFrame.py:41
+msgid "Load profile from file"
+msgstr ""
+
+#: gui/ProfileFrame.py:43
+msgid "&Save ...\tCtrl+S"
+msgstr ""
+
+#: gui/ProfileFrame.py:43
+msgid "Save profile into file"
+msgstr ""
+
+#: gui/ProfileFrame.py:45
+msgid "&Close\tCtrl+W"
+msgstr ""
+
+#: gui/ProfileFrame.py:45
+msgid "Close profile management"
+msgstr ""
+
+#: gui/ProfileFrame.py:47 plugin.py:158
+msgid "Profile"
+msgstr ""
+
+#: gui/ProfileFrame.py:49
+msgid "&Import...\tCtrl+I"
+msgstr ""
+
+#: gui/ProfileFrame.py:49
+msgid "Import profile file into tab 'Contacts'"
+msgstr ""
+
+#: gui/ProfileFrame.py:52
+msgid "&Anonymous\tCtrl+A"
+msgstr ""
+
+#: gui/ProfileFrame.py:54
+msgid "Frie&nd\tCtrl+N"
+msgstr ""
+
+#: gui/ProfileFrame.py:56
+msgid "&Black listed\tCtrl+B"
+msgstr ""
+
+#: gui/ProfileFrame.py:59
+msgid "&Find...\tCtrl+F"
+msgstr ""
+
+#: gui/ProfileFrame.py:59
+msgid "Search profile in surrounding area"
+msgstr ""
+
+#: gui/ProfileFrame.py:61
+msgid "Filters...\tCtrl+H"
+msgstr ""
+
+#: gui/ProfileFrame.py:61
+msgid "Create active filters to get notified on peers approach"
+msgstr ""
+
+#: gui/ProfileFrame.py:63 gui/OthersPanel.py:28
+msgid "Peers"
+msgstr ""
+
+#: gui/ProfileFrame.py:65
+msgid "Auto refresh"
+msgstr ""
+
+#: gui/ProfileFrame.py:65
+msgid "Automatically call refresh on any change in profile"
+msgstr ""
+
+#: gui/ProfileFrame.py:67
+msgid "&Refresh\tCtrl+R"
+msgstr ""
+
+#: gui/ProfileFrame.py:69
+msgid "Display"
+msgstr ""
+
+#: gui/ProfileFrame.py:71
+msgid "About"
+msgstr ""
+
+#: gui/ProfileFrame.py:192
+msgid "profile_frame"
+msgstr ""
+
+#: gui/ProfileFrame.py:199
+msgid "status"
+msgstr ""
+
+#: gui/ProfileFrame.py:213
+msgid "Preview"
+msgstr ""
+
+#: gui/ProfileFrame.py:214
+msgid "Personal"
+msgstr ""
+
+#: gui/ProfileFrame.py:215
+msgid "Special Interests"
+msgstr ""
+
+#: gui/ProfileFrame.py:216
+msgid "Blog"
+msgstr ""
+
+#: gui/ProfileFrame.py:217
+msgid "Files"
+msgstr ""
+
+#: gui/ProfileFrame.py:218
+msgid "Contacts"
+msgstr ""
+
+#: gui/FilePanel.py:34 gui/BlogPanel.py:82
+msgid "Actions"
+msgstr ""
+
+#: gui/FilePanel.py:62
+msgid "Name"
+msgstr ""
+
+#: gui/FilePanel.py:63
+msgid "Tag"
+msgstr ""
+
+#: gui/FilePanel.py:64
+msgid "Shared"
+msgstr ""
+
+#: gui/FilePanel.py:77
+msgid "Explorer"
+msgstr ""
+
+#: gui/FilePanel.py:78
+msgid "#shared"
+msgstr ""
+
+#: gui/FilePanel.py:79
+msgid "full path"
+msgstr ""
+
+#: gui/FilePanel.py:83
+msgid "File System..."
+msgstr ""
+
+#: gui/FilePanel.py:103
+msgid "Choose your repository"
+msgstr ""
+
+#: gui/FilePanel.py:235
+msgid "Add repository"
+msgstr ""
+
+#: gui/FilePanel.py:237
+msgid "Remove repository"
+msgstr ""
+
+#: gui/FilePanel.py:239
+msgid "Share"
+msgstr ""
+
+#: gui/FilePanel.py:241
+msgid "Unshare"
+msgstr ""
+
+#: gui/FilePanel.py:243
+msgid "Complementary information on file"
+msgstr ""
+
+#: gui/FilePanel.py:244
+msgid "Apply comment"
+msgstr ""
+
+#: gui/PersonalPanel.py:17
+msgid "Address"
+msgstr ""
+
+#: gui/PersonalPanel.py:18
+msgid "Description"
+msgstr ""
+
+#: gui/PersonalPanel.py:19
+msgid "Identity"
+msgstr ""
+
+#: gui/PersonalPanel.py:20
+msgid "Mr"
+msgstr ""
+
+#: gui/PersonalPanel.py:20
+msgid "Mrs"
+msgstr ""
+
+#: gui/PersonalPanel.py:20
+msgid "Ms"
+msgstr ""
+
+#: gui/PersonalPanel.py:21
+msgid "First name"
+msgstr ""
+
+#: gui/PersonalPanel.py:22
+msgid "Last Name"
+msgstr ""
+
+#: gui/PersonalPanel.py:23
+msgid "Pseudo: "
+msgstr ""
+
+#: gui/PersonalPanel.py:25
+msgid "E-mail: "
+msgstr ""
+
+#: gui/PersonalPanel.py:27
+msgid "Birthday: "
+msgstr ""
+
+#: gui/PersonalPanel.py:28
+msgid "dd/mm/yyyy"
+msgstr ""
+
+#: gui/PersonalPanel.py:29
+msgid "Language: "
+msgstr ""
+
+#: gui/PersonalPanel.py:30
+msgid "French"
+msgstr ""
+
+#: gui/PersonalPanel.py:30
+msgid "English"
+msgstr ""
+
+#: gui/PersonalPanel.py:32
+msgid "Road"
+msgstr ""
+
+#: gui/PersonalPanel.py:33
+msgid "Postcode"
+msgstr ""
+
+#: gui/PersonalPanel.py:34
+msgid "City"
+msgstr ""
+
+#: gui/PersonalPanel.py:35
+msgid "Country"
+msgstr ""
+
+#: gui/PersonalPanel.py:106
+msgid "Choose your picture"
+msgstr ""
+
+#: gui/PersonalPanel.py:143
+msgid "How you appear to other peers"
+msgstr ""
+
+#: gui/OthersPanel.py:29
+msgid "Friends"
+msgstr ""
+
+#: gui/OthersPanel.py:30
+msgid "Anonymous"
+msgstr ""
+
+#: gui/OthersPanel.py:31
+msgid "Blacklisted"
+msgstr ""
+
+#: gui/OthersPanel.py:57
+msgid "select neighbor to display"
+msgstr ""
+
+#: gui/BlogPanel.py:86
+msgid "Enter your text here"
+msgstr ""
+
+#: gui/BlogPanel.py:116
+msgid "New blog"
+msgstr ""
+
+#: gui/BlogPanel.py:118
+msgid "Delete blog"
+msgstr ""
+
+#: gui/BlogPanel.py:120
+msgid "Comment"
+msgstr ""
+
+#: plugin.py:162
+msgid "Manage personal information and share it with people"
+msgstr ""
