@@ -138,6 +138,7 @@ class Plugin(ServicePlugin):
         pass
 
     def get_profile(self, peer_id):
+        print "downloaded profile", document.get_pseudo()
         self.network.get_profile(peer_id, self._on_new_profile)
 
     def get_blog(self, peer_id):
@@ -195,22 +196,18 @@ class Plugin(ServicePlugin):
     # FIXME: reactivate when efficient
     def NewPeer(self, peer, service):
         """delegate to network"""
-        print "NewPeer"
         self.network.on_new_peer(peer, service)
 
     def ChangedPeer(self, peer, service):
         """delegate to network"""
-        print "ChangedPeer"
         self.network.on_change_peer(peer, service)
 
     def LostPeer(self, peer_id):
         """delegate to network"""
-        print "LostPeer"
         self.network.on_lost_peer(peer_id)
 
     def GotServiceData(self, peer_id, data):
         """delegate to network"""
-        print "GotServiceData"
         self.network.on_service_data(peer_id, data)
 
     def ChangedNode(self, node):

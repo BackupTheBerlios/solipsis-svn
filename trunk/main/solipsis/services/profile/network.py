@@ -81,6 +81,7 @@ def parse_message(message):
 def make_message(command, host, port, data=''):
     """format message to be sent via service_api"""
     message = "%s %s:%d %s"% (command, host, port, data)
+    print "sending", message
     return message
 
 def get_free_port():
@@ -261,6 +262,7 @@ class NetworkManager:
 
     def _on_profile_complete(self, document):
         """callback when autoloading of profile successful"""
+        print "downloaded profile", document.get_pseudo()
         self.facade.fill_data((document.get_pseudo(), document))
 
     def _upload_impossible(self, peer_id, remote_ip, remote_port):
@@ -291,10 +293,11 @@ class ProfileClientProtocol(basic.LineOnlyReceiver):
 
     def lineReceived(self, line):
         """incomming connection from other peer"""
+        print "received", line
         # on greeting, stores info about remote host (profile id)
         if line.startswith(SERVER_SEND_ID):
             # get remote information
-            protocol, remote_host, known_port = self.transport.getPeer()
+            remote_host = self.transport.getPeer().host
             peer_id, remote_port = parse_address(line[len(SERVER_SEND_ID):])
             # store remote information
             client = self.factory.get_dedicated_client(remote_host)
@@ -303,17 +306,22 @@ class ProfileClientProtocol(basic.LineOnlyReceiver):
             print "client received unexpected line:", line
         # acknowledge
         self.sendLine(CLIENT_SEND_ACK)
+
+    def sendLine(self, line):
+        """overrides in order to ease debug"""
+        print "sending", line
+        basic.LineOnlyReceiver.sendLine(self, line)  
         
     def connectionMade(self):
         """a peer has connected to us"""
         # create dedicated client
-        protocol, remote_host, remote_port = self.transport.getPeer()
+        remote_host = self.transport.getPeer().host
         self.factory.create_dedicated_client(remote_host)
 
     def connectionLost(self, reason):
         """switch to dedicated client and ask for profile"""
         # get dedicated client
-        protocol, remote_host, remote_port = self.transport.getPeer()
+        remote_host = self.transport.getPeer().host
         basic.LineOnlyReceiver.connectionLost(self, reason)
         client = self.factory.get_dedicated_client(remote_host)
         # download profile
@@ -368,8 +376,6 @@ class ProfileClientFactory(ClientFactory):
         # clean cache
         protocol, remote_ip, remote_port = connector.getDestination()
         self.disconnect_tcp(remote_ip)
-        # 'download' profile through server
-        self.manager.get_profile(self.manager._on_profile_complete)
         
     def lose_dedicated_client(self, remote_ip):
         """clean dedicated client to remote_ip"""
@@ -381,19 +387,25 @@ class ProfileServerProtocol(basic.LineOnlyReceiver):
 
     def lineReceived(self, line):
         """incomming connection from other peer"""
+        print "received", line
         if line.startswith(CLIENT_SEND_ACK):
             self.transport.loseConnection()
         else:
-            print "server received unexpected line:", line            
+            print "server received unexpected line:", line 
+
+    def sendLine(self, line):
+        """overrides in order to ease debug"""
+        print "sending", line
+        basic.LineOnlyReceiver.sendLine(self, line)           
             
     def connectionMade(self):
         """a peer has connect to us"""
         # great peer (with transport.getHost and profile.id_)
-        protocol, remote_ip, remote_port = self.transport.getPeer()
-        protocol, local_ip, local_port = self.transport.getHost()
+        remote_ip = self.transport.getPeer().host
+        local_ip = self.transport.getHost().host
         server = self.factory.get_local_server(remote_ip)
-        self.sendLine("%s %s:%d"\
-                      % (SERVER_SEND_ID, local_ip, server.port))
+        message = "%s %s:%d"% (SERVER_SEND_ID, local_ip, server.port)
+        self.sendLine(message)
 
 class ProfileServerFactory(ServerFactory):
     """server listening on known port. It will spawn a dedicated
@@ -451,10 +463,15 @@ class PeerProtocol(basic.LineReceiver):
     def connectionMade(self):
         """Called when a connection is made."""
         # check ip
-        protocol, remote_host, remote_port = self.transport.getPeer()
+        remote_host  = self.transport.getPeer().host
         assert remote_host == self.factory.remote_ip, \
                "UNAUTHORIZED %s"% remote_host
 
+    def sendLine(self, line):
+        """overrides in order to ease debug"""
+        print "sending", line
+        basic.LineReceiver.sendLine(self, line)
+        
     def lineReceived(self, line):
         """specialised in Client/Server protocol"""
         raise NotImplementedError
@@ -471,6 +488,7 @@ class PeerClientProtocol(PeerProtocol):
     
     def lineReceived(self, line):
         """Override this for when each line is received."""
+        print "received", line
         # UPLOAD
         #     if not upload, lose connection
         # READY
@@ -633,6 +651,7 @@ class PeerServerProtocol(PeerProtocol):
         
     def lineReceived(self, line):
         """Override this for when each line is received."""
+        print "received", line
         # donwnload file
         if line == ASK_DOWNLOAD_FILES:
             file_name = line[len(ASK_DOWNLOAD_FILES)+1:].strip()

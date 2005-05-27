@@ -26,6 +26,7 @@ class ProfileFrame(wx.Frame):
             kwds["style"] = wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER
         # FIXME XXX remove following line concerning kwds["style"]
         # begin wxGlade: ProfileFrame.__init__
+        kwds["style"] = wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER
         wx.Frame.__init__(self, *args, **kwds)
         self.profile_book = wx.Notebook(self, -1, style=0)
         
