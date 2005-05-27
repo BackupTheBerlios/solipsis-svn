@@ -18,7 +18,7 @@ class OthersPanel(wx.Panel):
         self.other_split = wx.SplitterWindow(self, -1, style=wx.SP_3D|wx.SP_BORDER)
         self.details_panel = wx.Panel(self.other_split, -1)
         self.peers_panel = wx.Panel(self.other_split, -1)
-        self.peers_list = wx.TreeCtrl(self.peers_panel, -1, style=wx.TR_HAS_BUTTONS|wx.TR_LINES_AT_ROOT|wx.TR_DEFAULT_STYLE|wx.SUNKEN_BORDER)
+        self.peers_list = wx.TreeCtrl(self.peers_panel, -1, style=wx.TR_HAS_BUTTONS|wx.TR_NO_LINES|wx.TR_LINES_AT_ROOT|wx.TR_DEFAULT_STYLE|wx.SUNKEN_BORDER)
         self.detail_preview = wx.html.HtmlWindow(self.details_panel, -1)
 
         self.__set_properties()
@@ -124,7 +124,7 @@ class OthersPanel(wx.Panel):
         self.details_panel.SetSizer(details_sizer)
         details_sizer.Fit(self.details_panel)
         details_sizer.SetSizeHints(self.details_panel)
-        self.other_split.SplitVertically(self.peers_panel, self.details_panel, 150)
+        self.other_split.SplitVertically(self.peers_panel, self.details_panel, 10)
         other_size.Add(self.other_split, 1, wx.EXPAND, 0)
         self.SetAutoLayout(True)
         self.SetSizer(other_size)
@@ -133,5 +133,3 @@ class OthersPanel(wx.Panel):
         # end wxGlade
 
 # end of class OthersPanel
-
-

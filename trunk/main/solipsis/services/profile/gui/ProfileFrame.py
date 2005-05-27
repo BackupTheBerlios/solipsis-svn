@@ -191,10 +191,7 @@ class ProfileFrame(wx.Frame):
     def __set_properties(self):
         # begin wxGlade: ProfileFrame.__set_properties
         self.SetTitle(_("profile_frame"))
-        _icon = wx.EmptyIcon()
-        _icon.CopyFromBitmap(wx.Bitmap("/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/icon.gif", wx.BITMAP_TYPE_ANY))
-        self.SetIcon(_icon)
-        self.SetSize((708, 1018))
+        self.SetMinSize((708, 1018))
         self.profile_statusbar.SetStatusWidths([-1])
         # statusbar fields
         profile_statusbar_fields = [_("status")]
@@ -217,7 +214,7 @@ class ProfileFrame(wx.Frame):
         self.profile_book.AddPage(self.blog_tab, _("Blog"))
         self.profile_book.AddPage(self.file_tab, _("Files"))
         self.profile_book.AddPage(self.other_tab, _("Contacts"))
-        frame_sizer.Add(wx.NotebookSizer(self.profile_book), 1, wx.EXPAND, 0)
+        frame_sizer.Add(self.profile_book, 1, wx.EXPAND, 0)
         self.SetAutoLayout(True)
         self.SetSizer(frame_sizer)
         self.Layout()

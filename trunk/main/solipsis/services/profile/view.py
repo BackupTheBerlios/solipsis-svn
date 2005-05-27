@@ -37,6 +37,8 @@ except ImportError:
     sys.path.remove(_simpletal_path)
 from solipsis.services.profile import ENCODING
 
+from solipsis.util.uiproxy import UIProxy
+
 
 class AbstractView:
     """Base class for all views"""
@@ -337,7 +339,7 @@ class HtmlView(AbstractView):
         # init HTML string, wxWidget
         self.view = None
         self.auto_refresh = auto_refresh
-        self.html_window = html_window
+        self.html_window = html_window and UIProxy(html_window) or None
         # Create the context that is used by the template
         self.context = simpleTALES.Context(allowPythonPath=1)
         template_file = open (PREVIEW_PT, 'r')
@@ -352,10 +354,10 @@ class HtmlView(AbstractView):
         self.view and self.view.close()
         self.view = StringIO()
         self.template.expand(self.context, self.view, outputEncoding=ENCODING)
-#         self.html_window and self.html_window.SetPage(self.get_view())
+        self.html_window and self.html_window.SetPage(self.get_view())
 
     def get_view(self, update=False):
-        """returns HTLM String"""
+        """returns HTML String"""
         if update:
             self.update_view()
         return unicode(self.view.getvalue(), ENCODING)

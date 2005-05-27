@@ -71,7 +71,7 @@ class ServiceCollector(object):
             # plugin would make the application difficult to kill for a novice user.
             except Exception, e:
                 print "Exception caught while calling Disable on plugin '%s':" % service_id
-                print str(e)
+                traceback.print_exc()
         self.enabled_services.clear()
 
     def Reset(self):

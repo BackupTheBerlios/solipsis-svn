@@ -137,7 +137,7 @@ class NetworkManager:
         """stops main server and desactivate profile sharing"""
         # delegate to ProfileServerFactory
         self.server.stop_listening()
-        for peer_id in self.deferreds:
+        for peer_id in self.deferreds.keys():
             self.on_lost_peer(peer_id)
 
     def disconnect(self):
@@ -374,7 +374,7 @@ class ProfileClientFactory(ClientFactory):
     def clientConnectionFailed(self, connector, reason):
         """on TCP failure, use udp"""
         # clean cache
-        protocol, remote_ip, remote_port = connector.getDestination()
+        remote_ip = connector.getDestination().host
         self.disconnect_tcp(remote_ip)
         
     def lose_dedicated_client(self, remote_ip):
