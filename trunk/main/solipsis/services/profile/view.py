@@ -25,6 +25,7 @@ import sys
 import os, os.path
 from StringIO import StringIO
 
+
 PREVIEW_PT = os.path.join(os.path.dirname(__file__), "preview.html")
 
 # Search first in system directory, fall back to bundled version if necessary
@@ -37,7 +38,7 @@ except ImportError:
     sys.path.remove(_simpletal_path)
 from solipsis.services.profile import ENCODING
 
-from solipsis.util.uiproxy import UIProxy
+from solipsis.util.uiproxy import UIProxyReceiver, UIProxy
 
 
 class AbstractView:
@@ -233,7 +234,7 @@ class PrintView(AbstractView):
         print >> self.output, self.document.get_peers()
         
 
-class GuiView(AbstractView):
+class GuiView(AbstractView, UIProxyReceiver):
     """synthetises information and renders it in HTML"""
 
     def __init__(self, document, frame, do_import=True, name="gui"):
@@ -241,6 +242,7 @@ class GuiView(AbstractView):
         self.frame = frame
         # init view
         AbstractView.__init__(self, document, do_import, name)
+        UIProxyReceiver.__init__(self)
 
     # PERSONAL TAB: frame.personal_tab
     def update_title(self):

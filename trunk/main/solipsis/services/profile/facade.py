@@ -46,6 +46,7 @@ class Facade:
     def __init__(self):
         self.documents = {}
         self.views = {}
+        self.activated = True
 
     def add_view(self, view):
         """add  a view object to facade"""
@@ -88,14 +89,25 @@ class Facade:
         return result
     
     # MENU
-    def save_profile(self, path):
+    def activate(self, enable=True):
+        """desactivate automatic sharing"""
+        self.activated = enable
+
+    def is_activated(self):
+        """getter for self.activated"""
+        return self.activated
+    
+    def save_profile(self, path=None):
         """save .profile.solipsis"""
         if "file" in self.documents:
-            # refresh file document to be sure to save updated data
-            if "cache" in self.documents:
-                self.documents["file"].import_document(self.documents["cache"])
-            # save
-            self.documents["file"].save(path)
+            file_doc = self.documents["file"]
+        else:
+            file_doc = FileDocument()
+        # refresh file document to be sure to save updated data
+        if "cache" in self.documents:
+            self.documents["file"].import_document(self.documents["cache"])
+        # save
+        file_doc.save(path)
 
     def load_profile(self, path):
         """save .profile.solipsis"""
@@ -111,14 +123,19 @@ class Facade:
         html_file = open(path, "w")
         html_file.write(self.views["html"].get_view().encode(ENCODING))
 
-    def get_profile_obj(self):
+    def get_profile(self):
         """return a file object like on profile"""
         if "cache" in self.documents:
             return self.documents["cache"].open()
         else:
             return self.documents.values()[0].open()
 
-    def get_blog_obj(self):
+    def get_blog(self, peer_id=None):
+        """return a file object like on blog"""
+        # TODO
+        pass
+
+    def get_files(self, peer_id=None):
         """return a file object like on blog"""
         # TODO
         pass

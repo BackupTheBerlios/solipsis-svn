@@ -26,6 +26,7 @@ import os
 from StringIO import StringIO
 
 from solipsis.util.wxutils import _
+from solipsis.util.uiproxy import UIProxy
 from solipsis.services.plugin import ServicePlugin
 from solipsis.services.profile import PROFILE_DIR, PROFILE_FILE, KNOWN_PORT
 from solipsis.services.profile.facade import get_facade
@@ -97,7 +98,7 @@ class Plugin(ServicePlugin):
         file_doc.load(os.path.join(PROFILE_DIR, PROFILE_FILE))
         cache_doc = CacheDocument()
         cache_doc.import_document(file_doc)
-        gui_view = GuiView(cache_doc, self.profile_frame)
+        gui_view = UIProxy(GuiView(cache_doc, self.profile_frame))
         html_view = HtmlView(cache_doc,
                              self.profile_frame.preview_tab.html_preview,
                              True)
@@ -121,6 +122,7 @@ class Plugin(ServicePlugin):
     
     def Disable(self):
         """It is called when the user chooses to disable the service."""
+        self.facade.save_profile(os.path.join(PROFILE_DIR, PROFILE_FILE))
         self.network.stop_listening()
 
     # Service methods
@@ -187,28 +189,37 @@ class Plugin(ServicePlugin):
 
     def DoPointToPointAction(self, it, peer):
         """Called when a point-to-point action is invoked, if available."""
-        # retreive corect method
-        actions = self.POINT_ACTIONS.values()
-        # call method on peer
-        actions[it](peer.id_)
+        if self.facade.is_activated():
+            # retreive corect method
+            actions = self.POINT_ACTIONS.values()
+            # call method on peer
+            actions[it](peer.id_)
+        # service not activated, do nothing
+        else:
+            print "service not activated"
+            
 
     # Peer management
     # FIXME: reactivate when efficient
     def NewPeer(self, peer, service):
         """delegate to network"""
-        self.network.on_new_peer(peer, service)
+        if self.facade.is_activated():
+            self.network.on_new_peer(peer, service)
 
     def ChangedPeer(self, peer, service):
         """delegate to network"""
-        self.network.on_change_peer(peer, service)
+        if self.facade.is_activated():
+            self.network.on_change_peer(peer, service)
 
     def LostPeer(self, peer_id):
         """delegate to network"""
-        self.network.on_lost_peer(peer_id)
+        if self.facade.is_activated():
+            self.network.on_lost_peer(peer_id)
 
     def GotServiceData(self, peer_id, data):
         """delegate to network"""
-        self.network.on_service_data(peer_id, data)
+        if self.facade.is_activated():
+            self.network.on_service_data(peer_id, data)
 
     def ChangedNode(self, node):
         # new IP ? what consequence on network?

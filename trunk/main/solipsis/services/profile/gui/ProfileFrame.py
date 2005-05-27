@@ -18,15 +18,9 @@ from CustomPanel import CustomPanel
 
 class ProfileFrame(wx.Frame):
     def __init__(self, standalone, *args, **kwds):
-        # quite different initialisation according to launched by navigator or not
-        self.standalone = standalone
-        if self.standalone:
-            kwds["style"] = wx.DEFAULT_FRAME_STYLE
-        else:
-            kwds["style"] = wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER
         # FIXME XXX remove following line concerning kwds["style"]
         # begin wxGlade: ProfileFrame.__init__
-        kwds["style"] = wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER
+        kwds["style"] = wx.DEFAULT_FRAME_STYLE
         wx.Frame.__init__(self, *args, **kwds)
         self.profile_book = wx.Notebook(self, -1, style=0)
         
@@ -39,16 +33,18 @@ class ProfileFrame(wx.Frame):
         self.export_item = wx.MenuItem(self.profile_item, wx.NewId(), _("&Export HTML ...\tCtrl+E"), _("Write profile as HTML File"), wx.ITEM_NORMAL)
         self.profile_item.AppendItem(self.export_item)
         self.profile_item.AppendSeparator()
-        self.load_item = wx.MenuItem(self.profile_item, wx.NewId(), _("&Load ... \tCtrl+L"), _("Load profile from file"), wx.ITEM_NORMAL)
+        self.load_item = wx.MenuItem(self.profile_item, wx.NewId(), _("&Load... \tCtrl+L"), _("Load profile from file"), wx.ITEM_NORMAL)
         self.profile_item.AppendItem(self.load_item)
-        self.save_item = wx.MenuItem(self.profile_item, wx.NewId(), _("&Save ...\tCtrl+S"), _("Save profile into file"), wx.ITEM_NORMAL)
+        self.save_item = wx.MenuItem(self.profile_item, wx.NewId(), _("&Save As ...\tCtrl+S"), _("Save profile into file"), wx.ITEM_NORMAL)
         self.profile_item.AppendItem(self.save_item)
         self.quit_item = wx.MenuItem(self.profile_item, wx.NewId(), _("&Close\tCtrl+W"), _("Close profile management"), wx.ITEM_NORMAL)
         self.profile_item.AppendItem(self.quit_item)
         self.profile_menu.Append(self.profile_item, _("Profile"))
         self.peers_item = wx.Menu()
-        self.addpeer_item = wx.MenuItem(self.peers_item, wx.NewId(), _("&Import...\tCtrl+I"), _("Import profile file into tab 'Contacts'"), wx.ITEM_NORMAL)
-        self.peers_item.AppendItem(self.addpeer_item)
+        self.getblog_item = wx.MenuItem(self.peers_item, wx.NewId(), _("Get Blog..."), _("Download peer's blog"), wx.ITEM_NORMAL)
+        self.peers_item.AppendItem(self.getblog_item)
+        self.getfiles_item = wx.MenuItem(self.peers_item, wx.NewId(), _("Get Files..."), _("Download peer's files"), wx.ITEM_NORMAL)
+        self.peers_item.AppendItem(self.getfiles_item)
         self.peers_item.AppendSeparator()
         self.anonymous_item = wx.MenuItem(self.peers_item, wx.NewId(), _("&Anonymous\tCtrl+A"), "", wx.ITEM_RADIO)
         self.peers_item.AppendItem(self.anonymous_item)
@@ -83,6 +79,8 @@ class ProfileFrame(wx.Frame):
         self.__do_layout()
         # end wxGlade
         
+        # quite different initialisation according to launched by navigator or not
+        self.standalone = standalone
         self.facade = get_facade()
         self.bind_controls()
 
@@ -90,12 +88,16 @@ class ProfileFrame(wx.Frame):
     
     def bind_controls(self):
         """bind all controls with facade"""
+        self.Bind(wx.EVT_MENU, self.on_activate, id=self.activate_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_export, id=self.export_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_save, id=self.save_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_load, id=self.load_item.GetId())
-        self.Bind(wx.EVT_MENU, self.on_quit, id=self.quit_item.GetId())
+        self.Bind(wx.EVT_MENU, self.on_close, id=self.quit_item.GetId())
+        self.Bind(wx.EVT_CLOSE, self.on_close)
         
-        self.Bind(wx.EVT_MENU, self.on_add, id=self.addpeer_item.GetId())
+#         self.Bind(wx.EVT_MENU, self.on_add, id=self.addpeer_item.GetId())
+        self.Bind(wx.EVT_MENU, self.on_get_blog, id=self.getblog_item.GetId())
+        self.Bind(wx.EVT_MENU, self.on_get_files, id=self.getfiles_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_make_friend, id=self.friend_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_blacklist, id=self.blacklisted_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_anonymous, id=self.anonymous_item.GetId())
@@ -103,6 +105,11 @@ class ProfileFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.set_refresh, id=self.autorefresh_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_refresh, id=self.refresh_item.GetId())
 
+    def on_activate(self, evt):
+        """activate service"""
+        print self.activate_item.IsChecked() and "Activating..." or "Disactivated"
+        self.facade.activate(self.activate_item.IsChecked())
+        
     def on_add(self, evt):
         """save profile .prf"""
         dlg = wx.FileDialog(
@@ -154,9 +161,10 @@ class ProfileFrame(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
             self.facade.export_profile(path)
-
-    def on_quit(self, evt):
+        
+    def on_close(self, evt):
         """hide  application"""
+        self.facade.save_profile(os.path.join(PROFILE_DIR, PROFILE_FILE))
         if self.standalone:
             self.Close()
         else:
@@ -180,6 +188,22 @@ class ProfileFrame(wx.Frame):
         if pseudo:
             self.facade.unmark_peer(pseudo)
 
+    def on_get_blog(self, evt):
+        """display peer's blog"""
+        pseudo = self.other_tab.get_peer_selected()
+        if pseudo:
+            # get blog matching peer
+            blog = self.facade.get_blog(pseudo)
+            # display it in BlogDialog
+
+    def on_get_files(self, evt):
+        """display peer's files"""
+        pseudo = self.other_tab.get_peer_selected()
+        if pseudo:
+            # get files matching peer
+            files = self.facade.get_files(pseudo)
+            # display it in FilesDialog
+
     def set_refresh(self, evt):
         """refresh HTML preview"""
         self.facade.set_auto_refresh_html(evt.IsChecked())
@@ -191,7 +215,7 @@ class ProfileFrame(wx.Frame):
     def __set_properties(self):
         # begin wxGlade: ProfileFrame.__set_properties
         self.SetTitle(_("profile_frame"))
-        self.SetMinSize((708, 1018))
+        self.SetSize((460, 500))
         self.profile_statusbar.SetStatusWidths([-1])
         # statusbar fields
         profile_statusbar_fields = [_("status")]
@@ -214,7 +238,7 @@ class ProfileFrame(wx.Frame):
         self.profile_book.AddPage(self.blog_tab, _("Blog"))
         self.profile_book.AddPage(self.file_tab, _("Files"))
         self.profile_book.AddPage(self.other_tab, _("Contacts"))
-        frame_sizer.Add(self.profile_book, 1, wx.EXPAND, 0)
+        frame_sizer.Add(wx.NotebookSizer(self.profile_book), 1, wx.EXPAND, 0)
         self.SetAutoLayout(True)
         self.SetSizer(frame_sizer)
         self.Layout()
@@ -231,6 +255,8 @@ class ProfileFrame(wx.Frame):
         else:
             self.anonymous_item.Check(True)
         # (dis)activate items
+        self.getblog_item.Enable(enable)
+        self.getfiles_item.Enable(enable)
         self.anonymous_item.Enable(enable)
         self.blacklisted_item.Enable(enable)
         self.friend_item.Enable(enable)

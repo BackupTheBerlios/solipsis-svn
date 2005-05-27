@@ -174,8 +174,7 @@ class NetworkManager:
         if r_ip != self.remote_ips[peer.id_]:
             self.on_lost_peer(peer.id_)
             self.on_new_peer(peer, service)
-        else:
-            print "peer moved"
+        # else peer only moved...
 
     def on_service_data(self, peer_id, data):
         """demand to establish connection from peer that failed to
@@ -293,7 +292,7 @@ class ProfileClientProtocol(basic.LineOnlyReceiver):
 
     def lineReceived(self, line):
         """incomming connection from other peer"""
-        #print "received", line
+        print "received", line
         # on greeting, stores info about remote host (profile id)
         if line.startswith(SERVER_SEND_ID):
             # get remote information
@@ -309,7 +308,7 @@ class ProfileClientProtocol(basic.LineOnlyReceiver):
 
     def sendLine(self, line):
         """overrides in order to ease debug"""
-        #print "sending", line
+        print "sending", line
         basic.LineOnlyReceiver.sendLine(self, line)  
         
     def connectionMade(self):
@@ -387,7 +386,7 @@ class ProfileServerProtocol(basic.LineOnlyReceiver):
 
     def lineReceived(self, line):
         """incomming connection from other peer"""
-        #print "received", line
+        print "received", line
         if line.startswith(CLIENT_SEND_ACK):
             self.transport.loseConnection()
         else:
@@ -395,7 +394,7 @@ class ProfileServerProtocol(basic.LineOnlyReceiver):
 
     def sendLine(self, line):
         """overrides in order to ease debug"""
-        #print "sending", line
+        print "sending", line
         basic.LineOnlyReceiver.sendLine(self, line)           
             
     def connectionMade(self):
@@ -430,7 +429,7 @@ class ProfileServerFactory(ServerFactory):
     def stop_listening(self):
         """shutdown well-known server"""
         self.listener.stopListening()
-        for remote_ip in self.local_servers:
+        for remote_ip in self.local_servers.keys():
             self.lose_local_server(remote_ip)
 
     def get_local_server(self, remote_ip):
@@ -669,11 +668,11 @@ class PeerServerProtocol(PeerProtocol):
         # donwnload blog
         if line == ASK_DOWNLOAD_BLOG:
             pass
-#             file_name = self.factory.manager.facade.get_blog_obj()
+#             file_name = self.factory.manager.facade.get_blog()
 #             deferred = basic.FileSender().beginFileTransfer(open(file_name), self.transport)
         # donwnload profile
         if line == ASK_DOWNLOAD_PROFILE:
-            file_obj = self.factory.manager.facade.get_profile_obj()
+            file_obj = self.factory.manager.facade.get_profile()
             deferred = basic.FileSender().beginFileTransfer(file_obj, self.transport)
             deferred.addCallback(lambda x: self.transport.loseConnection())
         elif line == ASK_UPLOAD:
