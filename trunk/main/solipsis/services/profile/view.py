@@ -352,7 +352,7 @@ class HtmlView(AbstractView):
         self.view and self.view.close()
         self.view = StringIO()
         self.template.expand(self.context, self.view, outputEncoding=ENCODING)
-        self.html_window and self.html_window.SetPage(self.get_view())
+#         self.html_window and self.html_window.SetPage(self.get_view())
 
     def get_view(self, update=False):
         """returns HTLM String"""

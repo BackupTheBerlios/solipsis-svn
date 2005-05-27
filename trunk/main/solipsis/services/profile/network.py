@@ -293,7 +293,7 @@ class ProfileClientProtocol(basic.LineOnlyReceiver):
 
     def lineReceived(self, line):
         """incomming connection from other peer"""
-        print "received", line
+        #print "received", line
         # on greeting, stores info about remote host (profile id)
         if line.startswith(SERVER_SEND_ID):
             # get remote information
@@ -309,7 +309,7 @@ class ProfileClientProtocol(basic.LineOnlyReceiver):
 
     def sendLine(self, line):
         """overrides in order to ease debug"""
-        print "sending", line
+        #print "sending", line
         basic.LineOnlyReceiver.sendLine(self, line)  
         
     def connectionMade(self):
@@ -387,7 +387,7 @@ class ProfileServerProtocol(basic.LineOnlyReceiver):
 
     def lineReceived(self, line):
         """incomming connection from other peer"""
-        print "received", line
+        #print "received", line
         if line.startswith(CLIENT_SEND_ACK):
             self.transport.loseConnection()
         else:
@@ -395,7 +395,7 @@ class ProfileServerProtocol(basic.LineOnlyReceiver):
 
     def sendLine(self, line):
         """overrides in order to ease debug"""
-        print "sending", line
+        #print "sending", line
         basic.LineOnlyReceiver.sendLine(self, line)           
             
     def connectionMade(self):
@@ -668,8 +668,9 @@ class PeerServerProtocol(PeerProtocol):
                 print "unknown file %s"% file_name
         # donwnload blog
         if line == ASK_DOWNLOAD_BLOG:
-            file_name = self.factory.manager.facade.get_blog_obj()
-            deferred = basic.FileSender().beginFileTransfer(open(file_name), self.transport)
+            pass
+#             file_name = self.factory.manager.facade.get_blog_obj()
+#             deferred = basic.FileSender().beginFileTransfer(open(file_name), self.transport)
         # donwnload profile
         if line == ASK_DOWNLOAD_PROFILE:
             file_obj = self.factory.manager.facade.get_profile_obj()
