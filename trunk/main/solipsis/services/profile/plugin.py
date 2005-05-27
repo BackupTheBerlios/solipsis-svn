@@ -130,6 +130,7 @@ class Plugin(ServicePlugin):
 
     def _on_new_profile(self, document):
         """store and display file object corresponding to profile"""
+        print "downloaded profile", document.get_pseudo()
         self.facade.fill_data((document.get_pseudo(), document))
     
     def _on_new_blog(self, pseudo, profile):
@@ -138,7 +139,6 @@ class Plugin(ServicePlugin):
         pass
 
     def get_profile(self, peer_id):
-        print "downloaded profile", document.get_pseudo()
         self.network.get_profile(peer_id, self._on_new_profile)
 
     def get_blog(self, peer_id):
