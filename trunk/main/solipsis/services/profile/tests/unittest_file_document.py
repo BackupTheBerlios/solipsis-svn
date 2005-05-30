@@ -144,29 +144,30 @@ class FileTest(unittest.TestCase):
         
     def test_default(self):
         """load default"""
-        self.document.load(u"dummy")
-        self.assertEquals(u"Mr", self.document.get_title())
-        self.assertEquals(u"Emmanuel", self.document.get_firstname())
-        self.assertEquals(u"Breton", self.document.get_lastname())
-        self.assertEquals(u"emb", self.document.get_pseudo())
+        document = FileDocument()
+        document.load(u"dummy")
+        self.assertEquals(u"Mr", document.get_title())
+        self.assertEquals(u"Emmanuel", document.get_firstname())
+        self.assertEquals(u"Breton", document.get_lastname())
+        self.assertEquals(u"emb", document.get_pseudo())
         self.assertEquals(u'/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/question_mark.gif',
-                          self.document.get_photo())
-        self.assertEquals(u"emb@logilab.fr", self.document.get_email())
-        self.assertEquals(u"01/04/2005", self.document.get_birthday())
-        self.assertEquals(u"fr", self.document.get_language())
-        self.assertEquals(u"", self.document.get_address())
-        self.assertEquals(u"75", self.document.get_postcode())
-        self.assertEquals(u"", self.document.get_city())
-        self.assertEquals(u"", self.document.get_country())
-        self.assertEquals(u"Developer/Designer of this handful plugin", self.document.get_description())
-        self.assertEquals([], self.document.get_hobbies())
-        self.assertEquals({'repositories': REPO},
-                          self.document.get_custom_attributes())
+                          document.get_photo())
+        self.assertEquals(u"emb@logilab.fr", document.get_email())
+        self.assertEquals(u"01/04/2005", document.get_birthday())
+        self.assertEquals(u"fr", document.get_language())
+        self.assertEquals(u"", document.get_address())
+        self.assertEquals(u"75", document.get_postcode())
+        self.assertEquals(u"", document.get_city())
+        self.assertEquals(u"", document.get_country())
+        self.assertEquals(u"Developer/Designer of this handful plugin", document.get_description())
+        self.assertEquals([], document.get_hobbies())
+        self.assertEquals({},
+                          document.get_custom_attributes())
         # assert correct sharing
-        self.assertEquals({}, self.document.get_shared(REPO))
-        self.assertEquals({REPO: DirContainer(REPO)}, self.document.get_files())
+        self.assertEquals({}, document.get_shared(REPO))
+        self.assertEquals({}, document.get_files())
         # peers
-        self.assertEquals({}, self.document.get_peers())
+        self.assertEquals({}, document.get_peers())
         
     def test_view(self):
         """load & printView"""

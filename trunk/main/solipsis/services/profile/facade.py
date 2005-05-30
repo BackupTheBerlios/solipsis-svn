@@ -19,7 +19,10 @@
 """Design pattern Facade: presents working API for all actions of GUI
 available. This facade will be used both by GUI and unittests."""
 
+import pickle
+
 from sys import stderr
+from StringIO import StringIO
 from solipsis.services.profile import ENCODING
 from solipsis.services.profile.data import DirContainer
 from solipsis.services.profile.document import FileDocument
@@ -130,10 +133,12 @@ class Facade:
         else:
             return self.documents.values()[0].open()
 
-    def get_blog(self, peer_id=None):
+    def get_blog_file(self):
         """return a file object like on blog"""
-        # TODO
-        pass
+        if "cache" in self.documents:
+            return StringIO(pickle.dumps(self.documents["cache"].get_blogs()))
+        else:
+            return StringIO(pickle.dumps(self.documents.values()[0].get_blogs()))
 
     def get_files(self, peer_id=None):
         """return a file object like on blog"""
@@ -375,6 +380,17 @@ class Facade:
         return self._try_change(value,
                                 "fill_data",
                                 "update_peers")
+    
+    def fill_blog(self, (peer_id, blog)):
+        """sets peer as friend """
+        if 'cache' in self.documents:
+            print "*", blog
+            self.documents["cache"].fill_blog(peer_id, blog)
+        if 'gui' in self.views:
+            print "***", blog
+            self.views["gui"].display_blog(peer_id, blog)
+        else:
+            print "??"
 
     def make_friend(self, value):
         """sets peer as friend """

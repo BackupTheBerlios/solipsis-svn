@@ -3,10 +3,12 @@
 import socket
 import threading
 import tempfile
+import pickle
 
 from twisted.internet.protocol import ClientFactory, ServerFactory
 from twisted.internet import reactor
 from twisted.protocols import basic
+from StringIO import StringIO
 
 from solipsis.services.profile import FREE_PORTS
 from solipsis.services.profile.document import FileDocument
@@ -230,11 +232,11 @@ class NetworkManager:
             else:
                 print "DOWNLOAD PROFILE IMPOSSIBLE"
 
-    def get_blog(self, peer_id, callback):
+    def get_blog_file(self, peer_id, callback):
         """retreive peer's blog"""
         client = self.client.get_dedicated_client(self.remote_ips[peer_id])
         if client:
-            client.get_blog(callback)
+            client.get_blog_file(callback)
         else:
             server = self.server.get_local_server(self.remote_ips[peer_id])
             if server:
@@ -519,6 +521,9 @@ class PeerClientProtocol(PeerProtocol):
                 self.sendLine("%s %s"% (self.factory.download, self.factory.files.pop()))
             else:
                 print "No more file to download!!"
+        elif self.factory.download.startswith(ASK_DOWNLOAD_BLOG):
+            self.file = StringIO()
+            self.sendLine(self.factory.download)
         else:
             self.file = tempfile.NamedTemporaryFile()
             self.sendLine(self.factory.download)
@@ -534,7 +539,10 @@ class PeerClientProtocol(PeerProtocol):
 
     def _on_complete_blog(self):
         """callback when finished downloading blog"""
-        pass
+        blog_str = self.file.getvalue()
+        blog = pickle.loads(blog_str)
+        self.file = None
+        self.factory.callback(blog)        
 
     def _on_complete_file(self):
         """callback when finished downloading file"""
@@ -606,7 +614,7 @@ class PeerClientFactory(ClientFactory):
             self.download = None
             print "could not connect"
             
-    def get_blog(self, callback):
+    def get_blog_file(self, callback):
         """donload blog file using self.get_file"""
         self.download = ASK_DOWNLOAD_BLOG
         self.callback = callback
@@ -668,9 +676,9 @@ class PeerServerProtocol(PeerProtocol):
                 print "unknown file %s"% file_name
         # donwnload blog
         if line == ASK_DOWNLOAD_BLOG:
-            pass
-#             file_name = self.factory.manager.facade.get_blog()
-#             deferred = basic.FileSender().beginFileTransfer(open(file_name), self.transport)
+            blog_stream = self.factory.manager.facade.get_blog_file()
+            deferred = basic.FileSender().beginFileTransfer(blog_stream, self.transport)
+            deferred.addCallback(lambda x: self.transport.loseConnection())
         # donwnload profile
         if line == ASK_DOWNLOAD_PROFILE:
             file_obj = self.factory.manager.facade.get_profile()

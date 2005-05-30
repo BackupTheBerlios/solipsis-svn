@@ -67,14 +67,14 @@ class Blogs:
         if pseudo != self.owner:
             raise AssertionError("not authorized")
         else:
-            if index<len(self.blogs):
+            if index < len(self.blogs):
                 del self.blogs[index]
             else:
                 raise AssertionError('blog id %s not valid'% index)
         
     def get_blog(self, index):
         """return all blogs along with their comments"""
-        if index<len(self.blogs):
+        if index < len(self.blogs):
             return self.blogs[index]
         else:
             raise AssertionError('blog id %s not valid'% index)

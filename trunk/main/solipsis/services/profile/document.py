@@ -71,6 +71,7 @@ class PeerDescriptor:
         self.pseudo = pseudo
         self.state = state
         self.connected = connected
+        self.blog = None
 
     def __repr__(self):
         return "%s (%s)"% (self.pseudo, self.state)
@@ -78,6 +79,10 @@ class PeerDescriptor:
     def set_connected(self, enable):
         """change user's connected status"""
         self.connected = enable
+
+    def set_blog(self, blog):
+        """blog is instance Blogs"""
+        self.blog = blog
         
     def html(self):
         """render peer in HTML"""
@@ -136,7 +141,6 @@ class AbstractDocument:
             self.add_custom_attributes((key, val))
         # blog data
         for index, blog in enumerate(other_document.get_blogs()):
-            print "adding", self.name, other_document.name, blog.text, blog.comments
             self.add_blog(blog.text)
             for comment in blog.comments:
                 self.add_comment((index, comment.text))
@@ -338,6 +342,10 @@ class AbstractDocument:
     def count_blogs(self):
         """return number of blogs"""
         return self.blogs.count_blogs()
+
+    def fill_blog(self, peer_id, blog):
+        """connect blog with profile"""
+        raise NotImplementedError
 
     # FILE TAB
     def reset_files(self):
@@ -669,7 +677,11 @@ class CacheDocument(AbstractDocument):
         return self.custom_attributes
 
     # BLOG TAB
-
+    def fill_blog(self, peer_id, blog):
+        """connect blog with profile"""
+        peer = self.peers[peer_id][0]
+        peer.set_blog(blog)
+        
     # FILE TAB
     def reset_files(self):
         """empty all information concerning files"""
@@ -874,7 +886,6 @@ class FileDocument(AbstractDocument):
         profile_file = open(self.file_root + PROFILE_EXT, 'w')
         blog_file = open(self.file_root + BLOG_EXT, 'w')
         self.write(profile_file).close()
-        print "saving", self.file_root, self.get_blogs()
         pickle.dump(self.get_blogs(), file=blog_file, protocol=pickle.HIGHEST_PROTOCOL)
         blog_file.close()
 
@@ -900,13 +911,10 @@ class FileDocument(AbstractDocument):
             profile_file = open(self.file_root + PROFILE_EXT)
             self.read(profile_file)
             profile_file.close()
-        print "loading", self.file_root
         if os.path.exists(self.file_root + BLOG_EXT):
             blog_file = open(self.file_root + BLOG_EXT)
             self.blogs = pickle.load(blog_file)
             blog_file.close()
-            for blog in self.blogs:
-                print "loaded", blog.text
         # call parent on set_pseudo for blog
         AbstractDocument.set_pseudo(self, self.get_pseudo())
         #else: use blank blog
@@ -1113,13 +1121,16 @@ class FileDocument(AbstractDocument):
             options = self.config.options(SECTION_CUSTOM)
             for option in options:
                 if option != "hobbies":
-                    result[option] = unicode(self.config.get(SECTION_CUSTOM,
-                                                             option),
-                                             self.encoding)
+                    result[option] = unicode(
+                        self.config.get(SECTION_CUSTOM, option),
+                        self.encoding)
         finally:
             return result
 
     # BLOG TAB
+    def fill_blog(self, peer_id, blog):
+        """connect blog with profile"""
+        pass
 
     # FILE TAB
     def reset_files(self):
@@ -1263,7 +1274,7 @@ class FileDocument(AbstractDocument):
                 option_share = bool(option_share)
             except (ValueError, ConfigParser.NoSectionError,
                     ConfigParser.NoOptionError):
-                print >> stderr, "option %s not well formated"% option
+                print >> sys.stderr, "option %s not well formated"% option
                 option_share, option_tag = False, DEFAULT_TAG
             for root_path in dict.keys(containers):
                 if option.startswith(root_path):

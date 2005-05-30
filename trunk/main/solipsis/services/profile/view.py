@@ -151,6 +151,10 @@ class AbstractView:
         """blog"""
         raise NotImplementedError
 
+    def display_blog(self, peer_id, blog):
+        """display blog"""
+        raise NotImplementedError
+
     # FILE TAB
     def update_files(self):
         """file"""
@@ -235,6 +239,10 @@ class PrintView(AbstractView):
     def update_blogs(self):
         """blog"""
         print >> self.output, pickle.dumps(self.document.get_blogs())
+        
+    def display_blog(self, peer_id, blog):
+        """display blog"""
+        print >> self.output, "%s: %s"% (peer_id, blog)
         
     # FILE TAB
     def update_files(self):
@@ -339,6 +347,10 @@ class GuiView(AbstractView, UIProxyReceiver):
     def update_blogs(self):
         """blog"""
         self.frame.blog_tab.on_update()
+        
+    def display_blog(self, peer_id, blog):
+        """display blog"""
+        self.frame.display_blog(peer_id, blog)
         
     # FILE TAB : frame.file_tab        
     def update_files(self):
@@ -485,6 +497,10 @@ class HtmlView(AbstractView):
         self.context.addGlobal("blogs", self.document.get_blogs())
         if self.auto_refresh:
             self.update_view()
+        
+    def display_blog(self, peer_id, blog):
+        """display blog"""
+        pass
         
     # FILE TAB : frame.file_tab
     def update_files(self):

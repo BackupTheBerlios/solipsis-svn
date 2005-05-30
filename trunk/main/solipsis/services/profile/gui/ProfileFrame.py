@@ -201,6 +201,17 @@ class ProfileFrame(wx.Frame):
             blog = self.facade.get_blog(pseudo)
             # display it in BlogDialog
 
+    def display_blog(self, peer_id, blog):
+        """display blog in dedicated window"""
+        print '*******'
+        # blog dialog
+        blog_dlg = BlogDialog(self, -1)
+        blog_dlg.SetTitle("%s's %s"% (peer_id, _("Blog")))
+        # FIXME: muy muy dirty... create interface for blog content
+        blog_dlg.blog_panel.blog_list.facade = blog
+        # display
+        blog_dlg.Show()
+
     def on_get_files(self, evt):
         """display peer's files"""
         pseudo = self.other_tab.get_peer_selected()

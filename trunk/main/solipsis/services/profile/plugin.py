@@ -61,7 +61,7 @@ class Plugin(ServicePlugin):
         self.MAIN_ACTION = {"Modify ...": self.show_profile,
                             }
         self.POINT_ACTIONS = {"Get profile": self.get_profile,
-                              "Get blog": self.get_blog,
+                              "Get blog": self.get_blog_file,
                               "Get files...": self.select_files,
                               }
 
@@ -135,16 +135,15 @@ class Plugin(ServicePlugin):
         print "downloaded profile", document.get_pseudo()
         self.facade.fill_data((document.get_pseudo(), document))
     
-    def _on_new_blog(self, pseudo, profile):
+    def _on_new_blog(self, blog):
         """store and display file object corresponding to blog"""
-        # TODO: fill method
-        pass
+        self.facade.fill_blog((blog.owner, blog))
 
     def get_profile(self, peer_id):
         self.network.get_profile(peer_id, self._on_new_profile)
 
-    def get_blog(self, peer_id):
-        self.network.get_blog(peer_id, self._on_new_blog)
+    def get_blog_file(self, peer_id):
+        self.network.get_blog_file(peer_id, self._on_new_blog)
 
     def get_files(self, peer_id, file_names):
         self.network.get_file(peer_id, file_names)
