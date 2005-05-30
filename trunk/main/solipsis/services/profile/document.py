@@ -20,6 +20,7 @@
 gathared in views.py. Documents are to be seen as completely
 independant from views"""
 
+import pickle
 import mx.DateTime
 import ConfigParser
 import os.path
@@ -29,9 +30,9 @@ from os.path import isfile, isdir
 from StringIO import StringIO
 from solipsis.services.profile.data import DirContainer
 from solipsis.services.profile import ENCODING, \
-     PROFILE_DIR, PROFILE_FILE
+     PROFILE_DIR, PROFILE_FILE, PROFILE_EXT, BLOG_EXT
 from solipsis.services.profile.images import DEFAULT_PIC
-from solipsis.services.profile.data import DEFAULT_TAG
+from solipsis.services.profile.data import DEFAULT_TAG, Blogs
 
 DATE_FORMAT = "%d/%m/%Y"
 SECTION_PERSONAL = "Personal"
@@ -91,6 +92,7 @@ class AbstractDocument:
 
     def __init__(self, name="abstract"):
         self.name = name
+        self.blogs = Blogs()
 
     def __repr__(self):
         return self.name
@@ -111,6 +113,8 @@ class AbstractDocument:
 
     def import_document(self, other_document):
         """copy data from another document into self"""
+        # fields in mother class
+        self.blogs = Blogs()
         # personal data (unicode)
         self.set_title(other_document.get_title())
         self.set_firstname(other_document.get_firstname())
@@ -130,6 +134,12 @@ class AbstractDocument:
         attributes = other_document.get_custom_attributes()
         for key, val in attributes.iteritems():
             self.add_custom_attributes((key, val))
+        # blog data
+        for index, blog in enumerate(other_document.get_blogs()):
+            print "adding", self.name, other_document.name, blog.text, blog.comments
+            self.add_blog(blog.text)
+            for comment in blog.comments:
+                self.add_comment((index, comment.text))
         # file data
         self.reset_files()
         for repo, sharing_container in other_document.get_files().iteritems():
@@ -153,16 +163,16 @@ class AbstractDocument:
                 print >> sys.stderr, "state %s not recognised"% peer_desc.state
     
     # MENU
-    def save(self, path=None):
+    def save(self, file_root=None):
         """fill document with information from .profile file"""
         doc = FileDocument()
         doc.import_document(self)
-        doc.save(path)
+        doc.save(file_root)
 
-    def load(self, path=None):
+    def load(self, file_root=None):
         """fill document with information from .profile file"""
         doc = FileDocument()
-        doc.load(path)
+        doc.load(file_root)
         self.import_document(doc)
     
     # PERSONAL TAB
@@ -194,6 +204,8 @@ class AbstractDocument:
         """sets new value for pseudo"""
         if not isinstance(value, unicode):
             raise TypeError("pseudo expected as unicode")
+        self.blogs.set_owner(value)
+        
     def get_pseudo(self):
         """returns value of pseudo"""
         raise NotImplementedError
@@ -300,6 +312,33 @@ class AbstractDocument:
         """returns value of custom_attributes"""
         raise NotImplementedError
         
+    # BLOG TAB
+    def add_blog(self, text):
+        """store blog in cache as wx.HtmlListBox is virtual.
+        return blog's id"""
+        self.blogs.add_blog(text, self.get_pseudo())
+
+    def remove_blog(self, index):
+        """delete blog"""
+        self.blogs.remove_blog(index, self.get_pseudo())
+        
+    def add_comment(self, (index, text)):
+        """store blog in cache as wx.HtmlListBox is virtual.
+        return comment's index"""
+        self.blogs.get_blog(index).add_comment(text, self.get_pseudo())
+
+    def get_blogs(self):
+        """return all blogs along with their comments"""
+        return self.blogs
+
+    def get_blog(self, index):
+        """return all blogs along with their comments"""
+        return self.blogs.get_blog(index)
+
+    def count_blogs(self):
+        """return number of blogs"""
+        return self.blogs.count_blogs()
+
     # FILE TAB
     def reset_files(self):
         """empty all information concerning files"""
@@ -629,6 +668,8 @@ class CacheDocument(AbstractDocument):
         """returns value of custom_attributes"""
         return self.custom_attributes
 
+    # BLOG TAB
+
     # FILE TAB
     def reset_files(self):
         """empty all information concerning files"""
@@ -801,7 +842,7 @@ class FileDocument(AbstractDocument):
 
     def __init__(self, name="file"):
         AbstractDocument.__init__(self, name)
-        self.file_name = os.path.join(PROFILE_DIR, PROFILE_FILE)
+        self.file_root = os.path.join(PROFILE_DIR, PROFILE_FILE)
         self.encoding = ENCODING
         self.config = CustomConfigParser()
         self.config.add_section(SECTION_PERSONAL)
@@ -815,7 +856,7 @@ class FileDocument(AbstractDocument):
 
     def get_id(self):
         """return identifiant of Document"""
-        return self.file_name
+        return self.file_root
 
     def open(self):
         """returns a file object containing values"""
@@ -826,12 +867,16 @@ class FileDocument(AbstractDocument):
     
     # MENU
 
-    def save(self, path=None):
+    def save(self, file_root=None):
         """fill document with information from .profile file"""
-        if path:
-            self.file_name = path
-        file_obj = open(self.file_name, 'w')
-        self.write(file_obj).close()
+        if file_root:
+            self.file_root = file_root
+        profile_file = open(self.file_root + PROFILE_EXT, 'w')
+        blog_file = open(self.file_root + BLOG_EXT, 'w')
+        self.write(profile_file).close()
+        print "saving", self.file_root, self.get_blogs()
+        pickle.dump(self.get_blogs(), file=blog_file, protocol=pickle.HIGHEST_PROTOCOL)
+        blog_file.close()
 
     def read(self, stream):
         """import profile from given stream (file object like)"""
@@ -845,16 +890,26 @@ class FileDocument(AbstractDocument):
         self.config.write(stream)
         return stream
 
-    def load(self, path=None):
+    def load(self, file_root=None):
         """fill document with information from .profile file"""
-        if path and os.path.exists(path):
-            self.file_name = path
-        else:
+        if file_root:
+            self.file_root = file_root
+        if not os.path.exists(self.file_root + PROFILE_EXT):
             return False
-        # else: continue
-        file_obj = open(self.file_name)
-        self.read(file_obj)
-        file_obj.close()
+        else:
+            profile_file = open(self.file_root + PROFILE_EXT)
+            self.read(profile_file)
+            profile_file.close()
+        print "loading", self.file_root
+        if os.path.exists(self.file_root + BLOG_EXT):
+            blog_file = open(self.file_root + BLOG_EXT)
+            self.blogs = pickle.load(blog_file)
+            blog_file.close()
+            for blog in self.blogs:
+                print "loaded", blog.text
+        # call parent on set_pseudo for blog
+        AbstractDocument.set_pseudo(self, self.get_pseudo())
+        #else: use blank blog
         return True
         
     # PERSONAL TAB
@@ -1063,6 +1118,8 @@ class FileDocument(AbstractDocument):
                                              self.encoding)
         finally:
             return result
+
+    # BLOG TAB
 
     # FILE TAB
     def reset_files(self):

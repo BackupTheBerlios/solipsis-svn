@@ -218,6 +218,57 @@ class Facade:
         return self._try_change(value,
                                "set_description",
                                "update_description")
+        
+    # BLOG TAB
+    def add_blog(self, text):
+        """store blog in cache as wx.HtmlListBox is virtual.
+        return blog's index"""
+        return self._try_change(text,
+                                "add_blog",
+                                "update_blogs")
+
+    def remove_blog(self, index):
+        """delete blog"""
+        return self._try_change(index,
+                                "remove_blog",
+                                "update_blogs")
+        
+    def add_comment(self, (index, text)):
+        """store blog in cache as wx.HtmlListBox is virtual.
+        return comment's index"""
+        return self._try_change((index, text),
+                                "add_comment",
+                                "update_blogs")
+
+    def get_blogs(self, view=None):
+        """return all blogs along with their comments"""
+        if view in self.documents:
+            return self.documents[view].get_blogs()
+        else:
+            if self.documents:
+                return self.documents.values()[0].get_blogs()
+            else:
+                return None
+
+    def get_blog(self, index, view=None):
+        """return all blogs along with their comments"""
+        if view in self.documents:
+            return self.documents[view].get_blog(index)
+        else:
+            if self.documents:
+                return self.documents.values()[0].get_blog(index)
+            else:
+                return None
+
+    def count_blogs(self, view=None):
+        """return number of blogs"""
+        if view in self.documents:
+            return self.documents[view].count_blogs()
+        else:
+            if self.documents:
+                return self.documents.values()[0].count_blogs()
+            else:
+                return 0
 
     # CUSTOM TAB
     def change_hobbies(self, value):

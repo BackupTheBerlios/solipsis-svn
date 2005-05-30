@@ -14,7 +14,7 @@ from solipsis.services.profile.view import PrintView, HtmlView
 from solipsis.services.profile.data import DirContainer
 from solipsis.services.profile import PROFILE_DIR
 
-TEST_PROFILE = "data/profiles/test.prf"
+TEST_PROFILE = "data/profiles/test"
 REPO = u"/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests"
 
 class FileTest(unittest.TestCase):
@@ -123,9 +123,9 @@ class FileTest(unittest.TestCase):
         """save & load"""
         self.document.load(TEST_PROFILE)
         self.document.share_file((REPO+"/data/subdir1/TOtO.txt", True))
-        self.document.save("tata.prf")
+        self.document.save("data/profiles/tata")
         new_doc = FileDocument()
-        new_doc.load("tata.prf")
+        new_doc.load("data/profiles/tata")
         container = new_doc.get_container(REPO+u"/data/subdir1")
         self.assert_(dict.has_key(container, "TOtO.txt"))
 
@@ -140,7 +140,7 @@ class FileTest(unittest.TestCase):
         new_doc.add_repository(REPO+u"/data/subdir1")
         self.assertEquals(new_doc.get_files()[REPO+u"/data/profiles"]._shared, False)
         self.assert_(new_doc.get_files()[REPO+u"/data/subdir1"] != None)
-        new_doc.save("toto.prf")
+        new_doc.save("data/profiles/toto")
         
     def test_default(self):
         """load default"""
@@ -188,6 +188,18 @@ France
 anything
 [u'blabla', u'bla bla bla', u'']
 {'color': u'blue', 'homepage': u'manu.com', 'repositories': u'/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests'}
+(isolipsis.services.profile.data
+Blogs
+p0
+(dp1
+S'owner'
+p2
+Vemb
+p3
+sS'blogs'
+p4
+(lp5
+sb.
 {u'/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests': {Dc:tests(?-,'none',#0) : [{Dc:data(?-,'none',#3) : [{Dc:emptydir(?Y,'none',#-1) : []}, Fc:routage(?Y,'none'), Fc:date.txt(?-,'tagos'), {Dc:subdir1(?Y,'none',#-1) : [{Dc:subsubdir(?-,'none',#2) : [Fc:null(?Y,'empty'), Fc:dummy.txt(?Y,'empty')]}]}]}]}}
 {u'nico': [nico (%s), None]}
 """% PeerDescriptor.FRIEND)

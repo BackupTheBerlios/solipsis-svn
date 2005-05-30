@@ -19,6 +19,7 @@
 """Define cache structures used in profile and rendered in list widgets"""
 
 import os, os.path
+import time
 import sys
 
 DEFAULT_TAG = u"none"
@@ -31,6 +32,88 @@ def assert_file(path):
 def assert_dir(path):
     """raise ValueError if not a file"""
     assert os.path.isdir(path), "[%s] not a valid directory"% path
+
+class Blogs:
+    """container for all blogs, responsible for authentification"""
+
+    def __init__(self, owner=None):
+        self.owner = owner
+        self.blogs = []
+
+    def __str__(self):
+        return str(self.blogs)
+
+    def __getitem__(self, index):
+        return self.blogs[index]
+
+    def set_owner(self, pseudo):
+        for blog in self.blogs:
+            for comment in blog.comments:
+                if comment.author == self.owner:
+                    comment.set_author(pseudo)
+            blog.set_author(pseudo)
+        self.owner = pseudo
+
+    def add_blog(self, text, author):
+        """store blog in cache as wx.HtmlListBox is virtual.
+        return blog's id"""
+        if author != self.owner:
+            raise AssertionError("not authorized")
+        else:
+            self.blogs.append(Blog(text, author))
+
+    def remove_blog(self, index, pseudo):
+        """delete blog"""
+        if pseudo != self.owner:
+            raise AssertionError("not authorized")
+        else:
+            if index<len(self.blogs):
+                del self.blogs[index]
+            else:
+                raise AssertionError('blog id %s not valid'% index)
+        
+    def get_blog(self, index):
+        """return all blogs along with their comments"""
+        if index<len(self.blogs):
+            return self.blogs[index]
+        else:
+            raise AssertionError('blog id %s not valid'% index)
+
+    def count_blogs(self):
+        """return number of blogs"""
+        return len(self.blogs)
+
+        
+class Blog:
+
+    def __init__(self, text, author):
+        self.text = text
+        self.date = time.asctime()
+        self.author = author
+        self.comments = []
+
+    def __repr__(self):
+        return "%s (%d)"% (self.text, len(self.comments))
+
+    def set_author(self, author):
+        self.author = author
+
+    def add_comment(self, text, pseudo):
+        self.comments.append(Blog(text, pseudo))
+        
+    def html(self):
+        blog_html = self._html_text()
+        for comment in self.comments:
+            blog_html += comment._html_comment()
+        return blog_html
+    
+    def _html_comment(self):
+        return "<font color='silver' size='-1'><p>%s</p><p align='right'><cite>%s, %s</cite></font></p>"\
+               % (self.text, self.author, self.date)
+    
+    def _html_text(self):
+        return "<p'>%s</p><p align='right'><cite>%s, %s</cite></p>"\
+               % (self.text, self.author, self.date)
 
 class ContainerMixin:
     """Factorize sharing tools on containers"""

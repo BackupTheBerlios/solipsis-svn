@@ -8,9 +8,9 @@ from StringIO import StringIO
 from solipsis.services.profile.document import FileDocument, CacheDocument
 from solipsis.services.profile.view import PrintView, HtmlView
 
-TEST_PROFILE = "data/profiles/test.prf"
-TEST_DEMI = "data/profiles/demi.prf"
-TEST_BRUCE =  "data/profiles/bruce.prf"
+TEST_PROFILE = "data/profiles/test"
+TEST_DEMI = "data/profiles/demi"
+TEST_BRUCE =  "data/profiles/bruce"
 
 class ProfileTest(unittest.TestCase):
     """test interactactions between profiles"""

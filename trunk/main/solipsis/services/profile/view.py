@@ -23,6 +23,7 @@ workings of documents"""
 import wx
 import sys
 import os, os.path
+import pickle
 from StringIO import StringIO
 
 
@@ -76,6 +77,8 @@ class AbstractView:
         # custom tab
         self.update_hobbies()
         self.update_custom_attributes()
+        # FILE TAB
+        self.update_blogs()
         # FILE TAB
         self.update_files()
         # OTHERS TAB
@@ -141,6 +144,11 @@ class AbstractView:
 
     def update_custom_attributes(self):
         """custom_attributes"""
+        raise NotImplementedError
+
+    # BLOG TAB
+    def update_blogs(self):
+        """blog"""
         raise NotImplementedError
 
     # FILE TAB
@@ -222,6 +230,11 @@ class PrintView(AbstractView):
     def update_custom_attributes(self):
         """dict custom_attributes"""
         print >> self.output, self.document.get_custom_attributes()
+
+    # BLOG TAB
+    def update_blogs(self):
+        """blog"""
+        print >> self.output, pickle.dumps(self.document.get_blogs())
         
     # FILE TAB
     def update_files(self):
@@ -321,6 +334,11 @@ class GuiView(AbstractView, UIProxyReceiver):
             index = self.frame.custom_tab.custom_list.InsertStringItem(
                 sys.maxint, key)
             self.frame.custom_tab.custom_list.SetStringItem(index, 1, value)
+
+    # BLOG TAB
+    def update_blogs(self):
+        """blog"""
+        self.frame.blog_tab.on_update()
         
     # FILE TAB : frame.file_tab        
     def update_files(self):
@@ -458,6 +476,13 @@ class HtmlView(AbstractView):
         """dict custom_attributes"""
         self.context.addGlobal("attributes",
                                self.document.get_custom_attributes())
+        if self.auto_refresh:
+            self.update_view()
+
+    # BLOG TAB
+    def update_blogs(self):
+        """blog"""
+        self.context.addGlobal("blogs", self.document.get_blogs())
         if self.auto_refresh:
             self.update_view()
         

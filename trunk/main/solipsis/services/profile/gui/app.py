@@ -36,6 +36,7 @@ def run():
     #launch gui
     app.SetTopWindow(profile_frame)
     profile_frame.Show()
+    profile_frame.blog_tab.on_update()
     app.MainLoop()
 
     

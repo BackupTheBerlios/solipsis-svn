@@ -99,6 +99,18 @@ class FacadeTest(unittest.TestCase):
         self.facade.add_custom_attributes(("key", u"value"))
         self.assertEquals("{'key': u'value'}\n", self.result.getvalue())
 
+    # BLOG TAB
+    def test_blog(self):
+        """set message and comments in blog"""
+        self.assertRaises(AssertionError, self.facade.add_blog, "no owner yet")
+        self.facade.change_pseudo(u"manu")
+        self.facade.add_blog("first blog")
+        self.facade.add_blog("second blog")
+        self.facade.add_comment((0, 'first comment'))
+        blog = self.facade.get_blog(0)
+        self.assertEquals(blog.text, "first blog")
+        self.assertEquals(blog.comments[0].text, 'first comment')
+        
     # FILE TAB
     def test_repository(self):
         """sets new value for repository"""

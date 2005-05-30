@@ -160,6 +160,22 @@ class DocumentTest(unittest.TestCase):
                               "homepage")
             document.remove_custom_attributes(u"homepage")
         
+    # BLOG TAB
+    def test_blog(self):
+        """edit blog"""
+        for document in self.documents:
+            self.assertRaises(AssertionError, document.add_blog, "no owner yet")
+            self.assertRaises(AssertionError, document.remove_blog, 0)
+            document.set_pseudo(u'manu')
+            self.assertRaises(AssertionError, document.remove_blog, 0)
+            document.add_blog("first blog")
+            document.add_blog("sec blog")
+            document.add_comment((0, "first comment"))
+            self.assertEquals(document.count_blogs(), 2)
+            self.assertEquals(document.get_blog(1).text,  "sec blog")
+            document.remove_blog(0)
+            self.assertEquals(document.count_blogs(), 1)
+        
     # FILE TAB
     def test_reset_files(self):
         """reset files"""

@@ -93,7 +93,8 @@ class ProfileFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_save, id=self.save_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_load, id=self.load_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_close, id=self.quit_item.GetId())
-        self.Bind(wx.EVT_CLOSE, self.on_close)
+        if not self.standalone:
+            self.Bind(wx.EVT_CLOSE, self.on_close)
         
 #         self.Bind(wx.EVT_MENU, self.on_add, id=self.addpeer_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_get_blog, id=self.getblog_item.GetId())
@@ -161,13 +162,17 @@ class ProfileFrame(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
             self.facade.export_profile(path)
+
+    def Close(self):
+        self.facade.save_profile(os.path.join(PROFILE_DIR, PROFILE_FILE))
+        wx.Frame.Close(self)
         
     def on_close(self, evt):
         """hide  application"""
-        self.facade.save_profile(os.path.join(PROFILE_DIR, PROFILE_FILE))
         if self.standalone:
             self.Close()
         else:
+            self.facade.save_profile(os.path.join(PROFILE_DIR, PROFILE_FILE))
             self.Hide()
 
     def on_make_friend(self, evt):

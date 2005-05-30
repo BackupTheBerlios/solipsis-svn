@@ -6,7 +6,7 @@ import sys
 from os.path import abspath
 from StringIO import StringIO
 from solipsis.services.profile.data import DEFAULT_TAG, \
-     DirContainer, FileContainer
+     DirContainer, FileContainer, Blogs
 
 REPO = u"/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/"
 
@@ -200,6 +200,16 @@ class DataTest(unittest.TestCase):
         self.assertEquals(self.container[REPO + "data/date.txt"]._tag, u"tag1")
         self.assertEquals(self.container[REPO + "data/subdir1"]._tag, u"tag1")
         self.assertRaises(AssertionError, self.container[REPO + "data"].__getitem__, ".path")
+
+    def test_blog(self):
+        blog = Blogs()
+        self.assertRaises(AssertionError, blog.add_blog, "no owner yet", "manu")
+        self.assertRaises(AssertionError, blog.remove_blog, 0, "no owner yet")
+        blog.set_owner('manu')
+        blog.add_blog("first blog", "manu")
+        self.assertRaises(AssertionError, blog.add_blog, "forbidden", 'jules')
+        self.assertEquals(blog.count_blogs(), 1)
+        self.assertEquals(blog.get_blog(0).text, "first blog")
 
 if __name__ == '__main__':
     unittest.main()

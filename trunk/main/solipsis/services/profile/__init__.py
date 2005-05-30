@@ -23,7 +23,9 @@ import os.path
 
 ENCODING = "ISO-8859-1"
 PROFILE_DIR = os.path.join(os.path.expanduser("~/"), ".solipsis/profiles")
-PROFILE_FILE = ".default.prf"
+PROFILE_FILE = ".default"
+PROFILE_EXT = ".prf"
+BLOG_EXT = ".blog"
 
 KNOWN_PORT = 1160
 FREE_PORTS = range(23000, 23999)
