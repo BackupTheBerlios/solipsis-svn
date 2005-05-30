@@ -10,6 +10,9 @@ from ConnectionTypeDialog import ConnectionTypeDialog
 # begin wxGlade: dependencies
 # end wxGlade
 
+COL_PSEUDO = 0
+COL_CONNECTION = 1
+
 class ConnectDialog(wx.Dialog):
     def __init__(self, config_data, *args, **kwds):
         self.config_data = config_data
@@ -17,7 +20,12 @@ class ConnectDialog(wx.Dialog):
         # begin wxGlade: ConnectDialog.__init__
         kwds["style"] = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.THICK_FRAME
         wx.Dialog.__init__(self, *args, **kwds)
+        self.panel_identities = wx.Panel(self, -1)
         self.sizer_5_staticbox = wx.StaticBox(self, -1, _("Connection type"))
+        self.sizer_identities_staticbox = wx.StaticBox(self.panel_identities, -1, _("Identities"))
+        self.list_ctrl_identities = wx.ListCtrl(self.panel_identities, -1, style=wx.LC_REPORT|wx.LC_SINGLE_SEL|wx.SUNKEN_BORDER)
+        self.button_new_identity = wx.Button(self.panel_identities, -1, _("New identity"))
+        self.button_remove_identity = wx.Button(self.panel_identities, -1, _("Remove"))
         self.label_pseudo = wx.StaticText(self, -1, _("Name or pseudo"))
         self.text_ctrl_pseudo = wx.TextCtrl(self, -1, "")
         self.label_conntype = wx.StaticText(self, -1, "")
@@ -28,13 +36,18 @@ class ConnectDialog(wx.Dialog):
         self.__set_properties()
         self.__do_layout()
 
+        self.Bind(wx.EVT_LIST_ITEM_DESELECTED, self.OnDeselectIdentity, self.list_ctrl_identities)
+        self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnSelectIdentity, self.list_ctrl_identities)
+        self.Bind(wx.EVT_BUTTON, self.OnNewIdentity, self.button_new_identity)
+        self.Bind(wx.EVT_BUTTON, self.OnRemoveIdentity, self.button_remove_identity)
         self.Bind(wx.EVT_TEXT, self.OnPseudoChanged, self.text_ctrl_pseudo)
         self.Bind(wx.EVT_BUTTON, self.OnChangeConnType, self.button_change_conntype)
         self.Bind(wx.EVT_BUTTON, self.OnOk, id=wx.ID_OK)
         self.Bind(wx.EVT_BUTTON, self.OnCancel, id=wx.ID_CANCEL)
         # end wxGlade
 
-        self.text_ctrl_pseudo.SetValue(config_data.pseudo)
+        self.list_ctrl_identities.InsertColumn(COL_PSEUDO, _("Pseudo"))
+        self.list_ctrl_identities.InsertColumn(COL_CONNECTION, _("Connection"))
         self._UpdateUI()
 
     def __set_properties(self):
@@ -46,34 +59,54 @@ class ConnectDialog(wx.Dialog):
 
     def __do_layout(self):
         # begin wxGlade: ConnectDialog.__do_layout
-        sizer_3 = wx.BoxSizer(wx.VERTICAL)
+        sizer_3_copy = wx.BoxSizer(wx.VERTICAL)
+        sizer_4_copy = wx.BoxSizer(wx.HORIZONTAL)
         sizer_4 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_connection = wx.BoxSizer(wx.VERTICAL)
         sizer_5 = wx.StaticBoxSizer(self.sizer_5_staticbox, wx.VERTICAL)
-        sizer_3.Add(self.label_pseudo, 0, wx.ALL, 3)
-        sizer_3.Add(self.text_ctrl_pseudo, 0, wx.ALL|wx.EXPAND, 3)
+        sizer_identities = wx.StaticBoxSizer(self.sizer_identities_staticbox, wx.VERTICAL)
+        sizer_3 = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_identities.Add(self.list_ctrl_identities, 1, wx.EXPAND, 0)
+        sizer_3.Add(self.button_new_identity, 0, wx.ALL, 3)
+        sizer_3.Add(self.button_remove_identity, 0, wx.ALL, 3)
+        sizer_identities.Add(sizer_3, 0, wx.EXPAND, 0)
+        self.panel_identities.SetAutoLayout(True)
+        self.panel_identities.SetSizer(sizer_identities)
+        sizer_identities.Fit(self.panel_identities)
+        sizer_identities.SetSizeHints(self.panel_identities)
+        sizer_4.Add(self.panel_identities, 1, wx.EXPAND, 0)
+        sizer_connection.Add(self.label_pseudo, 0, wx.ALL, 3)
+        sizer_connection.Add(self.text_ctrl_pseudo, 0, wx.ALL|wx.EXPAND, 3)
         sizer_5.Add(self.label_conntype, 0, wx.ALL|wx.EXPAND, 3)
         sizer_5.Add(self.button_change_conntype, 0, wx.ALL|wx.ALIGN_RIGHT, 3)
-        sizer_3.Add(sizer_5, 0, wx.ALL|wx.EXPAND, 4)
-        sizer_4.Add(self.button_ok, 0, wx.ALL|wx.ALIGN_BOTTOM, 3)
-        sizer_4.Add(self.button_cancel, 0, wx.ALL|wx.ALIGN_RIGHT|wx.ALIGN_BOTTOM, 3)
-        sizer_3.Add(sizer_4, 1, wx.ALIGN_RIGHT|wx.ALIGN_BOTTOM, 0)
+        sizer_connection.Add(sizer_5, 0, wx.ALL|wx.EXPAND, 4)
+        sizer_4.Add(sizer_connection, 2, wx.EXPAND, 0)
+        sizer_3_copy.Add(sizer_4, 1, wx.EXPAND, 0)
+        sizer_4_copy.Add(self.button_ok, 0, wx.ALL|wx.ALIGN_BOTTOM, 3)
+        sizer_4_copy.Add(self.button_cancel, 0, wx.ALL|wx.ALIGN_RIGHT|wx.ALIGN_BOTTOM, 3)
+        sizer_3_copy.Add(sizer_4_copy, 0, wx.ALL|wx.ALIGN_RIGHT|wx.ALIGN_BOTTOM, 3)
         self.SetAutoLayout(True)
-        self.SetSizer(sizer_3)
-        sizer_3.Fit(self)
-        sizer_3.SetSizeHints(self)
+        self.SetSizer(sizer_3_copy)
+        sizer_3_copy.Fit(self)
+        sizer_3_copy.SetSizeHints(self)
         self.Layout()
         self.Centre()
         # end wxGlade
+
 
     #
     # Event handlers
     #
     def OnPseudoChanged(self, event): # wxGlade: ConnectDialog.<event_handler>
-        self._UpdateUI()
+        self.config_data.pseudo = self.text_ctrl_pseudo.GetValue()
+        self._UpdateIdentities()
+        # We don't call _UpdateUI() from here since it would cause infinite recursion
+        # with TextCtrl change events
 
     def OnChangeConnType(self, event): # wxGlade: ConnectDialog.<event_handler>
         dialog = ConnectionTypeDialog(self.config_data, parent=self) 
         dialog.ShowModal()
+        self._UpdateIdentities()
         self._UpdateUI()
 
     def OnOk(self, event): # wxGlade: ConnectDialog.<event_handler>
@@ -84,6 +117,25 @@ class ConnectDialog(wx.Dialog):
     def OnCancel(self, event): # wxGlade: ConnectDialog.<event_handler>
         self.EndModal(wx.ID_CANCEL)
 
+    def OnNewIdentity(self, event): # wxGlade: ConnectDialog.<event_handler>
+        event.Skip()
+
+    def OnRemoveIdentity(self, event): # wxGlade: ConnectDialog.<event_handler>
+        event.Skip()
+
+    def OnSelectIdentity(self, event): # wxGlade: ConnectDialog.<event_handler>
+        index = event.GetIndex()
+        #~ print "select", index
+        if index != self.config_data.GetCurrentIdentity():
+            self.config_data.LoadIdentity(index)
+            self._UpdateUI()
+        self._UpdateSelectedIdentity()
+
+    def OnDeselectIdentity(self, event): # wxGlade: ConnectDialog.<event_handler>
+        #~ print "deselect", event.GetIndex()
+        pass
+
+
     #
     # Private methods
     #
@@ -93,7 +145,41 @@ class ConnectDialog(wx.Dialog):
     def _Validate(self):
         return self._ValidatePseudo()
 
-    def _UpdateUI(self):
+    def _UpdateSelectedIdentity(self):
+        # Update the selected item in the ListCtrl
+        index = self.config_data.GetCurrentIdentity()
+        if self.list_ctrl_identities.GetSelectedItemCount():
+            old = self.list_ctrl_identities.GetFirstSelected()
+            # Avoid infinite loop in OnSelectIdentity()
+            if old == index:
+                return
+            self.list_ctrl_identities.Select(old, 0)
+        self.list_ctrl_identities.Select(index)
+
+    def _UpdateIdentities(self):
+        # Switch identities panel on/off according to preferences
+        show_identities = self.config_data.multiple_identities
+        self.panel_identities.Show(show=show_identities)
+        if not show_identities:
+            return
+        # Update identities list
+        self.config_data.StoreCurrentIdentity()
+        identities = self.config_data.GetIdentities()
+        self.list_ctrl_identities.DeleteAllItems()
+        for index, identity in enumerate(identities):
+            self.list_ctrl_identities.InsertStringItem(index, identity['pseudo'])
+            if identity['connection_type'] == 'local':
+                connec_string = _("local node")
+            else:
+                connec_string = '<%s:%d>' % (identity['host'], identity['port'])
+            self.list_ctrl_identities.SetStringItem(index, COL_CONNECTION, connec_string)
+        self._UpdateSelectedIdentity()
+
+    def _UpdateUI(self, update_pseudo=True):
+        # Pseudo
+        # this kludge is to avoid infinite recursion in OnPseudoChanged()
+        if update_pseudo:
+            self.text_ctrl_pseudo.SetValue(self.config_data.pseudo)
         # Display proper textual information about connection type
         if self.config_data.connection_type == 'local':
             conntype_text = _("A dedicated Solipsis node will be launched.")
@@ -111,6 +197,7 @@ class ConnectDialog(wx.Dialog):
         self.SetSize(self.GetBestVirtualSize())
     
     def _Apply(self):
-        self.config_data.pseudo = self.text_ctrl_pseudo.GetValue()
+        pass
+
 
 # end of class ConnectDialog

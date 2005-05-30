@@ -35,10 +35,16 @@ class ConfigData(ManagedData):
     This class holds all configuration values that are settable from
     the user interface.
     """
+
+    # These are the configuration variables that can be changed on a per-identity basis
+    identity_vars = [ 'pseudo', 'host', 'port', 'connection_type', 'solipsis_port',
+        #~ 'proxymode_auto', 'proxymode_manual', 'proxymode_none', 'proxy_host', 'proxy_port',
+    ]
+
     def __init__(self, params=None):
         ManagedData.__init__(self)
         # Initialize all values
-        
+
         # 1. Basic connection data
         self.pseudo = params and params.pseudo or u""
         self.host = "localhost"
@@ -50,7 +56,6 @@ class ConfigData(ManagedData):
         self.local_control_port = 0
 
         # 2. HTTP proxy configuration (for XMLRPC)
-        self.always_try_without_proxy = True
         self.proxymode_auto = True
         self.proxymode_manual = False
         self.proxymode_none = False
@@ -58,7 +63,6 @@ class ConfigData(ManagedData):
         self.proxy_pac_url = ""
         self.proxy_host = ""
         self.proxy_port = 0
-        self.proxy_autodetect_done = False
         
         # 3. Other preferences
         self.node_autokill = True
@@ -70,12 +74,83 @@ class ConfigData(ManagedData):
 
         # 5. User-defined bookmarks
         self.bookmarks = BookmarkList()
+        
+        # 99. Identities
+        self.identities = []
+        self.current_identity = -1
+        # Store current identity as default one
+        self.CreateIdentity()
+        self.StoreCurrentIdentity()
+
+    def CreateIdentity(self):
+        """
+        Creates a new identity and returns its index number.
+        """
+        identity = {}
+        for var in self.identity_vars:
+            identity[var] = getattr(self, var)
+        self.identities.append(identity)
+        self.current_identity = len(self.identities) - 1
+        return self.current_identity
+    
+    def StoreCurrentIdentity(self):
+        """
+        Stores current config values in current identity.
+        """
+        identity = self.identities[self.current_identity]
+        for var in self.identity_vars:
+            identity[var] = getattr(self, var)
+    
+    def LoadIdentity(self, index):
+        """
+        Loads another identity into current config values.
+        """
+        self.StoreCurrentIdentity()
+        self.current_identity = index
+        identity = self.identities[self.current_identity]
+        for var in self.identity_vars:
+            setattr(self, var, identity[var])
+
+    def RemoveCurrentIdentity(self):
+        """
+        Remove the current identity.
+        Returns True if succeeded, False otherwise.
+        The only possible cause of failure is if there is only one identity:
+        it is forbidden to empty the identities list.
+        """
+        if len(self.identities) < 2:
+            return False
+        i = self.current_identity
+        del self.identities[i]
+        if i == len(self.identities):
+            self.current_identity -= 1
+        return True
+
+    def GetIdentities(self):
+        """
+        Get a list of all identities as dictionaries containing config values,
+        ordered according to their index number.
+        """
+        l = []
+        for identity in self.identities:
+            d = {}
+            for var in self.identity_vars:
+                d[var] = identity[var]
+            l.append(d)
+        return l
+    
+    def GetCurrentIdentity(self):
+        """
+        Returns the index of the current identity.
+        """
+        return self.current_identity
 
     def Compute(self):
         """
         Compute some "hidden" or temporary configuration values 
         (e.g. HTTP proxy auto-configuration URL).
         """
+        self.StoreCurrentIdentity()
         self.proxy_mode = self.proxymode_auto and "auto" or (
             self.proxymode_manual and "manual" or "none")
         if self.connection_type == "local":
@@ -118,11 +193,15 @@ class ConfigData(ManagedData):
         """
         d = pickle.load(infile)
         self.UpdateDict(d)
+        self.StoreCurrentIdentity()
     
     def Save(self, outfile):
         """
         Store configuration in a writable file object.
         """
+        self.StoreCurrentIdentity()
+        #~ if len(self.identities) == 1:
+            #~ self.CreateIdentity()
         d = self.GetDict()
         # Python < 2.4 compatibility: documentation for the cPickle module is partly wrong
         #~ pickle.dump(d, outfile, protocol=-1)

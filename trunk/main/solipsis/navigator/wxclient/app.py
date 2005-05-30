@@ -457,6 +457,17 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         elif changed and not id_:
             self.statusbar.Reset()
 
+    def _SaveConfig(self):
+        """
+        Save current configuration to the user's config file.
+        """
+        try:
+            f = file(self.config_file, "wb")
+            self.config_data.Save(f)
+            f.close()
+        except IOError, e:
+            print "Failed to saved config:", str(e)
+
 
     #===-----------------------------------------------------------------===#
     # Event handlers for the main window
@@ -556,13 +567,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         Called on quit event (menu -> File -> Quit, window close box).
         """
         self.alive = False
-        # Save current configuration
-        try:
-            f = file(self.config_file, "wb")
-            self.config_data.Save(f)
-            f.close()
-        except IOError, e:
-            print str(e)
+        self._SaveConfig()
         # Kill progress window
         self._DestroyProgress()
         # Kill the node if necessary
