@@ -58,8 +58,8 @@ class ConnectDialog(wx.Dialog):
         self.button_ok.SetDefault()
         # end wxGlade
         
-        # So that self.GetBestVirtualSize() works properly when identities are disabled
-        self.panel_identities.Show(show=False)
+        # We do this early so that self.GetBestVirtualSize() works properly
+        self.panel_identities.Show(show=self.config_data.multiple_identities)
 
     def __do_layout(self):
         # begin wxGlade: ConnectDialog.__do_layout
@@ -201,6 +201,7 @@ class ConnectDialog(wx.Dialog):
             self.button_ok.Disable()
         # Adapt dialog size
         self.Layout()
+        self.SetSizeHintsSz(self.GetBestSize())
         self.SetSize(self.GetBestVirtualSize())
     
     def _Apply(self):
