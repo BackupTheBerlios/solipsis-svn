@@ -4,6 +4,7 @@
 import wx
 from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxyReceiver
+from solipsis.services.profile.facade import get_facade
 
 # begin wxGlade: dependencies
 # end wxGlade
@@ -39,7 +40,8 @@ class PeerHtmlListBox(wx.HtmlListBox):
         if self.blog:
             selected = self.GetSelection()
             if selected != wx.NOT_FOUND:
-                self.blog.add_comment((selected, text))
+                pseudo = get_facade().documents['cache'].get_pseudo()
+                self.blog.get_blog(selected).add_comment(text, pseudo)
                 self.refresh()
             else:
                 print "none selected"
@@ -60,11 +62,12 @@ class BlogDialog(wx.Dialog, UIProxyReceiver):
         # begin wxGlade: BlogDialog.__init__
         kwds["style"] = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.THICK_FRAME
         wx.Dialog.__init__(self, *args, **kwds)
-        self.sizer_6_staticbox = wx.StaticBox(self, -1, _("Actions"))
-        self.bitmap_button_2 = wx.BitmapButton(self, -1, wx.Bitmap("/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/edit_file.gif", wx.BITMAP_TYPE_ANY))
-        self.bitmap_button_3 = wx.BitmapButton(self, -1, wx.Bitmap("/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/delete_file.gif", wx.BITMAP_TYPE_ANY))
-        self.bitmap_button_4 = wx.BitmapButton(self, -1, wx.Bitmap("/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/add_file.gif", wx.BITMAP_TYPE_ANY))
-        self.window_2 = PeerHtmlListBox(self, -1)
+        self.peerblog_actions_staticbox = wx.StaticBox(self, -1, _("Actions"))
+        self.add_comment_button = wx.BitmapButton(self, -1, wx.Bitmap("/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/edit_file.gif", wx.BITMAP_TYPE_ANY))
+        self.del_comment_button = wx.BitmapButton(self, -1, wx.Bitmap("/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/delete_file.gif", wx.BITMAP_TYPE_ANY))
+        self.upload_button = wx.BitmapButton(self, -1, wx.Bitmap("/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/add_file.gif", wx.BITMAP_TYPE_ANY))
+        self.peerblog_text = wx.TextCtrl(self, -1, "", style=wx.TE_PROCESS_ENTER|wx.TE_MULTILINE|wx.TE_RICH2|wx.TE_LINEWRAP)
+        self.peerblog_list = PeerHtmlListBox(self, -1)
 
         self.__set_properties()
         self.__do_layout()
@@ -75,20 +78,22 @@ class BlogDialog(wx.Dialog, UIProxyReceiver):
 
     def Show(self, blog, do_show=True):
         """overrides Show"""
-        self.window_2.blog = blog
+        self.peerblog_list.blog = blog
         wx.Dialog.Show(self, do_show)
-        self.window_2.refresh()
+        self.peerblog_list.refresh()
         
     # EVENTS
     
     def bind_controls(self):
         """bind all controls with facade"""
-        pass
+        self.add_comment_button.Bind(wx.EVT_BUTTON, self.add_comment)
+        self.del_comment_button.Bind(wx.EVT_BUTTON, self.remove_comment)
+        self.upload_button.Bind(wx.EVT_BUTTON, self.upload_change)
         
-    def add_blog(self, evt):
-        pass
+    def add_comment(self, evt):
+        self.peerblog_list.add_comment(self.peerblog_text.GetValue())
 
-    def remove_blog(self, evt):
+    def remove_comment(self, evt):
         pass
         
     def upload_change(self, evt):
@@ -98,22 +103,25 @@ class BlogDialog(wx.Dialog, UIProxyReceiver):
         # begin wxGlade: BlogDialog.__set_properties
         self.SetTitle(_("Peer's Blog"))
         self.SetSize((460, 410))
-        self.bitmap_button_2.SetSize(self.bitmap_button_2.GetBestSize())
-        self.bitmap_button_3.SetSize(self.bitmap_button_3.GetBestSize())
-        self.bitmap_button_4.SetSize(self.bitmap_button_4.GetBestSize())
+        self.add_comment_button.SetSize(self.add_comment_button.GetBestSize())
+        self.del_comment_button.SetSize(self.del_comment_button.GetBestSize())
+        self.upload_button.SetSize(self.upload_button.GetBestSize())
         # end wxGlade
+        self.del_comment_button.Enable(False)
+        self.upload_button.Enable(False)
 
     def __do_layout(self):
         # begin wxGlade: BlogDialog.__do_layout
-        sizer_5 = wx.BoxSizer(wx.VERTICAL)
-        sizer_6 = wx.StaticBoxSizer(self.sizer_6_staticbox, wx.HORIZONTAL)
-        sizer_6.Add(self.bitmap_button_2, 0, wx.FIXED_MINSIZE, 0)
-        sizer_6.Add(self.bitmap_button_3, 0, wx.FIXED_MINSIZE, 0)
-        sizer_6.Add(self.bitmap_button_4, 0, wx.FIXED_MINSIZE, 0)
-        sizer_5.Add(sizer_6, 0, 0, 0)
-        sizer_5.Add(self.window_2, 1, wx.EXPAND, 0)
+        peerblog_sizer = wx.BoxSizer(wx.VERTICAL)
+        peerblog_actions = wx.StaticBoxSizer(self.peerblog_actions_staticbox, wx.HORIZONTAL)
+        peerblog_actions.Add(self.add_comment_button, 0, wx.FIXED_MINSIZE, 0)
+        peerblog_actions.Add(self.del_comment_button, 0, wx.FIXED_MINSIZE, 0)
+        peerblog_actions.Add(self.upload_button, 0, wx.FIXED_MINSIZE, 0)
+        peerblog_sizer.Add(peerblog_actions, 0, 0, 0)
+        peerblog_sizer.Add(self.peerblog_text, 1, wx.EXPAND|wx.FIXED_MINSIZE, 0)
+        peerblog_sizer.Add(self.peerblog_list, 5, wx.EXPAND, 0)
         self.SetAutoLayout(True)
-        self.SetSizer(sizer_5)
+        self.SetSizer(peerblog_sizer)
         self.Layout()
         # end wxGlade
 
