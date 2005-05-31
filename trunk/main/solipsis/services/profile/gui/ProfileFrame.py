@@ -6,6 +6,7 @@ from solipsis.util.wxutils import _
 from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile.document import FileDocument, PeerDescriptor
 from solipsis.services.profile import PROFILE_DIR, PROFILE_FILE
+from solipsis.util.uiproxy import UIProxy
 
 # begin wxGlade: dependencies
 from FilePanel import FilePanel
@@ -15,10 +16,11 @@ from BlogPanel import BlogPanel
 from PreviewPanel import PreviewPanel
 from CustomPanel import CustomPanel
 # end wxGlade
+from BlogDialog import BlogDialog
 
 class ProfileFrame(wx.Frame):
-    def __init__(self, standalone, *args, **kwds):
-        # FIXME XXX remove following line concerning kwds["style"]
+    def __init__(self, standalone, parent, id, title, **kwds):
+        args = (parent, id, title)
         # begin wxGlade: ProfileFrame.__init__
         kwds["style"] = wx.DEFAULT_FRAME_STYLE
         wx.Frame.__init__(self, *args, **kwds)
@@ -82,6 +84,7 @@ class ProfileFrame(wx.Frame):
         # quite different initialisation according to launched by navigator or not
         self.standalone = standalone
         self.facade = get_facade()
+        self.peer_dlg = UIProxy(BlogDialog(parent, -1))
         self.bind_controls()
 
     # EVENTS
@@ -203,14 +206,10 @@ class ProfileFrame(wx.Frame):
 
     def display_blog(self, peer_id, blog):
         """display blog in dedicated window"""
-        print '*******'
         # blog dialog
-        blog_dlg = BlogDialog(self, -1)
-        blog_dlg.SetTitle("%s's %s"% (peer_id, _("Blog")))
-        # FIXME: muy muy dirty... create interface for blog content
-        blog_dlg.blog_panel.blog_list.facade = blog
+        self.peer_dlg.SetTitle("%s's %s"% (peer_id, _("Blog")))
         # display
-        blog_dlg.Show()
+        self.peer_dlg.Show(blog)
 
     def on_get_files(self, evt):
         """display peer's files"""

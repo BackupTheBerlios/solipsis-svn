@@ -38,8 +38,7 @@ except ImportError:
     from simpletal import simpleTAL, simpleTALES
     sys.path.remove(_simpletal_path)
 from solipsis.services.profile import ENCODING
-
-from solipsis.util.uiproxy import UIProxyReceiver, UIProxy
+from solipsis.util.uiproxy import UIProxy
 
 
 class AbstractView:
@@ -255,7 +254,7 @@ class PrintView(AbstractView):
         print >> self.output, self.document.get_peers()
         
 
-class GuiView(AbstractView, UIProxyReceiver):
+class GuiView(AbstractView):
     """synthetises information and renders it in HTML"""
 
     def __init__(self, document, frame, do_import=True, name="gui"):
@@ -263,7 +262,6 @@ class GuiView(AbstractView, UIProxyReceiver):
         self.frame = frame
         # init view
         AbstractView.__init__(self, document, do_import, name)
-        UIProxyReceiver.__init__(self)
 
     # PERSONAL TAB: frame.personal_tab
     def update_title(self):

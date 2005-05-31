@@ -98,7 +98,8 @@ class Plugin(ServicePlugin):
         file_doc.load(os.path.join(PROFILE_DIR, PROFILE_FILE))
         cache_doc = CacheDocument()
         cache_doc.import_document(file_doc)
-        gui_view = UIProxy(GuiView(cache_doc, self.profile_frame))
+#         gui_view = UIProxy(GuiView(cache_doc, self.profile_frame))
+        gui_view = GuiView(cache_doc, self.profile_frame)
         html_view = HtmlView(cache_doc,
                              self.profile_frame.preview_tab.html_preview,
                              True)
@@ -129,6 +130,7 @@ class Plugin(ServicePlugin):
     def show_profile(self):
         if self.profile_frame:
             self.profile_frame.Show()
+            self.profile_frame.blog_tab.on_update()
 
     def _on_new_profile(self, document):
         """store and display file object corresponding to profile"""

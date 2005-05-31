@@ -148,7 +148,6 @@ class NetworkManager:
     def on_new_peer(self, peer, service):
         """tries to connect to new peer"""
         # parse address, 
-        print "** Received address (%s): %s" % (peer.pseudo, service.address)
         ip, port = parse_address(service.address)
         # set up information in cache
         self._init_peer(peer.id_, ip)
