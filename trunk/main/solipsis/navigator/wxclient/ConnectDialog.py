@@ -48,6 +48,7 @@ class ConnectDialog(wx.Dialog):
 
         self.list_ctrl_identities.InsertColumn(COL_PSEUDO, _("Pseudo"))
         self.list_ctrl_identities.InsertColumn(COL_CONNECTION, _("Connection"))
+        self._UpdateIdentities()
         self._UpdateUI()
 
     def __set_properties(self):
@@ -56,6 +57,9 @@ class ConnectDialog(wx.Dialog):
         self.text_ctrl_pseudo.SetFocus()
         self.button_ok.SetDefault()
         # end wxGlade
+        
+        # So that self.GetBestVirtualSize() works properly when identities are disabled
+        self.panel_identities.Show(show=False)
 
     def __do_layout(self):
         # begin wxGlade: ConnectDialog.__do_layout
@@ -118,10 +122,15 @@ class ConnectDialog(wx.Dialog):
         self.EndModal(wx.ID_CANCEL)
 
     def OnNewIdentity(self, event): # wxGlade: ConnectDialog.<event_handler>
-        event.Skip()
+        index = self.config_data.CreateIdentity()
+        self.config_data.LoadIdentity(index)
+        self._UpdateIdentities()
+        self._UpdateUI()
 
     def OnRemoveIdentity(self, event): # wxGlade: ConnectDialog.<event_handler>
-        event.Skip()
+        if self.config_data.RemoveCurrentIdentity():
+            self._UpdateIdentities()
+            self._UpdateUI()
 
     def OnSelectIdentity(self, event): # wxGlade: ConnectDialog.<event_handler>
         index = event.GetIndex()
@@ -175,11 +184,9 @@ class ConnectDialog(wx.Dialog):
             self.list_ctrl_identities.SetStringItem(index, COL_CONNECTION, connec_string)
         self._UpdateSelectedIdentity()
 
-    def _UpdateUI(self, update_pseudo=True):
+    def _UpdateUI(self):
         # Pseudo
-        # this kludge is to avoid infinite recursion in OnPseudoChanged()
-        if update_pseudo:
-            self.text_ctrl_pseudo.SetValue(self.config_data.pseudo)
+        self.text_ctrl_pseudo.SetValue(self.config_data.pseudo)
         # Display proper textual information about connection type
         if self.config_data.connection_type == 'local':
             conntype_text = _("A dedicated Solipsis node will be launched.")

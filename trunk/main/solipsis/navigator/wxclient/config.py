@@ -120,10 +120,13 @@ class ConfigData(ManagedData):
         """
         if len(self.identities) < 2:
             return False
-        i = self.current_identity
-        del self.identities[i]
-        if i == len(self.identities):
+        del self.identities[self.current_identity]
+        if self.current_identity == len(self.identities):
             self.current_identity -= 1
+        # Update config values for current identity
+        identity = self.identities[self.current_identity]
+        for var in self.identity_vars:
+            setattr(self, var, identity[var])
         return True
 
     def GetIdentities(self):
