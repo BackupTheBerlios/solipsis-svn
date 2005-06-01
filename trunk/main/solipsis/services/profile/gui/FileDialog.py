@@ -31,7 +31,7 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
 
     def Show(self, files, do_show=True):
         """overrides Show, files is {repos: {names:tags}, }"""
-#        self.peerfiles_list.ClearAll()
+        self.peerfiles_list.DeleteAllItems()
         if len(files) > 0:
             # reformat data
             file_data = []
