@@ -17,6 +17,7 @@ from PreviewPanel import PreviewPanel
 from CustomPanel import CustomPanel
 # end wxGlade
 from BlogDialog import BlogDialog
+from FileDialog import FileDialog
 
 class ProfileFrame(wx.Frame):
     def __init__(self, standalone, parent, id, title, **kwds):
@@ -85,6 +86,7 @@ class ProfileFrame(wx.Frame):
         self.standalone = standalone
         self.facade = get_facade()
         self.peer_dlg = UIProxy(BlogDialog(parent, -1))
+        self.file_dlg = UIProxy(FileDialog(parent, -1))
         self.bind_controls()
 
     # EVENTS
@@ -96,8 +98,7 @@ class ProfileFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_save, id=self.save_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_load, id=self.load_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_close, id=self.quit_item.GetId())
-        if not self.standalone:
-            self.Bind(wx.EVT_CLOSE, self.on_close)
+        self.Bind(wx.EVT_CLOSE, self.on_close)
         
 #         self.Bind(wx.EVT_MENU, self.on_add, id=self.addpeer_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_get_blog, id=self.getblog_item.GetId())
@@ -165,18 +166,20 @@ class ProfileFrame(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
             self.facade.export_profile(path)
-
-    def Close(self):
-        self.facade.save_profile(os.path.join(PROFILE_DIR, PROFILE_FILE))
-        wx.Frame.Close(self)
         
     def on_close(self, evt):
         """hide  application"""
+        self.facade.save_profile(os.path.join(PROFILE_DIR, PROFILE_FILE))
         if self.standalone:
-            self.Close()
+            self._close()
         else:
-            self.facade.save_profile(os.path.join(PROFILE_DIR, PROFILE_FILE))
             self.Hide()
+
+    def _close(self):
+        """termainate application"""
+        self.peer_dlg.Destroy()
+        self.file_dlg.Destroy()
+        self.Destroy()
 
     def on_make_friend(self, evt):
         """end application"""
@@ -200,9 +203,11 @@ class ProfileFrame(wx.Frame):
         """display peer's blog"""
         pseudo = self.other_tab.get_peer_selected()
         if pseudo:
+            print "not implemented yet"
             # get blog matching peer
-            blog = self.facade.get_blog(pseudo)
-            # display it in BlogDialog
+            #plugin.get_blog_file(pseudo)
+        else:
+            "no peer selected"
 
     def display_blog(self, peer_id, blog):
         """display blog in dedicated window"""
@@ -215,9 +220,18 @@ class ProfileFrame(wx.Frame):
         """display peer's files"""
         pseudo = self.other_tab.get_peer_selected()
         if pseudo:
+            print "not implemented yet"
             # get files matching peer
-            files = self.facade.get_files(pseudo)
-            # display it in FilesDialog
+            #plugin.get_files(pseudo)
+        else:
+            "no peer selected"
+
+    def display_files(self, peer_id, files):
+        """display blog in dedicated window"""
+        # file dialog
+        self.file_dlg.SetTitle("%s's %s"% (peer_id, _("Files")))
+        # display files {repos: {names:tags}, }
+        self.file_dlg.Show(files)
 
     def set_refresh(self, evt):
         """refresh HTML preview"""

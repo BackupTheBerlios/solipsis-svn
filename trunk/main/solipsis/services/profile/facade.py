@@ -140,10 +140,12 @@ class Facade:
         else:
             return StringIO(pickle.dumps(self.documents.values()[0].get_blogs()))
 
-    def get_files(self, peer_id=None):
+    def get_shared_files(self):
         """return a file object like on blog"""
-        # TODO
-        pass
+        if "cache" in self.documents:
+            return StringIO(pickle.dumps(self.documents["cache"].get_shared_files()))
+        else:
+            return StringIO(pickle.dumps(self.documents.values()[0].get_shared_files()))
     
     # PERSONAL TAB
     def change_title(self, value):
@@ -384,13 +386,16 @@ class Facade:
     def fill_blog(self, (peer_id, blog)):
         """sets peer as friend """
         if 'cache' in self.documents:
-            print "*", blog
             self.documents["cache"].fill_blog(peer_id, blog)
         if 'gui' in self.views:
-            print "***", blog
             self.views["gui"].display_blog(peer_id, blog)
-        else:
-            print "??"
+    
+    def fill_shared_files(self, (peer_id, files)):
+        """sets peer as friend """
+        if 'cache' in self.documents:
+            self.documents["cache"].fill_shared_files(peer_id, files)
+        if 'gui' in self.views:
+            self.views["gui"].display_files(peer_id, files)
 
     def make_friend(self, value):
         """sets peer as friend """

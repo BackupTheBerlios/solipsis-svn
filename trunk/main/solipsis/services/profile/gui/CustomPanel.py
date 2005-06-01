@@ -85,6 +85,9 @@ class CustomPanel(wx.Panel):
         # update cache
         self.facade.add_custom_attributes((self.key_value.GetValue(),
                                            self.custom_value.GetValue()))
+        # resize columns
+        self.custom_list.SetColumnWidth(0, wx.LIST_AUTOSIZE)
+        self.custom_list.SetColumnWidth(1, wx.LIST_AUTOSIZE)
 
     def on_del(self, evt):
         """a custom attribute has been modified"""

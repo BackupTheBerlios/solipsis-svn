@@ -140,6 +140,10 @@ class Plugin(ServicePlugin):
     def _on_new_blog(self, blog):
         """store and display file object corresponding to blog"""
         self.facade.fill_blog((blog.owner, blog))
+    
+    def _on_shared_files(self, files):
+        """store and display file object corresponding to blog"""
+        self.facade.fill_shared_files((files.owner, files))
 
     def get_profile(self, peer_id):
         self.network.get_profile(peer_id, self._on_new_profile)
@@ -148,12 +152,10 @@ class Plugin(ServicePlugin):
         self.network.get_blog_file(peer_id, self._on_new_blog)
 
     def get_files(self, peer_id, file_names):
-        self.network.get_file(peer_id, file_names)
+        self.network.get_files(peer_id, file_names)
 
     def select_files(self, peer_id):
-        # get profile
-        # display dialog to select files
-        pass
+        self.network.get_shared_files(peer_id, self._on_shared_files)
 
     # Service description methods
     def GetTitle(self):
@@ -186,7 +188,7 @@ class Plugin(ServicePlugin):
     # UI event responses
     def DoAction(self, it):
         """Called when the general action is invoked, if available."""
-        raise NotImplementedError
+        self.show_profile()
 
     def DoPointToPointAction(self, it, peer):
         """Called when a point-to-point action is invoked, if available."""

@@ -32,7 +32,7 @@ from solipsis.services.profile.data import DirContainer
 from solipsis.services.profile import ENCODING, \
      PROFILE_DIR, PROFILE_FILE, PROFILE_EXT, BLOG_EXT
 from solipsis.services.profile.images import DEFAULT_PIC
-from solipsis.services.profile.data import DEFAULT_TAG, Blogs
+from solipsis.services.profile.data import DEFAULT_TAG, Blogs, SharedFiles
 
 DATE_FORMAT = "%d/%m/%Y"
 SECTION_PERSONAL = "Personal"
@@ -72,6 +72,7 @@ class PeerDescriptor:
         self.state = state
         self.connected = connected
         self.blog = None
+        self.shared_files = None
 
     def __repr__(self):
         return "%s (%s)"% (self.pseudo, self.state)
@@ -83,6 +84,10 @@ class PeerDescriptor:
     def set_blog(self, blog):
         """blog is instance Blogs"""
         self.blog = blog
+
+    def set_shared_files(self, files):
+        """blog is instance Blogs"""
+        self.shared_files = files
         
     def html(self):
         """render peer in HTML"""
@@ -444,6 +449,14 @@ class AbstractDocument:
     def get_repositories(self):
         """returns value of files"""
         raise NotImplementedError
+
+    def get_shared_files(self):
+        """return object listing all shared files"""
+        shared = SharedFiles()
+        for repository in self.get_repositories():
+            shared[repository] =  self.get_shared(repository)
+        shared.set_owner(self.get_pseudo())
+        return shared
         
     def get_shared(self, repo_path):
         """returns list of all dirs"""
@@ -676,12 +689,6 @@ class CacheDocument(AbstractDocument):
         """returns value of custom_attributes"""
         return self.custom_attributes
 
-    # BLOG TAB
-    def fill_blog(self, peer_id, blog):
-        """connect blog with profile"""
-        peer = self.peers[peer_id][0]
-        peer.set_blog(blog)
-        
     # FILE TAB
     def reset_files(self):
         """empty all information concerning files"""
@@ -809,6 +816,16 @@ class CacheDocument(AbstractDocument):
             self.add_peer(pseudo)
         self.peers[pseudo][1] = document
     
+    def fill_blog(self, peer_id, blog):
+        """connect blog with profile"""
+        peer = self.peers[peer_id][0]
+        peer.set_blog(blog)
+
+    def fill_shared_files(self, peer_id, files):
+        """connect blog with profile"""
+        peer = self.peers[peer_id][0]
+        peer.set_shared_files(files)
+
     def make_friend(self, pseudo):
         """sets peer as friend """
         AbstractDocument.make_friend(self, pseudo)
@@ -1284,7 +1301,7 @@ class FileDocument(AbstractDocument):
                                                    option_tag)
                     break
         return containers
-    
+
     def get_shared(self, repo_path):
         """returns  {root: tag}"""
         result = {}

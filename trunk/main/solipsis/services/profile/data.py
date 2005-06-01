@@ -33,6 +33,14 @@ def assert_dir(path):
     """raise ValueError if not a file"""
     assert os.path.isdir(path), "[%s] not a valid directory"% path
 
+class SharedFiles(dict):
+
+    def __init__(self):
+        self.owner = None
+
+    def set_owner(self, owner):
+        self.owner = owner
+        
 class Blogs:
     """container for all blogs, responsible for authentification"""
 

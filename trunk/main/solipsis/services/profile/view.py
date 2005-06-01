@@ -159,6 +159,10 @@ class AbstractView:
         """file"""
         raise NotImplementedError
 
+    def display_files(self, peer_id, files):
+        """display shared files"""
+        raise NotImplementedError
+
     # OTHERS TAB
     def update_peers(self):
         """peer"""
@@ -242,6 +246,10 @@ class PrintView(AbstractView):
     def display_blog(self, peer_id, blog):
         """display blog"""
         print >> self.output, "%s: %s"% (peer_id, blog)
+
+    def display_files(self, peer_id, files):
+        """display shared files"""
+        print >> self.output, "%s: %s"% (peer_id, files)
         
     # FILE TAB
     def update_files(self):
@@ -355,6 +363,10 @@ class GuiView(AbstractView):
         """file"""
         for sharing_container in self.document.get_files().values():
             self.frame.file_tab.cb_update_tree(sharing_container)
+
+    def display_files(self, peer_id, files):
+        """display shared files"""
+        self.frame.display_files(peer_id, files)
         
     # OTHERS TAB : frame.other_tab  
     def update_peers(self):

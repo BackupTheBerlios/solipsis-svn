@@ -62,9 +62,9 @@ class FilePanel(wx.Panel):
         self.dir_list.InsertColumn(0, _("Name"))
         self.dir_list.InsertColumn(TAG_COL, _("Tag"))
         self.dir_list.InsertColumn(IS_SHARED_COL, _("Shared"), wx.LIST_FORMAT_RIGHT)
-        self.dir_list.SetColumnWidth(0, 150)
-        self.dir_list.SetColumnWidth(TAG_COL, 80)
-        self.dir_list.SetColumnWidth(IS_SHARED_COL, 50)
+        self.dir_list.SetColumnWidth(0, wx.LIST_AUTOSIZE_USEHEADER)
+        self.dir_list.SetColumnWidth(TAG_COL, wx.LIST_AUTOSIZE_USEHEADER)
+        self.dir_list.SetColumnWidth(IS_SHARED_COL, wx.LIST_AUTOSIZE_USEHEADER)
 
         # specific stuff
         self.facade = get_facade()
@@ -78,7 +78,7 @@ class FilePanel(wx.Panel):
         self.tree_list.AddColumn(_("#shared"))
         self.tree_list.AddColumn(_("full path"))
         self.tree_list.SetMainColumn(0)
-        self.tree_list.SetColumnWidth(0, 300)
+        self.tree_list.SetColumnWidth(0, 150)
         self.tree_list.SetColumnWidth(NB_SHARED_COL, 40)
         self.root = self.tree_list.AddRoot(_("File System..."))
 
@@ -99,7 +99,6 @@ class FilePanel(wx.Panel):
     def on_browse(self, evt):
         """add shared directory to list"""
         # pop up to choose repository
-
         dlg = wx.DirDialog(self, message=_("Choose your repository"),
                            defaultPath = os.path.expanduser("~/"),
                            style=wx.DD_DEFAULT_STYLE|wx.DD_NEW_DIR_BUTTON)
@@ -174,6 +173,9 @@ class FilePanel(wx.Panel):
                 index = self.dir_list.InsertImageStringItem(sys.maxint, name, self.dir_fileidx)
                 self.dir_list.SetStringItem(index, 1, container._tag)
                 self.dir_list.SetStringItem(index, 2, str(container._shared))
+        self.dir_list.SetColumnWidth(0, wx.LIST_AUTOSIZE)
+        self.dir_list.SetColumnWidth(TAG_COL, wx.LIST_AUTOSIZE)
+        self.dir_list.SetColumnWidth(IS_SHARED_COL, wx.LIST_AUTOSIZE)
 
     def cb_update_tree(self, containers):
         """synchronize tree list with sharing container"""
