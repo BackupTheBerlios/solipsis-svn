@@ -77,9 +77,9 @@
   <h2 class="header">Known Neighbors</h2>
   <table>
     <tr tal:repeat="info ordered_peers">
-      <td tal:content="python:info[0]">pseudo</td>
-      <td tal:content="python:info[1][1] and info[1][1].get_id() or 'NA'">name</td>
-      <td tal:content="python:info[1][0] and info[1][0].state or '--'">state</td>
+      <td tal:content="python:info.state">state</td>
+      <td tal:content="python:info.document and info.document.get_pseudo() or '--'">pseudo</td>
+      <td tal:content="python:info.peer_id">node</td>
     </tr>
   </table>
 </body>

@@ -4,9 +4,9 @@ independant from views"""
 
 import unittest
 from os.path import abspath
-from solipsis.services.profile.document import PeerDescriptor, \
+from solipsis.services.profile.document import \
       AbstractDocument, CacheDocument, FileDocument
-from solipsis.services.profile.data import DEFAULT_TAG
+from solipsis.services.profile.data import DEFAULT_TAG, PeerDescriptor
 
 REPO = u"/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests"
 
@@ -160,22 +160,6 @@ class DocumentTest(unittest.TestCase):
                               "homepage")
             document.remove_custom_attributes(u"homepage")
         
-    # BLOG TAB
-    def test_blog(self):
-        """edit blog"""
-        for document in self.documents:
-            self.assertRaises(AssertionError, document.add_blog, "no owner yet")
-            self.assertRaises(AssertionError, document.remove_blog, 0)
-            document.set_pseudo(u'manu')
-            self.assertRaises(AssertionError, document.remove_blog, 0)
-            document.add_blog("first blog")
-            document.add_blog("sec blog")
-            document.add_comment((0, "first comment"))
-            self.assertEquals(document.count_blogs(), 2)
-            self.assertEquals(document.get_blog(1).text,  "sec blog")
-            document.remove_blog(0)
-            self.assertEquals(document.count_blogs(), 1)
-        
     # FILE TAB
     def test_reset_files(self):
         """reset files"""
@@ -300,64 +284,69 @@ class DocumentTest(unittest.TestCase):
             
     # OTHERS TAB
     def test_reset_peers(self):
-        """reset files"""
+        """reset peers"""
+        self.assertRaises(NotImplementedError, self.abstract_doc.get_peers)
+        self.assertRaises(NotImplementedError, self.abstract_doc.reset_peers)
         for document in self.documents:
             document.add_peer(u"nico")
-            self.assert_(document.get_peers().has_key(u"nico"))
+            self.assertEquals(document.has_peer(u"nico"), True)
             document.reset_peers()
+            self.assertEquals(document.has_peer(u"nico"), False)
             self.assertEquals(document.get_peers(), {})
             
     def test_adding_peer(self):
-        self.assertRaises(NotImplementedError, self.abstract_doc.get_peers)
-        """pseudo as unicode"""
+        self.assertRaises(NotImplementedError, self.abstract_doc.add_peer, "nico")
+        """add peer"""
         for document in self.documents:
-            self.assertRaises(TypeError, document.add_peer, "nico")
-            self.assertRaises(TypeError, document.add_peer, [u"nico", ])
+            self.assertEquals(document.has_peer(u"nico"), False)
             document.add_peer(u"nico")
+            self.assert_(document.has_peer(u"nico"))
+            
+    def test_getting_peer(self):
+        """get peer"""
+        self.assertRaises(NotImplementedError, self.abstract_doc.get_peer, "nico")
+        for document in self.documents:
+            document.add_peer(u"nico")
+            peer_desc = document.get_peer(u"nico")
+            self.assertEquals(peer_desc.peer_id, u"nico")
             
     def test_removing_peer(self):
-        """pseudo as unicode"""
+        """remove peer"""
+        self.assertRaises(NotImplementedError, self.abstract_doc.remove_peer, "nico")
         for document in self.documents:
-            self.assertRaises(TypeError, document.remove_peer, "nico")
-            self.assertRaises(TypeError, document.remove_peer, [u"nico", ])
+            document.add_peer(u"nico")
+            self.assertEquals(document.has_peer(u"nico"), True)
             document.remove_peer(u"nico")
+            self.assertEquals(document.has_peer(u"nico"), False)
         
     def test_filling_data(self):
-        """data as (pseudo, document)"""
+        """fill data"""
         for document in self.documents:
-            self.assertRaises(TypeError, document.fill_data,
-                              "pseudo: doc")
-            self.assertRaises(TypeError, document.fill_data,
-                              ("pseudo", ))
-            self.assertRaises(TypeError, document.fill_data,
-                              ("pseudo", "doc"))
             self.assertRaises(TypeError, document.fill_data,
                               (u"pseudo", u"tag description"))
-            self.assertRaises(TypeError, document.fill_data,
-                              ("pseudo", AbstractDocument()))
-            document.fill_data((u"emb", AbstractDocument()))
-            document.fill_data((u"emb", FileDocument()))
+            self.assertEquals(document.has_peer(u"emb"), False)
+            abstract_doc = AbstractDocument()
+            document.fill_data((u"emb", abstract_doc))
+            self.assertEquals(document.has_peer(u"emb"), True)
             document.fill_data((u"emb", CacheDocument()))
+            document.fill_data((u"emb", FileDocument()))
+            self.assert_(document.get_peer(u"emb").document)
     
     def test_peers_status(self):
-        """action changes to accurate state"""
+        """change status"""
         for document in self.documents:
             # friend
-            self.assertRaises(TypeError, document.make_friend, "pseudo")
             document.make_friend(u"nico")
             self.assertEquals(PeerDescriptor.FRIEND,
-                              document.get_peers()[u"nico"][0].state)
-
+                              document.get_peer(u"nico").state)
             # blacklist
-            self.assertRaises(TypeError, document.blacklist_peer, "pseudo")
             document.blacklist_peer(u"nico")
             self.assertEquals(PeerDescriptor.BLACKLISTED,
-                              document.get_peers()[u"nico"][0].state)
+                              document.get_peer(u"nico").state)
             # anonmyous
-            self.assertRaises(TypeError, document.unmark_peer, "pseudo")
             document.unmark_peer(u"nico")
             self.assertEquals(PeerDescriptor.ANONYMOUS,
-                              document.get_peers()[u"nico"][0].state)
+                              document.get_peer(u"nico").state)
 
 if __name__ == '__main__':
     unittest.main()

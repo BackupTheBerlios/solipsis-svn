@@ -77,8 +77,6 @@ class AbstractView:
         self.update_hobbies()
         self.update_custom_attributes()
         # FILE TAB
-        self.update_blogs()
-        # FILE TAB
         self.update_files()
         # OTHERS TAB
         self.update_peers()
@@ -146,7 +144,7 @@ class AbstractView:
         raise NotImplementedError
 
     # BLOG TAB
-    def update_blogs(self):
+    def update_blogs(self, blogs):
         """blog"""
         raise NotImplementedError
 
@@ -172,7 +170,8 @@ class AbstractView:
 class PrintView(AbstractView):
     """synthetises information and renders it in HTML"""
 
-    def __init__(self, document, stream=sys.stdout, do_import=False, name="print"):
+    def __init__(self, document, stream=sys.stdout,
+                 do_import=False, name="print"):
         self.output = stream
         AbstractView.__init__(self, document, do_import, name)
 
@@ -239,9 +238,9 @@ class PrintView(AbstractView):
         print >> self.output, self.document.get_custom_attributes()
 
     # BLOG TAB
-    def update_blogs(self):
+    def update_blogs(self, blogs):
         """blog"""
-        print >> self.output, pickle.dumps(self.document.get_blogs())
+        print >> self.output, pickle.dumps(blogs)
         
     def display_blog(self, peer_id, blog):
         """display blog"""
@@ -350,7 +349,7 @@ class GuiView(AbstractView):
             self.frame.custom_tab.custom_list.SetStringItem(index, 1, value)
 
     # BLOG TAB
-    def update_blogs(self):
+    def update_blogs(self, blogs):
         """blog"""
         self.frame.blog_tab.on_update()
         
@@ -377,7 +376,8 @@ class GuiView(AbstractView):
 class HtmlView(AbstractView):
     """synthetises information and renders it in HTML"""
 
-    def __init__(self, document, html_window=None, auto_refresh=False, do_import=True, name="html"):
+    def __init__(self, document, html_window=None,
+                 auto_refresh=False, do_import=True, name="html"):
         # init HTML string, wxWidget
         self.view = None
         self.auto_refresh = auto_refresh
@@ -502,9 +502,9 @@ class HtmlView(AbstractView):
             self.update_view()
 
     # BLOG TAB
-    def update_blogs(self):
+    def update_blogs(self, blogs):
         """blog"""
-        self.context.addGlobal("blogs", self.document.get_blogs())
+        self.context.addGlobal("blogs", blogs)
         if self.auto_refresh:
             self.update_view()
         
@@ -528,6 +528,7 @@ class HtmlView(AbstractView):
     # OTHERS TAB : frame.other_tab  
     def update_peers(self):
         """peer"""
-        self.context.addGlobal("ordered_peers", self.document.get_ordered_peers())
+        self.context.addGlobal("ordered_peers",
+                               self.document.get_ordered_peers())
         if self.auto_refresh:
             self.update_view()

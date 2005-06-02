@@ -37,10 +37,10 @@ class MyHtmlListBox(wx.HtmlListBox):
 
     def OnGetItem(self, n):
         """callback to display item"""
-        return self.facade.get_blog(n, 'gui').html()
+        return self.facade.get_blog(n).html()
 
     def refresh(self):
-        self.SetItemCount(self.facade.count_blogs('gui'))
+        self.SetItemCount(self.facade.count_blogs())
         self.RefreshAll()
 
 class BlogPanel(wx.Panel):

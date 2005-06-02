@@ -9,7 +9,8 @@ from pprint import pprint
 from os.path import abspath
 from difflib import Differ
 from StringIO import StringIO
-from solipsis.services.profile.document import FileDocument, CacheDocument, PeerDescriptor
+from solipsis.services.profile.data import PeerDescriptor
+from solipsis.services.profile.document import FileDocument, CacheDocument
 from solipsis.services.profile.view import PrintView, HtmlView
 from solipsis.services.profile.data import DirContainer
 from solipsis.services.profile import PROFILE_DIR
@@ -69,12 +70,11 @@ class FileTest(unittest.TestCase):
         # peers
         peers = doc.get_peers()
         self.assertEquals(peers.has_key(u'nico'), True)
-        self.assertEquals(peers[u'nico'][0].state, PeerDescriptor.FRIEND)
-        self.assertEquals(peers[u'nico'][1], None)
+        self.assertEquals(peers[u'nico'].state, PeerDescriptor.FRIEND)
+        self.assertEquals(peers[u'nico'].document, None)
 
     # PERSONAL TAB
     def test_save(self):
-        """Fill a full set of data"""
         self.document.set_title(u"Mr")
         self.document.set_firstname(u"manu")
         self.document.set_lastname(u"breton")
@@ -108,19 +108,16 @@ class FileTest(unittest.TestCase):
         self.document.save(TEST_PROFILE)
 
     def test_load(self):
-        """import data"""
         self.document.load(TEST_PROFILE)
         self._assertContent(self.document)
 
     def test_import(self):
-        """import file document into cache document"""
         self.document.load(TEST_PROFILE)
         new_doc = CacheDocument()
         new_doc.import_document(self.document)
         self._assertContent(new_doc)
 
     def test_save_and_load(self):
-        """save & load"""
         self.document.load(TEST_PROFILE)
         self.document.share_file((REPO+"/data/subdir1/TOtO.txt", True))
         self.document.save("data/profiles/tata")
@@ -130,7 +127,6 @@ class FileTest(unittest.TestCase):
         self.assert_(dict.has_key(container, "TOtO.txt"))
 
     def test_load_and_save(self):
-        """load & save"""
         self.document.load(TEST_PROFILE)
         new_doc = CacheDocument()
         new_doc.import_document(self.document)
@@ -143,7 +139,6 @@ class FileTest(unittest.TestCase):
         new_doc.save("data/profiles/toto")
         
     def test_default(self):
-        """load default"""
         document = FileDocument()
         document.load(u"dummy")
         self.assertEquals(u"Mr", document.get_title())
@@ -170,7 +165,6 @@ class FileTest(unittest.TestCase):
         self.assertEquals({}, document.get_peers())
         
     def test_view(self):
-        """load & printView"""
         self.document.load(TEST_PROFILE)
         result = StringIO()
         view = PrintView(self.document, result, do_import=True)
@@ -189,20 +183,8 @@ France
 anything
 [u'blabla', u'bla bla bla', u'']
 {'color': u'blue', 'homepage': u'manu.com', 'repositories': u'/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests'}
-(isolipsis.services.profile.data
-Blogs
-p0
-(dp1
-S'owner'
-p2
-Vemb
-p3
-sS'blogs'
-p4
-(lp5
-sb.
 {u'/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests': {Dc:tests(?-,'none',#0) : [{Dc:data(?-,'none',#3) : [{Dc:emptydir(?Y,'none',#-1) : []}, Fc:routage(?Y,'none'), Fc:date.txt(?-,'tagos'), {Dc:subdir1(?Y,'none',#-1) : [{Dc:subsubdir(?-,'none',#2) : [Fc:null(?Y,'empty'), Fc:dummy.txt(?Y,'empty')]}]}]}]}}
-{u'nico': [nico (%s), None]}
+{u'nico': nico (%s)}
 """% PeerDescriptor.FRIEND)
         result.close()
         

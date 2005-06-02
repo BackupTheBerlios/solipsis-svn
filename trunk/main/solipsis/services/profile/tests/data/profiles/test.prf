@@ -23,7 +23,7 @@ description = anything
 /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/emptydir = shared,none
 
 [Others]
-nico = Friend,none
+nico = Friend,False,UNKNOWN
 
 [Custom]
 color = blue

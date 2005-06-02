@@ -20,20 +20,27 @@
 available. This facade will be used both by GUI and unittests."""
 
 import pickle
+import os.path
 
 from sys import stderr
 from StringIO import StringIO
-from solipsis.services.profile import ENCODING
-from solipsis.services.profile.data import DirContainer
+from solipsis.services.profile import ENCODING, \
+      PROFILE_DIR, PROFILE_FILE, BLOG_EXT
+from solipsis.services.profile.data import DirContainer, \
+     Blogs, load_blogs
 from solipsis.services.profile.document import FileDocument
 
-#TODO: add state pattern when doc modified => prompt to save
-
-def get_facade(doc=None, view=None):
+def get_facade(doc=None, view=None, blog_path=None):
     """implements pattern singleton on Facade. User may specify
     document end/or view to initialize facade with at creation"""
     if not Facade.s_facade:
         Facade.s_facade = Facade()
+        # load blog
+        if not blog_path:
+            blog_path = os.path.join(PROFILE_DIR,
+                                     PROFILE_FILE + BLOG_EXT)
+        Facade.s_facade.blogs = load_blogs(blog_path)
+        # import document
         doc and Facade.s_facade.add_document(doc)
         view and Facade.s_facade.add_view(view)
     else:
@@ -49,12 +56,21 @@ class Facade:
     def __init__(self):
         self.documents = {}
         self.views = {}
+        self.blogs = Blogs()
         self.activated = True
 
+    # views
     def add_view(self, view):
         """add  a view object to facade"""
         self.views[view.get_name()] = view
 
+    def reset_view(self, view=None):
+        """add  a view object to facade"""
+        self.views.clear()
+        if view:
+            self.views[view.get_name()] = view
+
+    # documents
     def add_document(self, doc):
         """add  a view object to facade"""
         # syncrhonize existing docs
@@ -63,11 +79,13 @@ class Facade:
         # add new
         self.documents[doc.get_name()] = doc
 
-    def reset_view(self, view=None):
-        """add  a view object to facade"""
-        self.views.clear()
-        if view:
-            self.views[view.get_name()] = view
+    def get_document(self, name):
+        """return document named 'name' if available, first otherwise"""
+        if name in self.documents:
+            return self.documents[name]
+        else:
+            return self.documents.values() \
+                   and self.documents.values()[0] or None
 
     def reset_document(self, doc=None):
         """add  a view object to facade"""
@@ -75,6 +93,43 @@ class Facade:
         if doc:
             self.documents[doc.get_name()] = doc
         
+    # blog
+    def add_blog(self, text):
+        """store blog in cache as wx.HtmlListBox is virtual.
+        return blog's index"""
+        pseudo = self.get_document('cache').get_pseudo()
+        self.blogs.add_blog(text, pseudo)
+        for view in self.views.values():
+            view.update_blogs(self.blogs)
+
+    def remove_blog(self, index):
+        """delete blog"""
+        pseudo = self.get_document('cache').get_pseudo()
+        self.blogs.remove_blog(index, pseudo)
+        for view in self.views.values():
+            view.update_blogs(self.blogs)
+        
+    def add_comment(self, (index, text)):
+        """store blog in cache as wx.HtmlListBox is virtual.
+        return comment's index"""
+        pseudo = self.get_document('cache').get_pseudo()
+        self.blogs.add_comment(index, text, pseudo)
+        for view in self.views.values():
+            view.update_blogs(self.blogs)
+
+    def get_blogs(self):
+        """return all blogs along with their comments"""
+        return self.blogs
+
+    def get_blog(self, index):
+        """return all blogs along with their comments"""
+        return self.blogs.get_blog(index)
+
+    def count_blogs(self):
+        """return number of blogs"""
+        return self.blogs.count_blogs()
+
+    # proxy
     def _try_change(self, value, setter, updater):
         """tries to call function doc_set and then, if succeeded, gui_update"""
         result = {}
@@ -84,12 +139,22 @@ class Facade:
             except TypeError, error:
                 print >> stderr, "%s: %s"% (document.name, str(error))
                 raise
-#             except AttributeError, error:
-#                 print >> stderr, "%s: %s"% (document.name, str(error))
-#                 raise
         for view in self.views.values():
             getattr(view, updater)()
         return result
+
+    def get_profile(self):
+        """return a file object like on profile"""
+        return self.get_document("cache").open()
+
+    def get_blog_file(self):
+        """return a file object like on blog"""
+        return StringIO(pickle.dumps(self.blogs))
+
+    def get_shared_files(self):
+        """return a file object like on blog"""
+        document = self.get_document("cache")
+        return StringIO(pickle.dumps(document.get_shared_files()))
     
     # MENU
     def activate(self, enable=True):
@@ -109,11 +174,16 @@ class Facade:
         # refresh file document to be sure to save updated data
         if "cache" in self.documents:
             self.documents["file"].import_document(self.documents["cache"])
+        else:
+            print "no cache available"
         # save
         file_doc.save(path)
+        # save blog
+        self.blogs.save(path + BLOG_EXT)
 
     def load_profile(self, path):
         """save .profile.solipsis"""
+        #load profile
         if "file" in self.documents:
             self.documents["file"].load(path)
         for name, doc in self.documents.iteritems():
@@ -126,26 +196,15 @@ class Facade:
         html_file = open(path, "w")
         html_file.write(self.views["html"].get_view().encode(ENCODING))
 
-    def get_profile(self):
-        """return a file object like on profile"""
-        if "cache" in self.documents:
-            return self.documents["cache"].open()
-        else:
-            return self.documents.values()[0].open()
-
-    def get_blog_file(self):
-        """return a file object like on blog"""
-        if "cache" in self.documents:
-            return StringIO(pickle.dumps(self.documents["cache"].get_blogs()))
-        else:
-            return StringIO(pickle.dumps(self.documents.values()[0].get_blogs()))
-
-    def get_shared_files(self):
-        """return a file object like on blog"""
-        if "cache" in self.documents:
-            return StringIO(pickle.dumps(self.documents["cache"].get_shared_files()))
-        else:
-            return StringIO(pickle.dumps(self.documents.values()[0].get_shared_files()))
+    def set_auto_refresh_html(self, enable):
+        """sets new preview for peer"""
+        if "html" in self.views:
+            self.views["html"].set_auto_refresh(enable)
+    
+    def refresh_html_preview(self):
+        """sets new preview for peer"""
+        if "html" in self.views:
+            self.views["html"].update_view()
     
     # PERSONAL TAB
     def change_title(self, value):
@@ -168,6 +227,7 @@ class Facade:
 
     def change_pseudo(self, value):
         """sets new value for pseudo"""
+        self.blogs.set_owner(value)
         return self._try_change(value,
                                "set_pseudo",
                                "update_pseudo")
@@ -225,57 +285,6 @@ class Facade:
         return self._try_change(value,
                                "set_description",
                                "update_description")
-        
-    # BLOG TAB
-    def add_blog(self, text):
-        """store blog in cache as wx.HtmlListBox is virtual.
-        return blog's index"""
-        return self._try_change(text,
-                                "add_blog",
-                                "update_blogs")
-
-    def remove_blog(self, index):
-        """delete blog"""
-        return self._try_change(index,
-                                "remove_blog",
-                                "update_blogs")
-        
-    def add_comment(self, (index, text)):
-        """store blog in cache as wx.HtmlListBox is virtual.
-        return comment's index"""
-        return self._try_change((index, text),
-                                "add_comment",
-                                "update_blogs")
-
-    def get_blogs(self, view=None):
-        """return all blogs along with their comments"""
-        if view in self.documents:
-            return self.documents[view].get_blogs()
-        else:
-            if self.documents:
-                return self.documents.values()[0].get_blogs()
-            else:
-                return None
-
-    def get_blog(self, index, view=None):
-        """return all blogs along with their comments"""
-        if view in self.documents:
-            return self.documents[view].get_blog(index)
-        else:
-            if self.documents:
-                return self.documents.values()[0].get_blog(index)
-            else:
-                return None
-
-    def count_blogs(self, view=None):
-        """return number of blogs"""
-        if view in self.documents:
-            return self.documents[view].count_blogs()
-        else:
-            if self.documents:
-                return self.documents.values()[0].count_blogs()
-            else:
-                return 0
 
     # CUSTOM TAB
     def change_hobbies(self, value):
@@ -376,24 +385,34 @@ class Facade:
         return self._try_change(value,
                                 "remove_peer",
                                 "update_peers")
+    
+    def get_peer(self, peer_id):
+        """returns PeerDescriptor with given id"""
+        return self.get_document('cache').get_peer(peer_id)
+    
+    def has_peer(self, peer_id):
+        """returns PeerDescriptor with given id"""
+        return self.get_document('cache').has_peer(peer_id)
 
-    def fill_data(self, value):
+    def fill_data(self, (peer_id, document)):
         """sets peer as friend """
-        return self._try_change(value,
+        return self._try_change((peer_id, document),
                                 "fill_data",
                                 "update_peers")
-    
+
+    #FIXME: use _try_change
     def fill_blog(self, (peer_id, blog)):
         """sets peer as friend """
         if 'cache' in self.documents:
-            self.documents["cache"].fill_blog(peer_id, blog)
+            self.documents["cache"].fill_blog((peer_id, blog))
         if 'gui' in self.views:
             self.views["gui"].display_blog(peer_id, blog)
     
+    #FIXME: use _try_change
     def fill_shared_files(self, (peer_id, files)):
         """sets peer as friend """
         if 'cache' in self.documents:
-            self.documents["cache"].fill_shared_files(peer_id, files)
+            self.documents["cache"].fill_shared_files((peer_id, files))
         if 'gui' in self.views:
             self.views["gui"].display_files(peer_id, files)
 
@@ -414,29 +433,3 @@ class Facade:
         return self._try_change(value,
                                "unmark_peer",
                                "update_peers")
-
-    def get_peer_status(self, pseudo):
-        if 'cache' in self.documents:
-            return self.documents["cache"].get_peer_status(pseudo)
-        else:
-            return self.documents.values()[0].get_peer_status(pseudo)
-
-    # SPECIFIC ACTIONS
-    
-    def set_auto_refresh_html(self, enable):
-        """sets new preview for peer"""
-        if "html" in self.views:
-            self.views["html"].set_auto_refresh(enable)
-    
-    def refresh_html_preview(self):
-        """sets new preview for peer"""
-        if "html" in self.views:
-            self.views["html"].update_view()
-
-    def get_keys(self, path):
-        """return list of FileContainer for given path"""
-        if 'cache' in self.documents:
-            return self.documents["cache"].get_keys()
-        else:
-            return {}
-

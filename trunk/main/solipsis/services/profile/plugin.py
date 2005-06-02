@@ -1,3 +1,4 @@
+# pylint: disable-msg=C0103
 # <copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
 # Copyright (C) 2002-2005 France Telecom R&D
@@ -22,13 +23,12 @@ import socket
 import random
 import wx
 import os
+import sys
 
-from StringIO import StringIO
 
 from solipsis.util.wxutils import _
-from solipsis.util.uiproxy import UIProxy
 from solipsis.services.plugin import ServicePlugin
-from solipsis.services.profile import PROFILE_DIR, PROFILE_FILE, KNOWN_PORT
+from solipsis.services.profile import PROFILE_DIR, PROFILE_FILE
 from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile.network import NetworkManager
 from solipsis.services.profile.document import CacheDocument, FileDocument
@@ -57,6 +57,7 @@ class Plugin(ServicePlugin):
         # (views depend on graphical mode)
         self.facade = get_facade()
         self.profile_frame = None
+        self.node_id = None
         # declare actions
         self.MAIN_ACTION = {"Modify ...": self.show_profile,
                             }
@@ -92,13 +93,14 @@ class Plugin(ServicePlugin):
         """
         # init windows
         main_window = self.service_api.GetMainWindow()
-        self.profile_frame = ProfileFrame(False, main_window, -1, "")
+        self.profile_frame = ProfileFrame(False, main_window, -1, "",
+                                          plugin=self)
+        self.node_id = self.service_api.GetNode().pseudo
         # create views & doc
         file_doc = FileDocument()
         file_doc.load(os.path.join(PROFILE_DIR, PROFILE_FILE))
         cache_doc = CacheDocument()
         cache_doc.import_document(file_doc)
-#         gui_view = UIProxy(GuiView(cache_doc, self.profile_frame))
         gui_view = GuiView(cache_doc, self.profile_frame)
         html_view = HtmlView(cache_doc,
                              self.profile_frame.preview_tab.html_preview,
@@ -128,34 +130,45 @@ class Plugin(ServicePlugin):
 
     # Service methods
     def show_profile(self):
+        """display profile once loaded"""
         if self.profile_frame:
             self.profile_frame.Show()
             self.profile_frame.blog_tab.on_update()
 
+    # Transfer methods
     def _on_new_profile(self, document):
         """store and display file object corresponding to profile"""
         print "downloaded profile", document.get_pseudo()
         self.facade.fill_data((document.get_pseudo(), document))
     
-    def _on_new_blog(self, blog):
+    def _on_new_blog(self, blog, peer_id):
         """store and display file object corresponding to blog"""
-        self.facade.fill_blog((blog.owner, blog))
+        self.facade.fill_blog((peer_id, blog))
     
-    def _on_shared_files(self, files):
+    def _on_shared_files(self, files, peer_id):
         """store and display file object corresponding to blog"""
-        self.facade.fill_shared_files((files.owner, files))
+        self.facade.fill_shared_files((peer_id, files))
 
     def get_profile(self, peer_id):
-        self.network.get_profile(peer_id, self._on_new_profile)
+        """request downwload of profile"""
+        deferred = self.network.get_profile(peer_id)
+        deferred and deferred.addCallback(self._on_new_profile)
 
     def get_blog_file(self, peer_id):
-        self.network.get_blog_file(peer_id, self._on_new_blog)
+        """request downwload of blog"""
+        deferred = self.network.get_blog_file(peer_id)
+        deferred and deferred.addCallback(self._on_new_blog, peer_id)
 
     def get_files(self, peer_id, file_names):
-        self.network.get_files(peer_id, file_names)
+        """request downwload of given files"""
+        deferred = self.network.get_files(peer_id, file_names)
+        deferred and deferred.addCallback(
+            lambda file_name: sys.stdout.write("%s complete\n"% file_name))
 
     def select_files(self, peer_id):
-        self.network.get_shared_files(peer_id, self._on_shared_files)
+        """request downwload of list of shared files"""
+        deferred = self.network.get_shared_files(peer_id)
+        deferred and deferred.addCallback(self._on_shared_files, peer_id)
 
     # Service description methods
     def GetTitle(self):
@@ -225,5 +238,6 @@ class Plugin(ServicePlugin):
             self.network.on_service_data(peer_id, data)
 
     def ChangedNode(self, node):
-        # new IP ? what consequence on network?
+        """need to update node_id"""
+        # FIXME new node_id ? what consequence on network? cache?
         pass

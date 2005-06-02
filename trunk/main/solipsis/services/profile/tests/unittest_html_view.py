@@ -5,7 +5,8 @@ independant from views"""
 import unittest
 import difflib
 from os.path import abspath
-from solipsis.services.profile.document import PeerDescriptor, CacheDocument, FileDocument
+from solipsis.services.profile.data import PeerDescriptor
+from solipsis.services.profile.document import CacheDocument, FileDocument
 from solipsis.services.profile.view import HtmlView
 
 TEMPLATE = """<html>
@@ -148,12 +149,15 @@ class HtmlTest(unittest.TestCase):
         keys = peers.keys()
         keys.sort()
         for key in keys:
-            desc, doc = peers[key]
+            peers_desc = peers[key]
+            doc = peers_desc.document
             html.append("""<tr>
       <td>%s</td>
       <td>%s</td>
       <td>%s</td>
-    </tr>"""% (key, doc and doc.get_id() or "NA", desc.state))
+    </tr>"""% (peers_desc.state,
+               doc and doc.get_pseudo() or "--",
+               peers_desc.peer_id))
         return ''.join(html)
         
     
@@ -177,19 +181,16 @@ class HtmlTest(unittest.TestCase):
        
     # CUSTOM TAB
     def test_hobbies(self):
-        """hobbies as unicode (multiple lines)"""
         self.document.set_hobbies([u"cinema", u"theatre", u"cop", u"action"])
         self.assert_template()
         
     def test_custom(self):
-        """custom_attributes as pair of key/unicode-value"""
         self.document.add_custom_attributes([u"zic", u"jazz"])
         self.document.add_custom_attributes([u"cinema", u"Die Hard"])
         self.assert_template()
         
     # FILE TAB       
     def test_files(self):
-        """file_path as valid file"""
         self.document.add_repository(abspath(u"."))
         self.document.expand_dir(abspath(u"data"))
         self.document.share_files((abspath(u"data"), ["routage"], True))
@@ -198,7 +199,6 @@ class HtmlTest(unittest.TestCase):
             
     # OTHERS TAB
     def test_ordered_peer(self):
-        """pseudo as unicode"""
         self.document.add_peer(u"nico")
         self.document.make_friend(u"emb")
         self.document.make_friend(u"star")
@@ -206,17 +206,14 @@ class HtmlTest(unittest.TestCase):
         self.assert_template()
         
     def test_adding_peer(self):
-        """pseudo as unicode"""
         self.document.add_peer(u"nico")
         self.assert_template()
         
     def test_filling_data(self):
-        """data as (pseudo, document)"""
         self.document.fill_data((u"emb", FileDocument()))
         self.assert_template()
     
     def test_peers_status(self):
-        """action changes to accurate state"""
         self.document.blacklist_peer(u"nico")
         self.assert_template()
 

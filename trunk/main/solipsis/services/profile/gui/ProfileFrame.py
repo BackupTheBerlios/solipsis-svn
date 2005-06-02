@@ -4,7 +4,8 @@
 import wx, os, os.path
 from solipsis.util.wxutils import _
 from solipsis.services.profile.facade import get_facade
-from solipsis.services.profile.document import FileDocument, PeerDescriptor
+from solipsis.services.profile.data import PeerDescriptor
+from solipsis.services.profile.document import FileDocument
 from solipsis.services.profile import PROFILE_DIR, PROFILE_FILE
 from solipsis.util.uiproxy import UIProxy
 
@@ -20,7 +21,7 @@ from BlogDialog import BlogDialog
 from FileDialog import FileDialog
 
 class ProfileFrame(wx.Frame):
-    def __init__(self, standalone, parent, id, title, **kwds):
+    def __init__(self, standalone, parent, id, title, plugin=None, **kwds):
         args = (parent, id, title)
         # begin wxGlade: ProfileFrame.__init__
         kwds["style"] = wx.DEFAULT_FRAME_STYLE
@@ -85,8 +86,9 @@ class ProfileFrame(wx.Frame):
         # quite different initialisation according to launched by navigator or not
         self.standalone = standalone
         self.facade = get_facade()
-        self.peer_dlg = UIProxy(BlogDialog(parent, -1))
-        self.file_dlg = UIProxy(FileDialog(parent, -1))
+        self.plugin = plugin
+        self.peer_dlg = UIProxy(BlogDialog(parent, -1, plugin=self.plugin))
+        self.file_dlg = UIProxy(FileDialog(parent, -1, plugin=self.plugin))
         self.bind_controls()
 
     # EVENTS
@@ -99,14 +101,13 @@ class ProfileFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_load, id=self.load_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_close, id=self.quit_item.GetId())
         self.Bind(wx.EVT_CLOSE, self.on_close)
-        
 #         self.Bind(wx.EVT_MENU, self.on_add, id=self.addpeer_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_get_blog, id=self.getblog_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_get_files, id=self.getfiles_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_make_friend, id=self.friend_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_blacklist, id=self.blacklisted_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_anonymous, id=self.anonymous_item.GetId())
-        
+        # refresh
         self.Bind(wx.EVT_MENU, self.set_refresh, id=self.autorefresh_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_refresh, id=self.refresh_item.GetId())
 
@@ -212,7 +213,7 @@ class ProfileFrame(wx.Frame):
     def display_blog(self, peer_id, blog):
         """display blog in dedicated window"""
         # blog dialog
-        self.peer_dlg.SetTitle("%s's %s"% (peer_id, _("Blog")))
+        self.peer_dlg.SetTitle(peer_id)
         # display
         self.peer_dlg.Show(blog)
 
@@ -229,7 +230,7 @@ class ProfileFrame(wx.Frame):
     def display_files(self, peer_id, files):
         """display blog in dedicated window"""
         # file dialog
-        self.file_dlg.SetTitle("%s's %s"% (peer_id, _("Files")))
+        self.file_dlg.SetTitle(peer_id)
         # display files {repos: {names:tags}, }
         self.file_dlg.Show(files)
 

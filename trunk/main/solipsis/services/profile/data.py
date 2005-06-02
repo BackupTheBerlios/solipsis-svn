@@ -19,9 +19,12 @@
 """Define cache structures used in profile and rendered in list widgets"""
 
 import os, os.path
+import pickle
 import time
 import sys
 
+BULB_ON_IMG = "../images/bulb.gif"      
+BULB_OFF_IMG = "../images/bulb_off.gif"
 DEFAULT_TAG = u"none"
 SHARING_ALL = -1
 
@@ -32,15 +35,21 @@ def assert_file(path):
 def assert_dir(path):
     """raise ValueError if not a file"""
     assert os.path.isdir(path), "[%s] not a valid directory"% path
+    
+# BLOGS
+#######
 
-class SharedFiles(dict):
+def load_blogs(file_name):
+    """use pickle to loas blogs"""
+    if os.path.exists(file_name):
+        blog_file = open(file_name)
+        blogs = pickle.load(blog_file)
+        blog_file.close()
+        return blogs
+    else:
+        print "blog file not found"
+        return Blogs()
 
-    def __init__(self):
-        self.owner = None
-
-    def set_owner(self, owner):
-        self.owner = owner
-        
 class Blogs:
     """container for all blogs, responsible for authentification"""
 
@@ -54,7 +63,23 @@ class Blogs:
     def __getitem__(self, index):
         return self.blogs[index]
 
+    def save(self, file_name):
+        """use pickle to save to blog_file"""
+        blog_file = open(file_name, 'w')
+        pickle.dump(self, file=blog_file, protocol=pickle.HIGHEST_PROTOCOL)
+        blog_file.close()
+
+    def copy(self):
+        """return new instance of Blogs with same attributes"""
+        copied = Blogs(self.owner)
+        for index, blog in enumerate(self.blogs):
+            copied.add_blog(blog.text, blog.author, blog.date)
+            for comment in blog.comments:
+                copied.add_comment(index, comment.text, blog.author, blog.date)
+        return copied
+
     def set_owner(self, pseudo):
+        """owner is used to manage writing rights on blog"""
         for blog in self.blogs:
             for comment in blog.comments:
                 if comment.author == self.owner:
@@ -62,13 +87,18 @@ class Blogs:
             blog.set_author(pseudo)
         self.owner = pseudo
 
-    def add_blog(self, text, author):
+    def add_blog(self, text, author, date=None):
         """store blog in cache as wx.HtmlListBox is virtual.
         return blog's id"""
         if author != self.owner:
             raise AssertionError("not authorized")
         else:
-            self.blogs.append(Blog(text, author))
+            self.blogs.append(Blog(text, author, date))
+
+    def add_comment(self, index, text, author=None, date=None):
+        """get blog at given index and delegate add_comment to it"""
+        blog = self.get_blog(index)
+        blog.add_comment(text, author, date)
 
     def remove_blog(self, index, pseudo):
         """delete blog"""
@@ -90,13 +120,16 @@ class Blogs:
     def count_blogs(self):
         """return number of blogs"""
         return len(self.blogs)
-
         
 class Blog:
+    """Entry of a blog, including comments"""
 
-    def __init__(self, text, author):
+    def __init__(self, text, author, date=None):
         self.text = text
-        self.date = time.asctime()
+        if not date:
+            self.date = time.asctime()
+        else:
+            self.date = date
         self.author = author
         self.comments = []
 
@@ -104,24 +137,96 @@ class Blog:
         return "%s (%d)"% (self.text, len(self.comments))
 
     def set_author(self, author):
+        """set author of blog/comment"""
         self.author = author
 
-    def add_comment(self, text, pseudo):
-        self.comments.append(Blog(text, pseudo))
+    def add_comment(self, text, pseudo, date=None):
+        """add sub blog (comment) to blog"""
+        self.comments.append(Blog(text, pseudo, date))
         
     def html(self):
+        """return html view of blog"""
         blog_html = self._html_text()
         for comment in self.comments:
             blog_html += comment._html_comment()
         return blog_html
     
     def _html_comment(self):
+        """format blog as comment"""
         return "<font color='silver' size='-1'><p>%s</p><p align='right'><cite>%s, %s</cite></font></p>"\
                % (self.text, self.author, self.date)
     
     def _html_text(self):
+        """return blog as main entry"""
         return "<p'>%s</p><p align='right'><cite>%s, %s</cite></p>"\
                % (self.text, self.author, self.date)
+    
+# PEERS
+#######
+
+class PeerDescriptor:
+    """contains information relative to peer of neighbourhood"""
+
+    ANONYMOUS = 'Anonym'
+    FRIEND = 'Friend'
+    BLACKLISTED = 'Blacklisted'
+    COLORS = {ANONYMOUS: 'black',
+              FRIEND:'blue',
+              BLACKLISTED:'red'}
+    
+    def __init__(self, peer_id, state=ANONYMOUS, connected=False, document=None):
+        self.peer_id = peer_id
+        self.state = state
+        self.connected = connected
+        self.document = document
+        self.blog = None
+        self.shared_files = None
+
+    def __repr__(self):
+        return "%s (%s)"% (self.peer_id, self.state)
+
+    def copy(self):
+        """return copied instance of PeerDescriptor.
+
+        Beware: shallow copy for document. deep for others members"""
+        copied = PeerDescriptor(self.peer_id, self.state, self.connected)
+        copied_doc = self.document
+        copied_blog = self.blog and self.blog.copy or None
+        copied_files = self.shared_files and self.shared_files.copy() or None
+        copied.set_document(copied_doc)
+        copied.set_blog(copied_blog)
+        copied.set_shared_files(copied_files)
+        return copied
+
+    def set_connected(self, enable):
+        """change user's connected status"""
+        self.connected = enable
+
+    def set_blog(self, blog):
+        """blog is instance Blogs"""
+        self.blog = blog
+
+    def set_document(self, document):
+        """set member of type AbstractDocument"""
+        self.document = document
+
+    def set_shared_files(self, files):
+        """blog is instance Blogs"""
+        self.shared_files = files
+        
+    def html(self):
+        """render peer in HTML"""
+        return "<img src='%s'/><font color=%s>%s</font>"\
+               % (self.connected and BULB_ON_IMG or BULB_OFF_IMG,
+                  PeerDescriptor.COLORS[self.state],
+                  self.document and self.document.get_pseudo() or "unknown")
+        
+# FILES
+#######
+
+class SharedFiles(dict):
+    """dict wrapper (useless for now)"""
+    pass
 
 class ContainerMixin:
     """Factorize sharing tools on containers"""
@@ -161,7 +266,8 @@ class ContainerMixin:
 
     def import_data(self, container):
         """copy data from container"""
-        assert self.path == container.path, "containers %s & %s not compatible"% (self, container)
+        assert self.path == container.path, \
+               "containers %s & %s not compatible"% (self, container)
         self._tag = container._tag
         self._shared = container._shared
         self._data = container._data
@@ -301,13 +407,15 @@ class DirContainer(dict, ContainerMixin):
             
     def add(self, full_path):
         """add File/DirContainer"""
-        container = self[full_path]
+        # __setitem__ adds path is does not exist
+        self[full_path]
         
     def expand_dir(self, full_path):
         """put into cache new information when dir expanded in tree"""
         assert_dir(full_path)
         container = self[full_path]
-        for full_path in [os.path.join(container.path, path) for path in os.listdir(container.path)]:
+        for full_path in [os.path.join(container.path, path)
+                          for path in os.listdir(container.path)]:
             container.add(full_path)
 
     def share_content(self, full_path, share=True):

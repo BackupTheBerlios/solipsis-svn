@@ -4,8 +4,8 @@ available. This facade will be used both by GUI and unittests."""
 import unittest
 from StringIO import StringIO
 
-from solipsis.services.profile.document import CacheDocument, PeerDescriptor
-from solipsis.services.profile.data import DEFAULT_TAG
+from solipsis.services.profile.document import CacheDocument, FileDocument
+from solipsis.services.profile.data import DEFAULT_TAG, PeerDescriptor
 from solipsis.services.profile.view import PrintView
 from solipsis.services.profile.facade import get_facade
 from mx.DateTime import DateTime
@@ -24,84 +24,68 @@ class FacadeTest(unittest.TestCase):
 
     # PERSONAL TAB
     def test_change_title(self):
-        """sets new value for title"""
         self.facade.change_title(u'Mr')
         self.assertEquals("Mr\n", self.result.getvalue())
         
     def test_change_firstname(self):
-        """sets new value for firstname"""
         self.facade.change_firstname(u'manu')
         self.assertEquals("manu\n", self.result.getvalue())
 
     def test_change_lastname(self):
-        """sets new value for lastname"""
         self.facade.change_lastname(u'breton')
         self.assertEquals("breton\n", self.result.getvalue())
 
     def test_change_pseudo(self):
-        """sets new value for pseudo"""
         self.facade.change_pseudo(u'emb')
         self.assertEquals("emb\n", self.result.getvalue())
 
     def test_change_photo(self):
-        """sets new value for photo"""
         self.facade.change_photo(unittest.__file__)
         self.assertEquals("%s\n"% unittest.__file__, self.result.getvalue())
 
     def test_change_email(self):
-        """sets new value for email"""
         self.facade.change_email(u'manu@ft.com')
         self.assertEquals("manu@ft.com\n", self.result.getvalue())
 
     def test_change_birthday(self):
-        """sets new value for birthday"""
         self.facade.change_birthday(u'12/01/2005')
         self.assertEquals("12/01/2005\n", self.result.getvalue())
 
     def test_change_language(self):
-        """sets new value for language"""
         self.facade.change_language(u'fr')
         self.assertEquals("fr\n", self.result.getvalue())
 
     def test_change_address(self):
-        """sets new value for """
         self.facade.change_address(u'12 r V.Hugo')
         self.assertEquals("12 r V.Hugo\n", self.result.getvalue())
 
     def test_change_postcode(self):
-        """sets new value for postcode"""
         self.facade.change_postcode(u'03400')
         self.assertEquals("3400\n", self.result.getvalue())
 
     def test_change_city(self):
-        """sets new value for city"""
         self.facade.change_city(u'Paris')
         self.assertEquals("Paris\n", self.result.getvalue())
 
     def test_change_country(self):
-        """sets new value for country"""
         self.facade.change_country(u'France')
         self.assertEquals("France\n", self.result.getvalue())
 
     def test_change_description(self):
-        """sets new value for description"""
         self.facade.change_description(u'any desc')
         self.assertEquals("any desc\n", self.result.getvalue())
 
     # CUSTOM TAB
     def test_change_hobbies(self):
-        """sets new value for hobbies"""
         self.facade.change_hobbies([u"blabla", u"bla bla bla", u""])
         self.assertEquals("[u'blabla', u'bla bla bla', u'']\n", self.result.getvalue())
 
     def test_add_custom_attributes(self):
-        """sets new value for custom_attributes"""
         self.facade.add_custom_attributes(("key", u"value"))
         self.assertEquals("{'key': u'value'}\n", self.result.getvalue())
 
     # BLOG TAB
     def test_blog(self):
-        """set message and comments in blog"""
         self.assertRaises(AssertionError, self.facade.add_blog, "no owner yet")
         self.facade.change_pseudo(u"manu")
         self.facade.add_blog("first blog")
@@ -110,10 +94,12 @@ class FacadeTest(unittest.TestCase):
         blog = self.facade.get_blog(0)
         self.assertEquals(blog.text, "first blog")
         self.assertEquals(blog.comments[0].text, 'first comment')
+        self.assertEquals(self.facade.count_blogs(), 2)
+        self.facade.remove_blog(0)
+        self.assertEquals(self.facade.count_blogs(), 1)
         
     # FILE TAB
     def test_repository(self):
-        """sets new value for repository"""
         doc = CacheDocument()
         facade = get_facade(doc, PrintView(doc, self.result))
         facade.add_repository(abspath(u"data/profiles"))
@@ -123,7 +109,6 @@ class FacadeTest(unittest.TestCase):
         facade.remove_repository(abspath(u"data/emptydir"))
 
     def test_expand_dir(self):
-        """expand dir"""
         self.assertEquals(self.facade.documents["cache"].get_shared(self.repo),
                           {})
         self.facade.expand_dir(abspath(u"data"))
@@ -168,14 +153,12 @@ class FacadeTest(unittest.TestCase):
                            abspath(u'data/subdir1/subsubdir/.svn'): u'none'})
 
     def _build_check_dict(self, doc, repo_path):
-        """format list of existing dir"""
         result = {}
         for name, container in doc.files[repo_path].flat().iteritems():
             result[name] = container._tag
         return result
         
     def test_share_dir(self):
-        """share all content of dir"""
         files = self.facade.documents["cache"].get_files()[self.repo]
         self.assertRaises(AssertionError, self.facade.share_dirs,
                           ([abspath(u"data/routage")], True))
@@ -194,7 +177,6 @@ class FacadeTest(unittest.TestCase):
         self.assertEquals(files[abspath(u"data/emptydir")]._shared, False)
 
     def test_share_files(self):
-        """share specified files"""
         files = self.facade.documents["cache"].get_files()[self.repo]
         self.facade.expand_dir(abspath(u"data"))
         self.assertEquals(files[abspath(u"data/routage")]._shared, False)
@@ -209,7 +191,6 @@ class FacadeTest(unittest.TestCase):
         self.assertEquals(files[abspath(u"data/routage")]._shared, False)
 
     def test_tag_files(self):
-        """tag specified tags"""
         files = self.facade.documents["cache"].get_files()[self.repo]
         self.facade.expand_dir(abspath(u"data"))
         self.facade.tag_files((abspath(u"data"),
@@ -231,35 +212,28 @@ class FacadeTest(unittest.TestCase):
 
     # OTHERS TAB
     def test_add_peer(self):
-        """sets peer as friend """
+        self.assertEquals(self.facade.has_peer(u"emb"), False)
         self.facade.add_peer(u"emb")
-        self.assertEquals("{u'emb': [emb (%s), None]}\n"% PeerDescriptor.ANONYMOUS,
-                          self.result.getvalue())
+        self.assertEquals(self.facade.has_peer(u"emb"), True)
         
     def test_fill_data(self):
-        """fill data, then remove it"""
-        self.facade.fill_data((u"emb", CacheDocument()))
+        self.facade.add_peer(u"emb")
+        self.assertEquals(self.facade.get_peer(u"emb").document, None)
+        self.facade.fill_data((u"emb", FileDocument()))
+        self.assert_(self.facade.get_peer(u"emb").document)
         self.facade.remove_peer(u"emb")
-        self.assertEquals("{u'emb': [emb (%s), cache]}\n{}\n"% PeerDescriptor.ANONYMOUS,
-                          self.result.getvalue())
+        self.assertEquals(self.facade.has_peer(u"emb"), False)
     
-    def test_friend(self):
-        """sets peer as friend """
+    def test_status(self):
         self.facade.make_friend(u"emb")
-        self.assertEquals("{u'emb': [emb (%s), None]}\n"% PeerDescriptor.FRIEND,
-                          self.result.getvalue())
-        
-    def test_blacklisted(self):
-        """sets peer as blacklisted """
+        self.assertEquals(self.facade.get_peer(u"emb").state,
+                          PeerDescriptor.FRIEND)
         self.facade.blacklist_peer(u"emb")
-        self.assertEquals("{u'emb': [emb (%s), None]}\n"% PeerDescriptor.BLACKLISTED,
-                          self.result.getvalue())
-        
-    def test_unmarked(self):
-        """sets peer as anonymous """
+        self.assertEquals(self.facade.get_peer(u"emb").state,
+                          PeerDescriptor.BLACKLISTED)
         self.facade.unmark_peer(u"emb")
-        self.assertEquals("{u'emb': [emb (%s), None]}\n"% PeerDescriptor.ANONYMOUS,
-                          self.result.getvalue())
+        self.assertEquals(self.facade.get_peer(u"emb").state,
+                          PeerDescriptor.ANONYMOUS)
 
     #TODO test fill_data
 

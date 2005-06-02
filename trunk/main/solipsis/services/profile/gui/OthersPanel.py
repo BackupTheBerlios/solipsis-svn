@@ -6,6 +6,7 @@ from solipsis.util.wxutils import _
 from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile.document import PeerDescriptor
 from solipsis.services.profile.view import HtmlView
+from solipsis.services.profile.data import PeerDescriptor
 
 # begin wxGlade: dependencies
 # end wxGlade
@@ -39,19 +40,19 @@ class OthersPanel(wx.Panel):
         self.bind_controls()
 
     def get_peer_selected(self):
-        """returns selected pseudo"""
-        pseudo = self.peers_list.GetItemText(self.peers_list.GetSelection())
-        if self.peers.has_key(pseudo):
-            return pseudo
+        """returns selected peer_id"""
+        peer_id = self.peers_list.GetItemText(self.peers_list.GetSelection())
+        if self.peers.has_key(peer_id):
+            return peer_id
         else:
             return None
 
-    def refresh_view(self, pseudo, active_doc):
+    def refresh_view(self, peer_id, active_doc):
         """refresh html view of peer"""
         if active_doc:
             view = HtmlView(active_doc)
             self.detail_preview.SetPage(view.get_view(True))
-            self.frame.enable_peer_states(True, self.facade.get_peer_status(pseudo))
+            self.frame.enable_peer_states(True, self.facade.get_peer(peer_id).state)
         else:
             self.detail_preview.SetPage("<font color='blue'>%s</font>"\
                                         % _("select neighbor to display"))
@@ -66,13 +67,13 @@ class OthersPanel(wx.Panel):
     def cb_update_peers(self, peers):
         """called when peers have been modified"""
         self.peers = peers
-        # retreive pseudos
-        friends = [peer[0].pseudo for peer in peers.values()
-                   if peer[0].state == PeerDescriptor.FRIEND]
-        anonymous = [peer[0].pseudo for peer in peers.values()
-                     if peer[0].state == PeerDescriptor.ANONYMOUS]
-        blacklisted = [peer[0].pseudo for peer in peers.values()
-                       if peer[0].state == PeerDescriptor.BLACKLISTED]
+        # retreive peer_ids
+        friends = [peer.peer_id for peer in peers.values()
+                   if peer.state == PeerDescriptor.FRIEND]
+        anonymous = [peer.peer_id for peer in peers.values()
+                     if peer.state == PeerDescriptor.ANONYMOUS]
+        blacklisted = [peer.peer_id for peer in peers.values()
+                       if peer.state == PeerDescriptor.BLACKLISTED]
         # sort
         friends.sort()
         anonymous.sort()
@@ -81,12 +82,12 @@ class OthersPanel(wx.Panel):
         self.peers_list.DeleteChildren(self.friends)
         self.peers_list.DeleteChildren(self.anonymous)
         self.peers_list.DeleteChildren(self.blacklisted)
-        for pseudo in friends:
-            self.peers_list.AppendItem(self.friends, pseudo)
-        for pseudo in anonymous:
-            self.peers_list.AppendItem(self.anonymous, pseudo)
-        for pseudo in blacklisted:
-            self.peers_list.AppendItem(self.blacklisted, pseudo)
+        for peer_id in friends:
+            self.peers_list.AppendItem(self.friends, peer_id)
+        for peer_id in anonymous:
+            self.peers_list.AppendItem(self.anonymous, peer_id)
+        for peer_id in blacklisted:
+            self.peers_list.AppendItem(self.blacklisted, peer_id)
         # get peer to display
         to_display = self.get_peer_selected()
         if to_display:
@@ -99,10 +100,10 @@ class OthersPanel(wx.Panel):
         
     def on_selected(self, evt):
         """peer selected"""
-        pseudo = self.get_peer_selected()
-        if pseudo:
-            active_doc = self.peers[pseudo][1]
-            self.refresh_view(pseudo, active_doc)
+        peer_id = self.get_peer_selected()
+        if peer_id:
+            active_doc = self.peers[peer_id].document
+            self.refresh_view(peer_id, active_doc)
 
     def __set_properties(self):
         # begin wxGlade: OthersPanel.__set_properties

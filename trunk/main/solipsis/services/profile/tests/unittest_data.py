@@ -202,7 +202,7 @@ class DataTest(unittest.TestCase):
         self.assertRaises(AssertionError, self.container[REPO + "data"].__getitem__, ".path")
 
     def test_blog(self):
-        blog = Blogs()
+        blog = Blogs('atao')
         self.assertRaises(AssertionError, blog.add_blog, "no owner yet", "manu")
         self.assertRaises(AssertionError, blog.remove_blog, 0, "no owner yet")
         blog.set_owner('manu')
@@ -210,6 +210,10 @@ class DataTest(unittest.TestCase):
         self.assertRaises(AssertionError, blog.add_blog, "forbidden", 'jules')
         self.assertEquals(blog.count_blogs(), 1)
         self.assertEquals(blog.get_blog(0).text, "first blog")
+        copied_blog = blog.copy()
+        self.assertRaises(AssertionError, copied_blog.add_blog, "forbidden", 'jules')
+        self.assertEquals(copied_blog.count_blogs(), 1)
+        self.assertEquals(copied_blog.get_blog(0).text, "first blog")
 
 if __name__ == '__main__':
     unittest.main()

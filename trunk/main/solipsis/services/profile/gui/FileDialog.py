@@ -12,8 +12,9 @@ from solipsis.services.profile.facade import get_facade
 # end wxGlade
 
 class FileDialog(wx.Dialog, UIProxyReceiver):
-    def __init__(self, *args, **kwds):
+    def __init__(self, parent, id, plugin=None, **kwds):
         UIProxyReceiver.__init__(self)
+        args = (parent, id)
         # begin wxGlade: FileDialog.__init__
         kwds["style"] = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.THICK_FRAME
         wx.Dialog.__init__(self, *args, **kwds)
@@ -28,6 +29,28 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
         self.peerfiles_list.InsertColumn(0, "File")
         self.peerfiles_list.InsertColumn(1, "Tag")
         self.data = {}
+        self.plugin = plugin
+        self.peer_id = None
+        self.facade = get_facade()
+        self.bind_controls()
+
+    # EVENTS
+    
+    def bind_controls(self):
+        """bind all controls with facade"""
+        self.download_button.Bind(wx.EVT_BUTTON, self.on_download)
+
+    def on_download(self, evt):
+        """dowload selected files"""
+        assert self.peer_id != None, "no peer linked to sharelist"
+        selections = []
+        selected = -1
+        # get selected path
+        for index in range(self.peerfiles_list.GetSelectedItemCount()):
+            selected = self.peerfiles_list.GetNextItem(selected, state=wx.LIST_STATE_SELECTED)
+            selections.append(self.data[selected])
+        # send network command
+        self.plugin.get_files(self.peer_id, selections)
 
     def Show(self, files, do_show=True):
         """overrides Show, files is {repos: {names:tags}, }"""
@@ -45,11 +68,15 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
             for path, name, tag in file_data:
                 index = self.peerfiles_list.InsertStringItem(sys.maxint, name)
                 self.peerfiles_list.SetStringItem(index, 1, tag)
-                self.data[index] = (path, name, tag)
+                self.data[index] = path
         # show result
         self.peerfiles_list.SetColumnWidth(0, wx.LIST_AUTOSIZE)
         self.peerfiles_list.SetColumnWidth(1, wx.LIST_AUTOSIZE)
         wx.Dialog.Show(self, do_show)
+
+    def SetTitle(self, title):
+        self.peer_id = title
+        wx.Dialog.SetTitle(self, "%s's %s"% (title, _("Blog")))
 
     def __set_properties(self):
         # begin wxGlade: FileDialog.__set_properties
@@ -58,6 +85,8 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
         self.download_button.SetToolTipString(_("Download selected files"))
         self.download_button.SetSize(self.download_button.GetBestSize())
         # end wxGlade
+
+        self.download_button.Enable(False)
 
     def __do_layout(self):
         # begin wxGlade: FileDialog.__do_layout

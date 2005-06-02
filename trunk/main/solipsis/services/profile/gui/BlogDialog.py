@@ -57,8 +57,9 @@ class PeerHtmlListBox(wx.HtmlListBox):
         self.RefreshAll()
 
 class BlogDialog(wx.Dialog, UIProxyReceiver):
-    def __init__(self, *args, **kwds):
+    def __init__(self, parent, id, plugin=None, **kwds):
         UIProxyReceiver.__init__(self)
+        args = (parent, id)
         # begin wxGlade: BlogDialog.__init__
         kwds["style"] = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.THICK_FRAME
         wx.Dialog.__init__(self, *args, **kwds)
@@ -74,6 +75,8 @@ class BlogDialog(wx.Dialog, UIProxyReceiver):
         # end wxGlade
 
         # specific stuff
+        self.plugin = plugin
+        self.peer_id = None
         self.bind_controls()
 
     def Show(self, blog, do_show=True):
@@ -81,6 +84,10 @@ class BlogDialog(wx.Dialog, UIProxyReceiver):
         self.peerblog_list.blog = blog
         wx.Dialog.Show(self, do_show)
         self.peerblog_list.refresh()
+
+    def SetTitle(self, title):
+        self.peer_id = title
+        wx.Dialog.SetTitle(self, "%s's %s"% (title, _("Blog")))
         
     # EVENTS
     

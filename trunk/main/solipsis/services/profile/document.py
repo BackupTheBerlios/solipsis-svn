@@ -20,7 +20,6 @@
 gathared in views.py. Documents are to be seen as completely
 independant from views"""
 
-import pickle
 import mx.DateTime
 import ConfigParser
 import os.path
@@ -28,81 +27,31 @@ import tempfile
 import sys
 from os.path import isfile, isdir
 from StringIO import StringIO
-from solipsis.services.profile.data import DirContainer
 from solipsis.services.profile import ENCODING, \
-     PROFILE_DIR, PROFILE_FILE, PROFILE_EXT, BLOG_EXT
+     PROFILE_DIR, PROFILE_FILE, PROFILE_EXT
 from solipsis.services.profile.images import DEFAULT_PIC
-from solipsis.services.profile.data import DEFAULT_TAG, Blogs, SharedFiles
+from solipsis.services.profile.data import DEFAULT_TAG, \
+     DirContainer, SharedFiles, PeerDescriptor, Blogs
 
 DATE_FORMAT = "%d/%m/%Y"
 SECTION_PERSONAL = "Personal"
 SECTION_CUSTOM = "Custom"
 SECTION_OTHERS = "Others"
 SECTION_FILE = "Files"
-BULB_ON_IMG = "../images/bulb.gif"      
-BULB_OFF_IMG = "../images/bulb_off.gif"
 
 SHARE_ALL = "All"
 SHARE_NONE = "none"
 
-NO_PATH = "none"
+NO_PATH = "UNKNOWN"
 
-class FileDescriptor:
-    """contains information relative to the sharing of one file"""
-
-    def __init__(self, path, tag=None):
-        self.path = path
-        self.tag = tag
-
-    def __repr__(self):
-        return "%s (%s)"% (self.path, self.tag)
-
-class PeerDescriptor:
-    """contains information relative to peer of neibourhood"""
-
-    ANONYMOUS = 'Anonym'
-    FRIEND = 'Friend'
-    BLACKLISTED = 'Blacklisted'
-    COLORS = {ANONYMOUS: 'black',
-              FRIEND:'blue',
-              BLACKLISTED:'red'}
-    
-    def __init__(self, pseudo, state=ANONYMOUS, connected=False):
-        self.pseudo = pseudo
-        self.state = state
-        self.connected = connected
-        self.blog = None
-        self.shared_files = None
-
-    def __repr__(self):
-        return "%s (%s)"% (self.pseudo, self.state)
-
-    def set_connected(self, enable):
-        """change user's connected status"""
-        self.connected = enable
-
-    def set_blog(self, blog):
-        """blog is instance Blogs"""
-        self.blog = blog
-
-    def set_shared_files(self, files):
-        """blog is instance Blogs"""
-        self.shared_files = files
-        
-    def html(self):
-        """render peer in HTML"""
-        return "<img src='%s'/><font color=%s>%s</font>"\
-               % (self.connected and BULB_ON_IMG or BULB_OFF_IMG,
-                  PeerDescriptor.COLORS[self.state], self.pseudo)
-        
 class AbstractDocument:
     """Base class for data container. Acts as validator.
 
     Setters check input type. Getters are abstract"""
 
     def __init__(self, name="abstract"):
+        # used by facade when multiple documents
         self.name = name
-        self.blogs = Blogs()
 
     def __repr__(self):
         return self.name
@@ -123,8 +72,6 @@ class AbstractDocument:
 
     def import_document(self, other_document):
         """copy data from another document into self"""
-        # fields in mother class
-        self.blogs = Blogs()
         # personal data (unicode)
         self.set_title(other_document.get_title())
         self.set_firstname(other_document.get_firstname())
@@ -144,11 +91,6 @@ class AbstractDocument:
         attributes = other_document.get_custom_attributes()
         for key, val in attributes.iteritems():
             self.add_custom_attributes((key, val))
-        # blog data
-        for index, blog in enumerate(other_document.get_blogs()):
-            self.add_blog(blog.text)
-            for comment in blog.comments:
-                self.add_comment((index, comment.text))
         # file data
         self.reset_files()
         for repo, sharing_container in other_document.get_files().iteritems():
@@ -159,17 +101,8 @@ class AbstractDocument:
         # others' data
         self.reset_peers()
         peers = other_document.get_peers()
-        for pseudo, (peer_desc, peer_doc) in peers.iteritems():
-            self.add_peer(pseudo)
-            peer_doc and self.fill_data((pseudo, peer_doc))
-            if peer_desc.state == PeerDescriptor.ANONYMOUS:
-                self.unmark_peer(pseudo)
-            elif peer_desc.state == PeerDescriptor.FRIEND:
-                self.make_friend(pseudo)
-            elif peer_desc.state == PeerDescriptor.BLACKLISTED:
-                self.blacklist_peer(pseudo)
-            else:
-                print >> sys.stderr, "state %s not recognised"% peer_desc.state
+        for peer_id, peer_desc in peers.iteritems():
+            self.add_peer(peer_id, peer_desc.copy())
     
     # MENU
     def save(self, file_root=None):
@@ -213,7 +146,9 @@ class AbstractDocument:
         """sets new value for pseudo"""
         if not isinstance(value, unicode):
             raise TypeError("pseudo expected as unicode")
-        self.blogs.set_owner(value)
+        #FIXME: remove the following piece of shit
+        from solipsis.services.profile.facade import get_facade
+        get_facade().blogs.set_owner(value)
         
     def get_pseudo(self):
         """returns value of pseudo"""
@@ -321,37 +256,6 @@ class AbstractDocument:
         """returns value of custom_attributes"""
         raise NotImplementedError
         
-    # BLOG TAB
-    def add_blog(self, text):
-        """store blog in cache as wx.HtmlListBox is virtual.
-        return blog's id"""
-        self.blogs.add_blog(text, self.get_pseudo())
-
-    def remove_blog(self, index):
-        """delete blog"""
-        self.blogs.remove_blog(index, self.get_pseudo())
-        
-    def add_comment(self, (index, text)):
-        """store blog in cache as wx.HtmlListBox is virtual.
-        return comment's index"""
-        self.blogs.get_blog(index).add_comment(text, self.get_pseudo())
-
-    def get_blogs(self):
-        """return all blogs along with their comments"""
-        return self.blogs
-
-    def get_blog(self, index):
-        """return all blogs along with their comments"""
-        return self.blogs.get_blog(index)
-
-    def count_blogs(self):
-        """return number of blogs"""
-        return self.blogs.count_blogs()
-
-    def fill_blog(self, peer_id, blog):
-        """connect blog with profile"""
-        raise NotImplementedError
-
     # FILE TAB
     def reset_files(self):
         """empty all information concerning files"""
@@ -397,7 +301,7 @@ class AbstractDocument:
     def share_files(self, triplet):
         """forward command to cache"""
         if not isinstance(triplet, list) and not isinstance(triplet, tuple):
-            raise TypeError("argument of tag_container expected as list or tuple")
+            raise TypeError("argument expected as list or tuple")
         elif len(triplet) != 3:
             raise TypeError("argument of  expected as triplet"
                             " (dir_path, file_path, share)")
@@ -455,7 +359,6 @@ class AbstractDocument:
         shared = SharedFiles()
         for repository in self.get_repositories():
             shared[repository] =  self.get_shared(repository)
-        shared.set_owner(self.get_pseudo())
         return shared
         
     def get_shared(self, repo_path):
@@ -471,15 +374,21 @@ class AbstractDocument:
         """empty all information concerning peers"""
         raise NotImplementedError
         
-    def add_peer(self, pseudo):
+    def add_peer(self, peer_id, peer_desc=None):
         """stores Peer object"""
-        if not isinstance(pseudo, unicode):
-            raise TypeError("pseudo expected as unicode")
+        raise NotImplementedError
         
-    def remove_peer(self, pseudo):
+    def remove_peer(self, peer_id):
         """del Peer object"""
-        if not isinstance(pseudo, unicode):
-            raise TypeError("pseudo expected as unicode")
+        raise NotImplementedError
+
+    def has_peer(self, peer_id):
+        """checks peer exists"""
+        raise NotImplementedError
+    
+    def get_peer(self, peer_id):
+        """returns PeerDescriptor with given id"""
+        raise NotImplementedError
     
     def get_peers(self):
         """returns Peers"""
@@ -490,39 +399,57 @@ class AbstractDocument:
         peers = self.get_peers()
         peers_name = peers.keys()
         peers_name.sort()
-        return [(name, peers[name]) for name in peers_name]
+        return [peers[name] for name in peers_name]
+    
+    def make_friend(self, peer_id):
+        """sets peer as friend """
+        self._change_status(peer_id, PeerDescriptor.FRIEND)
 
-    def fill_data(self, pair):
+    def blacklist_peer(self, peer_id):
+        """sets new value for unshared file"""
+        self._change_status(peer_id, PeerDescriptor.BLACKLISTED)
+
+    def unmark_peer(self, peer_id):
+        """sets new value for unshared file"""
+        self._change_status(peer_id, PeerDescriptor.ANONYMOUS)      
+
+    def _change_status(self, peer_id, status):
+        """mark given peer as Friend, Blacklisted or Anonymous"""
+        if not self.has_peer(peer_id):
+            self.add_peer(peer_id)
+        peer_desc = self.get_peer(peer_id)
+        peer_desc.state = status
+        return peer_desc
+
+    def fill_data(self, (peer_id, document)):
         """stores CacheDocument associated with peer"""
-        if not isinstance(pair, list) and not isinstance(pair, tuple):
-            raise TypeError("argument of tag_file expected as list or tuple")
-        elif len(pair) != 2:
-            raise TypeError("argument of  expected as couple (file_path, tag)")
-        pseudo, document = pair
-        if not isinstance(pseudo, unicode):
-            raise TypeError("pseudo expected as unicode")
         if not isinstance(document, AbstractDocument):
             raise TypeError("data expected as AbstractDocument")
-    
-    def make_friend(self, pseudo):
-        """sets peer as friend """
-        if not isinstance(pseudo, unicode):
-            raise TypeError("pseudo expected as unicode")
+        if not self.has_peer(peer_id):
+            self.add_peer(peer_id)
+        peer_desc = self.get_peer(peer_id)
+        peer_desc.set_document(document)
+        return peer_desc
 
-    def blacklist_peer(self, pseudo):
-        """sets new value for unshared file"""
-        if not isinstance(pseudo, unicode):
-            raise TypeError("pseudo expected as unicode")
-
-    def unmark_peer(self, pseudo):
-        """sets new value for unshared file"""
-        if not isinstance(pseudo, unicode):
-            raise TypeError("pseudo expected as unicode")
-        
-    def get_peer_status(self, pseudo):
-        """return friendship of peers from value (friendship, path)"""
-        if not isinstance(pseudo, unicode):
-            raise TypeError("pseudo expected as unicode")
+    def fill_blog(self, (peer_id, blog)):
+        """stores CacheDocument associated with peer"""
+        if not isinstance(blog, Blogs):
+            raise TypeError("data expected as AbstractDocument")
+        if not self.has_peer(peer_id):
+            self.add_peer(peer_id)
+        peer_desc = self.get_peer(peer_id)
+        peer_desc.set_blog(blog)
+        return peer_desc
+            
+    def fill_shared_files(self, (peer_id, files)):
+        """connect shared files with shared files"""
+        if not isinstance(files, SharedFiles):
+            raise TypeError("data expected as SharedFiles")
+        if not self.has_peer(peer_id):
+            self.add_peer(peer_id)
+        peer_desc = self.get_peer(peer_id)
+        peer_desc.set_shared_files(files)
+        return peer_desc
         
 
 class CacheDocument(AbstractDocument):
@@ -725,7 +652,10 @@ class CacheDocument(AbstractDocument):
         """sets new value for repository"""
         AbstractDocument.remove(self, value)
         container = self._get_sharing_container(value)
-        del self._get_sharing_container(value)[value]
+        if container:
+            del container[value]
+        else:
+            print "%s already removed"% value
         
     def expand_dir(self, value):
         """update doc when dir expanded"""
@@ -793,74 +723,32 @@ class CacheDocument(AbstractDocument):
         """empty all information concerning peers"""
         self.peers = {}
         
-    def add_peer(self, pseudo):
+    def add_peer(self, peer_id, peer_desc=None):
         """stores Peer object"""
-        AbstractDocument.add_peer(self, pseudo)
-        self.peers[pseudo] = [PeerDescriptor(pseudo), None]
+        if peer_desc is None:
+            peer_desc = PeerDescriptor(peer_id)
+        self.peers[peer_id] = peer_desc
         
-    def remove_peer(self, pseudo):
+    def remove_peer(self, peer_id):
         """del Peer object"""
-        AbstractDocument.remove_peer(self, pseudo)
-        if self.peers.has_key(pseudo):
-            del self.peers[pseudo]
+        if self.peers.has_key(peer_id):
+            del self.peers[peer_id]
+
+    def has_peer(self, peer_id):
+        """checks peer exists"""
+        return self.peers.has_key(peer_id)
+    
+    def get_peer(self, peer_id):
+        """returns Peer with given id"""
+        return self.peers[peer_id]
     
     def get_peers(self):
         """returns Peers"""
         return self.peers
 
-    def fill_data(self, pair):
-        """stores CacheDocument associated with peer"""
-        AbstractDocument.fill_data(self, pair)
-        pseudo, document = pair
-        if not self.peers.has_key(pseudo):
-            self.add_peer(pseudo)
-        self.peers[pseudo][1] = document
-    
-    def fill_blog(self, peer_id, blog):
-        """connect blog with profile"""
-        peer = self.peers[peer_id][0]
-        peer.set_blog(blog)
-
-    def fill_shared_files(self, peer_id, files):
-        """connect blog with profile"""
-        peer = self.peers[peer_id][0]
-        peer.set_shared_files(files)
-
-    def make_friend(self, pseudo):
-        """sets peer as friend """
-        AbstractDocument.make_friend(self, pseudo)
-        if not self.peers.has_key(pseudo):
-            self.add_peer(pseudo)
-        peer_obj = self.peers[pseudo][0]
-        peer_obj.state = PeerDescriptor.FRIEND
-
-    def blacklist_peer(self, pseudo):
-        """sets new value for unshared file"""
-        AbstractDocument.blacklist_peer(self, pseudo)
-        if not self.peers.has_key(pseudo):
-            self.add_peer(pseudo)
-        peer_obj = self.peers[pseudo][0]
-        peer_obj.state = PeerDescriptor.BLACKLISTED
-
-    def unmark_peer(self, pseudo):
-        """sets new value for unshared file"""
-        AbstractDocument.unmark_peer(self, pseudo)
-        if not self.peers.has_key(pseudo):
-            self.add_peer(pseudo)
-        peer_obj = self.peers[pseudo][0]
-        peer_obj.state = PeerDescriptor.ANONYMOUS
-        
-    def get_peer_status(self, pseudo):
-        """return friendship of peers"""
-        AbstractDocument.get_peer_status(self, pseudo)        
-        if not self.peers.has_key(pseudo):
-            return PeerDescriptor.ANONYMOUS
-        else:
-            return self.peers[pseudo][0].state
-
-
 # FILEDOCUMENT
 class CustomConfigParser(ConfigParser.ConfigParser):
+    """simple wrapper to make config file case sensitive"""
 
     def optionxform(self, option):
         """override default implementation to make it case sensitive"""
@@ -901,10 +789,7 @@ class FileDocument(AbstractDocument):
         if file_root:
             self.file_root = file_root
         profile_file = open(self.file_root + PROFILE_EXT, 'w')
-        blog_file = open(self.file_root + BLOG_EXT, 'w')
         self.write(profile_file).close()
-        pickle.dump(self.get_blogs(), file=blog_file, protocol=pickle.HIGHEST_PROTOCOL)
-        blog_file.close()
 
     def read(self, stream):
         """import profile from given stream (file object like)"""
@@ -922,20 +807,14 @@ class FileDocument(AbstractDocument):
         """fill document with information from .profile file"""
         if file_root:
             self.file_root = file_root
+        # load profile
         if not os.path.exists(self.file_root + PROFILE_EXT):
             return False
         else:
             profile_file = open(self.file_root + PROFILE_EXT)
             self.read(profile_file)
             profile_file.close()
-        if os.path.exists(self.file_root + BLOG_EXT):
-            blog_file = open(self.file_root + BLOG_EXT)
-            self.blogs = pickle.load(blog_file)
-            blog_file.close()
-        # call parent on set_pseudo for blog
-        AbstractDocument.set_pseudo(self, self.get_pseudo())
-        #else: use blank blog
-        return True
+            return True
         
     # PERSONAL TAB
     def set_title(self, value):
@@ -1144,11 +1023,6 @@ class FileDocument(AbstractDocument):
         finally:
             return result
 
-    # BLOG TAB
-    def fill_blog(self, peer_id, blog):
-        """connect blog with profile"""
-        pass
-
     # FILE TAB
     def reset_files(self):
         """empty all information concerning files"""
@@ -1348,97 +1222,75 @@ class FileDocument(AbstractDocument):
         self.config.remove_section(SECTION_OTHERS)
         self.config.add_section(SECTION_OTHERS)
         
-    def add_peer(self, pseudo):
+    def add_peer(self, peer_id, peer_desc=None):
         """stores Peer object"""
-        AbstractDocument.add_peer(self, pseudo)
-        self.config.set(SECTION_OTHERS, pseudo, ","\
-                        .join([PeerDescriptor.ANONYMOUS, NO_PATH]))
+        if not peer_desc:
+            peer_desc = PeerDescriptor(peer_id)
+        # extract name of files saved on HD
+        profile_path = NO_PATH
+        if peer_desc.document:
+            file_root = peer_desc.document.get_id()
+            if os.path.exists(file_root + PROFILE_EXT):
+                profile_path = file_root + PROFILE_EXT
+        #else: use default values
+        description = ",".join([peer_desc.state,
+                                str(peer_desc.connected),
+                                profile_path])
+        self.config.set(SECTION_OTHERS, peer_desc.peer_id, description)
         
     def remove_peer(self, pseudo):
         """del Peer object"""
-        AbstractDocument.remove_peer(self, pseudo)
         if self.config.has_option(SECTION_OTHERS, pseudo):
             self.config.remove_option(SECTION_OTHERS, pseudo)
+
+    def has_peer(self, peer_id):
+        """checks peer exists"""
+        return self.config.has_option(SECTION_OTHERS, peer_id)
+        
+    def get_peer(self, peer_id):
+        """retreive stored value (friendship, path) for pseudo"""
+        try:
+            infos = self.config.get(SECTION_OTHERS, peer_id).split(",")
+            state, connected, profile_path = infos
+            file_doc = None
+            if profile_path != NO_PATH:
+                file_doc = FileDocument()
+                file_doc.load(profile_path)
+            return PeerDescriptor(peer_id, state, connected, file_doc)
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+            return PeerDescriptor(peer_id)
     
     def get_peers(self):
         """returns Peers"""
         result = {}
-        try:
+        if self.config.has_section(SECTION_OTHERS):
             options = self.config.options(SECTION_OTHERS)
-            for opt in options:
+            for peer_id in options:
+                # check unicode
+                if isinstance(peer_id, str):
+                    peer_id = unicode(peer_id, self.encoding)
                 # get info
-                if isinstance(opt, str):
-                    opt = unicode(opt, self.encoding)
-                try:
-                    # expected format is friend, path
-                    friend, path = self.config.get(SECTION_OTHERS, opt)\
-                                   .split(",")
-                except ValueError:
-                    # if format does not match, guess for path or friend
-                    value = unicode(self.config.get(SECTION_OTHERS, opt),
-                                    self.encoding)
-                    if value in [PeerDescriptor.ANONYMOUS,
-                                 PeerDescriptor.FRIEND,
-                                 PeerDescriptor.BLACKLISTED]:
-                        friend, path = value, NO_PATH
-                    elif os.path.exists(value):
-                        friend, path = PeerDescriptor.ANONYMOUS, value
-                    else:
-                        friend, path = PeerDescriptor.ANONYMOUS, NO_PATH
-                # load doc
-                if path != NO_PATH:
-                    doc = FileDocument()
-                    if not doc.load(path):
-                        doc = None
-                else:
-                    doc = None
-                result[opt] = [PeerDescriptor(opt, friend), doc]
-            return result
-        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-            return result
-        
+                peer_desc = self.get_peer(peer_id)
+                result[peer_id] = peer_desc
+        #else return default value
+        return result
 
-    def fill_data(self, pair):
+    def _change_status(self, peer_id, status):
+        """mark given peer as Friend, Blacklisted or Anonymous"""
+        peer_desc = AbstractDocument._change_status(self, peer_id, status)
+        self.add_peer(peer_id, peer_desc)
+
+    def fill_data(self, (peer_id, document)):
         """stores CacheDocument associated with peer"""
-        AbstractDocument.fill_data(self, pair)
-        pseudo, doc = pair
-        friendship = self._get_peer_info(pseudo)[0]
-        self.config.set(SECTION_OTHERS, pseudo, "%s,%s"\
-                        % (friendship, doc.get_id()))   
-        
-    def make_friend(self, pseudo):
-        """sets peer as friend """
-        AbstractDocument.make_friend(self, pseudo)
-        path = self._get_peer_info(pseudo)[1]
-        self.config.set(SECTION_OTHERS, pseudo, "%s,%s"\
-                        % (PeerDescriptor.FRIEND, path))
+        peer_desc = AbstractDocument.fill_data(self, (peer_id, document))
+        self.add_peer(peer_id, peer_desc)
 
-    def blacklist_peer(self, pseudo):
-        """sets new value for unshared file"""
-        AbstractDocument.blacklist_peer(self, pseudo)
-        path = self._get_peer_info(pseudo)[1]
-        self.config.set(SECTION_OTHERS, pseudo, "%s,%s"\
-                        % (PeerDescriptor.BLACKLISTED, path))
-
-    def unmark_peer(self, pseudo):
-        """sets new value for unshared file"""
-        AbstractDocument.unmark_peer(self, pseudo)
-        path = self._get_peer_info(pseudo)[1]
-        self.config.set(SECTION_OTHERS, pseudo, "%s,%s"\
-                        % (PeerDescriptor.ANONYMOUS, path))
-
-    def _get_peer_info(self, pseudo):
-        """retreive stored value (friendship, path) for pseudo"""
-        try:
-            return self.config.get(SECTION_OTHERS, pseudo).split(",")
-        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-            return [PeerDescriptor.ANONYMOUS, NO_PATH]
-
-    def get_peer_status(self, pseudo):
-        """return friendship of peers from value (friendship, path)"""
-        AbstractDocument.get_peer_status(self, pseudo)        
-        try:
-            return self.config.get(SECTION_OTHERS, pseudo).split(",")[0]
-        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-            return PeerDescriptor.ANONYMOUS
-
+    def fill_blog(self, (peer_id, blog)):
+        """stores CacheDocument associated with peer"""
+        peer_desc = AbstractDocument.fill_blog(self, (peer_id, blog))
+        self.add_peer(peer_id, peer_desc)
+            
+    def fill_shared_files(self, (peer_id, files)):
+        """connect shared files with shared files"""
+        peer_desc = AbstractDocument.fill_shared_files(self, (peer_id, files))
+        self.add_peer(peer_id, peer_desc)
