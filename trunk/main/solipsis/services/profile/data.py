@@ -23,6 +23,9 @@ import pickle
 import time
 import sys
 
+from solipsis.services.profile import PROFILE_DIR, \
+     PROFILE_FILE, BLOG_EXT
+
 BULB_ON_IMG = "../images/bulb.gif"      
 BULB_OFF_IMG = "../images/bulb_off.gif"
 DEFAULT_TAG = u"none"
@@ -39,15 +42,20 @@ def assert_dir(path):
 # BLOGS
 #######
 
-def load_blogs(file_name):
-    """use pickle to loas blogs"""
+def load_blogs(file_name=None):
+    """use pickle to loas blogs. file name given without extension (same model as profile"""
+    # reformating name
+    if not file_name:
+        file_name =  os.path.join(PROFILE_DIR, PROFILE_FILE)
+    file_name += BLOG_EXT
+    # loading
     if os.path.exists(file_name):
         blog_file = open(file_name)
         blogs = pickle.load(blog_file)
         blog_file.close()
         return blogs
     else:
-        print "blog file not found"
+        print "blog file %s not found"% file_name
         return Blogs()
 
 class Blogs:
@@ -65,6 +73,11 @@ class Blogs:
 
     def save(self, file_name):
         """use pickle to save to blog_file"""
+        # reformating name
+        if not file_name:
+            file_name =  os.path.join(PROFILE_DIR, PROFILE_FILE)
+        file_name += BLOG_EXT
+        # saving
         blog_file = open(file_name, 'w')
         pickle.dump(self, file=blog_file, protocol=pickle.HIGHEST_PROTOCOL)
         blog_file.close()

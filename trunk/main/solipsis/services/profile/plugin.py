@@ -125,7 +125,7 @@ class Plugin(ServicePlugin):
     
     def Disable(self):
         """It is called when the user chooses to disable the service."""
-        self.facade.save_profile(os.path.join(PROFILE_DIR, PROFILE_FILE))
+        self.facade.save_profile()
         self.network.stop_listening()
 
     # Service methods

@@ -149,6 +149,7 @@ class AbstractDocument:
         #FIXME: remove the following piece of shit
         from solipsis.services.profile.facade import get_facade
         get_facade().blogs.set_owner(value)
+        get_facade().update_blogs()
         
     def get_pseudo(self):
         """returns value of pseudo"""
@@ -788,6 +789,7 @@ class FileDocument(AbstractDocument):
         """fill document with information from .profile file"""
         if file_root:
             self.file_root = file_root
+        print "saving", self.file_root
         profile_file = open(self.file_root + PROFILE_EXT, 'w')
         self.write(profile_file).close()
 
@@ -809,8 +811,10 @@ class FileDocument(AbstractDocument):
             self.file_root = file_root
         # load profile
         if not os.path.exists(self.file_root + PROFILE_EXT):
+            print "profile %s does not exists"% self.file_root
             return False
         else:
+            print "loading", self.file_root
             profile_file = open(self.file_root + PROFILE_EXT)
             self.read(profile_file)
             profile_file.close()

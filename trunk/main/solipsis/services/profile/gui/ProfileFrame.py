@@ -170,7 +170,7 @@ class ProfileFrame(wx.Frame):
         
     def on_close(self, evt):
         """hide  application"""
-        self.facade.save_profile(os.path.join(PROFILE_DIR, PROFILE_FILE))
+        self.facade.save_profile()
         if self.standalone:
             self._close()
         else:

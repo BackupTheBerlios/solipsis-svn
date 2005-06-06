@@ -37,7 +37,7 @@ class FacadeTest(unittest.TestCase):
 
     def test_change_pseudo(self):
         self.facade.change_pseudo(u'emb')
-        self.assertEquals("emb\n", self.result.getvalue())
+        self.assertEquals("emb", self.result.getvalue().split('\n')[-2])
 
     def test_change_photo(self):
         self.facade.change_photo(unittest.__file__)

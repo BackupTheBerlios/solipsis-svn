@@ -25,21 +25,16 @@ import os.path
 from sys import stderr
 from StringIO import StringIO
 from solipsis.services.profile import ENCODING, \
-      PROFILE_DIR, PROFILE_FILE, BLOG_EXT
+      PROFILE_DIR, PROFILE_FILE
 from solipsis.services.profile.data import DirContainer, \
      Blogs, load_blogs
 from solipsis.services.profile.document import FileDocument
 
-def get_facade(doc=None, view=None, blog_path=None):
+def get_facade(doc=None, view=None):
     """implements pattern singleton on Facade. User may specify
     document end/or view to initialize facade with at creation"""
     if not Facade.s_facade:
         Facade.s_facade = Facade()
-        # load blog
-        if not blog_path:
-            blog_path = os.path.join(PROFILE_DIR,
-                                     PROFILE_FILE + BLOG_EXT)
-        Facade.s_facade.blogs = load_blogs(blog_path)
         # import document
         doc and Facade.s_facade.add_document(doc)
         view and Facade.s_facade.add_view(view)
@@ -99,23 +94,20 @@ class Facade:
         return blog's index"""
         pseudo = self.get_document('cache').get_pseudo()
         self.blogs.add_blog(text, pseudo)
-        for view in self.views.values():
-            view.update_blogs(self.blogs)
+        self.update_blogs()
 
     def remove_blog(self, index):
         """delete blog"""
         pseudo = self.get_document('cache').get_pseudo()
         self.blogs.remove_blog(index, pseudo)
-        for view in self.views.values():
-            view.update_blogs(self.blogs)
+        self.update_blogs()
         
     def add_comment(self, (index, text)):
         """store blog in cache as wx.HtmlListBox is virtual.
         return comment's index"""
         pseudo = self.get_document('cache').get_pseudo()
         self.blogs.add_comment(index, text, pseudo)
-        for view in self.views.values():
-            view.update_blogs(self.blogs)
+        self.update_blogs()
 
     def get_blogs(self):
         """return all blogs along with their comments"""
@@ -128,6 +120,10 @@ class Facade:
     def count_blogs(self):
         """return number of blogs"""
         return self.blogs.count_blogs()
+
+    def update_blogs(self):
+        for view in self.views.values():
+            view.update_blogs(self.blogs)
 
     # proxy
     def _try_change(self, value, setter, updater):
@@ -167,32 +163,45 @@ class Facade:
     
     def save_profile(self, path=None):
         """save .profile.solipsis"""
+        # get file document
         if "file" in self.documents:
             file_doc = self.documents["file"]
         else:
             file_doc = FileDocument()
         # refresh file document to be sure to save updated data
         if "cache" in self.documents:
-            self.documents["file"].import_document(self.documents["cache"])
+            file_doc.import_document(self.documents["cache"])
         else:
             print "no cache available"
         # save
+        if not path:
+            # FIXME: needed for coherency between blog and profile. Refactor
+            path = file_doc.file_root
+        if path and path.endswith('.prf'):
+            path = path[:-4]
         file_doc.save(path)
         # save blog
-        self.blogs.save(path + BLOG_EXT)
+        self.blogs.save(path)
 
     def load_profile(self, path):
-        """save .profile.solipsis"""
+        """load .profile.solipsis"""
+        # load blog
+        if path and path.endswith('.prf'):
+            path = path[:-4]
+        Facade.s_facade.blogs = load_blogs(path)
+        self.update_blogs()
         #load profile
-        if "file" in self.documents:
-            self.documents["file"].load(path)
+        file_doc = FileDocument()
+        file_doc.load(path)
+        self.documents["file"] = file_doc
         for name, doc in self.documents.iteritems():
-            name != "file" and doc.import_document(self.documents["file"])
+            name != "file" and doc.import_document(file_doc)
         for view in self.views.values():
-            view.import_document()
+            print "updating view", view.name
+            view.import_document(file_doc)
 
     def export_profile(self, path):
-        """save .profile.solipsis"""
+        """write profile in html format"""
         html_file = open(path, "w")
         html_file.write(self.views["html"].get_view().encode(ENCODING))
 

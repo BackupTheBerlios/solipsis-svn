@@ -48,7 +48,7 @@ class AbstractView:
         self.document = document
         self.name = name
         if do_import:
-            self.import_document()
+            self.import_document(document)
 
     def __str__(self):
         raise NotImplementedError   
@@ -57,8 +57,9 @@ class AbstractView:
         """used as key in index"""
         return self.name
 
-    def import_document(self):
+    def import_document(self, document):
         """update view with document"""
+        self.document = document
         # personal tab
         self.update_title()
         self.update_firstname()

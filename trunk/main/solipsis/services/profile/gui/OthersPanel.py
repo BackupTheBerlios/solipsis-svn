@@ -91,7 +91,7 @@ class OthersPanel(wx.Panel):
         # get peer to display
         to_display = self.get_peer_selected()
         if to_display:
-            active_doc = peers[to_display][1]
+            active_doc = peers[to_display].document
         else:
             # TODO: set default view
             active_doc = None

@@ -90,7 +90,7 @@ class HtmlTest(unittest.TestCase):
 
     def assert_template(self):
         """diff result from view with expeceted template"""
-        self.view.import_document()
+        self.view.import_document(self.document)
         result = difflib.ndiff([line.strip() for line in self.print_template().splitlines()],
                                [line.strip() for line in self.view.get_view(True).splitlines()],
                                charjunk=lambda x: x in [' ', '\t'])
