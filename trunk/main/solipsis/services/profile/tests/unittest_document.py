@@ -3,6 +3,7 @@ gathared in views.py. Documents are to be seen as completely
 independant from views"""
 
 import unittest
+import time
 from os.path import abspath
 from solipsis.services.profile.document import \
       AbstractDocument, CacheDocument, FileDocument
@@ -70,17 +71,21 @@ class DocumentTest(unittest.TestCase):
             document.set_email(u"manu@ft.com")
         
     def test_birthday(self):
-        """birthday as DateTime convertable"""
+        """birthday as datetime"""
         self.assertRaises(NotImplementedError, self.abstract_doc.get_birthday)
         for document in self.documents:
-            self.assertRaises(TypeError, document.set_birthday, "12 jan 2005")
-            self.assertRaises(TypeError, document.set_birthday, "2005/01/12")
-            self.assertRaises(TypeError, document.set_birthday, "12-01-2005")
-            self.assertRaises(TypeError, document.set_birthday, "12012005")
-            self.assertRaises(TypeError, document.set_birthday, "12/01")
-            self.assertRaises(TypeError, document.set_birthday, ["12/01/05", ])
             document.set_birthday(u"12/01/2005")
-            document.set_birthday("12/01/2005")
+            birthday = document.get_birthday()
+            document.set_birthday("12 jan 2005")
+            self.assertEquals(document.get_birthday(), birthday)
+            document.set_birthday("2005/01/12")
+            self.assertEquals(document.get_birthday(), birthday)
+            document.set_birthday("12-01-2005")
+            self.assertEquals(document.get_birthday(), birthday)
+            document.set_birthday("12012005")
+            self.assertEquals(document.get_birthday(), birthday)
+            document.set_birthday("12/01")
+            self.assertEquals(document.get_birthday(), birthday)
             
     def test_language(self):
         """language as unicode"""

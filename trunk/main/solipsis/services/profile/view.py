@@ -206,7 +206,7 @@ class PrintView(AbstractView):
         print >> self.output, self.document.get_email()      
 
     def update_birthday(self):
-        """DateTime birthday"""
+        """birthday"""
         print >> self.output, self.document.get_birthday()  
 
     def update_language(self):
@@ -305,7 +305,7 @@ class GuiView(AbstractView):
             self.document.get_email())     
 
     def update_birthday(self):
-        """DateTime birthday"""
+        """birthday"""
         self.frame.personal_tab.birthday_value.SetValue(
             self.document.get_birthday()) 
 
@@ -455,7 +455,7 @@ class HtmlView(AbstractView):
             self.update_view() 
 
     def update_birthday(self):
-        """DateTime birthday"""
+        """birthday"""
         self.context.addGlobal("birthday", self.document.get_birthday())
         if self.auto_refresh:
             self.update_view()

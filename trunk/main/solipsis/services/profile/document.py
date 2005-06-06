@@ -20,10 +20,10 @@
 gathared in views.py. Documents are to be seen as completely
 independant from views"""
 
-import mx.DateTime
 import ConfigParser
 import os.path
 import tempfile
+import time
 import sys
 from os.path import isfile, isdir
 from StringIO import StringIO
@@ -173,11 +173,8 @@ class AbstractDocument:
         
     def set_birthday(self, value):
         """sets new value for birthday"""
-        try:
-            mx.DateTime.strptime(value, DATE_FORMAT)
-        except mx.DateTime.Error, error:
-            raise TypeError("birthday expected in format %s. %s"\
-                            % (DATE_FORMAT, str(error)))
+        raise NotImplementedError
+        
     def get_birthday(self):
         """returns value of birthday"""
         raise NotImplementedError
@@ -464,7 +461,7 @@ class CacheDocument(AbstractDocument):
         self.pseudo = u""
         self.photo = ""
         self.email = u""
-        self.birthday = mx.DateTime.now()
+        self.birthday = time.localtime()
         self.language = u""
         self.address = u""
         self.postcode = 0
@@ -540,11 +537,14 @@ class CacheDocument(AbstractDocument):
 
     def set_birthday(self, value):
         """sets new value for birthday"""
-        AbstractDocument.set_birthday(self, value)
-        self.birthday = mx.DateTime.strptime(value, DATE_FORMAT)
+        try:
+            self.birthday = time.strptime(value, DATE_FORMAT)
+        except ValueError, error:
+            print error
+        
     def get_birthday(self):
         """returns value of birthday"""
-        return self.birthday.strftime(DATE_FORMAT)
+        return time.strftime(DATE_FORMAT, self.birthday)
 
     def set_language(self, value):
         """sets new value for language"""
@@ -899,9 +899,13 @@ class FileDocument(AbstractDocument):
 
     def set_birthday(self, value):
         """sets new value for birthday"""
-        AbstractDocument.set_birthday(self, value)
-        self.config.set(SECTION_PERSONAL, "birthday",
-                        value.encode(self.encoding))
+        try:
+            time.strptime(value, DATE_FORMAT)
+            self.config.set(SECTION_PERSONAL, "birthday",
+                            value.encode(self.encoding))
+        except ValueError, error:
+            print error
+        
     def get_birthday(self):
         """returns value of birthday"""
         try:

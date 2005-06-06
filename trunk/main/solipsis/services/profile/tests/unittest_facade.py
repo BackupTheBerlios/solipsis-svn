@@ -8,7 +8,6 @@ from solipsis.services.profile.document import CacheDocument, FileDocument
 from solipsis.services.profile.data import DEFAULT_TAG, PeerDescriptor
 from solipsis.services.profile.view import PrintView
 from solipsis.services.profile.facade import get_facade
-from mx.DateTime import DateTime
 from os.path import abspath
 
 class FacadeTest(unittest.TestCase):
