@@ -47,12 +47,13 @@ class OthersPanel(wx.Panel):
         else:
             return None
 
-    def refresh_view(self, peer_id, active_doc):
+    def refresh_view(self, peer_id=None):
         """refresh html view of peer"""
+        active_doc = peer_id and self.pseudos[self.facade.get_peer(peer_id)] or None
         if active_doc:
             view = HtmlView(active_doc)
             self.detail_preview.SetPage(view.get_view(True))
-            self.frame.enable_peer_states(True, self.facade.get_peer(peer_id).state)
+            self.frame.enable_peer_states(True, active_doc.state)
         else:
             self.detail_preview.SetPage("<font color='blue'>%s</font>"\
                                         % _("select neighbor to display"))
@@ -67,13 +68,29 @@ class OthersPanel(wx.Panel):
     def cb_update_peers(self, peers):
         """called when peers have been modified"""
         self.peers = peers
-        # retreive peer_ids
-        friends = [peer.peer_id for peer in peers.values()
-                   if peer.state == PeerDescriptor.FRIEND]
-        anonymous = [peer.peer_id for peer in peers.values()
-                     if peer.state == PeerDescriptor.ANONYMOUS]
-        blacklisted = [peer.peer_id for peer in peers.values()
-                       if peer.state == PeerDescriptor.BLACKLISTED]
+        self.pseudos = {}
+        friends = []
+        anonymous = []
+        blacklisted = []
+        # get pseudos and sort them out
+        for peer_id, peer_desc in self.peers.iteritems():
+            # get 'pseudo'
+            if peer_desc.document:
+                pseudo = peer_desc.document.get_pseudo()
+            else:
+                pseudo = peer_id
+            # create lists
+            index = 1
+            while self.pseudos.has_key(pseudo):
+                index += 1
+                pseudo = "%s_%02d"% (pseudo, index)
+            self.pseudos[pseudo] = peer_id
+            if peer_desc.state == PeerDescriptor.FRIEND:
+                friends.append(pseudo)
+            elif peer_desc.state == PeerDescriptor.BLACKLISTED:
+                blacklisted.append(pseudo)
+            else: # peer.state == PeerDescriptor.ANONYMOUS
+                anonymous.append(pseudo)
         # sort
         friends.sort()
         anonymous.sort()
@@ -82,28 +99,21 @@ class OthersPanel(wx.Panel):
         self.peers_list.DeleteChildren(self.friends)
         self.peers_list.DeleteChildren(self.anonymous)
         self.peers_list.DeleteChildren(self.blacklisted)
-        for peer_id in friends:
-            self.peers_list.AppendItem(self.friends, peer_id)
-        for peer_id in anonymous:
-            self.peers_list.AppendItem(self.anonymous, peer_id)
-        for peer_id in blacklisted:
-            self.peers_list.AppendItem(self.blacklisted, peer_id)
+        for pseudo in friends:
+            self.peers_list.AppendItem(self.friends, pseudo)
+        for pseudo in anonymous:
+            self.peers_list.AppendItem(self.anonymous, pseudo)
+        for pseudo in blacklisted:
+            self.peers_list.AppendItem(self.blacklisted, pseudo)
         # get peer to display
         to_display = self.get_peer_selected()
-        if to_display:
-            active_doc = peers[to_display].document
-        else:
-            # TODO: set default view
-            active_doc = None
         # refresh HTMLView
-        self.refresh_view(to_display, active_doc)
+        self.refresh_view(to_display)
         
     def on_selected(self, evt):
         """peer selected"""
-        peer_id = self.get_peer_selected()
-        if peer_id:
-            active_doc = self.peers[peer_id].document
-            self.refresh_view(peer_id, active_doc)
+        pseudo = self.get_peer_selected()
+        self.refresh_view(pseudo)
 
     def __set_properties(self):
         # begin wxGlade: OthersPanel.__set_properties

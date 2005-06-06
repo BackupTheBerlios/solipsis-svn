@@ -19,7 +19,6 @@ from solipsis.services.profile.document import FileDocument
 TIMEOUT = 60
 
 # messages
-CLIENT_SEND_ACK = "CONNECTED"
 SERVER_SEND_ID = "SERVER_ID"
 
 MESSAGE_HELLO = "HELLO"
@@ -123,6 +122,7 @@ class NetworkManager:
         self.server = ProfileServerFactory(self, host, known_port)
         # {peer_id: remote_ip}
         self.remote_ips = {}
+        self.remote_ids = {}
 
     def start_listening(self):
         """launching main server listening to well-known port"""
@@ -153,6 +153,7 @@ class NetworkManager:
     def _init_peer(self, peer_id, remote_ip):
         """set up cache for given peer"""
         self.remote_ips[peer_id] = remote_ip
+        self.remote_ids[remote_ip] = peer_id
 
     def on_lost_peer(self, peer_id):
         """tries to connect to new peer"""
@@ -180,6 +181,7 @@ class NetworkManager:
             # create client if necessary
             if not self.remote_ips.has_key(peer_id):
                 self._init_peer(peer_id, r_ip)
+            # check IP
             assert r_ip == self.remote_ips[peer_id], \
                    "incoherent ip %s instead of %s"\
                    % (r_ip, self.remote_ips[peer_id])
@@ -288,15 +290,14 @@ class ProfileClientProtocol(basic.LineOnlyReceiver):
         # on greeting, stores info about remote host (profile id)
         if line.startswith(SERVER_SEND_ID):
             # get remote information
-            remote_host = self.transport.getPeer().host
-            peer_id, remote_port = parse_address(line[len(SERVER_SEND_ID):])
+            remote_host, remote_port = parse_address(line[len(SERVER_SEND_ID):])
             # store remote information
             client = self.factory.get_dedicated_client(remote_host)
-            client.set_remote(peer_id, remote_port)
+            client.set_remote(self.factory.manager.remote_ids[remote_host], remote_port)
+            # download profile
+            client.get_profile().addCallback(self.factory._on_profile_complete, client.peer_id)
         else:
             print "client received unexpected line:", line
-        # acknowledge
-        self.sendLine(CLIENT_SEND_ACK)
 
     def sendLine(self, line):
         """overrides in order to ease debug"""
@@ -308,15 +309,6 @@ class ProfileClientProtocol(basic.LineOnlyReceiver):
         # create dedicated client
         remote_host = self.transport.getPeer().host
         self.factory.create_dedicated_client(remote_host)
-
-    def connectionLost(self, reason):
-        """switch to dedicated client and ask for profile"""
-        # get dedicated client
-        remote_host = self.transport.getPeer().host
-        basic.LineOnlyReceiver.connectionLost(self, reason)
-        client = self.factory.get_dedicated_client(remote_host)
-        # download profile
-        client.get_profile().addCallback(self.factory._on_profile_complete)
 
 class ProfileClientFactory(ClientFactory):
     """client connecting on known port thanks to TCP. call UDP on failure."""
@@ -372,10 +364,10 @@ class ProfileClientFactory(ClientFactory):
         """clean dedicated client to remote_ip"""
         self.disconnect_tcp(remote_ip)
 
-    def _on_profile_complete(self, document):
+    def _on_profile_complete(self, document, peer_id):
         """callback when autoloading of profile successful"""
-        print "downloaded profile", document.get_pseudo()
-        self.manager.facade.fill_data((document.get_pseudo(), document))
+        print "downloaded profile", document.get_pseudo(), peer_id
+        self.manager.facade.fill_data((peer_id, document))
     
 # SERVER
 class ProfileServerProtocol(basic.LineOnlyReceiver):
@@ -383,14 +375,6 @@ class ProfileServerProtocol(basic.LineOnlyReceiver):
 
     def __init__(self):
         self.factory = None
-
-    def lineReceived(self, line):
-        """incomming connection from other peer"""
-        print "received", line
-        if line.startswith(CLIENT_SEND_ACK):
-            self.transport.loseConnection()
-        else:
-            print "server received unexpected line:", line 
 
     def sendLine(self, line):
         """overrides in order to ease debug"""

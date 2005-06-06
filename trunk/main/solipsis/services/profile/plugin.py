@@ -138,7 +138,7 @@ class Plugin(ServicePlugin):
     # Transfer methods
     def _on_new_profile(self, document, peer_id):
         """store and display file object corresponding to profile"""
-        print "downloaded profile", document.get_pseudo()
+        print "downloaded profile", document.get_pseudo(), peer_id
         self.facade.fill_data((peer_id, document))
     
     def _on_new_blog(self, blog, peer_id):

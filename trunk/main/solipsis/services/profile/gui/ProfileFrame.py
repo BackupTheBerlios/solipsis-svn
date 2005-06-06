@@ -129,7 +129,6 @@ class ProfileFrame(wx.Frame):
             path = dlg.GetPath()
             loader = FileDocument()
             loader.load(path)
-            self.facade.add_peer(loader.get_pseudo())
             self.facade.fill_data((loader.get_pseudo(), loader))
 
     def on_load(self, evt):
