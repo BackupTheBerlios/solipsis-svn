@@ -5,6 +5,7 @@ import os
 import wx, wx.lib.editor
 from solipsis.util.wxutils import _
 from solipsis.services.profile.facade import get_facade
+from solipsis.services.profile import QUESTION_MARK
 
 # begin wxGlade: dependencies
 # end wxGlade
@@ -28,7 +29,7 @@ class PersonalPanel(wx.Panel):
         self.birthday_value = wx.TextCtrl(self, -1, _("dd/mm/yyyy"))
         self.language_lbl = wx.StaticText(self, -1, _("Language: "))
         self.language_value = wx.ComboBox(self, -1, choices=["", _("French"), _("English")], style=wx.CB_DROPDOWN|wx.CB_SIMPLE|wx.CB_READONLY|wx.CB_SORT)
-        self.photo_button = wx.BitmapButton(self, -1, wx.Bitmap("/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/question_mark.gif", wx.BITMAP_TYPE_ANY))
+        self.photo_button = wx.BitmapButton(self, -1, wx.Bitmap(QUESTION_MARK,wx.BITMAP_TYPE_ANY))
         self.road_value = wx.TextCtrl(self, -1, _("Road"))
         self.postcode_value = wx.TextCtrl(self, -1, _("Postcode"))
         self.city_value = wx.TextCtrl(self, -1, _("City"))

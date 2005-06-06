@@ -7,6 +7,7 @@ import os.path
 from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxyReceiver
 from solipsis.services.profile.facade import get_facade
+from solipsis.services.profile import DOWNLOAD
 
 # begin wxGlade: dependencies
 # end wxGlade
@@ -19,7 +20,7 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
         kwds["style"] = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.THICK_FRAME
         wx.Dialog.__init__(self, *args, **kwds)
         self.fileaction_sizer_staticbox = wx.StaticBox(self, -1, _("Actions"))
-        self.download_button = wx.BitmapButton(self, -1, wx.Bitmap("/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/down_file.gif", wx.BITMAP_TYPE_ANY))
+        self.download_button = wx.BitmapButton(self, -1, wx.Bitmap(DOWNLOAD,wx.BITMAP_TYPE_ANY))
         self.peerfiles_list = wx.ListCtrl(self, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
 
         self.__set_properties()

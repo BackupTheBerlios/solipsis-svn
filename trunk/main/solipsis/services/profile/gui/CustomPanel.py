@@ -5,6 +5,7 @@ import sys
 import wx, wx.lib.editor 
 import wx.lib.mixins.listctrl  as  listmix
 from solipsis.services.profile.facade import get_facade
+from solipsis.services.profile import ADD_CUSTOM, DEL_CUSTOM
 from solipsis.util.wxutils import _
 from wx import ImageFromStream, BitmapFromImage
 from StringIO import StringIO
@@ -21,8 +22,8 @@ class CustomPanel(wx.Panel):
         self.action_sizer_staticbox = wx.StaticBox(self, -1, _("Specify here a field of interest. For instance: (favorite book: Harry Potter) or (instrument: piano) "))
         self.key_value = wx.TextCtrl(self, -1, _("favorite book"))
         self.custom_value = wx.TextCtrl(self, -1, _("Harry Potter"))
-        self.add_custom_button = wx.BitmapButton(self, -1, wx.Bitmap("/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/add_file.jpeg", wx.BITMAP_TYPE_ANY))
-        self.del_custom_button = wx.BitmapButton(self, -1, wx.Bitmap("/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/del_file.jpeg", wx.BITMAP_TYPE_ANY))
+        self.add_custom_button = wx.BitmapButton(self, -1, wx.Bitmap(ADD_CUSTOM,wx.BITMAP_TYPE_ANY))
+        self.del_custom_button = wx.BitmapButton(self, -1, wx.Bitmap(DEL_CUSTOM,wx.BITMAP_TYPE_ANY))
         self.custom_list = wx.ListCtrl(self, -1, style=wx.LC_REPORT|wx.LC_SINGLE_SEL|wx.LC_SORT_ASCENDING|wx.NO_BORDER)
         self.hobbies_value = wx.TextCtrl(self, -1, "", style=wx.TE_PROCESS_ENTER|wx.TE_PROCESS_TAB|wx.TE_MULTILINE|wx.HSCROLL|wx.TE_RICH2|wx.TE_LINEWRAP)
 

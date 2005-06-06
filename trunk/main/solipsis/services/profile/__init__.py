@@ -27,6 +27,23 @@ PROFILE_FILE = ".default"
 PROFILE_EXT = ".prf"
 BLOG_EXT = ".blog"
 
+#IMAGES
+images_dir = os.path.join(os.path.dirname(__file__), "images")
+print "******", os.path.join(images_dir, "question_mark.gif")
+QUESTION_MARK = os.path.join(images_dir, "question_mark.gif")
+ADD_CUSTOM = os.path.join(images_dir, "add_file.jpeg")
+DEL_CUSTOM = os.path.join(images_dir, "del_file.jpeg")
+ADD_BLOG = os.path.join(images_dir, "edit_file.gif")
+DEL_BLOG = os.path.join(images_dir, "delete_file.gif")
+ADD_COMMENT = os.path.join(images_dir, "comment.gif")
+UPLOAD_BLOG = os.path.join(images_dir, "add_file.gif")
+ADD_REPO = os.path.join(images_dir, "browse.jpeg")
+DEL_REPO = os.path.join(images_dir, "del_file.jpeg")
+SHARE = os.path.join(images_dir, "add_file.gif")
+UNSHARE= os.path.join(images_dir, "del_file.gif")
+EDIT = os.path.join(images_dir, "edit_file.gif")
+DOWNLOAD = os.path.join(images_dir, "down_file.gif")
+
 KNOWN_PORT = 1160
 FREE_PORTS = range(23000, 23999)
 

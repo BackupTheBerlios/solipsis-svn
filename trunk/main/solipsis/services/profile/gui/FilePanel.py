@@ -8,8 +8,8 @@ import sys
 from os.path import abspath
 from solipsis.util.wxutils import _
 from solipsis.services.profile.facade import get_facade
-from solipsis.services.profile.data import DirContainer
-from solipsis.services.profile.data import SHARING_ALL
+from solipsis.services.profile.data import DirContainer, SHARING_ALL
+from solipsis.services.profile import ADD_REPO, DEL_REPO, SHARE, UNSHARE, EDIT
 
 # tree list
 NB_SHARED_COL = 1
@@ -32,12 +32,12 @@ class FilePanel(wx.Panel):
         self.window_1_pane_2 = wx.Panel(self.window_1, -1)
         self.window_1_pane_1 = wx.Panel(self.window_1, -1)
         self.actions_sizer_staticbox = wx.StaticBox(self, -1, _("Actions"))
-        self.add_button = wx.BitmapButton(self, -1, wx.Bitmap("/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/browse.jpeg", wx.BITMAP_TYPE_ANY))
-        self.del_button = wx.BitmapButton(self, -1, wx.Bitmap("/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/del_file.jpeg", wx.BITMAP_TYPE_ANY))
-        self.share_button = wx.BitmapButton(self, -1, wx.Bitmap("/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/add_file.gif", wx.BITMAP_TYPE_ANY))
-        self.unshare_button = wx.BitmapButton(self, -1, wx.Bitmap("/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/delete_file.gif", wx.BITMAP_TYPE_ANY))
+        self.add_button = wx.BitmapButton(self, -1, wx.Bitmap(ADD_REPO,wx.BITMAP_TYPE_ANY))
+        self.del_button = wx.BitmapButton(self, -1, wx.Bitmap(DEL_REPO,wx.BITMAP_TYPE_ANY))
+        self.share_button = wx.BitmapButton(self, -1, wx.Bitmap(SHARE,wx.BITMAP_TYPE_ANY))
+        self.unshare_button = wx.BitmapButton(self, -1, wx.Bitmap(UNSHARE,wx.BITMAP_TYPE_ANY))
         self.tag_value = wx.TextCtrl(self, -1, "")
-        self.edit_button = wx.BitmapButton(self, -1, wx.Bitmap("/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/edit_file.gif", wx.BITMAP_TYPE_ANY))
+        self.edit_button = wx.BitmapButton(self, -1, wx.Bitmap(EDIT,wx.BITMAP_TYPE_ANY))
         self.tree_list = wx.gizmos.TreeListCtrl(self.window_1_pane_1, -1)
         self.dir_list = wx.ListCtrl(self.window_1_pane_2, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
 

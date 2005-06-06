@@ -136,10 +136,10 @@ class Plugin(ServicePlugin):
             self.profile_frame.blog_tab.on_update()
 
     # Transfer methods
-    def _on_new_profile(self, document):
+    def _on_new_profile(self, document, peer_id):
         """store and display file object corresponding to profile"""
         print "downloaded profile", document.get_pseudo()
-        self.facade.fill_data((document.get_pseudo(), document))
+        self.facade.fill_data((peer_id, document))
     
     def _on_new_blog(self, blog, peer_id):
         """store and display file object corresponding to blog"""
@@ -152,7 +152,7 @@ class Plugin(ServicePlugin):
     def get_profile(self, peer_id):
         """request downwload of profile"""
         deferred = self.network.get_profile(peer_id)
-        deferred and deferred.addCallback(self._on_new_profile)
+        deferred and deferred.addCallback(self._on_new_profile, peer_id)
 
     def get_blog_file(self, peer_id):
         """request downwload of blog"""
