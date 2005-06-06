@@ -53,7 +53,10 @@ def GetCharset():
     """
     Get the name of the current charset.
     """
-    return str(wx.Locale.GetSystemEncodingName())
+    # TODO: find how to get the textual name of the encoding from
+    # GetSystemEncoding() when GetSystemEncodingName() returns an 
+    # empty string (e.g. MacOS X)
+    return str(wx.Locale.GetSystemEncodingName()) or "utf-8"
 
 def GetStockBitmap(art_id, art_client=None):
     """
