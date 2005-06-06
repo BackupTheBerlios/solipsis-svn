@@ -139,6 +139,9 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         # Nicer sizing
         for obj_name in objects:
             attr = self.__getattribute__(obj_name)
+            # Avoid crash on MacOS X
+            if isinstance(attr, wx.MenuBar):
+                continue
             attr.SetSizeHintsSz(attr.GetBestVirtualSize())
 
     def InitValidators(self):
