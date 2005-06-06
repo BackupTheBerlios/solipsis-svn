@@ -153,7 +153,11 @@ class AbstractView:
         """display blog"""
         raise NotImplementedError
 
-    # FILE TAB
+    # FILE TAB  
+    def reset_files(self):
+        """file"""
+        pass
+    
     def update_files(self):
         """file"""
         raise NotImplementedError
@@ -359,6 +363,10 @@ class GuiView(AbstractView):
         self.frame.display_blog(peer_id, blog)
         
     # FILE TAB : frame.file_tab        
+    def reset_files(self):
+        """file"""
+        self.frame.file_tab.reset_files()
+        
     def update_files(self):
         """file"""
         for sharing_container in self.document.get_files().values():

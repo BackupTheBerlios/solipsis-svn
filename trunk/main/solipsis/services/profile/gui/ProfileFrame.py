@@ -114,7 +114,8 @@ class ProfileFrame(wx.Frame):
     def on_activate(self, evt):
         """activate service"""
         print self.activate_item.IsChecked() and "Activating..." or "Disactivated"
-        self.facade.activate(self.activate_item.IsChecked())
+        active = self.activate_item.IsChecked()
+        self.facade.activate(active)
         
     def on_add(self, evt):
         """save profile .prf"""
@@ -237,6 +238,7 @@ class ProfileFrame(wx.Frame):
     def set_refresh(self, evt):
         """refresh HTML preview"""
         self.facade.set_auto_refresh_html(evt.IsChecked())
+        self.refresh_item.Enable(not evt.IsChecked())
 
     def on_refresh(self, evt):
         """refresh HTML preview"""
@@ -257,6 +259,7 @@ class ProfileFrame(wx.Frame):
         self.filters_item.Enable(False)
         self.enable_peer_states(True)
         self.activate_item.Check()
+        self.refresh_item.Enable(False)
         self.autorefresh_item.Check()
 
     def __do_layout(self):

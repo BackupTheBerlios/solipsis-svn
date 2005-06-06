@@ -264,6 +264,7 @@ class ContainerMixin:
 
     def set_data(self, data):
         """used by GUI"""
+        assert data, "data associated is None"
         self._data = data
 
     def get_data(self):

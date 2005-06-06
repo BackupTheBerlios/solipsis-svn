@@ -117,7 +117,7 @@ class AbstractDocument:
         doc.load(file_root)
         self.import_document(doc)
     
-    # PERSONAL TAB
+    # PERSONAL TAB    
     def set_title(self, value):
         """sets new value for title"""
         if not isinstance(value, unicode):
@@ -280,7 +280,7 @@ class AbstractDocument:
             raise TypeError("dir to expand expected as unicode")
         
     def remove(self, value):
-        """remove directory from repository"""
+        """remove custom value"""
         if not isinstance(value, unicode):
             raise TypeError("dir to expand expected as unicode")
         
@@ -650,7 +650,7 @@ class CacheDocument(AbstractDocument):
         self._get_sharing_container(value).add(value)
         
     def remove(self, value):
-        """sets new value for repository"""
+        """remove custom value"""
         AbstractDocument.remove(self, value)
         container = self._get_sharing_container(value)
         if container:
@@ -814,7 +814,6 @@ class FileDocument(AbstractDocument):
             print "profile %s does not exists"% self.file_root
             return False
         else:
-            print "loading", self.file_root
             profile_file = open(self.file_root + PROFILE_EXT)
             self.read(profile_file)
             profile_file.close()
@@ -1063,7 +1062,7 @@ class FileDocument(AbstractDocument):
         """return list of repos"""
         try:
             return  [unicode(repo, self.encoding) for repo
-                     in  self.config.get(SECTION_CUSTOM, "repositories")\
+                     in  self.config.get(SECTION_PERSONAL, "repositories")\
                      .split(',')
                      if repo.strip() != '']
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
@@ -1071,7 +1070,7 @@ class FileDocument(AbstractDocument):
         
     def _set_repositories(self, repos_list):
         """update list of repos"""
-        self.config.set(SECTION_CUSTOM, "repositories",
+        self.config.set(SECTION_PERSONAL, "repositories",
                         ",".join(repos_list).encode(self.encoding))
         
     def add(self, value):
@@ -1080,7 +1079,7 @@ class FileDocument(AbstractDocument):
         # html only stores shared/tagged files
         
     def remove(self, value):
-        """sets new value for repository"""
+        """remove custom value"""
         AbstractDocument.remove(self, value)
         if self.config.has_option(SECTION_CUSTOM, value):
             self.config.remove_option(SECTION_CUSTOM, value)

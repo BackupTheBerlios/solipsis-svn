@@ -177,10 +177,15 @@ class FilePanel(wx.Panel):
         self.dir_list.SetColumnWidth(TAG_COL, wx.LIST_AUTOSIZE)
         self.dir_list.SetColumnWidth(IS_SHARED_COL, wx.LIST_AUTOSIZE)
 
-    def cb_update_tree(self, containers):
+    def reset_files(self):
+        """reset view"""
+        self.tree_list.DeleteChildren(self.root)
+        self.dir_list.DeleteAllItems()
+    
+    def cb_update_tree(self, container):
         """synchronize tree list with sharing container"""
         # update tree
-        self._add_container_in_tree(self.root, containers)
+        self._add_container_in_tree(self.root, container)
         # update list
         selected_item = None
         try:

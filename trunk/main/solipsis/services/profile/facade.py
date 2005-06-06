@@ -28,7 +28,7 @@ from solipsis.services.profile import ENCODING, \
       PROFILE_DIR, PROFILE_FILE
 from solipsis.services.profile.data import DirContainer, \
      Blogs, load_blogs
-from solipsis.services.profile.document import FileDocument
+from solipsis.services.profile.document import FileDocument, CacheDocument
 
 def get_facade(doc=None, view=None):
     """implements pattern singleton on Facade. User may specify
@@ -185,20 +185,24 @@ class Facade:
 
     def load_profile(self, path):
         """load .profile.solipsis"""
+        # clean
+        for view in self.views.values():
+            view.reset_files()
         # load blog
         if path and path.endswith('.prf'):
             path = path[:-4]
-        Facade.s_facade.blogs = load_blogs(path)
-        self.update_blogs()
-        #load profile
+        # load profile
         file_doc = FileDocument()
         file_doc.load(path)
-        self.documents["file"] = file_doc
-        for name, doc in self.documents.iteritems():
-            name != "file" and doc.import_document(file_doc)
+        cache_doc = CacheDocument()
+        cache_doc.import_document(file_doc)
+        self.reset_document(cache_doc)
+        self.add_document(file_doc)
         for view in self.views.values():
-            print "updating view", view.name
-            view.import_document(file_doc)
+            view.import_document(cache_doc)
+        # load blogs
+        Facade.s_facade.blogs = load_blogs(path)
+        self.update_blogs()
 
     def export_profile(self, path):
         """write profile in html format"""

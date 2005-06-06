@@ -4,12 +4,13 @@ city = Paris
 language = fr
 firstname = manu
 title = Mr
-lastname = breton
+photo = /usr/lib/python2.3/unittest.pyc
 address = 12 rue V Hugo
+repositories = /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests
 pseudo = emb
 birthday = 12/01/2005
 postcode = 34000
-photo = /usr/lib/python2.3/unittest.pyc
+lastname = breton
 country = France
 email = manu@ft.com
 description = anything
@@ -28,6 +29,5 @@ nico = Friend,False,UNKNOWN
 [Custom]
 color = blue
 homepage = manu.com
-repositories = /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests
 hobbies = blabla,bla bla bla,
 

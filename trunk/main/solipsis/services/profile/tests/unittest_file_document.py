@@ -46,7 +46,7 @@ class FileTest(unittest.TestCase):
         self.assertEquals("France", doc.get_country())
         self.assertEquals("anything", doc.get_description())
         self.assertEquals([u'blabla', u'bla bla bla', u''], doc.get_hobbies())
-        self.assertEquals({'repositories': REPO, 'color': u'blue', 'homepage': u'manu.com'},
+        self.assertEquals({'color': u'blue', 'homepage': u'manu.com'},
                           doc.get_custom_attributes())
         # assert correct sharing
         self.assertEquals({REPO + u'/data/subdir1/subsubdir/null': u'empty',
@@ -182,7 +182,7 @@ Paris
 France
 anything
 [u'blabla', u'bla bla bla', u'']
-{'color': u'blue', 'homepage': u'manu.com', 'repositories': u'/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests'}
+{'color': u'blue', 'homepage': u'manu.com'}
 {u'/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests': {Dc:tests(?-,'none',#0) : [{Dc:data(?-,'none',#3) : [{Dc:emptydir(?Y,'none',#-1) : []}, Fc:routage(?Y,'none'), Fc:date.txt(?-,'tagos'), {Dc:subdir1(?Y,'none',#-1) : [{Dc:subsubdir(?-,'none',#2) : [Fc:null(?Y,'empty'), Fc:dummy.txt(?Y,'empty')]}]}]}]}}
 {u'nico': nico (%s)}
 """% PeerDescriptor.FRIEND)
