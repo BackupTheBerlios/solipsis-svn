@@ -39,7 +39,7 @@ UPLOAD_BLOG = os.path.join(images_dir, "add_file.gif")
 ADD_REPO = os.path.join(images_dir, "browse.jpeg")
 DEL_REPO = os.path.join(images_dir, "del_file.jpeg")
 SHARE = os.path.join(images_dir, "add_file.gif")
-UNSHARE= os.path.join(images_dir, "delete_file.gif")
+UNSHARE = os.path.join(images_dir, "delete_file.gif")
 EDIT = os.path.join(images_dir, "edit_file.gif")
 DOWNLOAD = os.path.join(images_dir, "down_file.gif")
 

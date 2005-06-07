@@ -20,12 +20,10 @@
 available. This facade will be used both by GUI and unittests."""
 
 import pickle
-import os.path
 
 from sys import stderr
 from StringIO import StringIO
-from solipsis.services.profile import ENCODING, \
-      PROFILE_DIR, PROFILE_FILE
+from solipsis.services.profile import ENCODING
 from solipsis.services.profile.data import DirContainer, \
      Blogs, load_blogs
 from solipsis.services.profile.document import FileDocument, CacheDocument
@@ -122,6 +120,7 @@ class Facade:
         return self.blogs.count_blogs()
 
     def update_blogs(self):
+        """trigger update of views with new blogs"""
         for view in self.views.values():
             view.update_blogs(self.blogs)
 

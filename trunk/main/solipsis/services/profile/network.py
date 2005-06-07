@@ -293,9 +293,11 @@ class ProfileClientProtocol(basic.LineOnlyReceiver):
             remote_host, remote_port = parse_address(line[len(SERVER_SEND_ID):])
             # store remote information
             client = self.factory.get_dedicated_client(remote_host)
-            client.set_remote(self.factory.manager.remote_ids[remote_host], remote_port)
+            client.set_remote(self.factory.manager.remote_ids[remote_host],
+                              remote_port)
             # download profile
-            client.get_profile().addCallback(self.factory._on_profile_complete, client.peer_id)
+            client.get_profile().addCallback(self.factory._on_profile_complete,
+                                             client.peer_id)
         else:
             print "client received unexpected line:", line
 

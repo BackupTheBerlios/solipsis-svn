@@ -22,12 +22,14 @@ import os, os.path
 import pickle
 import time
 import sys
+import solipsis
 
 from solipsis.services.profile import PROFILE_DIR, \
      PROFILE_FILE, BLOG_EXT
 
-BULB_ON_IMG = "../images/bulb.gif"      
-BULB_OFF_IMG = "../images/bulb_off.gif"
+images_dir = os.path.join(os.path.dirname(solipsis.__file__), "images")
+BULB_ON_IMG = os.path.join("bulb.gif")
+BULB_OFF_IMG = os.path.join("bulb_off.gif")
 DEFAULT_TAG = u"none"
 SHARING_ALL = -1
 
@@ -43,7 +45,8 @@ def assert_dir(path):
 #######
 
 def load_blogs(file_name=None):
-    """use pickle to loas blogs. file name given without extension (same model as profile"""
+    """use pickle to loas blogs. file name given without extension
+    (same model as profile"""
     # reformating name
     if not file_name:
         file_name =  os.path.join(PROFILE_DIR, PROFILE_FILE)
@@ -166,7 +169,10 @@ class Blog:
     
     def _html_comment(self):
         """format blog as comment"""
-        return "<font color='silver' size='-1'><p>%s</p><p align='right'><cite>%s, %s</cite></font></p>"\
+        return """<font color='silver' size='-1'>
+  <p>%s</p>
+  <p align='right'><cite>%s, %s</cite></p>
+</font>"""\
                % (self.text, self.author, self.date)
     
     def _html_text(self):

@@ -49,10 +49,7 @@ class AbstractView:
         self.document = document
         self.name = name
         if do_import:
-            self.import_document(document)
-
-    def __str__(self):
-        raise NotImplementedError   
+            self.import_document(document)  
 
     def get_name(self):
         """used as key in index"""
@@ -357,7 +354,7 @@ class GuiView(AbstractView):
     # BLOG TAB
     def update_blogs(self, blogs):
         """blog"""
-        self.frame.blog_tab.on_update()
+        self.frame.blog_tab.on_update(blogs)
         
     def display_blog(self, peer_id, blog):
         """display blog"""
@@ -534,6 +531,10 @@ class HtmlView(AbstractView):
         self.context.addGlobal("files", html_format)
         if self.auto_refresh:
             self.update_view()
+            
+    def display_files(self, peer_id, files):
+        """display shared files"""
+        self.context.addGlobal("shared_files", (peer_id, files))
         
     # OTHERS TAB : frame.other_tab  
     def update_peers(self):
