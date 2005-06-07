@@ -25,7 +25,7 @@ class CustomPanel(wx.Panel):
         self.add_custom_button = wx.BitmapButton(self, -1, wx.Bitmap(ADD_CUSTOM,wx.BITMAP_TYPE_ANY))
         self.del_custom_button = wx.BitmapButton(self, -1, wx.Bitmap(DEL_CUSTOM,wx.BITMAP_TYPE_ANY))
         self.custom_list = wx.ListCtrl(self, -1, style=wx.LC_REPORT|wx.LC_SINGLE_SEL|wx.LC_SORT_ASCENDING|wx.NO_BORDER)
-        self.hobbies_value = wx.TextCtrl(self, -1, "", style=wx.TE_PROCESS_ENTER|wx.TE_PROCESS_TAB|wx.TE_MULTILINE|wx.HSCROLL|wx.TE_RICH2|wx.TE_LINEWRAP)
+        self.hobbies_value = wx.TextCtrl(self, -1, "", style=wx.TE_MULTILINE|wx.HSCROLL|wx.TE_RICH2|wx.TE_LINEWRAP)
 
         self.__set_properties()
         self.__do_layout()

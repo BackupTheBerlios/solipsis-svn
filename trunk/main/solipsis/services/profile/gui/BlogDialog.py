@@ -68,7 +68,7 @@ class BlogDialog(wx.Dialog, UIProxyReceiver):
         self.add_comment_button = wx.BitmapButton(self, -1, wx.Bitmap(ADD_COMMENT,wx.BITMAP_TYPE_ANY))
         self.del_comment_button = wx.BitmapButton(self, -1, wx.Bitmap(DEL_BLOG,wx.BITMAP_TYPE_ANY))
         self.upload_button = wx.BitmapButton(self, -1, wx.Bitmap(UPLOAD_BLOG,wx.BITMAP_TYPE_ANY))
-        self.peerblog_text = wx.TextCtrl(self, -1, "", style=wx.TE_PROCESS_ENTER|wx.TE_MULTILINE|wx.TE_RICH2|wx.TE_LINEWRAP)
+        self.peerblog_text = wx.TextCtrl(self, -1, "", style=wx.TE_MULTILINE|wx.TE_RICH2|wx.TE_LINEWRAP)
         self.peerblog_list = PeerHtmlListBox(self, -1)
 
         self.__set_properties()
@@ -110,7 +110,7 @@ class BlogDialog(wx.Dialog, UIProxyReceiver):
     def __set_properties(self):
         # begin wxGlade: BlogDialog.__set_properties
         self.SetTitle(_("Peer's Blog"))
-        self.SetSize((460, 410))
+        self.SetMinSize((460, 410))
         self.add_comment_button.SetSize(self.add_comment_button.GetBestSize())
         self.del_comment_button.SetSize(self.del_comment_button.GetBestSize())
         self.upload_button.SetSize(self.upload_button.GetBestSize())

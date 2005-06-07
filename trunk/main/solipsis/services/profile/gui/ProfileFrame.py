@@ -246,7 +246,7 @@ class ProfileFrame(wx.Frame):
     def __set_properties(self):
         # begin wxGlade: ProfileFrame.__set_properties
         self.SetTitle(_("profile_frame"))
-        self.SetSize((460, 500))
+        self.SetMinSize((460, 500))
         self.profile_statusbar.SetStatusWidths([-1])
         # statusbar fields
         profile_statusbar_fields = [_("status")]
@@ -270,7 +270,7 @@ class ProfileFrame(wx.Frame):
         self.profile_book.AddPage(self.blog_tab, _("Blog"))
         self.profile_book.AddPage(self.file_tab, _("Files"))
         self.profile_book.AddPage(self.other_tab, _("Contacts"))
-        frame_sizer.Add(wx.NotebookSizer(self.profile_book), 1, wx.EXPAND, 0)
+        frame_sizer.Add(self.profile_book, 1, wx.EXPAND, 0)
         self.SetAutoLayout(True)
         self.SetSizer(frame_sizer)
         self.Layout()

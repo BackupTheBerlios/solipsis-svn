@@ -82,7 +82,7 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
     def __set_properties(self):
         # begin wxGlade: FileDialog.__set_properties
         self.SetTitle(_("Chose Files"))
-        self.SetSize((460, 410))
+        self.SetMinSize((460, 410))
         self.download_button.SetToolTipString(_("Download selected files"))
         self.download_button.SetSize(self.download_button.GetBestSize())
         # end wxGlade
