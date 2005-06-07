@@ -72,6 +72,7 @@ class AbstractView:
         self.update_city()
         self.update_country()
         self.update_description()
+        self.update_download_repo()
         # custom tab
         self.update_hobbies()
         self.update_custom_attributes()
@@ -131,6 +132,10 @@ class AbstractView:
 
     def update_description(self):
         """description"""
+        raise NotImplementedError
+
+    def update_download_repo(self):
+        """download_repo"""
         raise NotImplementedError
 
     # CUSTOM TAB
@@ -230,6 +235,10 @@ class PrintView(AbstractView):
     def update_description(self):
         """description"""
         print >> self.output, self.document.get_description()
+
+    def update_download_repo(self):
+        """download_repo"""
+        print >> self.output, self.document.get_download_repo()
 
     # CUSTOM TAB
     def update_hobbies(self):
@@ -336,6 +345,11 @@ class GuiView(AbstractView):
         """description"""
         self.frame.personal_tab.description_value.SetValue(
             self.document.get_description())
+
+    def update_download_repo(self):
+        """download_repo"""
+        self.frame.file_dlg.set_download_repo(
+            self.document.get_download_repo())
 
     # CUSTOM TAB : frame.custom_tab
     def update_hobbies(self):
@@ -491,6 +505,12 @@ class HtmlView(AbstractView):
     def update_description(self):
         """description"""
         self.context.addGlobal("description", self.document.get_description())
+        if self.auto_refresh:
+            self.update_view()
+
+    def update_download_repo(self):
+        """download_repo"""
+        self.context.addGlobal("download_repo", self.document.get_description())
         if self.auto_refresh:
             self.update_view()
 

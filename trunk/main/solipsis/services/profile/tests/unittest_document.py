@@ -140,6 +140,14 @@ class DocumentTest(unittest.TestCase):
             self.assertRaises(TypeError, document.set_description, [u"anything", ])
             document.set_description(u"anything")
         
+    def test_download_repo(self):
+        """download_repo as unicode"""
+        self.assertRaises(NotImplementedError, self.abstract_doc.get_download_repo)
+        for document in self.documents:
+            self.assertRaises(TypeError, document.set_download_repo, "anything")
+            self.assertRaises(TypeError, document.set_download_repo, [u"anything", ])
+            document.set_description(u"anything")
+        
     # CUSTOM TAB
     def test_hobbies(self):
         """hobbies as unicode (multiple lines)"""

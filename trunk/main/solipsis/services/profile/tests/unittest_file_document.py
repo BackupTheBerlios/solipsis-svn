@@ -181,6 +181,7 @@ fr
 Paris
 France
 anything
+/home/emb/.solipsis/download
 [u'blabla', u'bla bla bla', u'']
 {'color': u'blue', 'homepage': u'manu.com'}
 {u'/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests': {Dc:tests(?-,'none',#0) : [{Dc:data(?-,'none',#3) : [{Dc:emptydir(?Y,'none',#-1) : []}, Fc:routage(?Y,'none'), Fc:date.txt(?-,'tagos'), {Dc:subdir1(?Y,'none',#-1) : [{Dc:subsubdir(?-,'none',#2) : [Fc:null(?Y,'empty'), Fc:dummy.txt(?Y,'empty')]}]}]}]}}

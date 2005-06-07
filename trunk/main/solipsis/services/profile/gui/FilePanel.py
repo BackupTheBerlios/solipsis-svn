@@ -9,7 +9,9 @@ from os.path import abspath
 from solipsis.util.wxutils import _
 from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile.data import DirContainer, SHARING_ALL, DEFAULT_TAG
-from solipsis.services.profile import ADD_REPO, DEL_REPO, SHARE, UNSHARE, EDIT
+from solipsis.services.profile import ADD_REPO, DEL_REPO, SHARE, UNSHARE, EDIT, PREVIEW
+
+from FileDialog import FileDialog
 
 # tree list
 NB_SHARED_COL = 1
@@ -36,6 +38,7 @@ class FilePanel(wx.Panel):
         self.del_button = wx.BitmapButton(self, -1, wx.Bitmap(DEL_REPO,wx.BITMAP_TYPE_ANY))
         self.share_button = wx.BitmapButton(self, -1, wx.Bitmap(SHARE,wx.BITMAP_TYPE_ANY))
         self.unshare_button = wx.BitmapButton(self, -1, wx.Bitmap(UNSHARE,wx.BITMAP_TYPE_ANY))
+        self.preview_button = wx.BitmapButton(self, -1, wx.Bitmap(PREVIEW,wx.BITMAP_TYPE_ANY))
         self.tag_value = wx.TextCtrl(self, -1, "")
         self.edit_button = wx.BitmapButton(self, -1, wx.Bitmap(EDIT,wx.BITMAP_TYPE_ANY))
         self.tree_list = wx.gizmos.TreeListCtrl(self.window_1_pane_1, -1)
@@ -91,6 +94,7 @@ class FilePanel(wx.Panel):
         self.share_button.Bind(wx.EVT_BUTTON, self.on_share)
         self.unshare_button.Bind(wx.EVT_BUTTON, self.on_unshare)
         self.edit_button.Bind(wx.EVT_BUTTON, self.on_tag)
+        self.preview_button.Bind(wx.EVT_BUTTON, self.on_preview)
         
         self.dir_list.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_select_list)
         self.tree_list.Bind(wx.EVT_TREE_SEL_CHANGING, self.on_select_tree)
@@ -111,7 +115,15 @@ class FilePanel(wx.Panel):
         
     def on_remove(self, evt):
         """remove shared directory from repository"""
-        pass
+        file_name = self.tree_list.GetItemText(self.tree_list.GetSelection(), FULL_PATH_COL)
+        repositories = self.facade.get_document("cache").get_repositories()
+        if file_name and os.path.exists(file_name) and file_name in repositories:
+            self.dir_list.DeleteAllItems()
+            self.tree_list.SelectItem(self.root)
+            item = self.facade.get_file_container(file_name)
+            self.tree_list.DeleteChildren(item.get_data())
+            self.tree_list.Delete(item.get_data())
+            self.facade.remove_repository(file_name)
         
     def on_share(self, evt):
         """share selected files or directory"""
@@ -129,6 +141,13 @@ class FilePanel(wx.Panel):
         """cancel sharing of selected files or directory"""
         if self.current_state:
             self.current_state.on_tag(evt)
+        evt.Skip()
+        
+    def on_preview(self, evt):
+        """display all shared files in a FileDialog"""
+        file_dlg = FileDialog(self, -1)
+        wx.Dialog.SetTitle(file_dlg, _("Your shared files"))
+        file_dlg.Show(self.facade.get_document("cache").get_shared_files(), True)
         evt.Skip()
 
     def on_expand(self, evt):
@@ -247,6 +266,8 @@ class FilePanel(wx.Panel):
         self.share_button.SetSize(self.share_button.GetBestSize())
         self.unshare_button.SetToolTipString(_("Unshare"))
         self.unshare_button.SetSize(self.unshare_button.GetBestSize())
+        self.preview_button.SetToolTipString(_("Preview your shared files"))
+        self.preview_button.SetSize(self.preview_button.GetBestSize())
         self.tag_value.SetToolTipString(_("Complementary information on file"))
         self.edit_button.SetToolTipString(_("Apply comment"))
         self.edit_button.SetSize(self.edit_button.GetBestSize())
@@ -263,6 +284,7 @@ class FilePanel(wx.Panel):
         actions_sizer.Add(self.del_button, 0, wx.EXPAND|wx.FIXED_MINSIZE, 0)
         actions_sizer.Add(self.share_button, 0, wx.EXPAND|wx.FIXED_MINSIZE, 0)
         actions_sizer.Add(self.unshare_button, 0, wx.EXPAND|wx.FIXED_MINSIZE, 0)
+        actions_sizer.Add(self.preview_button, 0, wx.ADJUST_MINSIZE, 0)
         actions_sizer.Add(self.tag_value, 1, wx.LEFT|wx.EXPAND|wx.FIXED_MINSIZE, 3)
         actions_sizer.Add(self.edit_button, 0, wx.EXPAND|wx.FIXED_MINSIZE, 0)
         file_sizer.Add(actions_sizer, 0, wx.ALL|wx.EXPAND, 3)
@@ -276,7 +298,7 @@ class FilePanel(wx.Panel):
         self.window_1_pane_2.SetSizer(sizer_2)
         sizer_2.Fit(self.window_1_pane_2)
         sizer_2.SetSizeHints(self.window_1_pane_2)
-        self.window_1.SplitVertically(self.window_1_pane_1, self.window_1_pane_2, 150)
+        self.window_1.SplitVertically(self.window_1_pane_1, self.window_1_pane_2, 10)
         file_sizer.Add(self.window_1, 1, wx.EXPAND, 0)
         self.SetAutoLayout(True)
         self.SetSizer(file_sizer)

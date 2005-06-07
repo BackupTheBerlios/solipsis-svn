@@ -28,7 +28,7 @@ import sys
 from os.path import isfile, isdir
 from StringIO import StringIO
 from solipsis.services.profile import ENCODING, \
-     PROFILE_DIR, PROFILE_FILE, PROFILE_EXT
+     PROFILE_DIR, PROFILE_FILE, PROFILE_EXT, DOWNLOAD_REPO
 from solipsis.services.profile.images import DEFAULT_PIC
 from solipsis.services.profile.data import DEFAULT_TAG, \
      DirContainer, SharedFiles, PeerDescriptor, Blogs
@@ -88,6 +88,7 @@ class AbstractDocument:
             self.set_city(other_document.get_city())
             self.set_country(other_document.get_country())
             self.set_description(other_document.get_description())
+            self.set_download_repo(other_document.get_download_repo())
             # custom data
             self.set_hobbies(other_document.get_hobbies())
             attributes = other_document.get_custom_attributes()
@@ -231,6 +232,14 @@ class AbstractDocument:
             raise TypeError("description [%s] expected as unicode"% value)
     def get_description(self):
         """returns value of description"""
+        raise NotImplementedError
+        
+    def set_download_repo(self, value):
+        """sets new value for download_repo"""
+        if not isinstance(value, unicode):
+            raise TypeError("download_repo [%s] expected as unicode"% value)
+    def get_download_repo(self):
+        """returns value of download_repo"""
         raise NotImplementedError
         
     # CUSTOM TAB
@@ -472,6 +481,7 @@ class CacheDocument(AbstractDocument):
         self.city = u""
         self.country = u""
         self.description = u""
+        self.download_repo = u""
         self.hobbies = []
         # dictionary of file. {att_name : att_value}
         self.custom_attributes = {}
@@ -597,6 +607,14 @@ class CacheDocument(AbstractDocument):
     def get_description(self):
         """returns value of description"""
         return self.description
+        
+    def set_download_repo(self, value):
+        """sets new value for download_repo"""
+        AbstractDocument.set_download_repo(self, value)
+        self.download_repo = value
+    def get_download_repo(self):
+        """returns value of download_repo"""
+        return self.download_repo
 
     # CUSTOM TAB
     def set_hobbies(self, value):
@@ -996,6 +1014,20 @@ class FileDocument(AbstractDocument):
                            self.encoding)
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
             return u"Developer/Designer of this handful plugin"
+        
+    def set_download_repo(self, value):
+        """sets new value for download_repo"""
+        AbstractDocument.set_download_repo(self, value)
+        self.config.set(SECTION_PERSONAL, "download_repo",
+                        value.encode(self.encoding))
+        
+    def get_download_repo(self):
+        """returns value of download_repo"""
+        try:
+            return unicode(self.config.get(SECTION_PERSONAL, "download_repo"),
+                           self.encoding)
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+            return unicode(DOWNLOAD_REPO)
 
     # CUSTOM TAB
     def set_hobbies(self, value):
@@ -1178,6 +1210,7 @@ class FileDocument(AbstractDocument):
                     ConfigParser.NoOptionError):
                 print >> sys.stderr, "option %s not well formated"% option
                 option_share, option_tag = False, DEFAULT_TAG
+            print "read", option_share, option_tag
             for root_path in dict.keys(containers):
                 if option.startswith(root_path):
                     containers[root_path].share_container(option,
@@ -1185,6 +1218,8 @@ class FileDocument(AbstractDocument):
                     containers[root_path].tag_container(option,
                                                    option_tag)
                     break
+                else:
+                    print "%s not in %s" % (option, root_path)
         return containers
 
     def get_shared(self, repo_path):

@@ -25,11 +25,10 @@ import sys
 import solipsis
 
 from solipsis.services.profile import PROFILE_DIR, \
-     PROFILE_FILE, BLOG_EXT
+     PROFILE_FILE, BLOG_EXT, BULB_ON_IMG, BULB_OFF_IMG
 
-images_dir = os.path.join(os.path.dirname(solipsis.__file__), "images")
-BULB_ON_IMG = os.path.join("bulb.gif")
-BULB_OFF_IMG = os.path.join("bulb_off.gif")
+#TODO utiliser unicode pour les chemins de l'arborescence
+
 DEFAULT_TAG = u"none"
 SHARING_ALL = -1
 
@@ -418,7 +417,7 @@ class DirContainer(dict, ContainerMixin):
         return all_keys
 
     def flat(self):
-        """returns {path: tag}"""
+        """returns {path: container}"""
         result = {}
         all_keys = self.keys()
         for key in all_keys:

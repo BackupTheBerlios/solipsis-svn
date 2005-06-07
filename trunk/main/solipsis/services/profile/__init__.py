@@ -22,7 +22,8 @@ and exchange it with other peers"""
 import os.path
 
 ENCODING = "ISO-8859-1"
-PROFILE_DIR = os.path.join(os.path.expanduser("~/"), ".solipsis/profiles")
+PROFILE_DIR = os.sep.join([os.path.expanduser("~"), ".solipsis", "profiles"])
+DOWNLOAD_REPO = os.sep.join([os.path.expanduser("~"), ".solipsis", "download"])
 PROFILE_FILE = ".default"
 PROFILE_EXT = ".prf"
 BLOG_EXT = ".blog"
@@ -41,7 +42,11 @@ DEL_REPO = os.path.join(images_dir, "del_file.jpeg")
 SHARE = os.path.join(images_dir, "add_file.gif")
 UNSHARE = os.path.join(images_dir, "delete_file.gif")
 EDIT = os.path.join(images_dir, "edit_file.gif")
+PREVIEW = os.path.join(images_dir, "loupe.gif")
 DOWNLOAD = os.path.join(images_dir, "down_file.gif")
+DOWNLOAD_DIR = os.path.join(images_dir, "browse.jpeg")
+BULB_ON_IMG = os.path.join(images_dir, "bulb.gif")
+BULB_OFF_IMG = os.path.join(images_dir, "bulb_off.gif")
 
 KNOWN_PORT = 1160
 FREE_PORTS = range(23000, 23999)

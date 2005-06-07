@@ -74,6 +74,10 @@ class FacadeTest(unittest.TestCase):
         self.facade.change_description(u'any desc')
         self.assertEquals("any desc\n", self.result.getvalue())
 
+    def test_change_download_repo(self):
+        self.facade.change_download_repo(u'any desc')
+        self.assertEquals("any desc\n", self.result.getvalue())
+
     # CUSTOM TAB
     def test_change_hobbies(self):
         self.facade.change_hobbies([u"blabla", u"bla bla bla", u""])

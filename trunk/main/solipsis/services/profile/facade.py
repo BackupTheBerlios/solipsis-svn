@@ -298,6 +298,12 @@ class Facade:
                                "set_description",
                                "update_description")
 
+    def change_download_repo(self, value):
+        """sets new value for description"""
+        return self._try_change(value,
+                               "set_download_repo",
+                               "update_download_repo")
+
     # CUSTOM TAB
     def change_hobbies(self, value):
         """sets new value for hobbies"""
