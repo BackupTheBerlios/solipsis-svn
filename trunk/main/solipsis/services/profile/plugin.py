@@ -163,7 +163,7 @@ class Plugin(ServicePlugin):
         """request downwload of given files"""
         deferred = self.network.get_files(peer_id, file_names)
         deferred and deferred.addCallback(
-            lambda file_name: sys.stdout.write("%s complete\n"% file_name))
+            lambda file_name: sys.stdout.write("%s downloaded\n"% file_name))
 
     def select_files(self, peer_id):
         """request downwload of list of shared files"""

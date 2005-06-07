@@ -72,37 +72,41 @@ class AbstractDocument:
 
     def import_document(self, other_document):
         """copy data from another document into self"""
-        # personal data (unicode)
-        self.set_title(other_document.get_title())
-        self.set_firstname(other_document.get_firstname())
-        self.set_lastname(other_document.get_lastname())
-        self.set_pseudo(other_document.get_pseudo())
-        self.set_photo(other_document.get_photo())
-        self.set_email(other_document.get_email())
-        self.set_birthday(other_document.get_birthday())
-        self.set_language(other_document.get_language())
-        self.set_address(other_document.get_address())
-        self.set_postcode(other_document.get_postcode())
-        self.set_city(other_document.get_city())
-        self.set_country(other_document.get_country())
-        self.set_description(other_document.get_description())
-        # custom data
-        self.set_hobbies(other_document.get_hobbies())
-        attributes = other_document.get_custom_attributes()
-        for key, val in attributes.iteritems():
-            self.add_custom_attributes((key, val))
-        # file data
-        self.reset_files()
-        for repo, sharing_container in other_document.get_files().iteritems():
-            self.add_repository(repo)
-            for full_path, container in sharing_container.flat().iteritems():
-                self.share_file((full_path, container._shared))
-                self.tag_file((full_path, container._tag))
-        # others' data
-        self.reset_peers()
-        peers = other_document.get_peers()
-        for peer_id, peer_desc in peers.iteritems():
-            self.add_peer(peer_id, peer_desc.copy())
+        #TODO: use better system for catching exceptions
+        try:
+            # personal data (unicode)
+            self.set_title(other_document.get_title())
+            self.set_firstname(other_document.get_firstname())
+            self.set_lastname(other_document.get_lastname())
+            self.set_pseudo(other_document.get_pseudo())
+            self.set_photo(other_document.get_photo())
+            self.set_email(other_document.get_email())
+            self.set_birthday(other_document.get_birthday())
+            self.set_language(other_document.get_language())
+            self.set_address(other_document.get_address())
+            self.set_postcode(other_document.get_postcode())
+            self.set_city(other_document.get_city())
+            self.set_country(other_document.get_country())
+            self.set_description(other_document.get_description())
+            # custom data
+            self.set_hobbies(other_document.get_hobbies())
+            attributes = other_document.get_custom_attributes()
+            for key, val in attributes.iteritems():
+                self.add_custom_attributes((key, val))
+            # file data
+            self.reset_files()
+            for repo, sharing_container in other_document.get_files().iteritems():
+                self.add_repository(repo)
+                for full_path, container in sharing_container.flat().iteritems():
+                    self.share_file((full_path, container._shared))
+                    self.tag_file((full_path, container._tag))
+            # others' data
+            self.reset_peers()
+            peers = other_document.get_peers()
+            for peer_id, peer_desc in peers.iteritems():
+                self.add_peer(peer_id, peer_desc.copy())
+        except TypeError, error:
+            print error, "Using default values"
     
     # MENU
     def save(self, file_root=None):
@@ -121,7 +125,7 @@ class AbstractDocument:
     def set_title(self, value):
         """sets new value for title"""
         if not isinstance(value, unicode):
-            raise TypeError("title expected as unicode")
+            raise TypeError("title [%s] expected as unicode"% value)
     def get_title(self):
         """returns value of firstname"""
         raise NotImplementedError
@@ -129,7 +133,7 @@ class AbstractDocument:
     def set_firstname(self, value):
         """sets new value for firstname"""
         if not isinstance(value, unicode):
-            raise TypeError("firstname expected as unicode")
+            raise TypeError("firstname [%s] expected as unicode"% value)
     def get_firstname(self):
         """returns value of firstname"""
         raise NotImplementedError
@@ -137,7 +141,7 @@ class AbstractDocument:
     def set_lastname(self, value):
         """sets new value for lastname"""
         if not isinstance(value, unicode):
-            raise TypeError("lastname expected as unicode")
+            raise TypeError("lastname [%s] expected as unicode"% value)
     def get_lastname(self):
         """returns value of lastname"""
         raise NotImplementedError
@@ -145,7 +149,7 @@ class AbstractDocument:
     def set_pseudo(self, value):
         """sets new value for pseudo"""
         if not isinstance(value, unicode):
-            raise TypeError("pseudo expected as unicode")
+            raise TypeError("pseudo [%s] expected as unicode"% value)
         #FIXME: remove the following piece of shit
         from solipsis.services.profile.facade import get_facade
         get_facade().blogs.set_owner(value)
@@ -158,7 +162,7 @@ class AbstractDocument:
     def set_photo(self, value):
         """sets new value for photo"""
         if not isfile(value):
-            raise TypeError("photo must exist")
+            raise TypeError("photo [%s] must exist"% value)
     def get_photo(self):
         """returns value of photo"""
         raise NotImplementedError
@@ -166,7 +170,7 @@ class AbstractDocument:
     def set_email(self, value):
         """sets new value for email"""
         if not isinstance(value, unicode):
-            raise TypeError("email expected as unicode")
+            raise TypeError("email [%s] expected as unicode"% value)
     def get_email(self):
         """returns value of email"""
         raise NotImplementedError
@@ -182,7 +186,7 @@ class AbstractDocument:
     def set_language(self, value):
         """sets new value for language"""
         if not isinstance(value, unicode):
-            raise TypeError("language expected as unicode")
+            raise TypeError("language [%s] expected as unicode"% value)
     def get_language(self):
         """returns value of language"""
         raise NotImplementedError
@@ -190,7 +194,7 @@ class AbstractDocument:
     def set_address(self, value):
         """sets new value for address"""
         if not isinstance(value, unicode):
-            raise TypeError("address expected as unicode")
+            raise TypeError("address [%s] expected as unicode"% value)
     def get_address(self):
         """returns value of address"""
         raise NotImplementedError
@@ -208,7 +212,7 @@ class AbstractDocument:
     def set_city(self, value):
         """sets new value for city"""
         if not isinstance(value, unicode):
-            raise TypeError("city expected as unicode")
+            raise TypeError("city [%s] expected as unicode"% value)
     def get_city(self):
         """returns value of city"""
         raise NotImplementedError
@@ -216,7 +220,7 @@ class AbstractDocument:
     def set_country(self, value):
         """sets new value for country"""
         if not isinstance(value, unicode):
-            raise TypeError("country expected as unicode")
+            raise TypeError("country [%s] expected as unicode"% value)
     def get_country(self):
         """returns value of country"""
         raise NotImplementedError
@@ -224,7 +228,7 @@ class AbstractDocument:
     def set_description(self, value):
         """sets new value for description"""
         if not isinstance(value, unicode):
-            raise TypeError("description expected as unicode")
+            raise TypeError("description [%s] expected as unicode"% value)
     def get_description(self):
         """returns value of description"""
         raise NotImplementedError
@@ -233,7 +237,7 @@ class AbstractDocument:
     def set_hobbies(self, value):
         """sets new value for hobbies"""
         if not isinstance(value, list) and not isinstance(value, tuple):
-            raise TypeError("hobbies expected as list or tuple")
+            raise TypeError("hobbies %s expected as list or tuple"% str(value))
     def get_hobbies(self):
         """returns value of hobbies"""
         raise NotImplementedError
@@ -241,15 +245,15 @@ class AbstractDocument:
     def add_custom_attributes(self, pair):
         """sets new value for custom_attributes"""
         if not isinstance(pair, list) and not isinstance(pair, tuple):
-            raise TypeError("custom_attribute expected as list or tuple")
+            raise TypeError("custom_attribute [%s] expected as list or tuple"% pair)
         elif len(pair) != 2:
             raise TypeError("custom_attribute expected as couple (key, value)")
         if not isinstance(pair[1], unicode):
-            raise TypeError("tag expected as unicode")
+            raise TypeError("tag [%s] expected as unicode"% pair[1])
     def remove_custom_attributes(self, value):
         """sets new value for custom_attributes"""
         if not isinstance(value, unicode):
-            raise TypeError("attribute expected as unicode")
+            raise TypeError("attribute [%s] expected as unicode"% value)
     def get_custom_attributes(self):
         """returns value of custom_attributes"""
         raise NotImplementedError

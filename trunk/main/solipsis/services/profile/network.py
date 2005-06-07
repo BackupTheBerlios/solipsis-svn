@@ -13,7 +13,7 @@ from twisted.internet import error
 from twisted.protocols import basic
 from StringIO import StringIO
 
-from solipsis.services.profile import FREE_PORTS
+from solipsis.services.profile import ENCODING, FREE_PORTS
 from solipsis.services.profile.document import FileDocument
 
 TIMEOUT = 60
@@ -286,7 +286,7 @@ class ProfileClientProtocol(basic.LineOnlyReceiver):
 
     def lineReceived(self, line):
         """incomming connection from other peer"""
-        print "received", line
+        print "Cl.Manager received", line
         # on greeting, stores info about remote host (profile id)
         if line.startswith(SERVER_SEND_ID):
             # get remote information
@@ -299,11 +299,11 @@ class ProfileClientProtocol(basic.LineOnlyReceiver):
             client.get_profile().addCallback(self.factory._on_profile_complete,
                                              client.peer_id)
         else:
-            print "client received unexpected line:", line
+            print "Cl.Manager received unexpected line:", line
 
     def sendLine(self, line):
         """overrides in order to ease debug"""
-        print "sending", line
+        print "Cl.Manager sending", line
         basic.LineOnlyReceiver.sendLine(self, line)  
         
     def connectionMade(self):
@@ -378,9 +378,13 @@ class ProfileServerProtocol(basic.LineOnlyReceiver):
     def __init__(self):
         self.factory = None
 
+    def lineReceived(self, line):
+        """incomming connection from other peer"""
+        print "Svr.Manager received", line
+
     def sendLine(self, line):
         """overrides in order to ease debug"""
-        print "sending", line
+        print "Svr.Manager sending", line
         basic.LineOnlyReceiver.sendLine(self, line)           
             
     def connectionMade(self):
@@ -461,8 +465,10 @@ class PeerProtocol(basic.LineReceiver):
 
     def sendLine(self, line):
         """overrides in order to ease debug"""
-        print "sending", line
-        basic.LineReceiver.sendLine(self, line)
+        if isinstance(line, unicode):
+            basic.LineReceiver.sendLine(self, line.encode(ENCODING))
+        else:
+            basic.LineReceiver.sendLine(self, line)
         
     def lineReceived(self, line):
         """specialised in Client/Server protocol"""
@@ -484,7 +490,7 @@ class PeerClientProtocol(PeerProtocol):
     
     def lineReceived(self, line):
         """Override this for when each line is received."""
-        print "received", line
+        print "client received", line
         # UPLOAD
         #     if not upload, lose connection
         # READY
@@ -596,7 +602,7 @@ class PeerClientFactory(ClientFactory):
     def _on_complete_file(self, file_obj):
         """callback when finished downloading file"""
         # proceed next
-        self.deferred = self.connect()
+        self.connect().addCallback(self._on_complete_file)
         # flag this one
         return file_obj.name
         
@@ -653,24 +659,21 @@ class PeerServerProtocol(PeerProtocol):
     # FIXME: CHECK UPDATE NEEDED
     def lineReceived(self, line):
         """Override this for when each line is received."""
-        print "received", line
+        print "server received", line
         # donwnload file
-        if line == ASK_DOWNLOAD_FILES:
+        if line.startswith(ASK_DOWNLOAD_FILES):
             file_name = line[len(ASK_DOWNLOAD_FILES)+1:].strip()
-            file_container = self.factory.manager.facade.\
+            print "preparing", file_name
+            file_desc = self.factory.manager.facade.\
                              get_file_container(file_name)
-            # check exists
-            if file_container.has_key(file_name):
-                file_desc = file_container[file_name]
-                # check shared
-                if file_desc._shared:
-                    print "sending", file_name
-                    deferred = basic.FileSender().\
-                               beginFileTransfer(open(file_name), self.transport)
-                else:
-                    print "permission denied"
+            # check shared
+            if file_desc._shared:
+                print "sending", file_name
+                deferred = basic.FileSender().\
+                           beginFileTransfer(open(file_name), self.transport)
+                deferred.addCallback(lambda x: self.transport.loseConnection())
             else:
-                print "unknown file %s"% file_name
+                print "permission denied"
         # donwnload blog
         elif line == ASK_DOWNLOAD_BLOG:
             blog_stream = self.factory.manager.facade.get_blog_file()
@@ -694,13 +697,8 @@ class PeerServerProtocol(PeerProtocol):
             # if not download, lose connection
             # send file
             pass
-        # COMPLETE
-        #     switch back to line mode
-        #     reset status
-        #     write file / store profile and flag completion
-        #     call [send_profile, send_file]
-        #     set callbacks
-        pass
+        else:
+            print "unexpected line", line
         
     def rawDataReceived(self, data):
         """called upon upload of a file, when server acting as a client"""

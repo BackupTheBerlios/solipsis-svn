@@ -354,7 +354,7 @@ class GuiView(AbstractView):
     # BLOG TAB
     def update_blogs(self, blogs):
         """blog"""
-        self.frame.blog_tab.on_update(blogs)
+        self.frame.blog_tab.on_update()
         
     def display_blog(self, peer_id, blog):
         """display blog"""

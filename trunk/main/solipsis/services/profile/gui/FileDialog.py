@@ -87,8 +87,6 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
         self.download_button.SetSize(self.download_button.GetBestSize())
         # end wxGlade
 
-        self.download_button.Enable(False)
-
     def __do_layout(self):
         # begin wxGlade: FileDialog.__do_layout
         peerfiles_sizer = wx.BoxSizer(wx.VERTICAL)

@@ -40,7 +40,7 @@ class MyHtmlListBox(wx.HtmlListBox):
         """callback to display item"""
         return self.facade.get_blog(n).html()
 
-    def refresh(self, blogs):
+    def refresh(self):
         self.SetItemCount(self.facade.count_blogs())
         self.RefreshAll()
 
@@ -81,8 +81,8 @@ class BlogPanel(wx.Panel):
     def add_comment(self, evt):
         self.blog_list.add_comment(self.blog_text.GetValue())
 
-    def on_update(self, blogs):
-        self.blog_list.refresh(blogs)
+    def on_update(self):
+        self.blog_list.refresh()
 
     def __set_properties(self):
         # begin wxGlade: BlogPanel.__set_properties
