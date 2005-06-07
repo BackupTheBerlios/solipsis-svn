@@ -33,7 +33,8 @@ PREVIEW_PT = os.path.join(os.path.dirname(__file__), "preview.html")
 try:
     from simpletal import simpleTAL, simpleTALES
 except ImportError:
-    _simpletal_path = os.path.join(os.path.dirname(__file__), "lib")
+    import solipsis
+    _simpletal_path = os.path.join(os.path.dirname(solipsis.__file__), "lib")
     sys.path.append(_simpletal_path)
     from simpletal import simpleTAL, simpleTALES
     sys.path.remove(_simpletal_path)

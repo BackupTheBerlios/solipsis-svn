@@ -8,7 +8,7 @@ import sys
 from os.path import abspath
 from solipsis.util.wxutils import _
 from solipsis.services.profile.facade import get_facade
-from solipsis.services.profile.data import DirContainer, SHARING_ALL
+from solipsis.services.profile.data import DirContainer, SHARING_ALL, DEFAULT_TAG
 from solipsis.services.profile import ADD_REPO, DEL_REPO, SHARE, UNSHARE, EDIT
 
 # tree list
@@ -16,8 +16,8 @@ NB_SHARED_COL = 1
 FULL_PATH_COL = 2
 # dir list
 NAME_COL = 0
-TAG_COL = 1
-IS_SHARED_COL = 2
+IS_SHARED_COL = 1
+TAG_COL = 2
 
 # begin wxGlade: dependencies
 # end wxGlade
@@ -60,11 +60,11 @@ class FilePanel(wx.Panel):
         
         # build dir list view
         self.dir_list.InsertColumn(0, _("Name"))
-        self.dir_list.InsertColumn(TAG_COL, _("Tag"))
         self.dir_list.InsertColumn(IS_SHARED_COL, _("Shared"), wx.LIST_FORMAT_RIGHT)
+        self.dir_list.InsertColumn(TAG_COL, _("Tag"))
         self.dir_list.SetColumnWidth(0, wx.LIST_AUTOSIZE_USEHEADER)
-        self.dir_list.SetColumnWidth(TAG_COL, wx.LIST_AUTOSIZE_USEHEADER)
         self.dir_list.SetColumnWidth(IS_SHARED_COL, wx.LIST_AUTOSIZE_USEHEADER)
+        self.dir_list.SetColumnWidth(TAG_COL, wx.LIST_AUTOSIZE_USEHEADER)
 
         # specific stuff
         self.facade = get_facade()
@@ -144,9 +144,9 @@ class FilePanel(wx.Panel):
         """new shared directory selecetd"""
         self.current_state = self.list_state
         dir_name = self.tree_list.GetItemText(self.tree_list.GetSelection(), FULL_PATH_COL)
-        file_name = self.dir_list.GetItemText(evt.GetItem().GetId())
-        data = self.facade.get_container('gui', abspath(os.path.join(dir_name,
-                                                                     file_name)))
+        file_name = self.dir_list.GetItemText(self.dir_list.GetNextItem(-1, state=wx.LIST_STATE_SELECTED))
+        full_path = abspath(os.path.join(dir_name, file_name))
+        data = self.facade.get_container('gui', full_path)
         # update tag
         self.tag_value.SetValue(data._tag)
 
@@ -167,12 +167,12 @@ class FilePanel(wx.Panel):
         for name, container in dir_container.iteritems():
             if isinstance(container, DirContainer):
                 index = self.dir_list.InsertImageStringItem(sys.maxint, name, self.dir_fldridx)
-                self.dir_list.SetStringItem(index, 1, container._tag)
-                self.dir_list.SetStringItem(index, 2, str(container._shared))
+                self.dir_list.SetStringItem(index, IS_SHARED_COL, str(container._shared))
+                self.dir_list.SetStringItem(index, TAG_COL, container._tag)
             else:
                 index = self.dir_list.InsertImageStringItem(sys.maxint, name, self.dir_fileidx)
-                self.dir_list.SetStringItem(index, 1, container._tag)
-                self.dir_list.SetStringItem(index, 2, str(container._shared))
+                self.dir_list.SetStringItem(index, IS_SHARED_COL, str(container._shared))
+                self.dir_list.SetStringItem(index, TAG_COL, container._tag)
         self.dir_list.SetColumnWidth(0, wx.LIST_AUTOSIZE)
         self.dir_list.SetColumnWidth(TAG_COL, wx.LIST_AUTOSIZE)
         self.dir_list.SetColumnWidth(IS_SHARED_COL, wx.LIST_AUTOSIZE)

@@ -9,6 +9,7 @@ from solipsis.services.profile.document import \
       AbstractDocument, CacheDocument, FileDocument
 from solipsis.services.profile.data import DEFAULT_TAG, PeerDescriptor
 
+TEST_PROFILE = "data/profiles/test"
 REPO = u"/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests"
 
 class DocumentTest(unittest.TestCase):
@@ -330,11 +331,9 @@ class DocumentTest(unittest.TestCase):
             self.assertRaises(TypeError, document.fill_data,
                               (u"pseudo", u"tag description"))
             self.assertEquals(document.has_peer(u"emb"), False)
-            abstract_doc = AbstractDocument()
-            document.fill_data((u"emb", abstract_doc))
-            self.assertEquals(document.has_peer(u"emb"), True)
-            document.fill_data((u"emb", CacheDocument()))
-            document.fill_data((u"emb", FileDocument()))
+            file_doc = FileDocument()
+            file_doc.load(TEST_PROFILE)
+            document.fill_data((u"emb", file_doc))
             self.assert_(document.get_peer(u"emb").document)
     
     def test_peers_status(self):

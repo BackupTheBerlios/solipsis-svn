@@ -1236,10 +1236,8 @@ class FileDocument(AbstractDocument):
         # extract name of files saved on HD
         profile_path = NO_PATH
         if peer_desc.document:
-            file_root = peer_desc.document.get_id()
-            if os.path.exists(file_root + PROFILE_EXT):
-                profile_path = file_root + PROFILE_EXT
-        #else: use default values
+            profile_path = os.path.join(PROFILE_DIR, peer_id)
+            peer_desc.document.save(profile_path)
         description = ",".join([peer_desc.state,
                                 str(peer_desc.connected),
                                 profile_path])

@@ -99,14 +99,14 @@ class Plugin(ServicePlugin):
         # create views & doc
         file_doc = FileDocument()
         file_doc.load(os.path.join(PROFILE_DIR, PROFILE_FILE))
+        self.facade.add_document(file_doc)
         cache_doc = CacheDocument()
         cache_doc.import_document(file_doc)
+        self.facade.add_document(cache_doc)
         gui_view = GuiView(cache_doc, self.profile_frame)
         html_view = HtmlView(cache_doc,
                              self.profile_frame.preview_tab.html_preview,
                              True)
-        self.facade.add_document(file_doc)
-        self.facade.add_document(cache_doc)
         self.facade.add_view(gui_view)
         self.facade.add_view(html_view)
         self.facade.refresh_html_preview()
