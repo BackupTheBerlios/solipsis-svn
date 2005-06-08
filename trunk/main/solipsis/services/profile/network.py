@@ -520,10 +520,10 @@ class PeerClientProtocol(PeerProtocol):
                 # TODO: check place where to download and non overwriting
                 # create file
                 file_name = self.factory.files.pop()
-#                 down_path = os.path.join(
-#                     get_facade().get_document('cache').get_download_repo(),
-#                     os.path.basename(file_name))
-                down_path = os.path.basename(file_name)
+                down_path = os.path.abspath(os.path.join(
+                    get_facade().get_document('cache').get_download_repo(),
+                    os.path.basename(file_name)))
+                print "loading into", down_path
                 self.file = open(down_path, "w+b")
                 self.sendLine("%s %s"% (self.factory.download, file_name))
             else:
@@ -686,6 +686,8 @@ class PeerServerProtocol(PeerProtocol):
             deferred = basic.FileSender().\
                        beginFileTransfer(blog_stream, self.transport)
             deferred.addCallback(lambda x: self.transport.loseConnection())
+            if deferred.called:
+                self.transport.loseConnection()
         # donwnload list of shared files
         elif line == ASK_DOWNLOAD_SHARED:
             files_stream = self.factory.manager.facade.get_shared_files()

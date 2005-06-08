@@ -486,7 +486,7 @@ class CacheDocument(AbstractDocument):
         self.city = u""
         self.country = u""
         self.description = u""
-        self.download_repo = u""
+        self.download_repo = unicode(DOWNLOAD_REPO)
         self.hobbies = []
         # dictionary of file. {att_name : att_value}
         self.custom_attributes = {}
