@@ -432,13 +432,16 @@ class DirContainer(dict, ContainerMixin):
         # __getitem__ adds path if does not exist
         self[full_path]
         
-    def expand_dir(self, full_path):
+    def expand_dir(self, full_path=None):
         """put into cache new information when dir expanded in tree"""
-        assert_dir(full_path)
-        container = self[full_path]
-        for full_path in [os.path.join(container.path, path)
+        if full_path:
+            assert_dir(full_path)
+            container = self[full_path]
+        else:
+            container = self
+        for path in [os.path.join(container.path, path)
                           for path in os.listdir(container.path)]:
-            container.add(full_path)
+            container.add(path)
 
     def share_content(self, full_path, share=True):
         """wrapps sharing methods matching 'full_path' with list or path"""

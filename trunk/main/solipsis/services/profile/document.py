@@ -370,11 +370,19 @@ class AbstractDocument:
     def get_shared_files(self):
         """return {repo: shared files}"""
         shared = SharedFiles()
-        #FIXME: when a direrctory is shared: add its content
         for repository in self.get_repositories():
-            shared[repository] = [file_container for file_container
+            shared_files = [file_container for file_container
                                   in self.get_shared(repository)
                                   if isinstance(file_container, FileContainer)]
+            shared_dirs = [dir_container for dir_container
+                                  in self.get_shared(repository)
+                                  if isinstance(dir_container, DirContainer)]
+            for shared_dir in shared_dirs:
+                shared_dir.expand_dir()
+                shared_files += [file_container for file_container
+                                  in shared_dir.values()
+                                  if isinstance(file_container, FileContainer)]
+            shared[repository] = shared_files
         return shared
         
     def get_shared(self, repo_path):

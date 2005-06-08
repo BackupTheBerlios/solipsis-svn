@@ -288,6 +288,27 @@ class DocumentTest(unittest.TestCase):
             self.assertEquals(document.get_container(
                 abspath(u"data/profiles/.svn"))._tag, u"first")
 
+    def test_get_shared_files(self):
+        document = CacheDocument()
+        document.add_repository(REPO)
+        document.add((abspath(u"data")))
+        document.share_file((abspath(u"data"), True))
+        document.share_files((abspath(u"data/profiles"),
+                              ["bruce.prf", "demi.prf"],
+                              True))
+        document.share_files((REPO + "/data/subdir1",
+                              ["date.doc"],
+                              True))
+        shared_files = [file_container.path for file_container
+                        in document.get_shared_files()[REPO]]
+        shared_files.sort()
+        self.assertEquals(shared_files, [REPO + "/data/.path",
+                                         REPO + "/data/date.txt",
+                                         REPO + "/data/profiles/bruce.prf",
+                                         REPO + "/data/profiles/demi.prf",
+                                         REPO + "/data/routage",
+                                         REPO + "/data/subdir1/date.doc"])
+
     def test_multiple_repos(self):
         """coherency when several repos in use"""
         document = CacheDocument()
