@@ -34,7 +34,6 @@ SHARING_ALL = -1
 
 def assert_file(path):
     """raise ValueError if not a file"""
-    assert os.path.exists(path), "[%s] does not exist"% path
     assert os.path.isfile(path), "[%s] not a valid file"% path
 
 def assert_dir(path):
@@ -281,7 +280,6 @@ class ContainerMixin:
         """assert path is valid"""
         if path.endswith(os.sep):
             path = path[:-1]
-        #FIXME: assert os.path.exists(path), "[%s] does not exist"% path
         return path
 
     def import_data(self, container):
@@ -295,6 +293,10 @@ class ContainerMixin:
 class FileContainer(ContainerMixin):
     """Structure to store files info in cache"""
 
+    def __init__(self, path, share=False, tag=DEFAULT_TAG):
+        ContainerMixin.__init__(self, path, share, tag)
+        assert_file(path)
+        
     def __str__(self):
         return "Fc:%s(?%s,'%s')"% (self.name, self._shared and "Y" or "-",
                                  self._tag  or "-")
@@ -389,7 +391,7 @@ class DirContainer(dict, ContainerMixin):
         elif os.path.isfile(path):
             dict.__setitem__(self, local_key, value or FileContainer(path))
         else:
-            print >> sys.stderr, "%s not a valid file/dir" % path
+            raise AssertionError("%s not a valid file/dir" % path)
         return dict.__getitem__(self, local_key)
 
     def has_key(self, full_path):
@@ -427,7 +429,7 @@ class DirContainer(dict, ContainerMixin):
             
     def add(self, full_path):
         """add File/DirContainer"""
-        # __setitem__ adds path is does not exist
+        # __getitem__ adds path if does not exist
         self[full_path]
         
     def expand_dir(self, full_path):

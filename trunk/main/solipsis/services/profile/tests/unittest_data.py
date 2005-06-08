@@ -37,7 +37,6 @@ class DataTest(unittest.TestCase):
         self.container = DirContainer(REPO)
 
     def test_containers(self):
-        """creates valid containers"""
         self.assertRaises(AssertionError, DirContainer,  REPO + "data/dummy")
         self.assertRaises(AssertionError, FileContainer,  REPO + "data/dummy.txt")
 

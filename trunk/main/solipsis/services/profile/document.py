@@ -1223,7 +1223,6 @@ class FileDocument(AbstractDocument):
                     ConfigParser.NoOptionError):
                 print >> sys.stderr, "option %s not well formated"% option
                 option_share, option_tag = False, DEFAULT_TAG
-            print "checking in", option, option_share, option_tag
             checked_in = False
             for root_path in dict.keys(containers):
                 if option.startswith(root_path):
