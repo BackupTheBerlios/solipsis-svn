@@ -19,11 +19,13 @@
 """Plugin profile: allow users to define a set of personal information
 and exchange it with other peers"""
 
-import os.path
+import os, os.path
 
 ENCODING = "ISO-8859-1"
 PROFILE_DIR = os.sep.join([os.path.expanduser("~"), ".solipsis", "profiles"])
 DOWNLOAD_REPO = os.sep.join([os.path.expanduser("~"), ".solipsis", "download"])
+if not os.path.exists(DOWNLOAD_REPO):
+    os.mkdir(DOWNLOAD_REPO)
 PROFILE_FILE = ".default"
 PROFILE_EXT = ".prf"
 BLOG_EXT = ".blog"
