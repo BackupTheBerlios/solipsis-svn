@@ -341,20 +341,20 @@ class DocumentTest(unittest.TestCase):
         """reset peers"""
         self.assertRaises(NotImplementedError, self.abstract_doc.get_peers)
         self.assertRaises(NotImplementedError, self.abstract_doc.reset_peers)
-        for document in self.documents:
-            document.add_peer(u"nico")
-            self.assertEquals(document.has_peer(u"nico"), True)
-            document.reset_peers()
-            self.assertEquals(document.has_peer(u"nico"), False)
-            self.assertEquals(document.get_peers(), {})
+        document = self.documents[0]
+        document.add_peer(u"nico")
+        self.assertEquals(document.has_peer(u"nico"), True)
+        document.reset_peers()
+        self.assertEquals(document.has_peer(u"nico"), False)
+        self.assertEquals(document.get_peers(), {})
             
     def test_adding_peer(self):
         self.assertRaises(NotImplementedError, self.abstract_doc.add_peer, "nico")
         """add peer"""
-        for document in self.documents:
-            self.assertEquals(document.has_peer(u"nico"), False)
-            document.add_peer(u"nico")
-            self.assert_(document.has_peer(u"nico"))
+        document = self.documents[0]
+        self.assertEquals(document.has_peer(u"nico"), False)
+        document.add_peer(u"nico")
+        self.assert_(document.has_peer(u"nico"))
             
     def test_getting_peer(self):
         """get peer"""
@@ -367,11 +367,11 @@ class DocumentTest(unittest.TestCase):
     def test_removing_peer(self):
         """remove peer"""
         self.assertRaises(NotImplementedError, self.abstract_doc.remove_peer, "nico")
-        for document in self.documents:
-            document.add_peer(u"nico")
-            self.assertEquals(document.has_peer(u"nico"), True)
-            document.remove_peer(u"nico")
-            self.assertEquals(document.has_peer(u"nico"), False)
+        document = self.documents[0]
+        document.add_peer(u"nico")
+        self.assertEquals(document.has_peer(u"nico"), True)
+        document.remove_peer(u"nico")
+        self.assertEquals(document.has_peer(u"nico"), False)
         
     def test_filling_data(self):
         """fill data"""
@@ -382,7 +382,6 @@ class DocumentTest(unittest.TestCase):
             file_doc = FileDocument()
             file_doc.load(TEST_PROFILE)
             document.fill_data((u"emb", file_doc))
-            self.assert_(document.get_peer(u"emb").document)
     
     def test_peers_status(self):
         """change status"""

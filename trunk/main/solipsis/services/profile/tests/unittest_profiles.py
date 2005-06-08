@@ -43,6 +43,15 @@ class ProfileTest(unittest.TestCase):
         self.assertEquals([u'cinema', u'theatre', u'cop', u'action'], self.bruce_doc.get_hobbies())
         self.assertEquals({'music': u'jazz', 'film': u'Die Hard'},
                           self.bruce_doc.get_custom_attributes())
+
+    def test_peer_status(self):
+         self.assertEquals(self.demi_doc.has_peer(self.bruce_doc.get_pseudo()), False)
+         self.demi_doc.fill_data((self.bruce_doc.get_pseudo(), self.bruce_doc))
+         self.assertEquals(self.demi_doc.has_peer(self.bruce_doc.get_pseudo()), False)
+         self.demi_doc.make_friend(self.bruce_doc.get_pseudo())
+         self.assertEquals(self.demi_doc.has_peer(self.bruce_doc.get_pseudo()), True)
+         self.demi_doc.unmark_peer(self.bruce_doc.get_pseudo())
+         self.assertEquals(self.demi_doc.has_peer(self.bruce_doc.get_pseudo()), False)
         
 if __name__ == '__main__':
     unittest.main()

@@ -1293,8 +1293,12 @@ class FileDocument(AbstractDocument):
         
     def add_peer(self, peer_id, peer_desc=None):
         """stores Peer object"""
-        if not peer_desc:
-            peer_desc = PeerDescriptor(peer_id)
+        if peer_desc and peer_desc.state != PeerDescriptor.ANONYMOUS:
+            self._write_peer(peer_id, peer_desc)
+        #else: peer is anonymous, does not write him
+        
+    def _write_peer(self, peer_id, peer_desc):
+        """stores Peer object"""
         # extract name of files saved on HD
         profile_path = NO_PATH
         if peer_desc.document:
@@ -1305,10 +1309,10 @@ class FileDocument(AbstractDocument):
                                 profile_path])
         self.config.set(SECTION_OTHERS, peer_desc.peer_id, description)
         
-    def remove_peer(self, pseudo):
+    def remove_peer(self, peer_id):
         """del Peer object"""
-        if self.config.has_option(SECTION_OTHERS, pseudo):
-            self.config.remove_option(SECTION_OTHERS, pseudo)
+        if self.config.has_option(SECTION_OTHERS, peer_id):
+            self.config.remove_option(SECTION_OTHERS, peer_id)
 
     def has_peer(self, peer_id):
         """checks peer exists"""
@@ -1344,20 +1348,26 @@ class FileDocument(AbstractDocument):
 
     def _change_status(self, peer_id, status):
         """mark given peer as Friend, Blacklisted or Anonymous"""
-        peer_desc = AbstractDocument._change_status(self, peer_id, status)
-        self.add_peer(peer_id, peer_desc)
+        peer_desc = self.get_peer(peer_id)
+        peer_desc.state = status
+        if peer_desc.state != PeerDescriptor.ANONYMOUS:
+            self._write_peer(peer_id, peer_desc)
+        else:
+            self.remove_peer(peer_id)
 
     def fill_data(self, (peer_id, document)):
         """stores CacheDocument associated with peer"""
         peer_desc = AbstractDocument.fill_data(self, (peer_id, document))
-        self.add_peer(peer_id, peer_desc)
+        if peer_desc.state != PeerDescriptor.ANONYMOUS:
+            self._write_peer(peer_id, peer_desc)
 
     def fill_blog(self, (peer_id, blog)):
         """stores CacheDocument associated with peer"""
         peer_desc = AbstractDocument.fill_blog(self, (peer_id, blog))
-        self.add_peer(peer_id, peer_desc)
+        if peer_desc.state != PeerDescriptor.ANONYMOUS:
+            blog.save(os.path.join(PROFILE_DIR, peer_id))
             
     def fill_shared_files(self, (peer_id, files)):
         """connect shared files with shared files"""
-        peer_desc = AbstractDocument.fill_shared_files(self, (peer_id, files))
-        self.add_peer(peer_id, peer_desc)
+        # nothing to do in FileDocuments when receiving files
+        pass
