@@ -25,13 +25,15 @@ import os.path
 import tempfile
 import time
 import sys
+import re
 from os.path import isfile, isdir
 from StringIO import StringIO
 from solipsis.services.profile import ENCODING, \
      PROFILE_DIR, PROFILE_FILE, PROFILE_EXT, DOWNLOAD_REPO
 from solipsis.services.profile.images import DEFAULT_PIC
 from solipsis.services.profile.data import DEFAULT_TAG, \
-     DirContainer, SharedFiles, PeerDescriptor, Blogs
+     DirContainer, FileContainer, ContainerMixin, \
+     SharedFiles, PeerDescriptor, Blogs
 
 DATE_FORMAT = "%d/%m/%Y"
 SECTION_PERSONAL = "Personal"
@@ -366,14 +368,17 @@ class AbstractDocument:
         raise NotImplementedError
 
     def get_shared_files(self):
-        """return object listing all shared files"""
+        """return {repo: shared files}"""
         shared = SharedFiles()
+        #FIXME: when a direrctory is shared: add its content
         for repository in self.get_repositories():
-            shared[repository] =  self.get_shared(repository)
+            shared[repository] = [file_container for file_container
+                                  in self.get_shared(repository)
+                                  if isinstance(file_container, FileContainer)]
         return shared
         
     def get_shared(self, repo_path):
-        """returns list of all dirs"""
+        """returns [shared containers]"""
         raise NotImplementedError
 
     def get_container(self, full_path):
@@ -723,12 +728,10 @@ class CacheDocument(AbstractDocument):
         return self.files
         
     def get_shared(self, repo_path):
-        """returns  {full_path: tag}"""
-        result = {}
-        for name, container in self.files[repo_path].flat().iteritems():
-            if container._shared:
-                result[name] = container._tag
-        return result
+        """returns [shared containers]"""
+        return [container for container
+                in self.files[repo_path].flat().values()
+                if container._shared]
 
     def get_container(self, full_path):
         """returns File/DirContainer correspondind to full_path"""
@@ -772,7 +775,17 @@ class CacheDocument(AbstractDocument):
 # FILEDOCUMENT
 class CustomConfigParser(ConfigParser.ConfigParser):
     """simple wrapper to make config file case sensitive"""
-
+    
+    # only allow '=' to split key and value
+    OPTCRE =  re.compile(
+    r'(?P<option>[^=][^=]*)'              # very permissive!
+    r'\s*(?P<vi>[=])\s*'                  # any number of space/tab,
+                                          # followed by separator
+                                          # (either : or =), followed
+                                          # by any # space/tab
+    r'(?P<value>.*)$'                     # everything up to eol
+    )
+    
     def optionxform(self, option):
         """override default implementation to make it case sensitive"""
         return str(option)
@@ -1210,7 +1223,6 @@ class FileDocument(AbstractDocument):
                     ConfigParser.NoOptionError):
                 print >> sys.stderr, "option %s not well formated"% option
                 option_share, option_tag = False, DEFAULT_TAG
-            print "read", option_share, option_tag
             for root_path in dict.keys(containers):
                 if option.startswith(root_path):
                     containers[root_path].share_container(option,
@@ -1223,8 +1235,8 @@ class FileDocument(AbstractDocument):
         return containers
 
     def get_shared(self, repo_path):
-        """returns  {root: tag}"""
-        result = {}
+        """returns  [shared containerMixin]"""
+        result = []
         for option in self.config.options(SECTION_FILE):
             if option.startswith(repo_path):
                 if isinstance(option, str):
@@ -1240,7 +1252,7 @@ class FileDocument(AbstractDocument):
                         ConfigParser.NoOptionError):
                     option_share, option_tag = False, DEFAULT_TAG
                 if option_share:
-                    result[option] = option_tag
+                    result.append(ContainerMixin(option, option_share, option_tag))
             else:
                 continue
         return result

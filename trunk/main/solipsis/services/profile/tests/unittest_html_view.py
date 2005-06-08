@@ -139,7 +139,7 @@ class HtmlTest(unittest.TestCase):
             html.append("""
     <dt>%s</dt>
     <dd>%d shared files</dd>
-"""% (repo, len(self.document.get_shared(repo).keys())))
+"""% (repo, len(self.document.get_shared(repo))))
         # concatenate all description of directories & return result
         return ''.join(html)
 

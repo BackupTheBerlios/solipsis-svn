@@ -546,8 +546,8 @@ class HtmlView(AbstractView):
         for repo in self.document.get_repositories():
             content = {}
             html_format[repo] = content
-            for file_name, tag in self.document.get_shared(repo).iteritems():
-                content[file_name[len(repo):]] = tag
+            for container in self.document.get_shared(repo):
+                content[container.path[len(repo):]] = container._tag
         self.context.addGlobal("files", html_format)
         if self.auto_refresh:
             self.update_view()

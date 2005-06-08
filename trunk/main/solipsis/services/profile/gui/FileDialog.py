@@ -75,10 +75,11 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
         if len(files) > 0:
             # reformat data
             file_data = []
-            for repo, file_desc in files.iteritems():
-                for name, tag  in file_desc.iteritems():
-                    file_data.append([os.path.join(repo, name),
-                                      os.path.basename(name), tag])
+            for file_descs in files.values():
+                for file_desc in file_descs:
+                    file_data.append([file_desc.path,
+                                      os.path.basename(file_desc.path),
+                                      file_desc._tag])
             # clear previous data
             for key in self.data.keys():
                 del self.data[key]

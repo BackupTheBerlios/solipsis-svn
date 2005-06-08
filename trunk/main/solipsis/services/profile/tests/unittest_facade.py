@@ -113,7 +113,7 @@ class FacadeTest(unittest.TestCase):
 
     def test_expand_dir(self):
         self.assertEquals(self.facade.documents["cache"].get_shared(self.repo),
-                          {})
+                          [])
         self.facade.expand_dir(abspath(u"data"))
         check = {}
         self.assertEquals(self._build_check_dict(self.facade.documents["cache"], self.repo),

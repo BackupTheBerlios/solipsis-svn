@@ -49,12 +49,17 @@ class FileTest(unittest.TestCase):
         self.assertEquals({'color': u'blue', 'homepage': u'manu.com'},
                           doc.get_custom_attributes())
         # assert correct sharing
-        self.assertEquals({REPO + u'/data/subdir1/subsubdir/null': u'empty',
-                           REPO + u'/data/subdir1': u'none',
-                           REPO + u'/data/subdir1/subsubdir/dummy.txt': u'empty',
-                           REPO + u'/data/routage': u'none',
-                           REPO + u'/data/emptydir': u'none'},
-                          doc.get_shared(REPO))
+        shared_dict = {}
+        for container in  doc.get_shared(REPO):
+            shared_dict[container.path] = container
+        expected_files = {REPO + u'/data/subdir1/subsubdir/null': u'empty',
+                          REPO + u'/data/subdir1': u'none',
+                          REPO + u'/data/subdir1/subsubdir/dummy.txt': u'empty',
+                          REPO + u'/data/routage': u'none',
+                          REPO + u'/data/emptydir': u'none'}
+        for expected, tag in expected_files.iteritems():
+            self.assert_(shared_dict.has_key(expected))
+            self.assertEquals(shared_dict[expected]._tag, tag)
         files = doc.get_files()
         self.assertEquals(files.has_key(REPO), True)
         self.assertEquals(files[REPO][abspath(u"data")]._shared, False)
@@ -159,7 +164,7 @@ class FileTest(unittest.TestCase):
         self.assertEquals({},
                           document.get_custom_attributes())
         # assert correct sharing
-        self.assertEquals({}, document.get_shared(REPO))
+        self.assertEquals([], document.get_shared(REPO))
         self.assertEquals({}, document.get_files())
         # peers
         self.assertEquals({}, document.get_peers())

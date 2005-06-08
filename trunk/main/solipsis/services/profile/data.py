@@ -278,7 +278,7 @@ class ContainerMixin:
     
     def _validate(self, path):
         """assert path is valid"""
-        if path.endswith('/'):
+        if path.endswith(os.sep):
             path = path[:-1]
         assert os.path.exists(path), "[%s] does not exist"% path
         return path

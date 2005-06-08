@@ -15,6 +15,7 @@ from StringIO import StringIO
 
 from solipsis.services.profile import ENCODING, FREE_PORTS
 from solipsis.services.profile.document import FileDocument
+from solipsis.services.profile.facade import get_facade
 
 TIMEOUT = 60
 
@@ -465,6 +466,7 @@ class PeerProtocol(basic.LineReceiver):
 
     def sendLine(self, line):
         """overrides in order to ease debug"""
+        print "sending", line
         if isinstance(line, unicode):
             basic.LineReceiver.sendLine(self, line.encode(ENCODING))
         else:
@@ -518,7 +520,11 @@ class PeerClientProtocol(PeerProtocol):
                 # TODO: check place where to download and non overwriting
                 # create file
                 file_name = self.factory.files.pop()
-                self.file = open(os.path.basename(file_name), "w+b")
+#                 down_path = os.path.join(
+#                     get_facade().get_document('cache').get_download_repo(),
+#                     os.path.basename(file_name))
+                down_path = os.path.basename(file_name)
+                self.file = open(down_path, "w+b")
                 self.sendLine("%s %s"% (self.factory.download, file_name))
             else:
                 print "No more file to download!!"

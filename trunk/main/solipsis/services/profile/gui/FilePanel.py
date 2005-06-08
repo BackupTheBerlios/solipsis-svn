@@ -97,7 +97,9 @@ class FilePanel(wx.Panel):
         self.preview_button.Bind(wx.EVT_BUTTON, self.on_preview)
         
         self.dir_list.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_select_list)
+        self.dir_list.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.on_popup_list)
         self.tree_list.Bind(wx.EVT_TREE_SEL_CHANGING, self.on_select_tree)
+        self.tree_list.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.on_popup_tree)
         self.tree_list.Bind(wx.EVT_TREE_ITEM_EXPANDED, self.on_expand)
         
     def on_browse(self, evt):
@@ -179,6 +181,14 @@ class FilePanel(wx.Panel):
             self._display_dir_content(data)
             # update tag
             self.tag_value.SetValue(data._tag)
+
+    def on_popup_list(self, evt):
+        item = evt.GetItem()
+        print item.GetText()
+        
+    def on_popup_tree(self, evt):
+        item = evt.GetItem()
+        print self.tree_list.GetItemText(item, FULL_PATH_COL)
 
     def _display_dir_content(self, dir_container):
         """update list view with content of directory"""
