@@ -34,6 +34,7 @@ SHARING_ALL = -1
 
 def assert_file(path):
     """raise ValueError if not a file"""
+    assert os.path.exists(path), "[%s] does not exist"% path
     assert os.path.isfile(path), "[%s] not a valid file"% path
 
 def assert_dir(path):
@@ -280,7 +281,7 @@ class ContainerMixin:
         """assert path is valid"""
         if path.endswith(os.sep):
             path = path[:-1]
-        assert os.path.exists(path), "[%s] does not exist"% path
+        #FIXME: assert os.path.exists(path), "[%s] does not exist"% path
         return path
 
     def import_data(self, container):

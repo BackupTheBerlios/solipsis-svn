@@ -4,8 +4,9 @@ independant from views"""
 
 import unittest
 import time
+from ConfigParser import ConfigParser
 from os.path import abspath
-from solipsis.services.profile.document import \
+from solipsis.services.profile.document import CustomConfigParser, \
       AbstractDocument, CacheDocument, FileDocument
 from solipsis.services.profile.data import DEFAULT_TAG, PeerDescriptor
 
@@ -22,6 +23,24 @@ class DocumentTest(unittest.TestCase):
             document.add_repository(REPO)
         self.abstract_doc = AbstractDocument()
         self.abstract_doc.add_repository(REPO)
+
+    def test_config_parser(self):
+        writer = CustomConfigParser()
+        writer.add_section('TEST')
+        writer.set('TEST', "Windows:path", "not a valid linux:path!")
+        writer.write(open("generated/config.test", "w"))
+        # standard reader
+        reader = ConfigParser()
+        reader.readfp(open("generated/config.test"))
+        self.assert_(reader.has_section('TEST'))
+        self.assert_(reader.has_option('TEST', "Windows"))
+        self.assertEquals(reader.get('TEST', "Windows"), "path = not a valid linux:path!")
+        # custom reader
+        reader = CustomConfigParser()
+        reader.readfp(open("generated/config.test"))
+        self.assert_(reader.has_section('TEST'))
+        self.assert_(reader.has_option('TEST', "Windows:path"))
+        self.assertEquals(reader.get('TEST', "Windows:path"), "not a valid linux:path!")
 
     # PERSONAL TAB
     def test_title(self):

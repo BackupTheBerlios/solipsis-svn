@@ -1223,15 +1223,19 @@ class FileDocument(AbstractDocument):
                     ConfigParser.NoOptionError):
                 print >> sys.stderr, "option %s not well formated"% option
                 option_share, option_tag = False, DEFAULT_TAG
+            print "checking in", option, option_share, option_tag
+            checked_in = False
             for root_path in dict.keys(containers):
                 if option.startswith(root_path):
                     containers[root_path].share_container(option,
-                                                     option_share)
+                                                          option_share)
                     containers[root_path].tag_container(option,
-                                                   option_tag)
+                                                        option_tag)
+                    checked_in = True
                     break
-                else:
-                    print "%s not in %s" % (option, root_path)
+                #else not this repo
+            if not checked_in:
+                print "could not check in", option
         return containers
 
     def get_shared(self, repo_path):
