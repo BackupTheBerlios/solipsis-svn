@@ -6,8 +6,6 @@ import os.path
 import wx
 from ProfileFrame import ProfileFrame
 from solipsis.services.profile.facade import get_facade
-from solipsis.services.profile.document import CacheDocument, FileDocument
-from solipsis.services.profile.view import GuiView, HtmlView, PrintView
 from solipsis.services.profile import PROFILE_DIR, PROFILE_FILE
 
 def run():
@@ -21,18 +19,7 @@ def run():
 
     #set up facade
     facade = get_facade()
-    file_doc = FileDocument()
-    file_doc.load(os.path.join(PROFILE_DIR, PROFILE_FILE))
-    cache_doc = CacheDocument()
-    cache_doc.import_document(file_doc)
-    gui_view = GuiView(cache_doc, profile_frame)
-    html_view = HtmlView(cache_doc, profile_frame.preview_tab.html_preview, True)
-    facade.add_document(file_doc)
-    facade.add_document(cache_doc)
-    facade.add_view(gui_view)
-    facade.add_view(html_view)
-#     print_view = PrintView(cache_doc)
-#     facade.add_view(print_view)
+    facade.load_profile(os.path.join(PROFILE_DIR, PROFILE_FILE), profile_frame)
     facade.refresh_html_preview()
 
     #launch gui

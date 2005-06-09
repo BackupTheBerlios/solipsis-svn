@@ -74,14 +74,7 @@ class Plugin(ServicePlugin):
     def EnableBasic(self):
         """enable non graphic part"""
         # TODO: expose interface of facade to netClient
-        # create views & doc
-        file_doc = FileDocument()
-        file_doc.load(os.path.join(PROFILE_DIR, PROFILE_FILE))
-        cache_doc = CacheDocument()
-        cache_doc.import_document(file_doc)
-        print_view = PrintView(cache_doc)
-        self.facade.add_document(cache_doc)
-        self.facade.add_view(print_view)
+        facade.load_profile(os.path.join(PROFILE_DIR, PROFILE_FILE))
         # launch network
         self.network.start_listening()
         
@@ -97,18 +90,7 @@ class Plugin(ServicePlugin):
                                           plugin=self)
         self.node_id = self.service_api.GetNode().pseudo
         # create views & doc
-        file_doc = FileDocument()
-        file_doc.load(os.path.join(PROFILE_DIR, PROFILE_FILE))
-        self.facade.add_document(file_doc)
-        cache_doc = CacheDocument()
-        cache_doc.import_document(file_doc)
-        self.facade.add_document(cache_doc)
-        gui_view = GuiView(cache_doc, self.profile_frame)
-        html_view = HtmlView(cache_doc,
-                             self.profile_frame.preview_tab.html_preview,
-                             True)
-        self.facade.add_view(gui_view)
-        self.facade.add_view(html_view)
+        self.facade.load_profile(os.path.join(PROFILE_DIR, PROFILE_FILE), self.profile_frame)
         self.facade.refresh_html_preview()
         # Set up main GUI hooks
         menu = wx.Menu()

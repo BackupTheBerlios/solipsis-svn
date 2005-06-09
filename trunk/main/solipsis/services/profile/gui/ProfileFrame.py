@@ -141,7 +141,7 @@ class ProfileFrame(wx.Frame):
             style=wx.OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            self.facade.load_profile(path)
+            self.facade.load_profile(path, self)
             self.facade.refresh_html_preview()
 
     def on_save(self, evt):

@@ -32,12 +32,12 @@ def InitLocale():
     Locale initialization.
     """
     global _locale
-    print "Getting locale:",
+#     print "Getting locale:",
     _locale = wx.GetLocale()
-    if _locale is None:
-        print "Failed to get locale!"
-    else:
-        print _locale.GetName()
+#     if _locale is None:
+#         print "Failed to get locale!"
+#     else:
+#         print _locale.GetName()
 
 def _(orig_string):
     """
