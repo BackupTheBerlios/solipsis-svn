@@ -27,7 +27,7 @@ from solipsis.services.profile import ENCODING
 from solipsis.services.profile.data import DirContainer, \
      Blogs, load_blogs
 from solipsis.services.profile.document import FileDocument, CacheDocument
-from solipsis.services.profile.view import GuiView, HtmlView
+from solipsis.services.profile.view import GuiView, HtmlView, PrintView
 
 def get_facade(doc=None, view=None):
     """implements pattern singleton on Facade. User may specify

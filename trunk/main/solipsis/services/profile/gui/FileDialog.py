@@ -96,8 +96,8 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
     def SetTitle(self, title=None):
         if title:
             self.peer_id = title
-        wx.Dialog.SetTitle(self, "%s's %s into %s"\
-                           % (self.peer_id, _("Blog"),
+        wx.Dialog.SetTitle(self, "%s's %s to go into %s"\
+                           % (self.peer_id, _("Files"),
                               os.path.basename(self.download_repo)))
 
     def set_download_repo(self, value):

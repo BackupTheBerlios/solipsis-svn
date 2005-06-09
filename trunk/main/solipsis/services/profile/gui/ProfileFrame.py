@@ -213,7 +213,8 @@ class ProfileFrame(wx.Frame):
     def display_blog(self, peer_id, blog):
         """display blog in dedicated window"""
         # blog dialog
-        self.peer_dlg.SetTitle(peer_id)
+        document = self.facade.get_document('cache').get_peer(peer_id).document
+        self.peer_dlg.SetTitle(document and document.get_pseudo() or peer_id)
         # display
         self.peer_dlg.Show(blog)
 
@@ -230,7 +231,8 @@ class ProfileFrame(wx.Frame):
     def display_files(self, peer_id, files):
         """display blog in dedicated window"""
         # file dialog
-        self.file_dlg.SetTitle(peer_id)
+        document = self.facade.get_document('cache').get_peer(peer_id).document
+        self.file_dlg.SetTitle(document and document.get_pseudo() or peer_id)
         # display files {repos: {names:tags}, }
         self.file_dlg.Show(files)
 

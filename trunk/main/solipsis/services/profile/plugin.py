@@ -25,7 +25,6 @@ import wx
 import os
 import sys
 
-
 from solipsis.util.wxutils import _
 from solipsis.services.plugin import ServicePlugin
 from solipsis.services.profile import PROFILE_DIR, PROFILE_FILE
@@ -74,7 +73,7 @@ class Plugin(ServicePlugin):
     def EnableBasic(self):
         """enable non graphic part"""
         # TODO: expose interface of facade to netClient
-        facade.load_profile(os.path.join(PROFILE_DIR, PROFILE_FILE))
+        self.facade.load_profile(os.path.join(PROFILE_DIR, PROFILE_FILE))
         # launch network
         self.network.start_listening()
         
