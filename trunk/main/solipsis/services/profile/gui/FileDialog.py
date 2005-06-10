@@ -69,8 +69,9 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
         # send network command
         self.plugin.get_files(self.peer_id, selections)
 
-    def Show(self, files, do_show=True):
+    def refresh(self):
         """overrides Show, files is {repos: {names:tags}, }"""
+        files = self.facade.get_document("cache").get_shared_files()
         self.peerfiles_list.DeleteAllItems()
         if len(files) > 0:
             # reformat data
@@ -91,6 +92,10 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
         # show result
         self.peerfiles_list.SetColumnWidth(0, wx.LIST_AUTOSIZE)
         self.peerfiles_list.SetColumnWidth(1, wx.LIST_AUTOSIZE)
+
+    def Show(self, do_show=True):
+        """overrides Show, files is {repos: {names:tags}, }"""
+        self.refresh()
         wx.Dialog.Show(self, do_show)
 
     def SetTitle(self, title=None):

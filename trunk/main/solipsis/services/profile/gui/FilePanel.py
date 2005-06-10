@@ -85,6 +85,10 @@ class FilePanel(wx.Panel):
         self.tree_list.SetColumnWidth(NB_SHARED_COL, 40)
         self.root = self.tree_list.AddRoot(_("File System..."))
 
+        # shared file preview
+        self.file_dlg = FileDialog(self, -1)
+        wx.Dialog.SetTitle(self.file_dlg, _("Your shared files"))
+
     # EVENTS
     
     def bind_controls(self):
@@ -147,9 +151,7 @@ class FilePanel(wx.Panel):
         
     def on_preview(self, evt):
         """display all shared files in a FileDialog"""
-        file_dlg = FileDialog(self, -1)
-        wx.Dialog.SetTitle(file_dlg, _("Your shared files"))
-        file_dlg.Show(self.facade.get_document("cache").get_shared_files(), True)
+        self.file_dlg.Show(not self.file_dlg.IsShown())
         evt.Skip()
 
     def on_expand(self, evt):
@@ -225,6 +227,8 @@ class FilePanel(wx.Panel):
         if selected_item:
             data = self.facade.get_container('gui', abspath(selected_item))
             self._display_dir_content(data)
+        # update file dialog
+        self.file_dlg.refresh()
 
     def _add_container_in_tree(self, parent, container):
         """format item in tree view"""
