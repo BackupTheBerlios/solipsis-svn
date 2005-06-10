@@ -19,6 +19,8 @@
 # </copyright>
 """main class for plugin. Allow 'plug&Play' into navigator"""
 
+# TODO: create dynamic option object (for standalone & display)
+
 import socket
 import random
 import wx
@@ -85,7 +87,12 @@ class Plugin(ServicePlugin):
         """
         # init windows
         main_window = self.service_api.GetMainWindow()
-        self.profile_frame = ProfileFrame(False, main_window, -1, "",
+        options = {}
+        options["standalone"] = False
+        # profile_frame created at once since linked to facade & thus
+        # needed for all actions (get_blog, get_files), even if not
+        # displayed right at beginning
+        self.profile_frame = ProfileFrame(options, main_window, -1, "",
                                           plugin=self)
         self.node_id = self.service_api.GetNode().pseudo
         # create views & doc

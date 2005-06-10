@@ -22,13 +22,15 @@ and exchange it with other peers"""
 import os, os.path
 
 ENCODING = "ISO-8859-1"
+VERSION = "0.1.0"
+DISCLAIMER = "All data in profiles are shared within Solipsis communauty"
+
 PROFILE_DIR = os.sep.join([os.path.expanduser("~"), ".solipsis", "profiles"])
 DOWNLOAD_REPO = os.sep.join([os.path.expanduser("~"), ".solipsis", "download"])
-if not os.path.exists(DOWNLOAD_REPO):
-    os.mkdir(DOWNLOAD_REPO)
 PROFILE_FILE = ".default"
 PROFILE_EXT = ".prf"
 BLOG_EXT = ".blog"
+DISCLAIMER_FILE = ".no_disclaim"
 
 #IMAGES
 images_dir = os.path.join(os.path.dirname(__file__), "images")
@@ -49,10 +51,33 @@ DOWNLOAD = os.path.join(images_dir, "down_file.gif")
 DOWNLOAD_DIR = os.path.join(images_dir, "browse.jpeg")
 BULB_ON_IMG = os.path.join(images_dir, "bulb.gif")
 BULB_OFF_IMG = os.path.join(images_dir, "bulb_off.gif")
+TORE_IMG = os.path.join(images_dir, "tore.gif")
 
 KNOWN_PORT = 1160
 FREE_PORTS = range(23000, 23999)
 
+if not os.path.exists(DOWNLOAD_REPO):
+    os.mkdir(DOWNLOAD_REPO)
+
 if not os.path.isdir(PROFILE_DIR):
     print "creating conf directory %s"% PROFILE_DIR
     os.makedirs(PROFILE_DIR)
+
+def skip_disclaimer():
+    """returns true if About Dialog must be displayed at launch of
+    profile"""
+    return os.path.exists(os.path.join(PROFILE_DIR, DISCLAIMER_FILE))
+
+def set_display_at_startup(display):
+    """enable/disable display of About Dialog at launch of profile"""
+    if display:
+        if skip_disclaimer():
+            os.remove(os.path.join(PROFILE_DIR, DISCLAIMER_FILE))
+        # else: already configure not to skip
+    else:
+        if skip_disclaimer():
+            # already configure to skip
+            pass
+        else:
+            disclaimer = open(os.path.join(PROFILE_DIR, DISCLAIMER_FILE), "w")
+            disclaimer.close()

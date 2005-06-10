@@ -4,18 +4,24 @@
 
 import os.path
 import wx
+import sys
 from ProfileFrame import ProfileFrame
 from solipsis.services.profile.facade import get_facade
-from solipsis.services.profile import PROFILE_DIR, PROFILE_FILE
+from solipsis.services.profile import PROFILE_DIR, PROFILE_FILE, \
+     skip_disclaimer
 
 def run():
     """launch gui of profile"""
+    print "WATCH OUT, stdout == stderr (logilab env)"
+    sys.stderr = sys.stdout
     #set up GUI
     import gettext
     gettext.install("app") # replace with the appropriate catalog name
     app = wx.PySimpleApp(0)
     wx.InitAllImageHandlers()
-    profile_frame = ProfileFrame(True, None, -1, "")
+    options = {}
+    options["standalone"] = True
+    profile_frame = ProfileFrame(options, None, -1, "")
 
     #set up facade
     facade = get_facade()

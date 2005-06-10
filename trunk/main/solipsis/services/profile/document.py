@@ -831,6 +831,9 @@ class FileDocument(AbstractDocument):
     def save(self, file_root=None):
         """fill document with information from .profile file"""
         if file_root:
+            # if name given with extension, ignore it
+            if file_root and file_root.endswith('.prf'):
+                file_root = file_root[:-4]
             self.file_root = file_root
         print "saving", self.file_root
         profile_file = open(self.file_root + PROFILE_EXT, 'w')
@@ -851,6 +854,9 @@ class FileDocument(AbstractDocument):
     def load(self, file_root=None):
         """fill document with information from .profile file"""
         if file_root:
+            # if name given with extension, ignore it
+            if file_root and file_root.endswith('.prf'):
+                file_root = file_root[:-4]
             self.file_root = file_root
         # load profile
         if not os.path.exists(self.file_root + PROFILE_EXT):

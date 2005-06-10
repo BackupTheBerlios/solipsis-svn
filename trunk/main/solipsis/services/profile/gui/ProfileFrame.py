@@ -6,7 +6,8 @@ from solipsis.util.wxutils import _
 from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile.data import PeerDescriptor
 from solipsis.services.profile.document import FileDocument
-from solipsis.services.profile import PROFILE_DIR, PROFILE_FILE
+from solipsis.services.profile import PROFILE_DIR, PROFILE_FILE, \
+     skip_disclaimer
 from solipsis.util.uiproxy import UIProxy
 
 # begin wxGlade: dependencies
@@ -19,9 +20,10 @@ from CustomPanel import CustomPanel
 # end wxGlade
 from BlogDialog import BlogDialog
 from FileDialog import FileDialog
+from AboutDialog import AboutDialog
 
 class ProfileFrame(wx.Frame):
-    def __init__(self, standalone, parent, id, title, plugin=None, **kwds):
+    def __init__(self, options, parent, id, title, plugin=None, **kwds):
         args = (parent, id, title)
         # begin wxGlade: ProfileFrame.__init__
         kwds["style"] = wx.DEFAULT_FRAME_STYLE
@@ -68,8 +70,10 @@ class ProfileFrame(wx.Frame):
         self.refresh_item = wx.MenuItem(self.display_item, wx.NewId(), _("&Refresh\tCtrl+R"), "", wx.ITEM_NORMAL)
         self.display_item.AppendItem(self.refresh_item)
         self.profile_menu.Append(self.display_item, _("Display"))
-        self.about_item = wx.Menu()
-        self.profile_menu.Append(self.about_item, _("About"))
+        self.help_menu = wx.Menu()
+        self.about_item = wx.MenuItem(self.help_menu, wx.NewId(), _("About..."), "", wx.ITEM_NORMAL)
+        self.help_menu.AppendItem(self.about_item)
+        self.profile_menu.Append(self.help_menu, _("Help"))
         # Menu Bar end
         self.profile_statusbar = self.CreateStatusBar(1, 0)
         self.preview_tab = PreviewPanel(self.profile_book, -1)
@@ -82,14 +86,22 @@ class ProfileFrame(wx.Frame):
         self.__set_properties()
         self.__do_layout()
         # end wxGlade
-        
+
+        # TODO: create dynamic option object (for standalone & display)
+        self.options = options
         # quite different initialisation according to launched by navigator or not
-        self.standalone = standalone
+        if self.options["standalone"]:
+            self.addpeer_item = wx.MenuItem(self.peers_item, wx.NewId(), _("Add...\tCtrl+A"), _("Load a profile and add it in contact list"), wx.ITEM_NORMAL)
+            self.peers_item.AppendItem(self.addpeer_item)
+        # common set up
         self.facade = get_facade()
         self.plugin = plugin
         self.peer_dlg = UIProxy(BlogDialog(parent, -1, plugin=self.plugin))
         self.file_dlg = UIProxy(FileDialog(parent, -1, plugin=self.plugin))
         self.bind_controls()
+
+        if not skip_disclaimer():
+            self.on_about(None)
 
     # EVENTS
     
@@ -101,7 +113,9 @@ class ProfileFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_load, id=self.load_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_close, id=self.quit_item.GetId())
         self.Bind(wx.EVT_CLOSE, self.on_close)
-#         self.Bind(wx.EVT_MENU, self.on_add, id=self.addpeer_item.GetId())
+        self.Bind(wx.EVT_MENU, self.on_about, id=self.about_item.GetId())
+        if self.options["standalone"]:
+            self.Bind(wx.EVT_MENU, self.on_add, id=self.addpeer_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_get_blog, id=self.getblog_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_get_files, id=self.getfiles_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_make_friend, id=self.friend_item.GetId())
@@ -144,6 +158,13 @@ class ProfileFrame(wx.Frame):
             self.facade.load_profile(path, self)
             self.facade.refresh_html_preview()
 
+    def on_about(self, evt):
+        """display about"""
+        # not modal because would freeze the wx thread while twisted
+        # one goes on and initialize profile
+        about_dlg = AboutDialog(not skip_disclaimer(), self, -1)
+        about_dlg.Show()
+        
     def on_save(self, evt):
         """save .prf"""
         dlg = wx.FileDialog(
@@ -171,7 +192,7 @@ class ProfileFrame(wx.Frame):
     def on_close(self, evt):
         """hide  application"""
         self.facade.save_profile()
-        if self.standalone:
+        if self.options["standalone"]:
             self._close()
         else:
             self.Hide()
@@ -258,7 +279,7 @@ class ProfileFrame(wx.Frame):
 
         self.raw_item.Enable(False)
         self.filters_item.Enable(False)
-        self.enable_peer_states(True)
+        self.enable_peer_states(False)
         self.activate_item.Check()
         self.refresh_item.Enable(False)
         self.autorefresh_item.Check()

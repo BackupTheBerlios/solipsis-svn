@@ -178,99 +178,108 @@ class AbstractView:
 class PrintView(AbstractView):
     """synthetises information and renders it in HTML"""
 
-    def __init__(self, document, stream=sys.stdout,
+    def __init__(self, document, stream=open("view.out", "w"),
                  do_import=False, name="print"):
         self.output = stream
         AbstractView.__init__(self, document, do_import, name)
 
+    def println(self, string):
+        """convert unicode if necessary and writes in correct place"""
+        if isinstance(string, unicode):
+            string = string.encode(ENCODING)
+        else:
+            string = str(string)
+        self.output.write(string+"\n")
+        self.output.flush()
+
     # PERSONAL TAB
     def update_title(self):
         """title"""
-        print >> self.output,  self.document.get_title()
+        self.println(self.document.get_title())
 
     def update_firstname(self):
         """firstname"""
-        print >> self.output, self.document.get_firstname()
+        self.println(self.document.get_firstname())
         
     def update_lastname(self):
         """lastname"""
-        print >> self.output, self.document.get_lastname()
+        self.println(self.document.get_lastname())
 
     def update_pseudo(self):
         """pseudo"""
-        print >> self.output, self.document.get_pseudo()  
+        self.println(self.document.get_pseudo())
 
     def update_photo(self):
         """photo"""
-        print >> self.output, self.document.get_photo()      
+        self.println(self.document.get_photo())    
 
     def update_email(self):
         """email"""
-        print >> self.output, self.document.get_email()      
+        self.println(self.document.get_email())   
 
     def update_birthday(self):
         """birthday"""
-        print >> self.output, self.document.get_birthday()  
+        self.println(self.document.get_birthday()) 
 
     def update_language(self):
         """language"""
-        print >> self.output, self.document.get_language()
+        self.println(self.document.get_language())
 
     def update_address(self):
         """address"""
-        print >> self.output, self.document.get_address()
+        self.println(self.document.get_address())
 
     def update_postcode(self):
         """int postcode"""
-        print >> self.output, self.document.get_postcode()
+        self.println(self.document.get_postcode())
 
     def update_city(self):
         """city"""
-        print >> self.output, self.document.get_city()
+        self.println(self.document.get_city())
 
     def update_country(self):
         """country"""
-        print >> self.output, self.document.get_country()
+        self.println(self.document.get_country())
 
     def update_description(self):
         """description"""
-        print >> self.output, self.document.get_description()
+        self.println(self.document.get_description())
 
     def update_download_repo(self):
         """download_repo"""
-        print >> self.output, self.document.get_download_repo()
+        self.println(self.document.get_download_repo())
 
     # CUSTOM TAB
     def update_hobbies(self):
         """list hobbies"""
-        print >> self.output, self.document.get_hobbies()
+        self.println(self.document.get_hobbies())
         
     def update_custom_attributes(self):
         """dict custom_attributes"""
-        print >> self.output, self.document.get_custom_attributes()
+        self.println(self.document.get_custom_attributes())
 
     # BLOG TAB
     def update_blogs(self, blogs):
         """blog"""
-        print >> self.output, pickle.dumps(blogs)
+        self.println(pickle.dumps(blogs))
         
     def display_blog(self, peer_id, blog):
         """display blog"""
-        print >> self.output, "%s: %s"% (peer_id, blog)
+        self.println("%s: %s"% (peer_id, blog))
 
     def display_files(self, peer_id, files):
         """display shared files"""
-        print >> self.output, "%s: %s"% (peer_id, files)
+        self.println("%s: %s"% (peer_id, files))
         
     # FILE TAB
     def update_files(self):
         """file"""
-        print >> self.output, self.document.get_files()
+        self.println(self.document.get_files())
         
     # OTHERS TAB        
     def update_peers(self):
         """peer"""
-        print >> self.output, self.document.get_peers()
+        self.println(self.document.get_peers())
         
 
 class GuiView(AbstractView):
