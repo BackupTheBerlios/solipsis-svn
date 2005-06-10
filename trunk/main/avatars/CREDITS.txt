@@ -36,3 +36,25 @@ The following images have been placed under the public domain (http://creativeco
 - mouette.jpg
 - oeil.jpg
 - papillon.jpg
+
+
+	Open Clip Art Library (http://www.openclipart.org/)
+	-------
+The following images have been placed under the public domain (http://http://web.resource.org/cc/PublicDomain):
+- ant.gif
+- beagle_copper.gif
+- bee.gif
+- bug_02.gif
+- ch_teau-fort_01.gif
+- dolphin.gif
+- home1.gif
+- home10.gif
+- monitor.gif
+- puffin-md.gif
+- rhythmbox.gif
+- seahorse.gif
+- scorpion-md-v0.1.gif
+- seal.gif
+- spider.gif
+- toyota_land_cruiser.gif
+- usb.gif
