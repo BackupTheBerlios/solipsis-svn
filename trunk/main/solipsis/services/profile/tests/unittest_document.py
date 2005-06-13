@@ -293,6 +293,7 @@ class DocumentTest(unittest.TestCase):
         document.add_repository(REPO)
         document.add((abspath(u"data")))
         document.share_file((abspath(u"data"), True))
+        document.share_file((abspath(u"data/.path"), True))
         document.share_files((abspath(u"data/profiles"),
                               ["bruce.prf", "demi.prf"],
                               True))

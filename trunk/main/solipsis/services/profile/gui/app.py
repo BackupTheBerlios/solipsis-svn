@@ -12,8 +12,8 @@ from solipsis.services.profile import PROFILE_DIR, PROFILE_FILE, \
 
 def run():
     """launch gui of profile"""
-    print "WATCH OUT, stdout == stderr (logilab env)"
-    sys.stderr = sys.stdout
+#     print "WATCH OUT, stdout == stderr (logilab env)"
+#     sys.stderr = sys.stdout
     #set up GUI
     import gettext
     gettext.install("app") # replace with the appropriate catalog name

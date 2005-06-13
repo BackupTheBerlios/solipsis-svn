@@ -96,7 +96,8 @@ class Plugin(ServicePlugin):
                                           plugin=self)
         self.node_id = self.service_api.GetNode().pseudo
         # create views & doc
-        self.facade.load_profile(os.path.join(PROFILE_DIR, PROFILE_FILE), self.profile_frame)
+        self.facade.load_profile(
+            os.path.join(PROFILE_DIR, PROFILE_FILE), self.profile_frame)
         self.facade.refresh_html_preview()
         # Set up main GUI hooks
         menu = wx.Menu()

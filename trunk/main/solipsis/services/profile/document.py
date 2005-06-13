@@ -381,7 +381,8 @@ class AbstractDocument:
                 shared_dir.expand_dir()
                 shared_files += [file_container for file_container
                                   in shared_dir.values()
-                                  if isinstance(file_container, FileContainer)]
+                                  if isinstance(file_container, FileContainer)
+                                 and not file_container in shared_files]
             shared[repository] = shared_files
         return shared
         
