@@ -168,7 +168,7 @@ class HtmlTest(unittest.TestCase):
         self.document.set_firstname(u"Bruce")
         self.document.set_lastname(u"Willis")
         self.document.set_pseudo(u"john")
-        self.document.set_photo("/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/profile_male.gif")
+        self.document.set_photo(u"/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/profile_male.gif")
         self.document.set_email(u"bruce.willis@stars.com")
         self.document.set_birthday(u"1/6/1947")
         self.document.set_language(u"English")

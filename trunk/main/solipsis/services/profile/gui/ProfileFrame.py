@@ -255,7 +255,7 @@ class ProfileFrame(wx.Frame):
         document = self.facade.get_document('cache').get_peer(peer_id).document
         self.file_dlg.SetTitle(document and document.get_pseudo() or peer_id)
         # display files {repos: {names:tags}, }
-        self.file_dlg.Show()
+        self.file_dlg.Show(files=files)
 
     def set_refresh(self, evt):
         """refresh HTML preview"""

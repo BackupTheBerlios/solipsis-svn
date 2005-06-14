@@ -164,6 +164,8 @@ class AbstractDocument:
     
     def set_photo(self, value):
         """sets new value for photo"""
+        if not isinstance(value, unicode):
+            raise TypeError("photo [%s] expected as unicode"% value)
         if not isfile(value):
             raise TypeError("photo [%s] must exist"% value)
     def get_photo(self):
@@ -276,6 +278,8 @@ class AbstractDocument:
         
     def add_repository(self, value):
         """sets new value for repository"""
+        if not isinstance(value, unicode):
+            raise TypeError("repository [%s] expected as unicode"% value)
         if not isdir(value):
             raise AssertionError("repository %s does not exist"% value) 
         if not isinstance(value, unicode):
@@ -930,7 +934,8 @@ class FileDocument(AbstractDocument):
     def get_photo(self):
         """returns value of photo"""
         try:
-            return self.config.get(SECTION_PERSONAL, "photo")
+            return unicode(self.config.get(SECTION_PERSONAL, "photo"),
+                           self.encoding)
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
             return DEFAULT_PIC
 
@@ -1227,6 +1232,8 @@ class FileDocument(AbstractDocument):
                   "does not has [FILES] section"
             return {}
         for option in self.config.options(SECTION_FILE):
+            if isinstance(option, str):
+                option = unicode(option, self.encoding)
             try:
                 option_description = self.config.get(SECTION_FILE, option)
                 if isinstance(option_description, str):

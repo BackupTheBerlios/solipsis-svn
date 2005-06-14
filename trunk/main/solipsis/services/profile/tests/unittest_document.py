@@ -9,6 +9,7 @@ from os.path import abspath
 from solipsis.services.profile.document import CustomConfigParser, \
       AbstractDocument, CacheDocument, FileDocument
 from solipsis.services.profile.data import DEFAULT_TAG, PeerDescriptor
+from solipsis.services.profile import ENCODING
 
 TEST_PROFILE = "data/profiles/test"
 REPO = u"/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests"
@@ -80,7 +81,7 @@ class DocumentTest(unittest.TestCase):
         self.assertRaises(NotImplementedError, self.abstract_doc.get_photo)
         for document in self.documents:
             self.assertRaises(TypeError, document.set_photo, "./dummy/dummy.jpg")
-            document.set_photo(unittest.__file__)
+            document.set_photo(unicode(unittest.__file__, ENCODING))
         
     def test_email(self):
         """email as unicode"""

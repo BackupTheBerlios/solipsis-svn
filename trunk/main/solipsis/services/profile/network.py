@@ -207,7 +207,7 @@ class NetworkManager:
                 print "peer could not connect to server"
                 server = self.server.get_local_server(self.remote_ips[peer_id])
                 if server:
-                    server.cancel_reception(self.remote_ips[peer_id])
+                    del server.deferreds[self.remote_ips[peer_id]]
                 else:
                     print "NO SERVER WHEREAS UPLOAD HAS BEEN ASKED"
             else:
@@ -230,6 +230,7 @@ class NetworkManager:
             return client.get_profile()
         # no client available means no server on the other side: try
         # download with our server
+        print "***get_profile"
         server = self.server.get_local_server(self.remote_ips[peer_id])
         if server:
             return server.prepare_reception(peer_id, MESSAGE_PROFILE,
@@ -737,8 +738,9 @@ class DeferredUpload(defer.Deferred):
             self.file.close()
             self.file = None
 
-    def _first_callback(self):
+    def _first_callback(self, reason):
         """call user's callback with proper file"""
+        print "_first_callback"
         if self.file:
             self.file.seek(0)
             return self.file
@@ -753,6 +755,7 @@ class DeferredUpload(defer.Deferred):
     # FIXME factorize with server
     def _on_complete_pickle(self, file_obj):
         """callback when finished downloading blog"""
+        print "_on_complete_pickle"
         obj_str = file_obj.getvalue()
         if len(obj_str):
             return pickle.loads(obj_str)
@@ -822,6 +825,7 @@ class PeerServerProtocol(PeerProtocol):
 
     def connectionLost(self, reason):
         """called when transfer complete"""
+        print "connectionLost"
         PeerProtocol.connectionLost(self, reason)
         remote_host = self.transport.getPeer().host
         if self.factory.deferreds.has_key(remote_host):
@@ -862,6 +866,7 @@ class PeerServerFactory(ServerFactory):
         """waiting for a connection from remote_ip client wich will
         push file/profile/blog into server (according to nature of
         action)"""
+        print "***prepare_reception", peer_id, action, remote_ip, file_names
         # prepare list of files to dl
         if file_names:
             self.file_names = file_names
@@ -873,12 +878,14 @@ class PeerServerFactory(ServerFactory):
             deferred = DeferredUpload(action)
         # store deferred and ask client
         self.deferreds[remote_ip] = deferred
+        deferred.addErrback(self.cancel_reception, remote_ip)
         message = make_message(action, self.manager.host, self.port)
         self.manager.service_api.SendData(peer_id, message)
         return deferred
 
     def _next_file(self, peer_id, action, remote_ip, file_obj):
         """send request for next file to be uploaded"""
+        print "***_next_file", peer_id, action, remote_ip, file_obj
         # proceed next
         if self.file_names:
             deferred = DeferredUpload(action, self.file_names.pop())
@@ -892,9 +899,7 @@ class PeerServerFactory(ServerFactory):
         # flag this one
         return file_obj.name
 
-    def cancel_reception(self, remote_ip):
+    def cancel_reception(self, reason, remote_ip):
         """clean list of deferred"""
-        deferred = self.deferreds[remote_ip]
-        deferred.errback('remote client %s could not connect to server'\
-                         % remote_ip)
+        print "cancel_reception", remote_ip, str(reason)
         del self.deferreds[remote_ip]

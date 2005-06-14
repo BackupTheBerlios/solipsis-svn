@@ -24,7 +24,7 @@ import time
 import sys
 import solipsis
 
-from solipsis.services.profile import PROFILE_DIR, \
+from solipsis.services.profile import ENCODING, PROFILE_DIR, \
      PROFILE_FILE, BLOG_EXT, BULB_ON_IMG, BULB_OFF_IMG
 
 #TODO utiliser unicode pour les chemins de l'arborescence
@@ -34,11 +34,13 @@ SHARING_ALL = -1
 
 def assert_file(path):
     """raise ValueError if not a file"""
-    assert os.path.isfile(path), "[%s] not a valid file"% path
+    assert os.path.isfile(path), \
+           "[%s] not a valid file"% path.encode(ENCODING)
 
 def assert_dir(path):
     """raise ValueError if not a file"""
-    assert os.path.isdir(path), "[%s] not a valid directory"% path
+    assert os.path.isdir(path), \
+           "[%s] not a valid directory"% path.encode(ENCODING)
     
 # BLOGS
 #######
@@ -250,8 +252,10 @@ class ContainerMixin:
     """Factorize sharing tools on containers"""
     
     def __init__(self, path, share=False, tag=DEFAULT_TAG):
-        self._tag = tag
-        self._shared = share
+        if not isinstance(path, unicode):
+            raise TypeError("path [%s] expected as unicode"% path)
+        self.tag(tag)
+        self.share(share)
         self._data = None
         # init path
         self.path = ContainerMixin._validate(self, path)
@@ -286,8 +290,8 @@ class ContainerMixin:
         """copy data from container"""
         assert self.path == container.path, \
                "containers %s & %s not compatible"% (self, container)
-        self._tag = container._tag
-        self._shared = container._shared
+        self.tag(container._tag)
+        self.shared(container._shared)
         self._data = container._data
         
 class FileContainer(ContainerMixin):
@@ -298,8 +302,9 @@ class FileContainer(ContainerMixin):
         assert_file(path)
         
     def __str__(self):
-        return "Fc:%s(?%s,'%s')"% (self.name, self._shared and "Y" or "-",
-                                 self._tag  or "-")
+        return "Fc:%s(?%s,'%s')"% (self.name.encode(ENCODING),
+                                   self._shared and "Y" or "-",
+                                   self._tag.encode(ENCODING)  or "-")
     def __repr__(self):
         return str(self)
 
@@ -321,8 +326,11 @@ class DirContainer(dict, ContainerMixin):
         
     def __str__(self):
         return "{Dc:%s(?%s,'%s',#%d) : %s}"\
-               %(self.name, self._shared and "Y" or "-",
-                 self._tag  or "-", self.nb_shared(), str(self.values()))
+               %(self.name.encode(ENCODING),
+                 self._shared and "Y" or "-",
+                 self._tag.encode(ENCODING)  or "-",
+                 self.nb_shared(),
+                 str(self.values()))
     def __repr__(self):
         return str(self)
 
@@ -440,7 +448,7 @@ class DirContainer(dict, ContainerMixin):
         else:
             container = self
         for path in [os.path.join(container.path, path)
-                          for path in os.listdir(container.path)]:
+                     for path in os.listdir(container.path)]:
             container.add(path)
 
     def share_content(self, full_path, share=True):
@@ -466,12 +474,12 @@ class DirContainer(dict, ContainerMixin):
 
     def share_container(self, full_path, share=True):
         """wrapps sharing methods matching 'full_path' with list or path"""
-        if isinstance(full_path, str) or isinstance(full_path, unicode):
+        if isinstance(full_path, unicode):
             self._share_file(full_path, share)
         elif isinstance(full_path, list) or isinstance(full_path, tuple):
             self._share_files(full_path, share)
         else:
-            raise TypeError("full_path '%s' expected as list or string"\
+            raise TypeError("full_path '%s' expected as list or unicode"\
                             % full_path)
         
     def _share_file(self, full_path, share=True):
@@ -485,12 +493,12 @@ class DirContainer(dict, ContainerMixin):
 
     def tag_container(self, full_path, tag=DEFAULT_TAG):
         """wrapps sharing methods matching 'full_path' with list or path"""
-        if isinstance(full_path, str) or isinstance(full_path, unicode):
+        if isinstance(full_path, unicode):
             self._tag_file(full_path, tag)
         elif isinstance(full_path, list) or isinstance(full_path, tuple):
             self._tag_files(full_path, tag)
         else:
-            raise TypeError("full_path '%s' expected as list or string"\
+            raise TypeError("full_path '%s' expected as list or unicode"\
                             % full_path)
 
     def _tag_files(self, full_paths, tag):

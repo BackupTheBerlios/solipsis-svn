@@ -13,7 +13,7 @@ from solipsis.services.profile.data import PeerDescriptor
 from solipsis.services.profile.document import FileDocument, CacheDocument
 from solipsis.services.profile.view import PrintView, HtmlView
 from solipsis.services.profile.data import DirContainer
-from solipsis.services.profile import PROFILE_DIR
+from solipsis.services.profile import ENCODING, PROFILE_DIR
 
 TEST_PROFILE = "data/profiles/test"
 REPO = u"/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests"
@@ -36,7 +36,7 @@ class FileTest(unittest.TestCase):
         self.assertEquals("manu", doc.get_firstname())
         self.assertEquals("breton", doc.get_lastname())
         self.assertEquals("emb", doc.get_pseudo())
-        self.assertEquals(unittest.__file__, doc.get_photo())
+        self.assertEquals(unicode(unittest.__file__, ENCODING), doc.get_photo())
         self.assertEquals("manu@ft.com", doc.get_email())
         self.assertEquals("12/01/2005", doc.get_birthday())
         self.assertEquals("fr", doc.get_language())
@@ -84,7 +84,7 @@ class FileTest(unittest.TestCase):
         self.document.set_firstname(u"manu")
         self.document.set_lastname(u"breton")
         self.document.set_pseudo(u"emb")
-        self.document.set_photo(unittest.__file__)
+        self.document.set_photo(unicode(unittest.__file__, ENCODING))
         self.document.set_email(u"manu@ft.com")
         self.document.set_birthday(u"12/01/2005")
         self.document.set_language(u"fr")

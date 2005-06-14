@@ -50,8 +50,9 @@ class DataTest(unittest.TestCase):
                           *(REPO, None))
         self.assertRaises(AssertionError, self.container.__setitem__, \
                           *(REPO, 1))
-        dir_c = DirContainer("data/emptydir")
-        file_c = FileContainer("data/subdir1/date.doc")
+        self.assertRaises(TypeError, DirContainer, "data/emptydir")
+        dir_c = DirContainer(u"data/emptydir")
+        file_c = FileContainer(u"data/subdir1/date.doc")
         self.assertRaises(AssertionError, self.container.__setitem__, \
                           *(REPO, dir_c))
         self.assertRaises(AssertionError, self.container.__setitem__, \

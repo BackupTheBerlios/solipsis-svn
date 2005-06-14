@@ -8,6 +8,7 @@ from solipsis.services.profile.document import CacheDocument, FileDocument
 from solipsis.services.profile.data import DEFAULT_TAG, PeerDescriptor
 from solipsis.services.profile.view import PrintView
 from solipsis.services.profile.facade import get_facade
+from solipsis.services.profile import ENCODING
 from os.path import abspath
 
 class FacadeTest(unittest.TestCase):
@@ -39,7 +40,7 @@ class FacadeTest(unittest.TestCase):
         self.assertEquals("emb", self.result.getvalue().split('\n')[-2])
 
     def test_change_photo(self):
-        self.facade.change_photo(unittest.__file__)
+        self.facade.change_photo(unicode(unittest.__file__, ENCODING))
         self.assertEquals("%s\n"% unittest.__file__, self.result.getvalue())
 
     def test_change_email(self):
