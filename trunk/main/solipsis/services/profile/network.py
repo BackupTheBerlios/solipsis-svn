@@ -131,7 +131,7 @@ class NetworkManager:
     def start_listening(self):
         """launching main server listening to well-known port"""
         # delegate to ProfileServerFactory
-        #self.server.start_listening()
+        self.server.start_listening()
 
     def stop_listening(self):
         """stops main server and desactivate profile sharing"""
