@@ -6,6 +6,7 @@ import random
 import tempfile
 import pickle
 import os.path
+import traceback
 
 from twisted.internet.protocol import ClientFactory, ServerFactory
 from twisted.internet import reactor, defer
@@ -230,7 +231,6 @@ class NetworkManager:
             return client.get_profile()
         # no client available means no server on the other side: try
         # download with our server
-        print "***get_profile"
         server = self.server.get_local_server(self.remote_ips[peer_id])
         if server:
             return server.prepare_reception(peer_id, MESSAGE_PROFILE,
@@ -574,6 +574,7 @@ class PeerClientProtocol(PeerProtocol):
             self.file = tempfile.NamedTemporaryFile()
             self.sendLine(self.factory.download)
         elif self.factory.download.startswith(ASK_UPLOAD):
+            self.file = None
             self.setLineMode()
             self.sendLine(self.factory.download)
         else:
@@ -695,18 +696,6 @@ class DeferredUpload(defer.Deferred):
         self.message = message
         self.file_name = file_name
         self.file = None
-        self.addCallback(self._first_callback)
-        if self.message == MESSAGE_PROFILE:
-            self.addCallback(self._on_complete_profile)
-        elif self.message == MESSAGE_BLOG:
-            self.addCallback(self._on_complete_pickle)
-        elif self.message == MESSAGE_SHARED:
-            self.addCallback(self._on_complete_pickle)
-        elif self.message == MESSAGE_FILES:
-            # callback added by factory
-            pass
-        else:
-            print "%s not valid"% self.message
 
     def get_message(self):
         """format message to send to client according to file to be
@@ -732,6 +721,22 @@ class DeferredUpload(defer.Deferred):
             message = MESSAGE_ERROR
         return message
 
+    def set_callbacks(self):
+        """add first callbacks"""
+        self.addCallback(self._first_callback)
+        if self.message == MESSAGE_PROFILE:
+            self.addCallback(self._on_complete_profile)
+        elif self.message == MESSAGE_BLOG:
+            self.addCallback(self._on_complete_pickle)
+        elif self.message == MESSAGE_SHARED:
+            self.addCallback(self._on_complete_pickle)
+        elif self.message == MESSAGE_FILES:
+            # callback added by factory
+            pass
+        else:
+            print "%s not valid"% self.message
+        self.addErrback(self._on_error)
+
     def close(self):
         """close file, clean upload"""
         if self.file:
@@ -740,10 +745,13 @@ class DeferredUpload(defer.Deferred):
 
     def _first_callback(self, reason):
         """call user's callback with proper file"""
-        print "_first_callback"
         if self.file:
             self.file.seek(0)
             return self.file
+
+    def _on_error(self, error):
+        print "ERROR:", error
+        traceback.print_exc()
 
     # FIXME factorize with server
     def _on_complete_profile(self, file_obj):
@@ -755,7 +763,6 @@ class DeferredUpload(defer.Deferred):
     # FIXME factorize with server
     def _on_complete_pickle(self, file_obj):
         """callback when finished downloading blog"""
-        print "_on_complete_pickle"
         obj_str = file_obj.getvalue()
         if len(obj_str):
             return pickle.loads(obj_str)
@@ -825,12 +832,11 @@ class PeerServerProtocol(PeerProtocol):
 
     def connectionLost(self, reason):
         """called when transfer complete"""
-        print "connectionLost"
         PeerProtocol.connectionLost(self, reason)
         remote_host = self.transport.getPeer().host
         if self.factory.deferreds.has_key(remote_host):
             deferred = self.factory.deferreds[remote_host]
-            deferred.callback(reason)
+            deferred.callback("file successfully transferred")
             deferred.close()
             del self.factory.deferreds[remote_host]
 
@@ -866,7 +872,6 @@ class PeerServerFactory(ServerFactory):
         """waiting for a connection from remote_ip client wich will
         push file/profile/blog into server (according to nature of
         action)"""
-        print "***prepare_reception", peer_id, action, remote_ip, file_names
         # prepare list of files to dl
         if file_names:
             self.file_names = file_names
@@ -877,15 +882,14 @@ class PeerServerFactory(ServerFactory):
         else:
             deferred = DeferredUpload(action)
         # store deferred and ask client
+        deferred.set_callbacks()
         self.deferreds[remote_ip] = deferred
-        deferred.addErrback(self.cancel_reception, remote_ip)
         message = make_message(action, self.manager.host, self.port)
         self.manager.service_api.SendData(peer_id, message)
         return deferred
-
-    def _next_file(self, peer_id, action, remote_ip, file_obj):
+        
+    def _next_file(self, file_obj, peer_id, action, remote_ip):
         """send request for next file to be uploaded"""
-        print "***_next_file", peer_id, action, remote_ip, file_obj
         # proceed next
         if self.file_names:
             deferred = DeferredUpload(action, self.file_names.pop())
@@ -899,7 +903,3 @@ class PeerServerFactory(ServerFactory):
         # flag this one
         return file_obj.name
 
-    def cancel_reception(self, reason, remote_ip):
-        """clean list of deferred"""
-        print "cancel_reception", remote_ip, str(reason)
-        del self.deferreds[remote_ip]
