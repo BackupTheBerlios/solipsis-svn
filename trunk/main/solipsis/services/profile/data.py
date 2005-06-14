@@ -205,6 +205,14 @@ class PeerDescriptor:
     def __repr__(self):
         return "%s (%s)"% (self.peer_id, self.state)
 
+    def get_pseudo(self):
+        """retrun pseudo filled in document or id if no document"""
+        if self.document:
+            return self.document.get_pseudo()
+        else:
+            print "no profile associated with id", self.peer_id
+            return self.peer_id
+
     def copy(self):
         """return copied instance of PeerDescriptor.
 

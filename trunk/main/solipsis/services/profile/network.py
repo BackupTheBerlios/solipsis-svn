@@ -279,7 +279,7 @@ class NetworkManager:
         # download with our server
         server = self.server.get_local_server(self.remote_ips[peer_id])
         if server:
-            return server.prepare_reception(peer_id, MESSAGE_PROFILE,
+            return server.prepare_reception(peer_id, MESSAGE_FILES,
                                             self.remote_ips[peer_id],
                                             file_names)
         # no server either: other client can not connect to us
@@ -696,6 +696,7 @@ class DeferredUpload(defer.Deferred):
         self.message = message
         self.file_name = file_name
         self.file = None
+        self.set_callbacks()
 
     def get_message(self):
         """format message to send to client according to file to be
@@ -836,9 +837,9 @@ class PeerServerProtocol(PeerProtocol):
         remote_host = self.transport.getPeer().host
         if self.factory.deferreds.has_key(remote_host):
             deferred = self.factory.deferreds[remote_host]
+            del self.factory.deferreds[remote_host]
             deferred.callback("file successfully transferred")
             deferred.close()
-            del self.factory.deferreds[remote_host]
 
 class PeerServerFactory(ServerFactory):
     """server listening on known port. It will spawn a dedicated
@@ -882,7 +883,6 @@ class PeerServerFactory(ServerFactory):
         else:
             deferred = DeferredUpload(action)
         # store deferred and ask client
-        deferred.set_callbacks()
         self.deferreds[remote_ip] = deferred
         message = make_message(action, self.manager.host, self.port)
         self.manager.service_api.SendData(peer_id, message)
@@ -890,6 +890,7 @@ class PeerServerFactory(ServerFactory):
         
     def _next_file(self, file_obj, peer_id, action, remote_ip):
         """send request for next file to be uploaded"""
+        print "_next_file", file_obj, peer_id, action, remote_ip
         # proceed next
         if self.file_names:
             deferred = DeferredUpload(action, self.file_names.pop())

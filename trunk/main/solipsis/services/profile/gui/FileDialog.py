@@ -17,7 +17,7 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
         UIProxyReceiver.__init__(self)
         self.data = {}
         self.plugin = plugin
-        self.peer_id = None
+        self.peer_id = _("Anonymous")
         self.download_repo = DOWNLOAD_REPO
         self.facade = get_facade()
         args = (parent, id)
@@ -99,11 +99,17 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
         self.refresh(files)
         wx.Dialog.Show(self, do_show)
 
-    def SetTitle(self, title=None):
-        if title:
-            self.peer_id = title
+    def SetTitle(self, peer_desc=None):
+        if isinstance(peer_desc, unicode) or isinstance(peer_desc, str):
+            wx.Dialog.SetTitle(self, peer_desc)
+            return
+        if peer_desc:
+            self.peer_id = peer_desc.peer_id
+            pseudo = peer_desc.document.get_pseudo()
+        else:
+            pseudo = self.peer_id
         wx.Dialog.SetTitle(self, "%s's %s to go into %s"\
-                           % (self.peer_id, _("Files"),
+                           % (pseudo, _("Files"),
                               os.path.basename(self.download_repo)))
 
     def set_download_repo(self, value):

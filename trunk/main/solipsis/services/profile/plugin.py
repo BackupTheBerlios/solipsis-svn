@@ -136,7 +136,6 @@ class Plugin(ServicePlugin):
     
     def _on_shared_files(self, files, peer_id):
         """store and display file object corresponding to blog"""
-        print "***_on_shared_files"
         self.facade.fill_shared_files((peer_id, files))
 
     def get_profile(self, peer_id):
@@ -157,7 +156,6 @@ class Plugin(ServicePlugin):
 
     def select_files(self, peer_id):
         """request downwload of list of shared files"""
-        print "***select_files"
         deferred = self.network.get_shared_files(peer_id)
         deferred and deferred.addCallback(self._on_shared_files, peer_id)
 
