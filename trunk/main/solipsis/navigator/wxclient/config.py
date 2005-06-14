@@ -19,6 +19,7 @@
 
 import cPickle as pickle
 import random
+import copy
 import wx
 from wx.xrc import XRCCTRL, XRCID
 
@@ -38,6 +39,7 @@ class ConfigData(ManagedData):
 
     # These are the configuration variables that can be changed on a per-identity basis
     identity_vars = [ 'pseudo', 'host', 'port', 'connection_type', 'solipsis_port',
+        'bookmarks', 'service_config',
         #~ 'proxymode_auto', 'proxymode_manual', 'proxymode_none', 'proxy_host', 'proxy_port',
     ]
 
@@ -88,7 +90,7 @@ class ConfigData(ManagedData):
         """
         identity = {}
         for var in self.identity_vars:
-            identity[var] = getattr(self, var)
+            identity[var] = copy.deepcopy(getattr(self, var))
         self.identities.append(identity)
         self.current_identity = len(self.identities) - 1
         return self.current_identity
@@ -99,7 +101,7 @@ class ConfigData(ManagedData):
         """
         identity = self.identities[self.current_identity]
         for var in self.identity_vars:
-            identity[var] = getattr(self, var)
+            identity[var] = copy.deepcopy(getattr(self, var))
     
     def LoadIdentity(self, index):
         """
@@ -109,7 +111,11 @@ class ConfigData(ManagedData):
         self.current_identity = index
         identity = self.identities[self.current_identity]
         for var in self.identity_vars:
-            setattr(self, var, identity[var])
+            try:
+                setattr(self, var, copy.deepcopy(identity[var]))
+                print var, getattr(self, var)
+            except KeyError:
+                setattr(self, var, copy.deepcopy(getattr(self, var)))
 
     def RemoveCurrentIdentity(self):
         """
@@ -126,19 +132,26 @@ class ConfigData(ManagedData):
         # Update config values for current identity
         identity = self.identities[self.current_identity]
         for var in self.identity_vars:
-            setattr(self, var, identity[var])
+            try:
+                setattr(self, var, copy.deepcopy(identity[var]))
+            except KeyError:
+                pass
         return True
 
     def GetIdentities(self):
         """
         Get a list of all identities as dictionaries containing config values,
         ordered according to their index number.
+        You should not try to modify these values, or unexpected things can happen.
         """
         l = []
         for identity in self.identities:
             d = {}
             for var in self.identity_vars:
-                d[var] = identity[var]
+                try:
+                    d[var] = identity[var]
+                except KeyError:
+                    d[var] = getattr(self, var)
             l.append(d)
         return l
     
@@ -203,8 +216,6 @@ class ConfigData(ManagedData):
         Store configuration in a writable file object.
         """
         self.StoreCurrentIdentity()
-        #~ if len(self.identities) == 1:
-            #~ self.CreateIdentity()
         d = self.GetDict()
         # Python < 2.4 compatibility: documentation for the cPickle module is partly wrong
         #~ pickle.dump(d, outfile, protocol=-1)

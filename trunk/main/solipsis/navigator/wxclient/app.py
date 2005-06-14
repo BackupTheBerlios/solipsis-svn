@@ -227,7 +227,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         # also interacts with the menubar (ssshh..)
         self.bookmarks_dialog = BookmarksDialog(app=self,
             world=self.world,
-            bookmarks=self.config_data.bookmarks,
+            config_data=self.config_data,
             menu=bookmarks_menu,
             parent=self.main_window)
         self.bookmarks_dialog.UpdateUI()
@@ -409,6 +409,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         if self._CheckNodeProxy(False):
             self.network.DisconnectFromNode()
         self._SetWaiting(True)
+        self.world.Reset()
         self.viewport.Reset()
         self.network.ConnectToNode(self.config_data)
         self.statusbar.SetText(_("Connecting"))
@@ -564,6 +565,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         #~ self.prefs_dialog.Show()
         prefs_dialog = PreferencesDialog(config_data=self.config_data, parent=self.main_window)
         prefs_dialog.ShowModal()
+        self._SaveConfig()
 
     def _OnQuit(self, evt):
         """

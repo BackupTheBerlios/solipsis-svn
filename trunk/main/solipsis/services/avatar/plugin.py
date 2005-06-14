@@ -105,9 +105,7 @@ class Plugin(ServicePlugin):
         network = NetworkLauncher(self.reactor, self, self.port)
         self.network = TwistedProxy(network, self.reactor)
         # Get saved config
-        filename = self.service_api.GetConfig()
-        if filename is not None:
-            self._SetNodeAvatar(filename)
+        self._ApplyConfig()
         # Start network
         self.network.Start()
 
@@ -164,6 +162,7 @@ class Plugin(ServicePlugin):
         The node has changed (also perhaps its ID).
         """
         self.node_id = node.id_
+        self._ApplyConfig()
         if self.node_avatar_hash is not None:
             self.avatars.BindHashToPeer(self.node_avatar_hash, self.node_id)
     
@@ -207,6 +206,14 @@ class Plugin(ServicePlugin):
     #
     # Private methods
     #
+    def _ApplyConfig(self):
+        """
+        Apply configuration.
+        """
+        filename = self.service_api.GetConfig()
+        if filename is not None:
+            self._SetNodeAvatar(filename)
+
     def _SetNodeAvatar(self, filename):
         """
         Set our avatar to the given filename.

@@ -22,10 +22,10 @@ COL_PSEUDO = 0
 
 
 class BookmarksDialog(wx.Frame):
-    def __init__(self, app, world, bookmarks, menu, *args, **kwds):
+    def __init__(self, app, world, config_data, menu, *args, **kwds):
         self.app = app
         self.world = world
-        self.bookmarks = bookmarks
+        self.config_data = config_data
         self.menu = menu
 
         # Item index => peer
@@ -61,6 +61,8 @@ class BookmarksDialog(wx.Frame):
         self.Bind(wx.EVT_SHOW, self.OnShow)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
 
+        self.ApplyConfig()
+
     def __set_properties(self):
         # begin wxGlade: BookmarksDialog.__set_properties
         self.SetTitle(_("Bookmarks"))
@@ -92,7 +94,6 @@ class BookmarksDialog(wx.Frame):
     #
     # Event handlers
     #
-
     def OnAddBookmark(self, event): # wxGlade: BookmarksDialog.<event_handler>
         all_peers = self.world.GetAllPeers()
         bookmarked_peers = set([peer.id_ for peer in self.bookmarks.GetAllPeers()])
@@ -132,6 +133,9 @@ class BookmarksDialog(wx.Frame):
         self.selected_items.clear()
         self.UpdateUI()
 
+    def ApplyConfig(self):
+        self.bookmarks = self.config_data.bookmarks
+        self.UpdateUI()
 
     #
     # Helper methods
@@ -167,5 +171,6 @@ class BookmarksDialog(wx.Frame):
     
     def UpdateToolbarState(self):
         self.toolbar.EnableTool(TOOL_DEL_BOOKMARK, len(self.selected_items) > 0)
+
 
 # end of class BookmarksDialog
