@@ -64,8 +64,8 @@ def SetSolipsisURLHandlers(prog_name=None):
     prog_path = os.path.abspath(prog_name)
     # In some cases the main program won't be a .py file (e.g. pyexe-generated
     # executable under Windows)
-    if re.match(r'.*\.py[cow]?$', prog_name, re.IGNORECASE):
-        base_args = ['python', prog_path]
+    if sys.executable and re.match(r'.*\.py[cow]?$', prog_name, re.IGNORECASE):
+        base_args = [sys.executable, prog_path]
     else:
         base_args = [prog_path]
     SetURLHandler('slp', base_args + ['--url', '%s'])

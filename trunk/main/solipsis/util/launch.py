@@ -19,6 +19,8 @@
 
 import os
 import os.path
+import sys
+import re
 
 from solipsis.util.exception import BadInstall
 
@@ -49,7 +51,10 @@ class Launcher(object):
     
     def Launch(self):
         prog_name = os.path.normcase('.' + os.sep + self.launcher_name)
-        args = [prog_name]
+        if sys.executable and re.match(r'.*\.py[cow]?$', prog_name, re.IGNORECASE):
+            args = [sys.executable, prog_name]
+        else:
+            args = [prog_name]
         args +=  ['-q', '-d']
         if self.port:
             args += ['-p', str(self.port)]

@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 """
-setup.py - script for building MyApplication
+macsetup.py - script for building Solipsis.app
 
 Usage:
     % python macsetup.py py2app
 """
 
 import os
+import glob
 
 from distutils.core import setup
 import py2app
@@ -21,14 +22,13 @@ url = "http://solipsis.netofpeers.net"
 license = "GNU LGPL"
 
 packages = []
-includes = []
+includes = ['solipsis.node.main']
 resources = []
 data_files = []
 
 #
-# Find all packages
+# Find all packages and modules
 #
-#packages = ['solipsis', 'solipsis.services']
 service_dir = 'solipsis/services'
 for filename in os.listdir(service_dir):
     path = os.path.join(service_dir, filename)
@@ -36,6 +36,14 @@ for filename in os.listdir(service_dir):
         package = path.replace('/', '.')
         packages.append(package)
         includes.append(package + '.plugin')
+extension_dirs = ['solipsis/node/discovery', 'solipsis/node/controller']
+for dir in extension_dirs:
+    for path in glob.glob(os.path.join(dir, '*.py')):
+        filename = os.path.basename(path)
+        if not filename.startswith('_'):
+            module = path.replace('/', '.')[:-3]
+            includes.append(module)
+
 #print "packages =", packages
 print "includes =", includes
 
@@ -45,7 +53,7 @@ print "includes =", includes
 # Please note: base directories of service plugins will be automatically
 # included as long as they contain some localization data (.mo files)
 resource_dirs = set()
-extra_files = [
+extensions = [
     'xrc',
     'mo',
     'png', 'gif', 'jpg', 'jpeg',
@@ -58,9 +66,9 @@ for dirpath, dirnames, filenames in os.walk('.'):
     found = False
     files = []
     dirpath = dirpath[2:]
+    # Include files with one of the registered extensions
     for filename in filenames:
-        # Include files with one of the registered extensions
-        for ext in extra_files:
+        for ext in extensions:
             if filename.endswith('.' + ext):
                 break
         else:
@@ -113,7 +121,6 @@ setup(
 
     # Application data
     app=['navigator.py'],
-    #targets=['twistednode.py', 'navigator.py'],
     data_files=data_files,
     options={
         'py2app': py2app_options,
