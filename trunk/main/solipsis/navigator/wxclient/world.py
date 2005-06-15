@@ -224,7 +224,7 @@ class World(UIProxyReceiver):
         """
         self.node_item = self.Item(node)
         x, y = node.position.GetXY()
-        print "node index = ", self.viewport.AddObject(node.id_, None, position=(x, y))
+        self.viewport.AddObject(node.id_, None, position=(x, y))
         self.UpdateNodePosition(node.position, jump=True)
 
     def _CreatePeerLabel(self, item):

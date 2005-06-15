@@ -61,6 +61,7 @@ class BookmarksDialog(wx.Frame):
         self.Bind(wx.EVT_SHOW, self.OnShow)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
 
+        self.config_data.AskNotify(self.ApplyConfig)
         self.ApplyConfig()
 
     def __set_properties(self):

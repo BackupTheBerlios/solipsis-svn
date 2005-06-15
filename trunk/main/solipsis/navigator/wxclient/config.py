@@ -84,6 +84,15 @@ class ConfigData(ManagedData):
         self.CreateIdentity()
         self.StoreCurrentIdentity()
 
+        # Callables for config change notification
+        self._event_sinks = []
+
+    def AskNotify(self, callback):
+        """
+        Ask to be notified when the configuration is changed.
+        """
+        self._event_sinks.append(callback)
+
     def CreateIdentity(self):
         """
         Creates a new identity and returns its index number.
@@ -113,9 +122,10 @@ class ConfigData(ManagedData):
         for var in self.identity_vars:
             try:
                 setattr(self, var, copy.deepcopy(identity[var]))
-                print var, getattr(self, var)
+                #~ print var, getattr(self, var)
             except KeyError:
                 setattr(self, var, copy.deepcopy(getattr(self, var)))
+        self._Notify()
 
     def RemoveCurrentIdentity(self):
         """
@@ -136,6 +146,7 @@ class ConfigData(ManagedData):
                 setattr(self, var, copy.deepcopy(identity[var]))
             except KeyError:
                 pass
+        self._Notify()
         return True
 
     def GetIdentities(self):
@@ -210,7 +221,8 @@ class ConfigData(ManagedData):
         d = pickle.load(infile)
         self.UpdateDict(d)
         self.StoreCurrentIdentity()
-    
+        self._Notify()
+
     def Save(self, outfile):
         """
         Store configuration in a writable file object.
@@ -236,6 +248,13 @@ class ConfigData(ManagedData):
         for s in self.services:
             node.AddService(s)
         return node
+
+    def _Notify(self):
+        """
+        Notify all event sinks that the config has been updated.
+        """
+        for sink in self._event_sinks:
+            sink()
 
 
 class ConfigUI(object):

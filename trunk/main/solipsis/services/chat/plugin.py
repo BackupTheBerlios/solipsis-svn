@@ -94,8 +94,7 @@ class Plugin(ServicePlugin):
     
     def NewPeer(self, peer, service):
         try:
-            address = self._ParseAddress(service.address)            print "New Peer ", address
-        except ValueError:
+            address = self._ParseAddress(service.address)        except ValueError:
             pass
         else:
             self.ui.AddPeer(peer)

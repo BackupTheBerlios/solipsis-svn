@@ -46,18 +46,23 @@ def CreateSecureId():
 class ManagedData(object):
     """
     Derive this class to create Managed data for use with validators.
+    Attributes starting with an underscore ('_') will not be managed.
     """
     def __init__(self):
-        object.__setattr__(self, '_dict', {})
+        self._dict = {}
 
     def __setattr__(self, name, value):
+        if name.startswith('_'):
+            object.__setattr__(self, name, value)
+            return
         try:
             self._dict[name][0] = value
         except KeyError:
             self._dict[name] = [value]
 
     def __getattr__(self, name):
-        assert name != "_dict"
+        if name.startswith('_'):
+            return object.__getattr__(self, name)
         return self._dict[name][0]
 
     def GetDict(self):

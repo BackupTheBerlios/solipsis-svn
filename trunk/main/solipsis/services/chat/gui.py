@@ -107,7 +107,6 @@ class ChatWindow(wx.EvtHandler, XRCLoader, UIProxyReceiver):
     
     def AddPeer(self, peer):
         if peer.pseudo:
-            print "AddPeer '%s'" % peer.id_
             self.pseudos[peer.id_] = peer.pseudo
             index = self.chat_users.GetItemCount()
             self.chat_users.InsertStringItem(index, peer.pseudo)
@@ -115,7 +114,6 @@ class ChatWindow(wx.EvtHandler, XRCLoader, UIProxyReceiver):
 
     def RemovePeer(self, peer_id):
         index = self.chat_users.FindItemData(-1, self._PeerData(peer_id))
-        print "RemovePeer '%s' => index = %d" % (peer_id, index)
         try:
             # TODO: Antoine knows where the bug is and will be happy to
             # fix it
