@@ -104,8 +104,9 @@ class ServiceCollector(object):
         Returns (service_id, plugin) as a tuple
         """
         # Get main plugin file
-        plugin_file = os.path.join(path, 'plugin.py')
-        assert os.path.isfile(plugin_file), "Bad service plug-in: %s" % plugin_file
+        # This check is disabled because it fails when built with py2app
+        #~ plugin_file = os.path.join(path, 'plugin.py')
+        #~ assert os.path.isfile(plugin_file), "Bad service plug-in: %s" % plugin_file
         print "Loading service '%s'..." % name
 
         # Import the plugin and instantiate it
