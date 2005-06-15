@@ -8,7 +8,8 @@ from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile.document import PeerDescriptor
 from solipsis.services.profile.view import HtmlView
 from solipsis.services.profile.data import PeerDescriptor
-from solipsis.services.profile import PROFILE_DIR, PROFILE_EXT
+from solipsis.services.profile import PROFILE_DIR, PROFILE_EXT, \
+     BULB_ON_IMG, BULB_OFF_IMG
 
 # begin wxGlade: dependencies
 # end wxGlade
@@ -39,6 +40,13 @@ class OthersPanel(wx.Panel):
             self.frame = self.frame.GetParent()
         self.facade = get_facade()
         self.peers = None
+        
+        il = wx.ImageList(16, 16)
+        self.on_img = il.Add(wx.Bitmap(BULB_ON_IMG,wx.BITMAP_TYPE_ANY))
+        self.off_img = il.Add(wx.Bitmap(BULB_OFF_IMG,wx.BITMAP_TYPE_ANY))
+        self.peers_list.SetImageList(il)
+        self.il = il
+        
         self.bind_controls()
 
     def get_peer_selected(self):
@@ -48,7 +56,7 @@ class OthersPanel(wx.Panel):
             if self.peers.has_key(peer_id):
                 return peer_id
             elif self.pseudos.has_key(peer_id):
-                return self.pseudos[peer_id]
+                return self.pseudos[peer_id].peer_id
             else:
                 return None
         except:
@@ -87,22 +95,20 @@ class OthersPanel(wx.Panel):
         """called when peers have been modified"""
         self.peers = peers
         self.pseudos = {}
+        self.items = {}
         friends = []
         anonymous = []
         blacklisted = []
         # get pseudos and sort them out
         for peer_id, peer_desc in self.peers.iteritems():
             # get 'pseudo'
-            if peer_desc.document:
-                pseudo = peer_desc.document.get_pseudo()
-            else:
-                pseudo = peer_id
+            pseudo = peer_desc.get_pseudo()
             # create lists
             index = 1
             while self.pseudos.has_key(pseudo):
                 index += 1
                 pseudo = "%s_%02d"% (pseudo, index)
-            self.pseudos[pseudo] = peer_id
+            self.pseudos[pseudo] = peer_desc
             if peer_desc.state == PeerDescriptor.FRIEND:
                 friends.append(pseudo)
             elif peer_desc.state == PeerDescriptor.BLACKLISTED:
@@ -118,16 +124,27 @@ class OthersPanel(wx.Panel):
         self.peers_list.DeleteChildren(self.anonymous)
         self.peers_list.DeleteChildren(self.blacklisted)
         for pseudo in friends:
-            self.peers_list.AppendItem(self.friends, pseudo)
+            self._append(self.friends, pseudo)
         for pseudo in anonymous:
-            self.peers_list.AppendItem(self.anonymous, pseudo)
+            self._append(self.anonymous, pseudo)
         for pseudo in blacklisted:
-            self.peers_list.AppendItem(self.blacklisted, pseudo)
+            self._append(self.blacklisted, pseudo)
         # get peer to display
         to_display = self.get_peer_selected()
         # refresh HTMLView
         if to_display:
             self.refresh_view(to_display)
+
+    def _append(self, list, pseudo):
+        """use to append item in tree"""
+        item = self.peers_list.AppendItem(list, pseudo)
+        self.items[pseudo] = item
+        self.peers_list.SetItemImage(item,
+            self.pseudos[pseudo].connected and self.on_img or self.off_img,
+            wx.TreeItemIcon_Normal)
+        self.peers_list.SetItemImage(item,
+            self.pseudos[pseudo].connected and self.on_img or self.off_img,
+            wx.TreeItemIcon_Expanded)
         
     def on_selected(self, evt):
         """peer selected"""

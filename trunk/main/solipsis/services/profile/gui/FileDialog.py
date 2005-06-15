@@ -70,7 +70,7 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
         self.plugin.get_files(self.peer_id, selections)
 
     def refresh(self, files=None):
-        """overrides Show, files is {repos: {names:tags}, }"""
+        """overrides Show, files is {repos: [FileDescriptors], }"""
         if files is None:
             files = self.facade.get_document("cache").get_shared_files()
         self.peerfiles_list.DeleteAllItems()
@@ -96,7 +96,8 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
 
     def Show(self, files=None, do_show=True):
         """overrides Show, files is {repos: {names:tags}, }"""
-        self.refresh(files)
+        if do_show:
+            self.refresh(files)
         wx.Dialog.Show(self, do_show)
 
     def SetTitle(self, peer_desc=None):

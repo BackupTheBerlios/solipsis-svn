@@ -25,7 +25,7 @@ from sys import stderr
 from StringIO import StringIO
 from solipsis.services.profile import ENCODING
 from solipsis.services.profile.data import DirContainer, \
-     Blogs, load_blogs
+     PeerDescriptor, Blogs, load_blogs
 from solipsis.services.profile.document import FileDocument, CacheDocument
 from solipsis.services.profile.view import GuiView, HtmlView, PrintView
 
@@ -422,6 +422,19 @@ class Facade:
         """returns PeerDescriptor with given id"""
         doc = self.get_document('cache')
         return doc and doc.has_peer(peer_id) or False
+
+    def set_connected(self, peer_id, connected):
+        """change connected status of given peer and updates views"""
+        if self.has_peer(peer_id):
+            peer_desc = self.get_peer(peer_id)
+            if peer_desc.state == PeerDescriptor.ANONYMOUS:
+                self.remove_peer(peer_id)
+            else:
+                peer_desc.set_connected(connected)
+                if 'gui' in self.views:
+                    self.views["gui"].update_peers()
+        else:
+            print "can't set connected: no peer", peer_id
 
     def fill_data(self, (peer_id, document)):
         """sets peer as friend """

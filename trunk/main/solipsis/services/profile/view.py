@@ -401,7 +401,6 @@ class GuiView(AbstractView):
     def update_peers(self):
         """peer"""
         self.frame.other_tab.cb_update_peers(self.document.get_peers())
-        
 
 class HtmlView(AbstractView):
     """synthetises information and renders it in HTML"""

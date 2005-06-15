@@ -24,7 +24,7 @@ description = anything
 /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/emptydir = shared,none
 
 [Others]
-nico = Friend,False,UNKNOWN
+bruce = Friend,john,/home/emb/.solipsis/profiles/bruce
 
 [Custom]
 color = blue

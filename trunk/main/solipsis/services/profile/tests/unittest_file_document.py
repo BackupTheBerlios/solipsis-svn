@@ -15,7 +15,8 @@ from solipsis.services.profile.view import PrintView, HtmlView
 from solipsis.services.profile.data import DirContainer
 from solipsis.services.profile import ENCODING, PROFILE_DIR
 
-TEST_PROFILE = "data/profiles/test"
+TEST_PROFILE = u"data/profiles/test"
+BRUCE_PROFILE = u"data/profiles/bruce"
 REPO = u"/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests"
 
 class FileTest(unittest.TestCase):
@@ -74,9 +75,10 @@ class FileTest(unittest.TestCase):
         self.assertEquals(files[REPO].has_key(abspath(u"data/subdir1/subsubdir/default.solipsis")), False)
         # peers
         peers = doc.get_peers()
-        self.assertEquals(peers.has_key(u'nico'), True)
-        self.assertEquals(peers[u'nico'].state, PeerDescriptor.FRIEND)
-        self.assertEquals(peers[u'nico'].document, None)
+        self.assertEquals(peers.has_key(u'bruce'), True)
+        self.assertEquals(peers[u'bruce'].state, PeerDescriptor.FRIEND)
+        self.assertEquals(peers[u'bruce'].document.get_pseudo(), u"john")
+        self.assertEquals(peers[u'bruce'].connected, False)
 
     # PERSONAL TAB
     def test_save(self):
@@ -105,12 +107,14 @@ class FileTest(unittest.TestCase):
         self.document.tag_files((abspath(u"data"), ["date.txt"], u"tagos"))
         self.document.tag_files((abspath(u"data/subdir1/subsubdir"), ["null", "dummy.txt"], u"empty"))
         # set peers
-        self.document.add_peer(u"nico")
-        self.document.make_friend(u"nico")
-        # check content
-        self._assertContent(self.document)
+        bruce_doc = FileDocument()
+        bruce_doc.load(BRUCE_PROFILE)
+        self.document.make_friend(u"bruce")
+        self.document.fill_data((u"bruce", bruce_doc))
         # write file
         self.document.save(TEST_PROFILE)
+        # check content
+        self._assertContent(self.document)
 
     def test_load(self):
         self.document.load(TEST_PROFILE)
@@ -190,7 +194,7 @@ anything
 [u'blabla', u'bla bla bla', u'']
 {'color': u'blue', 'homepage': u'manu.com'}
 {u'/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests': {Dc:tests(?-,'none',#0) : [{Dc:data(?-,'none',#3) : [{Dc:emptydir(?Y,'none',#-1) : []}, Fc:routage(?Y,'none'), Fc:date.txt(?-,'tagos'), {Dc:subdir1(?Y,'none',#-1) : [{Dc:subsubdir(?-,'none',#2) : [Fc:null(?Y,'empty'), Fc:dummy.txt(?Y,'empty')]}]}]}]}}
-{u'nico': nico (%s)}
+{u'bruce': bruce (%s)}
 """% PeerDescriptor.FRIEND)
         result.close()
         

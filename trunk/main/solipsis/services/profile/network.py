@@ -380,6 +380,7 @@ class ProfileClientFactory(ClientFactory):
         """callback when autoloading of profile successful"""
         print "downloaded profile", document.get_pseudo(), peer_id
         self.manager.facade.fill_data((peer_id, document))
+        self.manager.facade.set_connected(peer_id, True)
     
 # SERVER
 class ProfileServerProtocol(basic.LineOnlyReceiver):

@@ -387,19 +387,19 @@ class DocumentTest(unittest.TestCase):
     
     def test_peers_status(self):
         """change status"""
-        for document in self.documents:
-            # friend
-            document.make_friend(u"nico")
-            self.assertEquals(PeerDescriptor.FRIEND,
-                              document.get_peer(u"nico").state)
-            # blacklist
-            document.blacklist_peer(u"nico")
-            self.assertEquals(PeerDescriptor.BLACKLISTED,
-                              document.get_peer(u"nico").state)
-            # anonmyous
-            document.unmark_peer(u"nico")
-            self.assertEquals(PeerDescriptor.ANONYMOUS,
-                              document.get_peer(u"nico").state)
+        document = self.documents[0]
+        # friend
+        document.make_friend(u"nico")
+        self.assertEquals(PeerDescriptor.FRIEND,
+                          document.get_peer(u"nico").state)
+        # blacklist
+        document.blacklist_peer(u"nico")
+        self.assertEquals(PeerDescriptor.BLACKLISTED,
+                          document.get_peer(u"nico").state)
+        # anonmyous
+        document.unmark_peer(u"nico")
+        self.assertEquals(PeerDescriptor.ANONYMOUS,
+                          document.get_peer(u"nico").state)
 
 if __name__ == '__main__':
     unittest.main()

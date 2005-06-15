@@ -4,7 +4,7 @@
 import wx, os, os.path
 from solipsis.util.wxutils import _
 from solipsis.services.profile.facade import get_facade
-from solipsis.services.profile.data import PeerDescriptor
+from solipsis.services.profile.data import PeerDescriptor, load_blogs
 from solipsis.services.profile.document import FileDocument
 from solipsis.services.profile import PROFILE_DIR, PROFILE_FILE, \
      skip_disclaimer
@@ -145,10 +145,13 @@ class ProfileFrame(wx.Frame):
             wildcard="Solipsis file (*.prf)|*.prf",
             style=wx.OPEN)
         if dlg.ShowModal() == wx.ID_OK:
-            path = dlg.GetPath()
+            path = dlg.GetPath()[:-4]
             loader = FileDocument()
             loader.load(path)
-            self.facade.fill_data((loader.get_pseudo(), loader))
+            blogs = load_blogs(path)
+            pseudo = loader.get_pseudo()
+            self.facade.fill_data((pseudo, loader))
+            self.facade.get_peer(pseudo).set_blog(blogs)
         
     def on_load(self, evt):
         """load profile .prf"""
@@ -214,31 +217,56 @@ class ProfileFrame(wx.Frame):
         pseudo = self.other_tab.get_peer_selected()
         if pseudo:
             self.facade.make_friend(pseudo)
+        else:
+            print "no peer selected"
 
     def on_popup_profile(self, evt):
         peer_id = self.other_tab.get_peer_selected()
         if peer_id:
             self.display_profile(peer_id)
+        else:
+            print "no peer selected"
 
     def on_blacklist(self, evt):
         """end application"""
         pseudo = self.other_tab.get_peer_selected()
         if pseudo:
             self.facade.blacklist_peer(pseudo)
+        else:
+            print "no peer selected"
 
     def on_anonymous(self, evt):
         """end application"""
         pseudo = self.other_tab.get_peer_selected()
         if pseudo:
             self.facade.unmark_peer(pseudo)
+        else:
+            print "no peer selected"
 
     def on_get_blog(self, evt):
         """display peer's blog"""
-        pseudo = self.other_tab.get_peer_selected()
-        if pseudo:
-            print "not implemented yet"
-            # get blog matching peer
-            #plugin.get_blog_file(pseudo)
+        peer_id = self.other_tab.get_peer_selected()
+        if peer_id:
+            peer_desc = self.facade.get_peer(peer_id)
+            if peer_desc.connected:
+                self.plugin.get_blog_file(peer_id)
+            else:
+                print "not connected"
+                self.display_blog(peer_id, peer_desc.blog)
+        else:
+            print "no peer selected"
+
+    def on_get_files(self, evt):
+        """display peer's files"""
+        peer_id = self.other_tab.get_peer_selected()
+        if peer_id:
+            peer_desc = self.facade.get_peer(peer_id)
+            if peer_desc.connected:
+                self.plugin.select_files(peer_id)
+            else:
+                shared_files = peer_desc.document.get_shared_files()
+                print shared_files
+                self.display_files(peer_id, shared_files)
         else:
             "no peer selected"
 
@@ -255,16 +283,6 @@ class ProfileFrame(wx.Frame):
         self.peer_dlg.SetTitle(peer_desc)
         # display
         self.peer_dlg.Show(blog)
-
-    def on_get_files(self, evt):
-        """display peer's files"""
-        pseudo = self.other_tab.get_peer_selected()
-        if pseudo:
-            print "not implemented yet"
-            # get files matching peer
-            #plugin.get_files(pseudo)
-        else:
-            "no peer selected"
 
     def display_files(self, peer_id, files):
         """display blog in dedicated window"""

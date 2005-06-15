@@ -194,12 +194,12 @@ class PeerDescriptor:
               FRIEND:'blue',
               BLACKLISTED:'red'}
     
-    def __init__(self, peer_id, state=ANONYMOUS, connected=False, document=None):
+    def __init__(self, peer_id, state=ANONYMOUS, connected=False, document=None, blog=None):
         self.peer_id = peer_id
         self.state = state
         self.connected = connected
         self.document = document
-        self.blog = None
+        self.blog = blog
         self.shared_files = None
 
     def __repr__(self):
@@ -210,7 +210,6 @@ class PeerDescriptor:
         if self.document:
             return self.document.get_pseudo()
         else:
-            print "no profile associated with id", self.peer_id
             return self.peer_id
 
     def copy(self):
@@ -219,7 +218,7 @@ class PeerDescriptor:
         Beware: shallow copy for document. deep for others members"""
         copied = PeerDescriptor(self.peer_id, self.state, self.connected)
         copied_doc = self.document
-        copied_blog = self.blog and self.blog.copy or None
+        copied_blog = self.blog and self.blog.copy() or None
         copied_files = self.shared_files and self.shared_files.copy() or None
         copied.set_document(copied_doc)
         copied.set_blog(copied_blog)

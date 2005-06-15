@@ -222,6 +222,7 @@ class Plugin(ServicePlugin):
         """delegate to network"""
         if self.facade.is_activated():
             self.network.on_lost_peer(peer_id)
+            self.facade.set_connected(peer_id, False)
 
     def GotServiceData(self, peer_id, data):
         """delegate to network"""

@@ -33,7 +33,7 @@ from solipsis.services.profile import ENCODING, \
 from solipsis.services.profile.images import DEFAULT_PIC
 from solipsis.services.profile.data import DEFAULT_TAG, \
      DirContainer, FileContainer, ContainerMixin, \
-     SharedFiles, PeerDescriptor, Blogs
+     SharedFiles, PeerDescriptor, Blogs, load_blogs
 
 DATE_FORMAT = "%d/%m/%Y"
 SECTION_PERSONAL = "Personal"
@@ -377,7 +377,8 @@ class AbstractDocument:
         for repository in self.get_repositories():
             shared_files = [file_container for file_container
                                   in self.get_shared(repository)
-                                  if isinstance(file_container, FileContainer)]
+                                  if (isinstance(file_container, ContainerMixin)
+                                      and not isinstance(file_container, DirContainer))]
             shared_dirs = [dir_container for dir_container
                                   in self.get_shared(repository)
                                   if isinstance(dir_container, DirContainer)]
@@ -1323,7 +1324,7 @@ class FileDocument(AbstractDocument):
             profile_path = os.path.join(PROFILE_DIR, peer_id)
             peer_desc.document.save(profile_path)
         description = ",".join([peer_desc.state,
-                                str(peer_desc.connected),
+                                peer_desc.get_pseudo(),
                                 profile_path])
         self.config.set(SECTION_OTHERS, peer_desc.peer_id, description)
         
@@ -1340,14 +1341,18 @@ class FileDocument(AbstractDocument):
         """retreive stored value (friendship, path) for pseudo"""
         try:
             infos = self.config.get(SECTION_OTHERS, peer_id).split(",")
-            state, connected, profile_path = infos
+            state, pseudo, profile_path = infos
             file_doc = None
+            blogs = None
             if profile_path != NO_PATH:
                 file_doc = FileDocument()
-                file_doc.load(profile_path)
-            return PeerDescriptor(peer_id, state, connected, file_doc)
+                if file_doc.load(profile_path):
+                    blogs = load_blogs(profile_path)
+                else:
+                    raise ValueError("user %s not valid anymore"% peer_id)
+            return PeerDescriptor(peer_id, state, False, file_doc, blogs)
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-            return PeerDescriptor(peer_id)
+            return  PeerDescriptor(peer_id)
     
     def get_peers(self):
         """returns Peers"""
@@ -1359,16 +1364,18 @@ class FileDocument(AbstractDocument):
                 if isinstance(peer_id, str):
                     peer_id = unicode(peer_id, self.encoding)
                 # get info
-                peer_desc = self.get_peer(peer_id)
-                result[peer_id] = peer_desc
+                try:
+                    peer_desc = self.get_peer(peer_id)
+                    result[peer_id] = peer_desc
+                except ValueError, error:
+                    print error
         #else return default value
         return result
 
     def _change_status(self, peer_id, status):
         """mark given peer as Friend, Blacklisted or Anonymous"""
-        peer_desc = self.get_peer(peer_id)
-        peer_desc.state = status
-        if peer_desc.state != PeerDescriptor.ANONYMOUS:
+        peer_desc = AbstractDocument._change_status(self, peer_id, status)
+        if status != PeerDescriptor.ANONYMOUS:
             self._write_peer(peer_id, peer_desc)
         else:
             self.remove_peer(peer_id)
