@@ -1248,10 +1248,14 @@ class FileDocument(AbstractDocument):
             checked_in = False
             for root_path in dict.keys(containers):
                 if option.startswith(root_path):
-                    containers[root_path].share_container(option,
-                                                          option_share)
-                    containers[root_path].tag_container(option,
-                                                        option_tag)
+                    try:
+                        containers[root_path].share_container(option,
+                                                              option_share)
+                        containers[root_path].tag_container(option,
+                                                            option_tag)
+                    except AssertionError, error:
+                        print >> sys.stderr, str(error), "Removing from profile"
+                        self.config.remove_option(SECTION_FILE, option)
                     checked_in = True
                     break
                 #else not this repo

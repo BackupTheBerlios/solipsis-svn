@@ -20,6 +20,7 @@ from CustomPanel import CustomPanel
 # end wxGlade
 from BlogDialog import BlogDialog
 from FileDialog import FileDialog
+from ProfileDialog import ProfileDialog
 from AboutDialog import AboutDialog
 
 class ProfileFrame(wx.Frame):
@@ -93,9 +94,12 @@ class ProfileFrame(wx.Frame):
         if self.options["standalone"]:
             self.addpeer_item = wx.MenuItem(self.peers_item, wx.NewId(), _("Add...\tCtrl+A"), _("Load a profile and add it in contact list"), wx.ITEM_NORMAL)
             self.peers_item.AppendItem(self.addpeer_item)
+            self.displayprofile_item = wx.MenuItem(self.peers_item, wx.NewId(), _("Display profile..."), _("Display html preview in popup"), wx.ITEM_NORMAL)
+            self.peers_item.AppendItem(self.displayprofile_item)
         # common set up
         self.facade = get_facade()
         self.plugin = plugin
+        self.profile_dlg = UIProxy(ProfileDialog(parent, -1, plugin=self.plugin))
         self.peer_dlg = UIProxy(BlogDialog(parent, -1, plugin=self.plugin))
         self.file_dlg = UIProxy(FileDialog(parent, -1, plugin=self.plugin))
         self.bind_controls()
@@ -116,6 +120,7 @@ class ProfileFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_about, id=self.about_item.GetId())
         if self.options["standalone"]:
             self.Bind(wx.EVT_MENU, self.on_add, id=self.addpeer_item.GetId())
+            self.Bind(wx.EVT_MENU, self.on_popup_profile, id=self.displayprofile_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_get_blog, id=self.getblog_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_get_files, id=self.getfiles_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_make_friend, id=self.friend_item.GetId())
@@ -144,7 +149,7 @@ class ProfileFrame(wx.Frame):
             loader = FileDocument()
             loader.load(path)
             self.facade.fill_data((loader.get_pseudo(), loader))
-
+        
     def on_load(self, evt):
         """load profile .prf"""
         dlg = wx.FileDialog(
@@ -199,6 +204,7 @@ class ProfileFrame(wx.Frame):
 
     def _close(self):
         """termainate application"""
+        self.profile_dlg.Destroy()
         self.peer_dlg.Destroy()
         self.file_dlg.Destroy()
         self.Destroy()
@@ -208,6 +214,11 @@ class ProfileFrame(wx.Frame):
         pseudo = self.other_tab.get_peer_selected()
         if pseudo:
             self.facade.make_friend(pseudo)
+
+    def on_popup_profile(self, evt):
+        peer_id = self.other_tab.get_peer_selected()
+        if peer_id:
+            self.display_profile(peer_id)
 
     def on_blacklist(self, evt):
         """end application"""
@@ -231,6 +242,12 @@ class ProfileFrame(wx.Frame):
         else:
             "no peer selected"
 
+    def display_profile(self, peer_id):
+        """display blog in dedicated window"""
+        # blog dialog
+        peer_desc = self.facade.get_document('cache').get_peer(peer_id)
+        self.profile_dlg.Show(peer_desc)
+        
     def display_blog(self, peer_id, blog):
         """display blog in dedicated window"""
         # blog dialog

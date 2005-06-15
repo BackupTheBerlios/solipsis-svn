@@ -421,7 +421,7 @@ class Facade:
     def has_peer(self, peer_id):
         """returns PeerDescriptor with given id"""
         doc = self.get_document('cache')
-        doc and doc.has_peer(peer_id) or False
+        return doc and doc.has_peer(peer_id) or False
 
     def fill_data(self, (peer_id, document)):
         """sets peer as friend """

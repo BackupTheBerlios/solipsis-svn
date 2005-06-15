@@ -20,7 +20,7 @@ class AboutDialog(wx.Dialog):
         self.tore_pic = wx.StaticBitmap(self, -1, wx.Bitmap(TORE_IMG, wx.BITMAP_TYPE_ANY), style=wx.SIMPLE_BORDER)
         self.title_lbl = wx.StaticText(self, -1, _("Solipsis Profile"), style=wx.ALIGN_CENTRE)
         self.version_lbl = wx.StaticText(self, -1, "", style=wx.ALIGN_CENTRE)
-        self.disclaimer_lbl = wx.TextCtrl(self, -1, _("Disclaimer"), style=wx.TE_MULTILINE|wx.TE_READONLY|wx.TE_CENTRE|wx.TE_LINEWRAP|wx.NO_BORDER)
+        self.disclaimer_lbl = wx.TextCtrl(self, -1, _("Disclaimer"), style=wx.TE_MULTILINE|wx.TE_READONLY|wx.TE_CENTRE|wx.TE_LINEWRAP|wx.TE_WORDWRAP|wx.NO_BORDER)
         self.separator = wx.StaticLine(self, -1)
         self.display_check = wx.CheckBox(self, -1, _("Display at startup"))
         self.button_1 = wx.Button(self, wx.ID_CLOSE, _("Ok"))

@@ -62,8 +62,8 @@ class Plugin(ServicePlugin):
         # declare actions
         self.MAIN_ACTION = {"Modify ...": self.show_profile,
                             }
-        self.POINT_ACTIONS = {"Get profile": self.get_profile,
-                              "Get blog": self.get_blog_file,
+        self.POINT_ACTIONS = {"Get profile...": self.get_profile,
+                              "Get blog...": self.get_blog_file,
                               "Get files...": self.select_files,
                               }
 
@@ -129,6 +129,8 @@ class Plugin(ServicePlugin):
         """store and display file object corresponding to profile"""
         print "downloaded profile", document.get_pseudo(), peer_id
         self.facade.fill_data((peer_id, document))
+        if self.profile_frame:
+            self.profile_frame.display_profile(peer_id)
     
     def _on_new_blog(self, blog, peer_id):
         """store and display file object corresponding to blog"""
