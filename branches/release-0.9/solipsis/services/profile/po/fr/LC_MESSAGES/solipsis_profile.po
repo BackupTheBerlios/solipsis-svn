@@ -1,0 +1,380 @@
+#: gui/FilePanel.py:81
+msgid "#shared"
+msgstr ""
+
+#: gui/ProfileFrame.py:53
+msgid "&Anonymous\tCtrl+A"
+msgstr ""
+
+#: gui/ProfileFrame.py:57
+msgid "&Black listed\tCtrl+B"
+msgstr ""
+
+#: gui/ProfileFrame.py:44
+msgid "&Close\tCtrl+W"
+msgstr ""
+
+#: gui/ProfileFrame.py:37
+msgid "&Export HTML ...\tCtrl+E"
+msgstr ""
+
+#: gui/ProfileFrame.py:60
+msgid "&Find...\tCtrl+F"
+msgstr ""
+
+#: gui/ProfileFrame.py:40
+msgid "&Load... \tCtrl+L"
+msgstr ""
+
+#: gui/ProfileFrame.py:35
+msgid "&Online\tCtrl+O"
+msgstr ""
+
+#: gui/ProfileFrame.py:68
+msgid "&Refresh\tCtrl+R"
+msgstr ""
+
+#: gui/ProfileFrame.py:42
+msgid "&Save As ...\tCtrl+S"
+msgstr ""
+
+#: gui/ProfileFrame.py:72
+msgid "About"
+msgstr ""
+
+#: gui/FilePanel.py:36 gui/BlogPanel.py:52 gui/FileDialog.py:28
+#: gui/BlogDialog.py:67
+msgid "Actions"
+msgstr ""
+
+#: gui/FilePanel.py:271
+msgid "Add repository"
+msgstr ""
+
+#: gui/PersonalPanel.py:18
+msgid "Address"
+msgstr ""
+
+#: gui/ProfileFrame.py:35
+msgid "Allow users seeing profile"
+msgstr ""
+
+#: gui/OthersPanel.py:33
+msgid "Anonymous"
+msgstr ""
+
+#: gui/FilePanel.py:282
+msgid "Apply comment"
+msgstr ""
+
+#: gui/ProfileFrame.py:66
+msgid "Auto refresh"
+msgstr ""
+
+#: gui/ProfileFrame.py:66
+msgid "Automatically call refresh on any change in profile"
+msgstr ""
+
+#: gui/PersonalPanel.py:28
+msgid "Birthday: "
+msgstr ""
+
+#: gui/OthersPanel.py:34
+msgid "Blacklisted"
+msgstr ""
+
+#: gui/ProfileFrame.py:270 gui/FileDialog.py:100 gui/BlogDialog.py:91
+msgid "Blog"
+msgstr ""
+
+#: gui/FileDialog.py:51
+msgid "Choose location to download files into"
+msgstr ""
+
+#: gui/PersonalPanel.py:107
+msgid "Choose your picture"
+msgstr ""
+
+#: gui/FilePanel.py:108
+msgid "Choose your repository"
+msgstr ""
+
+#: gui/FileDialog.py:111
+msgid "Chose Files"
+msgstr ""
+
+#: gui/PersonalPanel.py:35
+msgid "City"
+msgstr ""
+
+#: gui/ProfileFrame.py:44
+msgid "Close profile management"
+msgstr ""
+
+#: gui/BlogPanel.py:93
+msgid "Comment"
+msgstr ""
+
+#: gui/FilePanel.py:281
+msgid "Complementary information on file"
+msgstr ""
+
+#: gui/ProfileFrame.py:272
+msgid "Contacts"
+msgstr ""
+
+#: gui/PersonalPanel.py:36
+msgid "Country"
+msgstr ""
+
+#: gui/ProfileFrame.py:62
+msgid "Create active filters to get notified on peers approach"
+msgstr ""
+
+#: gui/CustomPanel.py:47
+msgid "Custom value"
+msgstr ""
+
+#: gui/BlogPanel.py:91
+msgid "Delete blog"
+msgstr ""
+
+#: gui/PersonalPanel.py:19
+msgid "Description"
+msgstr ""
+
+#: gui/ProfileFrame.py:70
+msgid "Display"
+msgstr ""
+
+#: gui/FileDialog.py:113
+msgid "Dowload repository"
+msgstr ""
+
+#: gui/ProfileFrame.py:48
+msgid "Download peer's blog"
+msgstr ""
+
+#: gui/ProfileFrame.py:50
+msgid "Download peer's files"
+msgstr ""
+
+#: gui/FileDialog.py:115
+msgid "Download selected files"
+msgstr ""
+
+#: gui/PersonalPanel.py:26
+msgid "E-mail: "
+msgstr ""
+
+#: gui/PersonalPanel.py:31
+msgid "English"
+msgstr ""
+
+#: gui/BlogPanel.py:56
+msgid "Enter your text here"
+msgstr ""
+
+#: gui/FilePanel.py:80
+msgid "Explorer"
+msgstr ""
+
+#: gui/FilePanel.py:86
+msgid "File System..."
+msgstr ""
+
+#: gui/ProfileFrame.py:271
+msgid "Files"
+msgstr ""
+
+#: gui/ProfileFrame.py:62
+msgid "Filters...\tCtrl+H"
+msgstr ""
+
+#: gui/PersonalPanel.py:22
+msgid "First name"
+msgstr ""
+
+#: gui/PersonalPanel.py:31
+msgid "French"
+msgstr ""
+
+#: gui/ProfileFrame.py:55
+msgid "Frie&nd\tCtrl+N"
+msgstr ""
+
+#: gui/OthersPanel.py:32
+msgid "Friends"
+msgstr ""
+
+#: gui/ProfileFrame.py:48
+msgid "Get Blog..."
+msgstr ""
+
+#: gui/ProfileFrame.py:50
+msgid "Get Files..."
+msgstr ""
+
+#: gui/CustomPanel.py:24
+msgid "Harry Potter"
+msgstr ""
+
+#: gui/PersonalPanel.py:144
+msgid "How you appear to other peers"
+msgstr ""
+
+#: gui/PersonalPanel.py:20
+msgid "Identity"
+msgstr ""
+
+#: gui/PersonalPanel.py:30
+msgid "Language: "
+msgstr ""
+
+#: gui/PersonalPanel.py:23
+msgid "Last Name"
+msgstr ""
+
+#: gui/ProfileFrame.py:40
+msgid "Load profile from file"
+msgstr ""
+
+#: plugin.py:180
+msgid "Manage personal information and share it with people"
+msgstr ""
+
+#: gui/CustomPanel.py:46
+msgid "MetaData"
+msgstr ""
+
+#: gui/PersonalPanel.py:21
+msgid "Mr"
+msgstr ""
+
+#: gui/PersonalPanel.py:21
+msgid "Mrs"
+msgstr ""
+
+#: gui/PersonalPanel.py:21
+msgid "Ms"
+msgstr ""
+
+#: gui/FilePanel.py:65
+msgid "Name"
+msgstr ""
+
+#: gui/BlogPanel.py:89
+msgid "New blog"
+msgstr ""
+
+#: gui/BlogDialog.py:112
+msgid "Peer's Blog"
+msgstr ""
+
+#: gui/ProfileFrame.py:64 gui/OthersPanel.py:31
+msgid "Peers"
+msgstr ""
+
+#: gui/ProfileFrame.py:268
+msgid "Personal"
+msgstr ""
+
+#: gui/PersonalPanel.py:34
+msgid "Postcode"
+msgstr ""
+
+#: gui/ProfileFrame.py:267
+msgid "Preview"
+msgstr ""
+
+#: gui/FilePanel.py:279
+msgid "Preview your shared files"
+msgstr ""
+
+#: gui/ProfileFrame.py:46 plugin.py:176
+msgid "Profile"
+msgstr ""
+
+#: gui/PersonalPanel.py:24
+msgid "Pseudo: "
+msgstr ""
+
+#: gui/FilePanel.py:273
+msgid "Remove repository"
+msgstr ""
+
+#: gui/PersonalPanel.py:33
+msgid "Road"
+msgstr ""
+
+#: gui/ProfileFrame.py:42
+msgid "Save profile into file"
+msgstr ""
+
+#: gui/ProfileFrame.py:60
+msgid "Search profile in surrounding area"
+msgstr ""
+
+#: gui/FilePanel.py:275
+msgid "Share"
+msgstr ""
+
+#: gui/FilePanel.py:66
+msgid "Shared"
+msgstr ""
+
+#: gui/ProfileFrame.py:269
+msgid "Special Interests"
+msgstr ""
+
+#: gui/CustomPanel.py:22
+msgid ""
+"Specify here a field of interest. For instance: (favorite book: Harry "
+"Potter) or (instrument: piano) "
+msgstr ""
+
+#: gui/FilePanel.py:67
+msgid "Tag"
+msgstr ""
+
+#: gui/CustomPanel.py:21
+msgid ""
+"Type here interests which do not fall into any precise category. (one per "
+"line)"
+msgstr ""
+
+#: gui/FilePanel.py:277
+msgid "Unshare"
+msgstr ""
+
+#: gui/ProfileFrame.py:37
+msgid "Write profile as HTML File"
+msgstr ""
+
+#: gui/FilePanel.py:151
+msgid "Your shared files"
+msgstr ""
+
+#: gui/PersonalPanel.py:29
+msgid "dd/mm/yyyy"
+msgstr ""
+
+#: gui/CustomPanel.py:23
+msgid "favorite book"
+msgstr ""
+
+#: gui/FilePanel.py:82
+msgid "full path"
+msgstr ""
+
+#: gui/ProfileFrame.py:248
+msgid "profile_frame"
+msgstr ""
+
+#: gui/OthersPanel.py:77
+msgid "select neighbor to display"
+msgstr ""
+
+#: gui/ProfileFrame.py:252
+msgid "status"
+msgstr ""
