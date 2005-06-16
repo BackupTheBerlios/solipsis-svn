@@ -17,6 +17,7 @@
         
         
         
+        
         <label>&amp;Connect to Solipsis</label>
         
         
@@ -24,7 +25,9 @@
         
         
         
+        
         <bitmap stock_id="wxART_FILE_OPEN"></bitmap>
+        
         
         
         
@@ -40,6 +43,7 @@
         
         
         
+        
         <label>&amp;Disconnect</label>
         
         
@@ -48,6 +52,7 @@
         
       </object>
       <object class="wxMenuItem" name="menu_kill">
+        
         
         
         
@@ -69,6 +74,7 @@
         
         
         
+        
         <label>Quit</label>
       
         
@@ -76,8 +82,10 @@
         
         
         
+        
         <bitmap stock_id="wxART_QUIT"></bitmap>
       
+        
         
         <accel>Ctrl+Q</accel>
       </object>
@@ -91,7 +99,9 @@
         
         
         
+        
         <label>My address</label>
+        
         
         
         
@@ -106,7 +116,9 @@
         
         
         
+        
         <accel>Ctrl+C</accel>
+        
         
         
         
@@ -121,7 +133,9 @@
         
         
         
+        
         <label>&amp;Jump near...</label>
+        
         
         
         
@@ -135,6 +149,7 @@
         
         
         
+        
         <accel>Ctrl+G</accel>
       
         
@@ -142,10 +157,44 @@
         
         
         
+        
         <help>Jump near another node</help>
+      </object>
+      <object class="wxMenuItem" name="menu_jumppos">
+        
+        
+        
+        
+        
+        
+        
+        <label>Jump to position</label>
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+      
+        
+        
+        
+        
+        
+        
+        <help>Jump to a numeric position in the world</help>
       </object>
       <object class="separator"/>
       <object class="wxMenuItem" name="menu_preferences">
+        
         
         
         
@@ -164,6 +213,7 @@
         
         
         
+        
         <label>Automatic Rotation</label>
         
         
@@ -171,7 +221,9 @@
         
         
         
+        
         <help>Choose whether display orientation changes when moving</help>
+        
         
         
         
@@ -186,7 +238,9 @@
         
         
         
+        
         <label>Edit bookmarks</label>
+        
         
         
         
@@ -203,8 +257,10 @@
         
         
         
+        
         <label>About</label>
       
+        
         
         
         
@@ -213,400 +269,5 @@
         <bitmap stock_id="wxART_TIP"></bitmap>
       </object>
     </object>
-  </object>
-  <object class="wxDialog" name="prefs_dialog">
-    <title>Preferences</title>
-    <centered>1</centered>
-    <style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER|wxRESIZE_BOX</style>
-    <object class="wxFlexGridSizer">
-      <object class="sizeritem">
-        <object class="wxNotebook" name="prefs_notebook">
-          <object class="notebookpage">
-            <label>General</label>
-            <object class="wxPanel" name="prefs_general">
-              <object class="wxFlexGridSizer">
-                <cols>2</cols>
-                <rows>2</rows>
-                <object class="sizeritem">
-                  <object class="wxBoxSizer">
-                    <orient>wxVERTICAL</orient>
-                    <object class="sizeritem">
-                      <object class="wxCheckBox" name="node_autokill">
-                        
-                        
-                        
-                        
-                        
-                        
-                        <label>Kill node when exiting</label>
-                        
-                        
-                        
-                        
-                        
-                        
-                        <checked>1</checked>
-                        
-                        
-                        
-                        
-                        
-                        
-                        <style></style>
-                        
-                        
-                        
-                        
-                        
-                        
-                        <tooltip>Uncheck this box if you want to remain connected to the Solipsis world even when you exit the navigator.</tooltip>
-                      </object>
-                      
-                      
-                      
-                      
-                      
-                      
-                      <flag>wxALL</flag>
-                      
-                      
-                      
-                      
-                      
-                      
-                      <border>1</border>
-                    </object>
-                  </object>
-                  
-                  
-                  
-                  
-                  
-                  
-                  <flag>wxALL</flag>
-                  
-                  
-                  
-                  
-                  
-                  
-                  <border>4</border>
-                </object>
-              </object>
-            </object>
-            
-            
-            
-            
-            
-            
-            <selected>1</selected>
-          </object>
-          <object class="notebookpage">
-            <label>Proxy</label>
-            <object class="wxPanel" name="prefs_proxy">
-              <object class="wxFlexGridSizer">
-                <cols>1</cols>
-                <object class="sizeritem">
-                  <object class="wxBoxSizer">
-                    <object class="sizeritem">
-                      <object class="wxStaticText">
-                        
-                        
-                        
-                        
-                        
-                        
-                        <label>If you want to connect to a remote node
-instead of running a node on this computer,
-you might have to adjust the HTTP proxy settings.</label>
-                        
-                        
-                        
-                        
-                        
-                        
-                        <style>wxALIGN_LEFT</style>
-                      </object>
-                      
-                      
-                      
-                      
-                      
-                      
-                      <flag>wxALL</flag>
-                      
-                      
-                      
-                      
-                      
-                      
-                      <border>4</border>
-                    </object>
-                    <object class="sizeritem">
-                      <object class="wxRadioButton" name="proxymode_auto">
-                        
-                        
-                        
-                        
-                        
-                        
-                        <label>Automatic proxy detection</label>
-                        
-                        
-                        
-                        
-                        
-                        
-                        <value>1</value>
-                        
-                        
-                        
-                        
-                        
-                        
-                        <style>wxRB_GROUP</style>
-                      </object>
-                      
-                      
-                      
-                      
-                      
-                      
-                      <flag>wxALL</flag>
-                      
-                      
-                      
-                      
-                      
-                      
-                      <border>1</border>
-                    </object>
-                    <object class="sizeritem">
-                      <object class="wxRadioButton" name="proxymode_none">
-                        
-                        
-                        
-                        
-                        
-                        
-                        <label>No proxy</label>
-                      </object>
-                      
-                      
-                      
-                      
-                      
-                      
-                      <flag>wxALL</flag>
-                      
-                      
-                      
-                      
-                      
-                      
-                      <border>1</border>
-                    </object>
-                    <object class="spacer">
-                      
-                      
-                      
-                      
-                      
-                      
-                      <size>8,8</size>
-                    </object>
-                    <object class="sizeritem">
-                      <object class="wxRadioButton" name="proxymode_manual">
-                        
-                        
-                        
-                        
-                        
-                        
-                        <label>Manual configuration</label>
-                      </object>
-                      
-                      
-                      
-                      
-                      
-                      
-                      <flag>wxALL</flag>
-                      
-                      
-                      
-                      
-                      
-                      
-                      <border>1</border>
-                    </object>
-                    <object class="sizeritem">
-                      <object class="wxBoxSizer">
-                        <orient>wxHORIZONTAL</orient>
-                        <object class="sizeritem">
-                          <object class="wxStaticText">
-                            
-                            
-                            
-                            
-                            
-                            
-                            <label>Host: </label>
-                          </object>
-                          
-                          
-                          
-                          
-                          
-                          
-                          <flag>wxLEFT|wxALIGN_CENTRE_VERTICAL</flag>
-                          
-                          
-                          
-                          
-                          
-                          
-                          <border>10</border>
-                        </object>
-                        <object class="sizeritem">
-                          <object class="wxTextCtrl" name="proxy_host"/>
-                          
-                          
-                          
-                          
-                          
-                          
-                          <option>1</option>
-                          
-                          
-                          
-                          
-                          
-                          
-                          <flag>wxEXPAND|wxGROW</flag>
-                        </object>
-                        <object class="sizeritem">
-                          <object class="wxStaticText">
-                            
-                            
-                            
-                            
-                            
-                            
-                            <label>Port: </label>
-                          </object>
-                          
-                          
-                          
-                          
-                          
-                          
-                          <flag>wxLEFT|wxALIGN_CENTRE_VERTICAL</flag>
-                          
-                          
-                          
-                          
-                          
-                          
-                          <border>10</border>
-                        </object>
-                        <object class="sizeritem">
-                          <object class="wxTextCtrl" name="proxy_port"/>
-                        </object>
-                      </object>
-                      
-                      
-                      
-                      
-                      
-                      
-                      <flag>wxALL|wxEXPAND|wxGROW</flag>
-                      
-                      
-                      
-                      
-                      
-                      
-                      <border>4</border>
-                    </object>
-                    <orient>wxVERTICAL</orient>
-                  </object>
-                  
-                  
-                  
-                  
-                  
-                  
-                  <flag>wxALL</flag>
-                  
-                  
-                  
-                  
-                  
-                  
-                  <border>4</border>
-                </object>
-                <growablerows>0</growablerows>
-                <growablecols>0</growablecols>
-              </object>
-            </object>
-          </object>
-        </object>
-        
-        
-        
-        
-        
-        
-        <flag>wxTOP|wxEXPAND|wxGROW</flag>
-        
-        
-        
-        
-        
-        
-        <border>6</border>
-      </object>
-      <cols>1</cols>
-      <rows>0</rows>
-      <growablerows>0</growablerows>
-      <object class="spacer">
-        
-        
-        
-        
-        
-        
-        <size>10,10</size>
-      </object>
-      <object class="sizeritem">
-        <object class="wxButton" name="prefs_close">
-          
-          
-          
-          
-          
-          
-          <label>&amp;Close</label>
-          
-          
-          
-          
-          
-          
-          <default>1</default>
-        </object>
-        
-        
-        
-        
-        
-        
-        <flag>wxALIGN_CENTRE</flag>
-      </object>
-      <growablecols>0</growablecols>
-    </object>
-    <exstyle>wxWS_EX_VALIDATE_RECURSIVELY</exstyle>
   </object>
 </resource>

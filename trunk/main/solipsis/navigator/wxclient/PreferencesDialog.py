@@ -109,7 +109,6 @@ class PreferencesDialog(wx.Dialog):
     #
     # Event handlers
     #
-
     def OnClose(self, event): # wxGlade: PreferencesDialog.<event_handler>
         if self._Validate():
             self._Apply()

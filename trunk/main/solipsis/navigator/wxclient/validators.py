@@ -60,7 +60,7 @@ class PortValidator(Validator):
         try:
             port = int(value)
             return port > 0 and port < 65336
-        except:
+        except ValueError:
             return False
 
 
@@ -103,3 +103,25 @@ class BooleanValidator(Validator):
     def _Validate(self, value):
         assert isinstance(value, bool)
         return True
+
+
+class CoordValidator(Validator):
+    """
+    Validator for Solipsis coordinates (0.0 ... 1.0).
+    """
+    def __init__(self, *args, **kargs):
+        Validator.__init__(self, *args, **kargs)
+        self.message = _("Coordinate must be between 0.0 and 1.0")
+
+    def _ReprToData(self, _repr):
+        return float(_repr)
+
+    def _DataToRepr(self, _data):
+        return str(_data)
+
+    def _Validate(self, value):
+        try:
+            coord = float(value)
+            return coord >= 0.0 and coord <= 1.0
+        except ValueError:
+            return False

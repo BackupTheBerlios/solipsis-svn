@@ -43,9 +43,11 @@ from world import World
 from statusbar import StatusBar
 from network import NetworkLoop
 from config import ConfigUI, ConfigData
+
 from BookmarksDialog import BookmarksDialog
 from ConnectDialog import ConnectDialog
 from PreferencesDialog import PreferencesDialog
+from PositionJumpDialog import PositionJumpDialog
 
 from solipsis.services.wxcollector import WxServiceCollector
 
@@ -56,6 +58,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     """
     version = "0.8.4svn"
     config_file = os.sep.join(["state", "config.bin"])
+    world_size = 2**128
 
     def __init__(self, params, *args, **kargs):
         self.params = params
@@ -118,7 +121,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         Load UI layout from XML file(s).
         """
         self.dialogs = [
-            "prefs_dialog",
         ]
         self.windows = ["main_window"]
         self.menubars = ["main_menubar"]
@@ -155,12 +157,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         c = self.config_data
         validators = [
             # [ Containing window, control name, validator class, data object, data attribute ]
-            [ self.prefs_dialog, "proxymode_auto", BooleanValidator, c, "proxymode_auto" ],
-            [ self.prefs_dialog, "proxymode_manual", BooleanValidator, c, "proxymode_manual" ],
-            [ self.prefs_dialog, "proxymode_none", BooleanValidator, c, "proxymode_none" ],
-            [ self.prefs_dialog, "proxy_host", HostnameValidator, c, "proxy_host" ],
-            [ self.prefs_dialog, "proxy_port", PortValidator, c, "proxy_port" ],
-            [ self.prefs_dialog, "node_autokill", BooleanValidator, c, "node_autokill" ],
+            #~ [ self.prefs_dialog, "proxymode_auto", BooleanValidator, c, "proxymode_auto" ],
         ]
         for v in validators:
             window, control_name, validator_class, data_obj, data_attr = v
@@ -205,7 +202,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         """
         Main initialization handler.
         """
-
         # Load last saved config
         try:
             f = file(self.config_file, "rb")
@@ -220,7 +216,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.InitValidators()
 
         self.world = World(self.viewport)
-        self.config_ui = ConfigUI(self.config_data, self.prefs_dialog)
+        #~ self.config_ui = ConfigUI(self.config_data, self.prefs_dialog)
         bookmarks_menu = self.main_menubar.GetMenu(self.main_menubar.FindMenu(_("&Bookmarks")))
         assert bookmarks_menu is not None
         # Hack: we store the bookmarks dialog persistently because it
@@ -238,6 +234,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         wx.EVT_MENU(self, XRCID("menu_disconnect"), self._OnDisconnect)
         wx.EVT_MENU(self, XRCID("menu_kill"), self._OnKill)
         wx.EVT_MENU(self, XRCID("menu_jumpnear"), self._OnJumpNear)
+        wx.EVT_MENU(self, XRCID("menu_jumppos"), self._OnJumpPos)
         wx.EVT_MENU(self, XRCID("menu_preferences"), self._OnPreferences)
         wx.EVT_MENU(self, XRCID("menu_quit"), self._OnQuit)
         wx.EVT_MENU(self, XRCID("menu_autorotate"), self._OnToggleAutoRotate)
@@ -431,7 +428,14 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         # Hack so that the node has the time to launch
         self.connection_trials = 5
         self._TryConnect()
-    
+
+    def _MoveNode(self, (x, y), jump=False):
+        """
+        Move the node and update our world view.
+        """
+        self.world.UpdateNodePosition(Position((x, y, 0)), jump=jump)
+        self.node_proxy.Move(str(long(x)), str(long(y)), str(0))
+
     def _DestroyProgress(self):
         """
         Destroy progress dialog if necessary.
@@ -532,7 +536,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
 
     def _OnJumpNear(self, evt):
         """
-        Called on "jump near" event (menu -> Actions -> Node address).
+        Called on "jump near" event (menu -> Actions -> Jump near).
         """
         if self._CheckNodeProxy():
             dialog = wx.TextEntryDialog(self.main_window,
@@ -549,6 +553,17 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
                 else:
                     self._JumpNearAddress(address)
 
+    def _OnJumpPos(self, evt):
+        """
+        Called on "jump to position" event (menu -> Actions -> Jump to position).
+        """
+        if not self._CheckNodeProxy():
+            return
+        jump_dialog = PositionJumpDialog(config_data=self.config_data, parent=self.main_window)
+        if jump_dialog.ShowModal() == wx.ID_OK:
+            x, y = jump_dialog.GetPosition()
+            self._MoveNode((x * self.world_size, y * self.world_size), jump=True)
+
     def _OnKill(self, evt):
         """
         Called on "kill" event (menu -> File -> Kill).
@@ -562,7 +577,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         Called on "preferences" event (menu -> File -> Preferences).
         """
         self.config_data.Compute()
-        #~ self.prefs_dialog.Show()
         prefs_dialog = PreferencesDialog(config_data=self.config_data, parent=self.main_window)
         prefs_dialog.ShowModal()
         self._SaveConfig()
@@ -645,8 +659,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
                 evt.Skip()
             if dx or dy:
                 x, y = self.viewport.MoveToRelative((dx, dy))
-                self.world.UpdateNodePosition(Position((x, y, 0)))
-                self.node_proxy.Move(str(long(x)), str(long(y)), str(0))
+                self._MoveNode((x, y))
         else:
             evt.Skip()
 
@@ -659,8 +672,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             self._HandleMouseMovement(evt)
             # Then handle mouse click
             x, y = self.viewport.MoveToPixels(evt.GetPositionTuple())
-            self.world.UpdateNodePosition(Position((x, y, 0)))
-            self.node_proxy.Move(str(long(x)), str(long(y)), str(0))
+            self._MoveNode((x, y))
         evt.Skip()
 
     def _OnRightClickViewport(self, evt):
