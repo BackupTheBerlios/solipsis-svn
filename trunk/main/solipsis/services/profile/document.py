@@ -573,7 +573,9 @@ class CacheDocument(AbstractDocument):
         try:
             self.birthday = time.strptime(value, DATE_FORMAT)
         except ValueError, error:
-            print error
+            #print >> sys.stderr, error
+            # do not take mis-formatted date into account
+            pass
         
     def get_birthday(self):
         """returns value of birthday"""
@@ -841,7 +843,6 @@ class FileDocument(AbstractDocument):
             if file_root and file_root.endswith('.prf'):
                 file_root = file_root[:-4]
             self.file_root = file_root
-        print "saving", self.file_root
         profile_file = open(self.file_root + PROFILE_EXT, 'w')
         self.write(profile_file).close()
 
@@ -960,7 +961,9 @@ class FileDocument(AbstractDocument):
             self.config.set(SECTION_PERSONAL, "birthday",
                             value.encode(self.encoding))
         except ValueError, error:
-            print error
+            #print >> sys.stderr, error
+            # do not take mis-formatted date into account
+            pass
         
     def get_birthday(self):
         """returns value of birthday"""
@@ -1229,9 +1232,7 @@ class FileDocument(AbstractDocument):
         containers = self._get_containers()
         # >> files
         if not self.config.has_section(SECTION_FILE):
-            print >> sys.stderr, "profile file corrupted: "\
-                  "does not has [FILES] section"
-            return {}
+            self.config.add_section(SECTION_FILE)
         for option in self.config.options(SECTION_FILE):
             if isinstance(option, str):
                 option = unicode(option, self.encoding)

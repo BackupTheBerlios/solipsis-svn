@@ -92,7 +92,7 @@ class ProfileFrame(wx.Frame):
         self.options = options
         # quite different initialisation according to launched by navigator or not
         if self.options["standalone"]:
-            self.addpeer_item = wx.MenuItem(self.peers_item, wx.NewId(), _("Add...\tCtrl+A"), _("Load a profile and add it in contact list"), wx.ITEM_NORMAL)
+            self.addpeer_item = wx.MenuItem(self.peers_item, wx.NewId(), _("Import...\tCtrl+I"), _("Load a profile and add it in contact list"), wx.ITEM_NORMAL)
             self.peers_item.AppendItem(self.addpeer_item)
             self.displayprofile_item = wx.MenuItem(self.peers_item, wx.NewId(), _("Display profile..."), _("Display html preview in popup"), wx.ITEM_NORMAL)
             self.peers_item.AppendItem(self.displayprofile_item)

@@ -9,7 +9,7 @@ from pprint import pprint
 from os.path import abspath
 from difflib import Differ
 from StringIO import StringIO
-from solipsis.services.profile.data import PeerDescriptor
+from solipsis.services.profile.data import PeerDescriptor, load_blogs
 from solipsis.services.profile.document import FileDocument, CacheDocument
 from solipsis.services.profile.view import PrintView, HtmlView
 from solipsis.services.profile.data import DirContainer
@@ -111,6 +111,7 @@ class FileTest(unittest.TestCase):
         bruce_doc.load(BRUCE_PROFILE)
         self.document.make_friend(u"bruce")
         self.document.fill_data((u"bruce", bruce_doc))
+        self.document.fill_blog((u"bruce", load_blogs(BRUCE_PROFILE)))
         # write file
         self.document.save(TEST_PROFILE)
         # check content
@@ -149,7 +150,6 @@ class FileTest(unittest.TestCase):
         
     def test_default(self):
         document = FileDocument()
-        document.load(u"dummy")
         self.assertEquals(u"Mr", document.get_title())
         self.assertEquals(u"Emmanuel", document.get_firstname())
         self.assertEquals(u"Breton", document.get_lastname())
