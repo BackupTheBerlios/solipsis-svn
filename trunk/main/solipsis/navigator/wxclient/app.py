@@ -42,7 +42,7 @@ from viewport import Viewport
 from world import World
 from statusbar import StatusBar
 from network import NetworkLoop
-from config import ConfigUI, ConfigData
+from config import ConfigData
 
 from BookmarksDialog import BookmarksDialog
 from ConnectDialog import ConnectDialog
@@ -216,7 +216,6 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.InitValidators()
 
         self.world = World(self.viewport)
-        #~ self.config_ui = ConfigUI(self.config_data, self.prefs_dialog)
         bookmarks_menu = self.main_menubar.GetMenu(self.main_menubar.FindMenu(_("&Bookmarks")))
         assert bookmarks_menu is not None
         # Hack: we store the bookmarks dialog persistently because it
