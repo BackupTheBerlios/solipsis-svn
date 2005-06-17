@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-06-08 17:14+0200\n"
+"POT-Creation-Date: 2005-06-17 17:07+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -44,152 +44,173 @@ msgstr ""
 msgid "Custom value"
 msgstr ""
 
-#: gui/ProfileFrame.py:35
+#: gui/ProfileFrame.py:38
 msgid "&Online\tCtrl+O"
 msgstr ""
 
-#: gui/ProfileFrame.py:35
+#: gui/ProfileFrame.py:38
 msgid "Allow users seeing profile"
 msgstr ""
 
-#: gui/ProfileFrame.py:37
+#: gui/ProfileFrame.py:40
 msgid "&Export HTML ...\tCtrl+E"
 msgstr ""
 
-#: gui/ProfileFrame.py:37
+#: gui/ProfileFrame.py:40
 msgid "Write profile as HTML File"
 msgstr ""
 
-#: gui/ProfileFrame.py:40
+#: gui/ProfileFrame.py:43
 msgid "&Load... \tCtrl+L"
 msgstr ""
 
-#: gui/ProfileFrame.py:40
+#: gui/ProfileFrame.py:43
 msgid "Load profile from file"
 msgstr ""
 
-#: gui/ProfileFrame.py:42
+#: gui/ProfileFrame.py:45
 msgid "&Save As ...\tCtrl+S"
 msgstr ""
 
-#: gui/ProfileFrame.py:42
+#: gui/ProfileFrame.py:45
 msgid "Save profile into file"
 msgstr ""
 
-#: gui/ProfileFrame.py:44
+#: gui/ProfileFrame.py:47
 msgid "&Close\tCtrl+W"
 msgstr ""
 
-#: gui/ProfileFrame.py:44
+#: gui/ProfileFrame.py:47
 msgid "Close profile management"
 msgstr ""
 
-#: gui/ProfileFrame.py:46 plugin.py:176
+#: gui/ProfileFrame.py:49 gui/ProfileDialog.py:33 gui/ProfileDialog.py:40
+#: plugin.py:167
 msgid "Profile"
 msgstr ""
 
-#: gui/ProfileFrame.py:48
+#: gui/ProfileFrame.py:51
 msgid "Get Blog..."
 msgstr ""
 
-#: gui/ProfileFrame.py:48
+#: gui/ProfileFrame.py:51
 msgid "Download peer's blog"
 msgstr ""
 
-#: gui/ProfileFrame.py:50
+#: gui/ProfileFrame.py:53
 msgid "Get Files..."
 msgstr ""
 
-#: gui/ProfileFrame.py:50
+#: gui/ProfileFrame.py:53
 msgid "Download peer's files"
 msgstr ""
 
-#: gui/ProfileFrame.py:53
+#: gui/ProfileFrame.py:56
 msgid "&Anonymous\tCtrl+A"
 msgstr ""
 
-#: gui/ProfileFrame.py:55
+#: gui/ProfileFrame.py:58
 msgid "Frie&nd\tCtrl+N"
 msgstr ""
 
-#: gui/ProfileFrame.py:57
+#: gui/ProfileFrame.py:60
 msgid "&Black listed\tCtrl+B"
 msgstr ""
 
-#: gui/ProfileFrame.py:60
+#: gui/ProfileFrame.py:63
 msgid "&Find...\tCtrl+F"
 msgstr ""
 
-#: gui/ProfileFrame.py:60
+#: gui/ProfileFrame.py:63
 msgid "Search profile in surrounding area"
 msgstr ""
 
-#: gui/ProfileFrame.py:62
+#: gui/ProfileFrame.py:65
 msgid "Filters...\tCtrl+H"
 msgstr ""
 
-#: gui/ProfileFrame.py:62
+#: gui/ProfileFrame.py:65
 msgid "Create active filters to get notified on peers approach"
 msgstr ""
 
-#: gui/ProfileFrame.py:64 gui/OthersPanel.py:31
+#: gui/ProfileFrame.py:67 gui/OthersPanel.py:32
 msgid "Peers"
 msgstr ""
 
-#: gui/ProfileFrame.py:66
+#: gui/ProfileFrame.py:69
 msgid "Auto refresh"
 msgstr ""
 
-#: gui/ProfileFrame.py:66
+#: gui/ProfileFrame.py:69
 msgid "Automatically call refresh on any change in profile"
 msgstr ""
 
-#: gui/ProfileFrame.py:68
+#: gui/ProfileFrame.py:71
 msgid "&Refresh\tCtrl+R"
 msgstr ""
 
-#: gui/ProfileFrame.py:70
+#: gui/ProfileFrame.py:73
 msgid "Display"
 msgstr ""
 
-#: gui/ProfileFrame.py:72
-msgid "About"
+#: gui/ProfileFrame.py:75
+msgid "About..."
 msgstr ""
 
-#: gui/ProfileFrame.py:248
+#: gui/ProfileFrame.py:77
+msgid "Help"
+msgstr ""
+
+#: gui/ProfileFrame.py:95
+msgid "Import...\tCtrl+I"
+msgstr ""
+
+#: gui/ProfileFrame.py:95
+msgid "Load a profile and add it in contact list"
+msgstr ""
+
+#: gui/ProfileFrame.py:97
+msgid "Display profile..."
+msgstr ""
+
+#: gui/ProfileFrame.py:97
+msgid "Display html preview in popup"
+msgstr ""
+
+#: gui/ProfileFrame.py:306
 msgid "profile_frame"
 msgstr ""
 
-#: gui/ProfileFrame.py:252
+#: gui/ProfileFrame.py:310
 msgid "status"
 msgstr ""
 
-#: gui/ProfileFrame.py:267
+#: gui/ProfileFrame.py:325
 msgid "Preview"
 msgstr ""
 
-#: gui/ProfileFrame.py:268
+#: gui/ProfileFrame.py:326
 msgid "Personal"
 msgstr ""
 
-#: gui/ProfileFrame.py:269
+#: gui/ProfileFrame.py:327
 msgid "Special Interests"
 msgstr ""
 
-#: gui/ProfileFrame.py:270 gui/FileDialog.py:100 gui/BlogDialog.py:91
+#: gui/ProfileFrame.py:328 gui/BlogDialog.py:99
 msgid "Blog"
 msgstr ""
 
-#: gui/ProfileFrame.py:271
+#: gui/ProfileFrame.py:329 gui/FileDialog.py:113
 msgid "Files"
 msgstr ""
 
-#: gui/ProfileFrame.py:272
+#: gui/ProfileFrame.py:330
 msgid "Contacts"
 msgstr ""
 
 #: gui/FilePanel.py:36 gui/BlogPanel.py:52 gui/FileDialog.py:28
-#: gui/BlogDialog.py:67
+#: gui/BlogDialog.py:68
 msgid "Actions"
 msgstr ""
 
@@ -221,39 +242,39 @@ msgstr ""
 msgid "File System..."
 msgstr ""
 
-#: gui/FilePanel.py:108
-msgid "Choose your repository"
-msgstr ""
-
-#: gui/FilePanel.py:151
+#: gui/FilePanel.py:90
 msgid "Your shared files"
 msgstr ""
 
-#: gui/FilePanel.py:271
-msgid "Add repository"
-msgstr ""
-
-#: gui/FilePanel.py:273
-msgid "Remove repository"
+#: gui/FilePanel.py:112
+msgid "Choose your repository"
 msgstr ""
 
 #: gui/FilePanel.py:275
-msgid "Share"
+msgid "Add repository"
 msgstr ""
 
 #: gui/FilePanel.py:277
-msgid "Unshare"
+msgid "Remove repository"
 msgstr ""
 
 #: gui/FilePanel.py:279
-msgid "Preview your shared files"
+msgid "Share"
 msgstr ""
 
 #: gui/FilePanel.py:281
+msgid "Unshare"
+msgstr ""
+
+#: gui/FilePanel.py:283
+msgid "Preview your shared files"
+msgstr ""
+
+#: gui/FilePanel.py:285
 msgid "Complementary information on file"
 msgstr ""
 
-#: gui/FilePanel.py:282
+#: gui/FilePanel.py:286
 msgid "Apply comment"
 msgstr ""
 
@@ -341,19 +362,19 @@ msgstr ""
 msgid "How you appear to other peers"
 msgstr ""
 
-#: gui/OthersPanel.py:32
+#: gui/OthersPanel.py:33
 msgid "Friends"
 msgstr ""
 
-#: gui/OthersPanel.py:33
+#: gui/OthersPanel.py:34 gui/FileDialog.py:20 gui/ProfileDialog.py:27
 msgid "Anonymous"
 msgstr ""
 
-#: gui/OthersPanel.py:34
+#: gui/OthersPanel.py:35
 msgid "Blacklisted"
 msgstr ""
 
-#: gui/OthersPanel.py:77
+#: gui/OthersPanel.py:85
 msgid "select neighbor to display"
 msgstr ""
 
@@ -377,22 +398,42 @@ msgstr ""
 msgid "Choose location to download files into"
 msgstr ""
 
-#: gui/FileDialog.py:111
+#: gui/FileDialog.py:124
 msgid "Chose Files"
 msgstr ""
 
-#: gui/FileDialog.py:113
+#: gui/FileDialog.py:126
 msgid "Dowload repository"
 msgstr ""
 
-#: gui/FileDialog.py:115
+#: gui/FileDialog.py:128
 msgid "Download selected files"
 msgstr ""
 
-#: gui/BlogDialog.py:112
+#: gui/BlogDialog.py:121
 msgid "Peer's Blog"
 msgstr ""
 
-#: plugin.py:180
+#: gui/AboutDialog.py:21
+msgid "Solipsis Profile"
+msgstr ""
+
+#: gui/AboutDialog.py:23
+msgid "Disclaimer"
+msgstr ""
+
+#: gui/AboutDialog.py:25
+msgid "Display at startup"
+msgstr ""
+
+#: gui/AboutDialog.py:26
+msgid "Ok"
+msgstr ""
+
+#: gui/AboutDialog.py:50
+msgid "About Profile"
+msgstr ""
+
+#: plugin.py:171
 msgid "Manage personal information and share it with people"
 msgstr ""
