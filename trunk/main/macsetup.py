@@ -4,6 +4,10 @@ macsetup.py - script for building Solipsis.app
 
 Usage:
     % python macsetup.py py2app
+
+After creating the .app file, it is probably useful to store
+it in a compressed archive:
+    % zip -yr Solipsis-macosx10.3.zip Solipsis.app
 """
 
 import os
@@ -11,7 +15,7 @@ import glob
 
 from distutils.core import setup
 import py2app
-
+#import bdist_mpkg
 
 name = "Solipsis"
 version = "0.8.4"
@@ -19,7 +23,7 @@ description = "Solipsis, a peer-to-peer system for a massively multi-participant
 author = "France Telecom R&D"
 author_email = "solipsis-tech@lists.berlios.de"
 url = "http://solipsis.netofpeers.net"
-license = "GNU LGPL"
+license = "COPYRIGHT"
 
 packages = []
 includes = ['solipsis.node.main']
@@ -45,7 +49,7 @@ for dir in extension_dirs:
             includes.append(module)
 
 #print "packages =", packages
-print "includes =", includes
+#print "includes =", includes
 
 #
 # Find all resource files and dirs
