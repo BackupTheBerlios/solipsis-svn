@@ -42,8 +42,8 @@ class OthersPanel(wx.Panel):
         self.peers = None
         
         il = wx.ImageList(16, 16)
-        self.on_img = il.Add(wx.Bitmap(BULB_ON_IMG,wx.BITMAP_TYPE_ANY))
-        self.off_img = il.Add(wx.Bitmap(BULB_OFF_IMG,wx.BITMAP_TYPE_ANY))
+        self.on_img = il.Add(wx.Bitmap(BULB_ON_IMG(),wx.BITMAP_TYPE_ANY))
+        self.off_img = il.Add(wx.Bitmap(BULB_OFF_IMG(),wx.BITMAP_TYPE_ANY))
         self.peers_list.SetImageList(il)
         self.il = il
         
@@ -172,7 +172,7 @@ class OthersPanel(wx.Panel):
         self.details_panel.SetSizer(details_sizer)
         details_sizer.Fit(self.details_panel)
         details_sizer.SetSizeHints(self.details_panel)
-        self.other_split.SplitVertically(self.peers_panel, self.details_panel, 10)
+        self.other_split.SplitVertically(self.peers_panel, self.details_panel, 200)
         other_size.Add(self.other_split, 1, wx.EXPAND, 0)
         self.SetAutoLayout(True)
         self.SetSizer(other_size)

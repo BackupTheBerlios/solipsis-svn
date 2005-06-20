@@ -244,7 +244,7 @@ class PeerDescriptor:
     def html(self):
         """render peer in HTML"""
         return "<img src='%s'/><font color=%s>%s</font>"\
-               % (self.connected and BULB_ON_IMG or BULB_OFF_IMG,
+               % (self.connected and BULB_ON_IMG() or BULB_OFF_IMG(),
                   PeerDescriptor.COLORS[self.state],
                   self.document and self.document.get_pseudo() or "unknown")
         

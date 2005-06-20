@@ -53,7 +53,7 @@ class Launcher(object):
         prog_name = os.path.normcase('.' + os.sep + self.launcher_name)
         # If the program is a Python script, we try to keep the same executable
         # as currently (useful on MacOS X with py2app)
-        if sys.executable and re.match(r'.*\.py[cow]?$', prog_name, re.IGNORECASE):
+        if os.path.exists(sys.executable) and re.match(r'.*\.py[cow]?$', prog_name, re.IGNORECASE):
             args = [sys.executable, prog_name]
         else:
             args = [prog_name]

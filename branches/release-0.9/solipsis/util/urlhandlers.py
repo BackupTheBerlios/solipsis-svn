@@ -64,7 +64,7 @@ def SetSolipsisURLHandlers(prog_name=None):
     prog_path = os.path.abspath(prog_name)
     # In some cases the main program won't be a .py file (e.g. pyexe-generated
     # executable under Windows)
-    if sys.executable and re.match(r'.*\.py[cow]?$', prog_name, re.IGNORECASE):
+    if os.path.exists(sys.executable) and re.match(r'.*\.py[cow]?$', prog_name, re.IGNORECASE):
         base_args = [sys.executable, prog_path]
     else:
         base_args = [prog_path]

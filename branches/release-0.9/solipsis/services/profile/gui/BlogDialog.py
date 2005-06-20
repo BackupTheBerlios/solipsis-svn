@@ -66,9 +66,9 @@ class BlogDialog(wx.Dialog, UIProxyReceiver):
         kwds["style"] = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.THICK_FRAME
         wx.Dialog.__init__(self, *args, **kwds)
         self.peerblog_actions_staticbox = wx.StaticBox(self, -1, _("Actions"))
-        self.add_comment_button = wx.BitmapButton(self, -1, wx.Bitmap(ADD_COMMENT,wx.BITMAP_TYPE_ANY))
-        self.del_comment_button = wx.BitmapButton(self, -1, wx.Bitmap(DEL_BLOG,wx.BITMAP_TYPE_ANY))
-        self.upload_button = wx.BitmapButton(self, -1, wx.Bitmap(UPLOAD_BLOG,wx.BITMAP_TYPE_ANY))
+        self.add_comment_button = wx.BitmapButton(self, -1, wx.Bitmap(ADD_COMMENT(),wx.BITMAP_TYPE_ANY))
+        self.del_comment_button = wx.BitmapButton(self, -1, wx.Bitmap(DEL_BLOG(),wx.BITMAP_TYPE_ANY))
+        self.upload_button = wx.BitmapButton(self, -1, wx.Bitmap(UPLOAD_BLOG(),wx.BITMAP_TYPE_ANY))
         self.peerblog_text = wx.TextCtrl(self, -1, "", style=wx.TE_MULTILINE|wx.TE_RICH2|wx.TE_LINEWRAP)
         self.peerblog_list = PeerHtmlListBox(self, -1)
 

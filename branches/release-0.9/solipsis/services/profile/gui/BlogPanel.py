@@ -50,9 +50,9 @@ class BlogPanel(wx.Panel):
         kwds["style"] = wx.TAB_TRAVERSAL
         wx.Panel.__init__(self, *args, **kwds)
         self.blog_actions_sizer_staticbox = wx.StaticBox(self, -1, _("Actions"))
-        self.add_blog_button = wx.BitmapButton(self, -1, wx.Bitmap(ADD_BLOG,wx.BITMAP_TYPE_ANY))
-        self.del_blog_button = wx.BitmapButton(self, -1, wx.Bitmap(DEL_BLOG,wx.BITMAP_TYPE_ANY))
-        self.comment_blog_button = wx.BitmapButton(self, -1, wx.Bitmap(ADD_COMMENT,wx.BITMAP_TYPE_ANY))
+        self.add_blog_button = wx.BitmapButton(self, -1, wx.Bitmap(ADD_BLOG(),wx.BITMAP_TYPE_ANY))
+        self.del_blog_button = wx.BitmapButton(self, -1, wx.Bitmap(DEL_BLOG(),wx.BITMAP_TYPE_ANY))
+        self.comment_blog_button = wx.BitmapButton(self, -1, wx.Bitmap(ADD_COMMENT(),wx.BITMAP_TYPE_ANY))
         self.blog_text = wx.TextCtrl(self, -1, _("Enter your text here"), style=wx.TE_MULTILINE|wx.TE_RICH2|wx.TE_LINEWRAP)
         self.blog_list = MyHtmlListBox(self, -1)
 

@@ -28,9 +28,8 @@ import sys
 import re
 from os.path import isfile, isdir
 from StringIO import StringIO
-from solipsis.services.profile import ENCODING, \
+from solipsis.services.profile import ENCODING, QUESTION_MARK, \
      PROFILE_DIR, PROFILE_FILE, PROFILE_EXT, DOWNLOAD_REPO
-from solipsis.services.profile.images import DEFAULT_PIC
 from solipsis.services.profile.data import DEFAULT_TAG, \
      DirContainer, FileContainer, ContainerMixin, \
      SharedFiles, PeerDescriptor, Blogs, load_blogs
@@ -939,7 +938,7 @@ class FileDocument(AbstractDocument):
             return unicode(self.config.get(SECTION_PERSONAL, "photo"),
                            self.encoding)
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-            return DEFAULT_PIC
+            return QUESTION_MARK()
 
     def set_email(self, value):
         """sets new value for email"""
