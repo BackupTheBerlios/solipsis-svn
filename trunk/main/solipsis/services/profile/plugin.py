@@ -29,7 +29,7 @@ import sys
 
 from solipsis.util.wxutils import _
 from solipsis.services.plugin import ServicePlugin
-from solipsis.services.profile import PROFILE_DIR, PROFILE_FILE
+from solipsis.services.profile import PROFILE_DIR, PROFILE_FILE, set_solipsis_dir
 from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile.network import NetworkManager
 from solipsis.services.profile.document import CacheDocument, FileDocument
@@ -74,6 +74,7 @@ class Plugin(ServicePlugin):
     # wxclient)
     def EnableBasic(self):
         """enable non graphic part"""
+        set_solipsis_dir(self.service_api.GetDirectory())
         # TODO: expose interface of facade to netClient
         self.facade.load_profile(os.path.join(PROFILE_DIR, PROFILE_FILE))
         # launch network
@@ -85,6 +86,7 @@ class Plugin(ServicePlugin):
         be defined here, not in the constructor.  This includes
         e.g. opening sockets, collecting data from directories, etc.
         """
+        set_solipsis_dir(self.service_api.GetDirectory())
         # init windows
         main_window = self.service_api.GetMainWindow()
         options = {}

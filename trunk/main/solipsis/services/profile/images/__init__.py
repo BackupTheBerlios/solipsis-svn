@@ -17,9 +17,3 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
 """Module containing all images used in GUI"""
-
-import os.path
-import solipsis.services.profile
-
-DEFAULT_PIC = os.path.join(os.path.dirname(solipsis.services.profile.__file__),
-                           "images/question_mark.gif")

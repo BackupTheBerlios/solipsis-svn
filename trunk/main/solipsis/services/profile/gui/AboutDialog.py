@@ -17,7 +17,7 @@ class AboutDialog(wx.Dialog):
         # begin wxGlade: AboutDialog.__init__
         kwds["style"] = wx.DEFAULT_DIALOG_STYLE|wx.STAY_ON_TOP
         wx.Dialog.__init__(self, *args, **kwds)
-        self.tore_pic = wx.StaticBitmap(self, -1, wx.Bitmap(TORE_IMG, wx.BITMAP_TYPE_ANY), style=wx.SIMPLE_BORDER)
+        self.tore_pic = wx.StaticBitmap(self, -1, wx.Bitmap(TORE_IMG(), wx.BITMAP_TYPE_ANY), style=wx.SIMPLE_BORDER)
         self.title_lbl = wx.StaticText(self, -1, _("Solipsis Profile"), style=wx.ALIGN_CENTRE)
         self.version_lbl = wx.StaticText(self, -1, "", style=wx.ALIGN_CENTRE)
         self.disclaimer_lbl = wx.TextCtrl(self, -1, _("Disclaimer"), style=wx.TE_MULTILINE|wx.TE_READONLY|wx.TE_CENTRE|wx.TE_LINEWRAP|wx.TE_WORDWRAP|wx.NO_BORDER)
@@ -49,7 +49,7 @@ class AboutDialog(wx.Dialog):
         # begin wxGlade: AboutDialog.__set_properties
         self.SetTitle(_("About Profile"))
         self.SetMinSize((300, 300))
-        self.tore_pic.SetMinSize((300, 156))
+        self.tore_pic.SetMinSize((1, 1))
         self.disclaimer_lbl.SetBackgroundColour(wx.Colour(226, 226, 226))
         self.disclaimer_lbl.Enable(False)
         self.display_check.SetValue(1)

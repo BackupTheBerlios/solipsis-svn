@@ -26,8 +26,7 @@ import os, os.path
 import pickle
 from StringIO import StringIO
 
-
-PREVIEW_PT = os.path.join(os.path.dirname(__file__), "preview.html")
+from solipsis. services.profile import PREVIEW_PT
 
 # Search first in system directory, fall back to bundled version if necessary
 try:
@@ -413,7 +412,7 @@ class HtmlView(AbstractView):
         self.html_window = html_window and UIProxy(html_window) or None
         # Create the context that is used by the template
         self.context = simpleTALES.Context(allowPythonPath=1)
-        template_file = open (PREVIEW_PT, 'r')
+        template_file = open (PREVIEW_PT(), 'r')
         self.template = simpleTAL.compileHTMLTemplate(template_file,
                                                       inputEncoding=ENCODING)
         template_file.close()

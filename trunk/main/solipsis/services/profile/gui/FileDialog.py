@@ -26,8 +26,8 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
         kwds["style"] = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.THICK_FRAME
         wx.Dialog.__init__(self, *args, **kwds)
         self.fileaction_sizer_staticbox = wx.StaticBox(self, -1, _("Actions"))
-        self.repo_button = wx.BitmapButton(self, -1, wx.Bitmap(DOWNLOAD_DIR,wx.BITMAP_TYPE_ANY))
-        self.download_button = wx.BitmapButton(self, -1, wx.Bitmap(DOWNLOAD,wx.BITMAP_TYPE_ANY))
+        self.repo_button = wx.BitmapButton(self, -1, wx.Bitmap(DOWNLOAD_DIR(),wx.BITMAP_TYPE_ANY))
+        self.download_button = wx.BitmapButton(self, -1, wx.Bitmap(DOWNLOAD(),wx.BITMAP_TYPE_ANY))
         self.peerfiles_list = wx.ListCtrl(self, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
 
         self.__set_properties()
