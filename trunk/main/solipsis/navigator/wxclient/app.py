@@ -56,7 +56,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
     """
     Main application class. Derived from wxPython "wx.App".
     """
-    version = "0.9svn"
+    version = "0.9"
     config_file = os.sep.join(["state", "config.bin"])
     world_size = 2**128
 

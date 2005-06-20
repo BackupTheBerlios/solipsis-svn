@@ -13,7 +13,7 @@ Edit this script to insert desired services (see data_files)
 Then  issue the command $python setup.py py2exe
 """
 name="Solipsis"
-version="0.8.2"
+version="0.9"
 description="Solipsis, A peer-to-peer system for a massively multi-participant virtual world"
 author="France Telecom R&D"
 author_email="solipsis-tech@lists.berlios.de"
@@ -52,6 +52,20 @@ data_files=[
         glob.glob("solipsis/services/avatar/po/de/LC_MESSAGES/*.*")),
     ("solipsis/services/avatar/po/fr/LC_MESSAGES", 
         glob.glob("solipsis/services/avatar/po/fr/LC_MESSAGES/*.*")),
+#PROFILE
+    ("solipsis/services/profile", glob.glob("solipsis/services/profile/*.*")),
+    ("solipsis/services/profile/tests", glob.glob("solipsis/services/profile/tests/*.*")),
+    ("solipsis/services/profile/tests/data", glob.glob("solipsis/services/profile/tests/data/*.*")),
+    ("solipsis/services/profile/tests/data/profiles", glob.glob("solipsis/services/profile/tests/data/profiles/*.*")),
+    ("solipsis/services/profile/tests/data/subdir1", glob.glob("solipsis/services/profile/tests/data/subdir1/*.*")),
+    ("solipsis/services/profile/tests/data/subdir1/subsubdir", glob.glob("solipsis/services/profile/tests/data/subdir1/subsubdir/*.*")),
+    ("solipsis/services/profile/tests/data/emptydir", glob.glob("solipsis/services/profile/tests/data/emptydir/*.*")),
+    ("solipsis/services/profile/tests/generated", glob.glob("solipsis/services/profile/tests/generated/*.*")),
+    ("solipsis/services/profile/gui", glob.glob("solipsis/services/profile/gui/*.*")),
+    ("solipsis/services/profile/images", glob.glob("solipsis/services/profile/images/*.*")),
+    ("solipsis/services/profile/po", glob.glob("solipsis/services/profile/po/*.*")),
+    ("solipsis/services/profile/po/fr", glob.glob("solipsis/services/profile/po/fr/*.*")),
+    ("solipsis/services/profile/po/fr/LC_MESSAGES", glob.glob("solipsis/services/profile/po/fr/LC_MESSAGES/*.*")),
 # End services files
     ("log", []),
     ("state", []),
