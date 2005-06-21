@@ -18,11 +18,11 @@ import py2app
 #import bdist_mpkg
 
 name = "Solipsis"
-version = "0.8.4"
+version = "0.9"
 description = "Solipsis, a peer-to-peer system for a massively multi-participant virtual world"
 author = "France Telecom R&D"
 author_email = "solipsis-tech@lists.berlios.de"
-url = "http://solipsis.netofpeers.net"
+url = "http://solipsis.netofpeers.net/"
 license = "COPYRIGHT"
 
 packages = []
@@ -34,6 +34,7 @@ data_files = []
 # Find all packages and modules
 #
 service_dir = 'solipsis/services'
+# 1. Dynamically-loaded service plugins
 for filename in os.listdir(service_dir):
     path = os.path.join(service_dir, filename)
     if os.path.isdir(path) and not filename.startswith('_'):
@@ -41,6 +42,7 @@ for filename in os.listdir(service_dir):
         packages.append(package)
         includes.append(package + '.plugin')
 extension_dirs = ['solipsis/node/discovery', 'solipsis/node/controller']
+# 2. Dynamically-loaded behaviour extensions
 for dir in extension_dirs:
     for path in glob.glob(os.path.join(dir, '*.py')):
         filename = os.path.basename(path)
