@@ -104,7 +104,7 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
         if isinstance(peer_desc, unicode) or isinstance(peer_desc, str):
             wx.Dialog.SetTitle(self, peer_desc)
             return
-        if peer_desc:
+        if peer_desc and peer_desc.document:
             self.peer_id = peer_desc.peer_id
             pseudo = peer_desc.document.get_pseudo()
         else:

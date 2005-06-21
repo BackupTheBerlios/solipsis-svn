@@ -83,15 +83,16 @@ class BlogDialog(wx.Dialog, UIProxyReceiver):
 
     def Show(self, blog, do_show=True):
         """overrides Show"""
-        self.peerblog_list.blog = blog
+        if do_show:
+            self.peerblog_list.blog = blog
+            self.peerblog_list.refresh()
         wx.Dialog.Show(self, do_show)
-        self.peerblog_list.refresh()
 
     def SetTitle(self, peer_desc=None):
         if isinstance(peer_desc, unicode) or isinstance(peer_desc, str):
             wx.Dialog.SetTitle(self, peer_desc)
             return
-        if peer_desc:
+        if peer_desc and peer_desc.document:
             self.peer_id = peer_desc.peer_id
             pseudo = peer_desc.document.get_pseudo()
         else:

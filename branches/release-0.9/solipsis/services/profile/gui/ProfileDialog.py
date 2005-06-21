@@ -28,11 +28,12 @@ class ProfileDialog(wx.Dialog, UIProxyReceiver):
 
     def Show(self, peer_desc, do_show=True):
         """overrides Show"""
-        self.peer_id = peer_desc.peer_id
-        pseudo = peer_desc.document.get_pseudo()
-        self.SetTitle("%s's %s"% (pseudo, _("Profile")))
-        view = HtmlView(peer_desc.document)
-        self.profile_window.SetPage(view.get_view(True))
+        if do_show:
+            self.peer_id = peer_desc.peer_id
+            pseudo = peer_desc.document.get_pseudo()
+            self.SetTitle("%s's %s"% (pseudo, _("Profile")))
+            view = HtmlView(peer_desc.document)
+            self.profile_window.SetPage(view.get_view(True))
         wx.Dialog.Show(self, do_show)
 
     def __set_properties(self):
