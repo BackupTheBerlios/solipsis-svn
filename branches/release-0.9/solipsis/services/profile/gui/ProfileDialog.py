@@ -38,7 +38,7 @@ class ProfileDialog(wx.Dialog, UIProxyReceiver):
     def __set_properties(self):
         # begin wxGlade: ProfileDialog.__set_properties
         self.SetTitle(_("Profile"))
-        self.SetMinSize((460, 410))
+        self.SetSize((460, 410))
         # end wxGlade
 
     def __do_layout(self):

@@ -48,13 +48,12 @@ class AboutDialog(wx.Dialog):
     def __set_properties(self):
         # begin wxGlade: AboutDialog.__set_properties
         self.SetTitle(_("About Profile"))
-        self.SetMinSize((300, 300))
-        self.tore_pic.SetMinSize((1, 1))
+        self.SetSize((300, 300))
+        self.tore_pic.SetMinSize((300, 156))
         self.disclaimer_lbl.SetBackgroundColour(wx.Colour(226, 226, 226))
         self.disclaimer_lbl.Enable(False)
         self.display_check.SetValue(1)
         # end wxGlade
-        self.SetSize((300, 300))
         self.display_check.SetValue(self.display)
         self.title_lbl.SetLabel("Solipsis Profile v.%s"% VERSION)
         self.disclaimer_lbl.SetValue(DISCLAIMER)

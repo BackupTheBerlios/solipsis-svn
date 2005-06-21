@@ -119,7 +119,7 @@ class BlogDialog(wx.Dialog, UIProxyReceiver):
     def __set_properties(self):
         # begin wxGlade: BlogDialog.__set_properties
         self.SetTitle(_("Peer's Blog"))
-        self.SetMinSize((460, 410))
+        self.SetSize((460, 410))
         self.add_comment_button.SetSize(self.add_comment_button.GetBestSize())
         self.del_comment_button.SetSize(self.del_comment_button.GetBestSize())
         self.upload_button.SetSize(self.upload_button.GetBestSize())

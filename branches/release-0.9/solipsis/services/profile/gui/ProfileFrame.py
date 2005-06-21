@@ -304,7 +304,7 @@ class ProfileFrame(wx.Frame):
     def __set_properties(self):
         # begin wxGlade: ProfileFrame.__set_properties
         self.SetTitle(_("profile_frame"))
-        self.SetMinSize((460, 500))
+        self.SetSize((460, 500))
         self.profile_statusbar.SetStatusWidths([-1])
         # statusbar fields
         profile_statusbar_fields = [_("status")]
