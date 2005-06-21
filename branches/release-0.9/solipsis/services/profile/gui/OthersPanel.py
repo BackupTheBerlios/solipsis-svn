@@ -172,7 +172,7 @@ class OthersPanel(wx.Panel):
         self.details_panel.SetSizer(details_sizer)
         details_sizer.Fit(self.details_panel)
         details_sizer.SetSizeHints(self.details_panel)
-        self.other_split.SplitVertically(self.peers_panel, self.details_panel, 10)
+        self.other_split.SplitVertically(self.peers_panel, self.details_panel, 200)
         other_size.Add(self.other_split, 1, wx.EXPAND, 0)
         self.SetAutoLayout(True)
         self.SetSizer(other_size)

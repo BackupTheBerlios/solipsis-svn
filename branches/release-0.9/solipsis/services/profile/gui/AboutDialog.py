@@ -15,7 +15,7 @@ class AboutDialog(wx.Dialog):
         self.display = display
         args = (parent, id)
         # begin wxGlade: AboutDialog.__init__
-        kwds["style"] = wx.DEFAULT_DIALOG_STYLE|wx.STAY_ON_TOP
+        kwds["style"] = wx.DEFAULT_DIALOG_STYLE
         wx.Dialog.__init__(self, *args, **kwds)
         self.tore_pic = wx.StaticBitmap(self, -1, wx.Bitmap(TORE_IMG(), wx.BITMAP_TYPE_ANY), style=wx.SIMPLE_BORDER)
         self.title_lbl = wx.StaticText(self, -1, _("Solipsis Profile"), style=wx.ALIGN_CENTRE)

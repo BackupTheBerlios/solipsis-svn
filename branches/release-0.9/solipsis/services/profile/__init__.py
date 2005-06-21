@@ -39,8 +39,8 @@ def set_solipsis_dir(new_dir):
 
 set_solipsis_dir(os.path.dirname(__file__))
 
-images_dir = lambda : os.path.join(solipsis_dir, "images")
-PREVIEW_PT = lambda : os.path.join(solipsis_dir, "preview.html")
+images_dir = lambda : os.path.join(solipsis_dir, u"images")
+PREVIEW_PT = lambda : os.path.join(solipsis_dir, u"preview.html")
 QUESTION_MARK = lambda : os.path.join(images_dir(), "question_mark.gif")
 ADD_CUSTOM = lambda : os.path.join(images_dir(), "add_file.jpeg")
 DEL_CUSTOM = lambda : os.path.join(images_dir(), "del_file.jpeg")
@@ -69,12 +69,12 @@ DISCLAIMER_FILE = ".no_disclaim"
 KNOWN_PORT = 1160
 FREE_PORTS = range(23000, 23999)
 
-if not os.path.exists(DOWNLOAD_REPO):
-    os.mkdir(DOWNLOAD_REPO)
-
 if not os.path.isdir(PROFILE_DIR):
     print "creating conf directory %s"% PROFILE_DIR
     os.makedirs(PROFILE_DIR)
+
+if not os.path.exists(DOWNLOAD_REPO):
+    os.mkdir(DOWNLOAD_REPO)
 
 def skip_disclaimer():
     """returns true if About Dialog must be displayed at launch of
