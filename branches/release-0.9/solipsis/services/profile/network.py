@@ -269,8 +269,9 @@ class NetworkManager:
         # no server either: other client can not connect to us
         print "DOWNLOAD SHARED LIST IMPOSSIBLE"
 
-    def get_files(self, peer_id, file_names):
+    def get_files(self, peer_id, file_names, _on_all_files):
         """retreive file"""
+        self._on_all_files = _on_all_files
         # try standard download
         client = self.client.get_dedicated_client(self.remote_ips[peer_id])
         if client:
@@ -564,7 +565,7 @@ class PeerClientProtocol(PeerProtocol):
                 self.file = open(down_path, "w+b")
                 self.sendLine("%s %s"% (self.factory.download, file_name))
             else:
-                print "No more file to download!!"
+                self.factory.manager._on_all_files()
         elif self.factory.download.startswith(ASK_DOWNLOAD_BLOG)\
                  or self.factory.download.startswith(ASK_DOWNLOAD_SHARED):
             self.setRawMode()
@@ -901,7 +902,7 @@ class PeerServerFactory(ServerFactory):
             message = make_message(action, self.manager.host, self.port)
             self.manager.service_api.SendData(peer_id, message)
         else:
-            print "download complete"
+            self.manager._on_all_files()
         # flag this one
         return file_obj.name
 

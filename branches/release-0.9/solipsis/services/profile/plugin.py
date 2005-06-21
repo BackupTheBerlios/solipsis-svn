@@ -141,6 +141,20 @@ class Plugin(ServicePlugin):
     def _on_shared_files(self, files, peer_id):
         """store and display file object corresponding to blog"""
         self.facade.fill_shared_files((peer_id, files))
+    
+    def _on_all_files(self):
+        """store and display file object corresponding to blog"""
+        if self.profile_frame:
+            def display_message():
+                dlg = wx.MessageDialog(self.service_api.GetMainWindow(),
+                                       'Download complete!',
+                                       'No more file to download',
+                                       wx.OK | wx.ICON_INFORMATION)
+                dlg.ShowModal()
+                dlg.Destroy()
+            wx.CallAfter(display_message)
+        else:
+            print 'No more file to download'
 
     def get_profile(self, peer_id):
         """request downwload of profile"""
@@ -154,7 +168,7 @@ class Plugin(ServicePlugin):
 
     def get_files(self, peer_id, file_names):
         """request downwload of given files"""
-        deferred = self.network.get_files(peer_id, file_names)
+        deferred = self.network.get_files(peer_id, file_names, self._on_all_files)
         deferred and deferred.addCallback(
             lambda file_name: sys.stdout.write("%s downloaded\n"% file_name))
 
