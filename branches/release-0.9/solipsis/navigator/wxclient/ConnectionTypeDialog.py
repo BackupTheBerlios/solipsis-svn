@@ -92,11 +92,15 @@ class ConnectionTypeDialog(wx.Dialog):
     # Note: radio buttons are managed manually because of a bug under Windows...
 
     def OnRadioLocal(self, event): # wxGlade: ConnectionTypeDialog.<event_handler>
-        self.radio_btn_remote.SetValue(False)
+        # Mandatory double-check for MacOS X
+        if event.IsChecked():
+            self.radio_btn_remote.SetValue(False)
         self._UpdateUI()
 
     def OnRadioRemote(self, event): # wxGlade: ConnectionTypeDialog.<event_handler>
-        self.radio_btn_local.SetValue(False)
+        # Mandatory double-check for MacOS X
+        if event.IsChecked():
+            self.radio_btn_local.SetValue(False)
         self._UpdateUI()
 
     def OnClose(self, event): # wxGlade: ConnectionTypeDialog.<event_handler>
