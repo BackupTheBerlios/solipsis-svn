@@ -490,7 +490,7 @@ class CacheDocument(AbstractDocument):
         self.firstname = u""
         self.lastname = u""
         self.pseudo = u""
-        self.photo = ""
+        self.photo = QUESTION_MARK()
         self.email = u""
         self.birthday = time.localtime()
         self.language = u""
@@ -935,10 +935,13 @@ class FileDocument(AbstractDocument):
     def get_photo(self):
         """returns value of photo"""
         try:
-            return unicode(self.config.get(SECTION_PERSONAL, "photo"),
-                           self.encoding)
+            photo = unicode(self.config.get(SECTION_PERSONAL, "photo"),
+                            self.encoding)
+            if not os.path.exists(photo):
+                photo = QUESTION_MARK()
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-            return QUESTION_MARK()
+            photo = QUESTION_MARK()
+        return photo
 
     def set_email(self, value):
         """sets new value for email"""
