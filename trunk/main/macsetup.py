@@ -37,7 +37,7 @@ service_dir = 'solipsis/services'
 # 1. Dynamically-loaded service plugins
 for filename in os.listdir(service_dir):
     path = os.path.join(service_dir, filename)
-    if os.path.isdir(path) and not filename.startswith('_'):
+    if os.path.isdir(path) and not filename.startswith('_') and not filename.startswith('.'):
         package = path.replace('/', '.')
         packages.append(package)
         includes.append(package + '.plugin')
@@ -67,7 +67,7 @@ extensions = [
     'conf', 'met',
 ]
 for dirpath, dirnames, filenames in os.walk('.'):
-    if dirpath.startswith('./dist/') or dirpath.startswith('./build/'):
+    if dirpath.startswith('./dist/') or dirpath.startswith('./build/') or '/.svn' in dirpath:
         continue
     found = False
     files = []
