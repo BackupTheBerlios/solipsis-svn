@@ -104,6 +104,7 @@ class PreferencesDialog(wx.Dialog):
         sizer_12.Fit(self)
         sizer_12.SetSizeHints(self)
         self.Layout()
+        self.Centre()
         # end wxGlade
 
     #
