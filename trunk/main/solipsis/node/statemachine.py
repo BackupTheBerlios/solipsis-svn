@@ -729,7 +729,7 @@ class StateMachine(object):
         """
         A peer asks a position suggestion around the node.
         """
-        x, y = self.topology.SuggestPosition(self.node.awareness_radius)
+        x, y = self.topology.SuggestPosition(self.node.awareness_radius / 2.0)
         message = self._PeerMessage('SUGGEST')
         message.args.remote_position = Position((x, y, 0.0))
         self._SendToAddress(args.address, message)
