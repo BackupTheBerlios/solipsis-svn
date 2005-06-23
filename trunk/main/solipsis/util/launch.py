@@ -74,7 +74,7 @@ class Launcher(object):
             import subprocess
         except ImportError:
             print "(using os.spawnv)"
-            return os.spawnv(os.P_NOWAIT, prog_name, args) > 0
+            return os.spawnv(os.P_NOWAIT, args[0], args) > 0
         else:
             print "(using subprocess.Popen)"
             try:
