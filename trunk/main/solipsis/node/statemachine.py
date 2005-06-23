@@ -740,8 +740,8 @@ class StateMachine(object):
         """
         # Instantiate the target peer
         if self.jump_near_address is None or self.jump_near_address != args.address:
-            self.logger.warning("Error, reception of unexpected SUGGEST message from peer '%s':\n%s != %s"
-                % (str(args.id_), self.jump_near_address.ToString(), args.address.ToString()))
+            self.logger.warning("Error, reception of unexpected SUGGEST message from peer '%s' at address '%s'"
+                % (str(args.id_), args.address.ToString()))
             return
         peer = self._Peer(args)
         self.jump_near_address = None
