@@ -1,19 +1,11 @@
 #ISO-8859-1
 [Personal]
-city = Paris
-language = fr
 firstname = manu
 title = Mr
-photo = /usr/lib/python2.3/unittest.pyc
-address = 12 rue V Hugo
-repositories = /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests
-pseudo = emb
-birthday = 12/01/2005
-postcode = 34000
 lastname = breton
-country = France
+repositories = /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests
+photo = /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/question_mark.gif
 email = manu@ft.com
-description = anything
 
 [Files]
 /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/date.txt = ,tagos
@@ -24,10 +16,15 @@ description = anything
 /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/emptydir = shared,none
 
 [Others]
-bruce = Friend,john,/home/emb/.solipsis/profiles/bruce
+bruce = Friend,bruce,Thu Jun 23 12:43:07 2005
 
 [Custom]
+City = 
 color = blue
+Country = 
+Favourite Book = 
 homepage = manu.com
-hobbies = blabla,bla bla bla,
+Favourite Movie = 
+Sport = 
+Studies = 
 

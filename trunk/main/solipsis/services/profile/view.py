@@ -61,19 +61,10 @@ class AbstractView:
         self.update_title()
         self.update_firstname()
         self.update_lastname()
-        self.update_pseudo()
         self.update_photo()
         self.update_email()
-        self.update_birthday()
-        self.update_language()
-        self.update_address()
-        self.update_postcode()
-        self.update_city()
-        self.update_country()
-        self.update_description()
         self.update_download_repo()
         # custom tab
-        self.update_hobbies()
         self.update_custom_attributes()
         # FILE TAB
         self.update_files()
@@ -93,10 +84,6 @@ class AbstractView:
         """lastname"""
         raise NotImplementedError
 
-    def update_pseudo(self):
-        """pseudo"""
-        raise NotImplementedError
-
     def update_photo(self):
         """photo"""
         raise NotImplementedError
@@ -105,43 +92,11 @@ class AbstractView:
         """email"""
         raise NotImplementedError
 
-    def update_birthday(self):
-        """birthday"""
-        raise NotImplementedError
-
-    def update_language(self):
-        """language"""
-        raise NotImplementedError
-
-    def update_address(self):
-        """address"""
-        raise NotImplementedError
-
-    def update_postcode(self):
-        """postcode"""
-        raise NotImplementedError
-
-    def update_city(self):
-        """city"""
-        raise NotImplementedError
-
-    def update_country(self):
-        """country"""
-        raise NotImplementedError
-
-    def update_description(self):
-        """description"""
-        raise NotImplementedError
-
     def update_download_repo(self):
         """download_repo"""
         raise NotImplementedError
 
     # CUSTOM TAB
-    def update_hobbies(self):
-        """hobbies"""
-        raise NotImplementedError
-
     def update_custom_attributes(self):
         """custom_attributes"""
         raise NotImplementedError
@@ -204,10 +159,6 @@ class PrintView(AbstractView):
         """lastname"""
         self.println(self.document.get_lastname())
 
-    def update_pseudo(self):
-        """pseudo"""
-        self.println(self.document.get_pseudo())
-
     def update_photo(self):
         """photo"""
         self.println(self.document.get_photo())    
@@ -216,43 +167,11 @@ class PrintView(AbstractView):
         """email"""
         self.println(self.document.get_email())   
 
-    def update_birthday(self):
-        """birthday"""
-        self.println(self.document.get_birthday()) 
-
-    def update_language(self):
-        """language"""
-        self.println(self.document.get_language())
-
-    def update_address(self):
-        """address"""
-        self.println(self.document.get_address())
-
-    def update_postcode(self):
-        """int postcode"""
-        self.println(self.document.get_postcode())
-
-    def update_city(self):
-        """city"""
-        self.println(self.document.get_city())
-
-    def update_country(self):
-        """country"""
-        self.println(self.document.get_country())
-
-    def update_description(self):
-        """description"""
-        self.println(self.document.get_description())
-
     def update_download_repo(self):
         """download_repo"""
         self.println(self.document.get_download_repo())
 
     # CUSTOM TAB
-    def update_hobbies(self):
-        """list hobbies"""
-        self.println(self.document.get_hobbies())
-        
     def update_custom_attributes(self):
         """dict custom_attributes"""
         self.println(self.document.get_custom_attributes())
@@ -284,7 +203,8 @@ class PrintView(AbstractView):
 class GuiView(AbstractView):
     """synthetises information and renders it in HTML"""
 
-    def __init__(self, document, frame, do_import=True, name="gui"):
+    def __init__(self, document, frame,
+                 do_import=True, name="gui"):
         # link to the frame used by view
         self.frame = frame
         # init view
@@ -305,73 +225,28 @@ class GuiView(AbstractView):
         self.frame.personal_tab.lastname_value.SetValue(
             self.document.get_lastname())
 
-    def update_pseudo(self):
-        """pseudo"""
-        self.frame.personal_tab.nickname_value.SetValue(
-            self.document.get_pseudo())
-
     def update_photo(self):
         """photo"""
         self.frame.personal_tab.photo_button.SetBitmapLabel(
             wx.Bitmap(self.document.get_photo(), wx.BITMAP_TYPE_ANY))
+
     def update_email(self):
         """email"""
         self.frame.personal_tab.email_value.SetValue(
             self.document.get_email())     
 
-    def update_birthday(self):
-        """birthday"""
-        self.frame.personal_tab.birthday_value.SetValue(
-            self.document.get_birthday()) 
-
-    def update_language(self):
-        """language"""
-        self.frame.personal_tab.language_value.SetValue(
-            self.document.get_language())
-
-    def update_address(self):
-        """address"""
-        self.frame.personal_tab.road_value.SetValue(
-            self.document.get_address())
-
-    def update_postcode(self):
-        """int postcode"""
-        self.frame.personal_tab.postcode_value.SetValue(
-            self.document.get_postcode())
-
-    def update_city(self):
-        """city"""
-        self.frame.personal_tab.city_value.SetValue(
-            self.document.get_city())
-
-    def update_country(self):
-        """country"""
-        self.frame.personal_tab.country_value.SetValue(
-            self.document.get_country())
-
-    def update_description(self):
-        """description"""
-        self.frame.personal_tab.description_value.SetValue(
-            self.document.get_description())
-
     def update_download_repo(self):
         """download_repo"""
-        self.frame.file_dlg.set_download_repo(
+        self.frame.file_tab.file_dlg.set_download_repo(
             self.document.get_download_repo())
 
-    # CUSTOM TAB : frame.custom_tab
-    def update_hobbies(self):
-        """list hobbies"""
-        self.frame.custom_tab.hobbies_value.SetValue(
-            '\n'.join(self.document.get_hobbies()))
-        
     def update_custom_attributes(self):
         """dict custom_attributes"""
-        self.frame.custom_tab.custom_list.DeleteAllItems()
+        self.frame.personal_tab.custom_list.DeleteAllItems()
         for key, value in self.document.get_custom_attributes().iteritems():
-            index = self.frame.custom_tab.custom_list.InsertStringItem(
+            index = self.frame.personal_tab.custom_list.InsertStringItem(
                 sys.maxint, key)
-            self.frame.custom_tab.custom_list.SetStringItem(index, 1, value)
+            self.frame.personal_tab.custom_list.SetStringItem(index, 1, value)
 
     # BLOG TAB
     def update_blogs(self, blogs):
@@ -396,16 +271,18 @@ class GuiView(AbstractView):
         """display shared files"""
         self.frame.display_files(peer_id, files)
         
-    # OTHERS TAB : frame.other_tab  
+    # OTHERS TAB
     def update_peers(self):
         """peer"""
-        self.frame.other_tab.cb_update_peers(self.document.get_peers())
+        # XXX FIXME: REPLACE other_tab with menu ?
+        pass
+#         self.frame.other_tab.cb_update_peers(self.document.get_peers())
 
 class HtmlView(AbstractView):
     """synthetises information and renders it in HTML"""
 
-    def __init__(self, document, html_window=None,
-                 auto_refresh=False, do_import=True, name="html"):
+    def __init__(self, document, html_window=None, auto_refresh=False,
+                 do_import=True, name="html"):
         # init HTML string, wxWidget
         self.view = None
         self.auto_refresh = auto_refresh
@@ -416,6 +293,7 @@ class HtmlView(AbstractView):
         self.template = simpleTAL.compileHTMLTemplate(template_file,
                                                       inputEncoding=ENCODING)
         template_file.close()
+        self.context.addGlobal("pseudo", document._id)
         # init view
         AbstractView.__init__(self, document, do_import, name)
 
@@ -455,12 +333,6 @@ class HtmlView(AbstractView):
         if self.auto_refresh:
             self.update_view()
 
-    def update_pseudo(self):
-        """pseudo"""
-        self.context.addGlobal("pseudo", self.document.get_pseudo())
-        if self.auto_refresh:
-            self.update_view()
-
     def update_photo(self):
         """photo"""
         self.context.addGlobal("photo", self.document.get_photo())
@@ -473,61 +345,12 @@ class HtmlView(AbstractView):
         if self.auto_refresh:
             self.update_view() 
 
-    def update_birthday(self):
-        """birthday"""
-        self.context.addGlobal("birthday", self.document.get_birthday())
-        if self.auto_refresh:
-            self.update_view()
-
-    def update_language(self):
-        """language"""
-        self.context.addGlobal("language", self.document.get_language())
-        if self.auto_refresh:
-            self.update_view()
-
-    def update_address(self):
-        """address"""
-        self.context.addGlobal("address", self.document.get_address())
-        if self.auto_refresh:
-            self.update_view()
-
-    def update_postcode(self):
-        """int postcode"""
-        self.context.addGlobal("postcode", self.document.get_postcode())
-        if self.auto_refresh:
-            self.update_view()
-
-    def update_city(self):
-        """city"""
-        self.context.addGlobal("city", self.document.get_city())
-        if self.auto_refresh:
-            self.update_view()
-
-    def update_country(self):
-        """country"""
-        self.context.addGlobal("country", self.document.get_country())
-        if self.auto_refresh:
-            self.update_view()
-
-    def update_description(self):
-        """description"""
-        self.context.addGlobal("description", self.document.get_description())
-        if self.auto_refresh:
-            self.update_view()
-
     def update_download_repo(self):
         """download_repo"""
-        self.context.addGlobal("download_repo", self.document.get_description())
+        self.context.addGlobal("download_repo", self.document.get_download_repo())
         if self.auto_refresh:
             self.update_view()
 
-    # CUSTOM TAB : frame.custom_tab
-    def update_hobbies(self):
-        """list hobbies"""
-        self.context.addGlobal("hobbies", self.document.get_hobbies())
-        if self.auto_refresh:
-            self.update_view()
-        
     def update_custom_attributes(self):
         """dict custom_attributes"""
         self.context.addGlobal("attributes",
@@ -563,7 +386,7 @@ class HtmlView(AbstractView):
         """display shared files"""
         self.context.addGlobal("shared_files", (peer_id, files))
         
-    # OTHERS TAB : frame.other_tab  
+    # OTHERS TAB
     def update_peers(self):
         """peer"""
         self.context.addGlobal("ordered_peers",

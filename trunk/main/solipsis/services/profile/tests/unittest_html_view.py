@@ -4,10 +4,13 @@ independant from views"""
 
 import unittest
 import difflib
+import os
 from os.path import abspath
 from solipsis.services.profile.data import PeerDescriptor
 from solipsis.services.profile.document import CacheDocument, FileDocument
 from solipsis.services.profile.view import HtmlView
+from solipsis.services.profile.tests import PROFILE_DIRECTORY, PROFILE_TEST
+from solipsis.services.profile import images_dir
 
 TEMPLATE = """<html>
 <head>
@@ -47,22 +50,8 @@ TEMPLATE = """<html>
     <span>%s</span>
   </div>
   <div id="email">%s</div>
-  <div>
-    <span>%s</span>
-    <span>%s</span>
-  </div>
-  <div>       
-    <span>%s</span>
-    <span>%s</span>
-    <span>%s</span>
-    <span>%s</span>
-  </div>
-  <div id="description">%s</div>
 
   <h2 class="header">Special Interests</h2>
-  <div>
-    %s 
-  </div>
   <div>
     %s
   </div>
@@ -85,7 +74,7 @@ class HtmlTest(unittest.TestCase):
 
     def setUp(self):
         """override one in unittest.TestCase"""
-        self.document = CacheDocument()
+        self.document = CacheDocument(PROFILE_TEST, PROFILE_DIRECTORY)
         self.view = HtmlView(self.document)
 
     def assert_template(self):
@@ -105,26 +94,14 @@ class HtmlTest(unittest.TestCase):
     def print_template(self):
         """fill template with values"""
         return TEMPLATE % (self.document.get_photo(),
-                           self.document.get_pseudo(),
+                           self.document._id,
                            self.document.get_title(),
                            self.document.get_firstname(),
                            self.document.get_lastname(),
                            self.document.get_email(),
-                           self.document.get_birthday(),
-                           self.document.get_language(),
-                           self.document.get_address(),
-                           self.document.get_postcode(),
-                           self.document.get_city(),
-                           self.document.get_country(),
-                           self.document.get_description(),
-                           self.print_hobbies(),
                            self.print_custom(),
                            self.print_files(),
                            self.print_peers())
-
-    def print_hobbies(self):
-        html = [" <span>%s</span> |"% item for item in self.document.get_hobbies()] or ""
-        return ''.join(html)
 
     def print_custom(self):
         html = ["<div><b>%s</b>: <span>%s</span></div>"% (key, value)
@@ -156,7 +133,7 @@ class HtmlTest(unittest.TestCase):
       <td>%s</td>
       <td>%s</td>
     </tr>"""% (peers_desc.state,
-               doc and doc.get_pseudo() or "--",
+               doc and doc._id or "--",
                peers_desc.peer_id))
         return ''.join(html)
         
@@ -167,23 +144,11 @@ class HtmlTest(unittest.TestCase):
         self.document.set_title(u"Mr")
         self.document.set_firstname(u"Bruce")
         self.document.set_lastname(u"Willis")
-        self.document.set_pseudo(u"john")
-        self.document.set_photo(u"/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/profile_male.gif")
+        self.document.set_photo(os.sep.join([images_dir(), u"profile_male.gif"]))
         self.document.set_email(u"bruce.willis@stars.com")
-        self.document.set_birthday(u"1/6/1947")
-        self.document.set_language(u"English")
-        self.document.set_address(u"Hill")
-        self.document.set_postcode(u"920")
-        self.document.set_city(u"Los Angeles")
-        self.document.set_country(u"US")
-        self.document.set_description(u"Lots of movies, quite famous, doesn't look much but very effective")
         self.assert_template()
        
     # CUSTOM TAB
-    def test_hobbies(self):
-        self.document.set_hobbies([u"cinema", u"theatre", u"cop", u"action"])
-        self.assert_template()
-        
     def test_custom(self):
         self.document.add_custom_attributes([u"zic", u"jazz"])
         self.document.add_custom_attributes([u"cinema", u"Die Hard"])
@@ -210,7 +175,7 @@ class HtmlTest(unittest.TestCase):
         self.assert_template()
         
     def test_filling_data(self):
-        self.document.fill_data((u"emb", FileDocument()))
+        self.document.fill_data((u"emb", FileDocument(PROFILE_TEST, PROFILE_DIRECTORY)))
         self.assert_template()
     
     def test_peers_status(self):

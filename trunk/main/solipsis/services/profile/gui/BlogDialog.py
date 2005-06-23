@@ -83,15 +83,16 @@ class BlogDialog(wx.Dialog, UIProxyReceiver):
 
     def Show(self, blog, do_show=True):
         """overrides Show"""
-        self.peerblog_list.blog = blog
+        if do_show:
+            self.peerblog_list.blog = blog
+            self.peerblog_list.refresh()
         wx.Dialog.Show(self, do_show)
-        self.peerblog_list.refresh()
 
     def SetTitle(self, peer_desc=None):
         if isinstance(peer_desc, unicode) or isinstance(peer_desc, str):
             wx.Dialog.SetTitle(self, peer_desc)
             return
-        if peer_desc:
+        if peer_desc and peer_desc.document:
             self.peer_id = peer_desc.peer_id
             pseudo = peer_desc.document.get_pseudo()
         else:
@@ -119,7 +120,7 @@ class BlogDialog(wx.Dialog, UIProxyReceiver):
     def __set_properties(self):
         # begin wxGlade: BlogDialog.__set_properties
         self.SetTitle(_("Peer's Blog"))
-        self.SetMinSize((460, 410))
+        self.SetSize((460, 410))
         self.add_comment_button.SetSize(self.add_comment_button.GetBestSize())
         self.del_comment_button.SetSize(self.del_comment_button.GetBestSize())
         self.upload_button.SetSize(self.upload_button.GetBestSize())

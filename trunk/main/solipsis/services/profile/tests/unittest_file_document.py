@@ -9,26 +9,26 @@ from pprint import pprint
 from os.path import abspath
 from difflib import Differ
 from StringIO import StringIO
+from solipsis.services.profile import QUESTION_MARK
 from solipsis.services.profile.data import PeerDescriptor, load_blogs
 from solipsis.services.profile.document import FileDocument, CacheDocument
 from solipsis.services.profile.view import PrintView, HtmlView
-from solipsis.services.profile.data import DirContainer
+from solipsis.services.profile.data import DirContainer, Blogs
 from solipsis.services.profile import ENCODING, PROFILE_DIR
+from solipsis.services.profile.tests import REPO, \
+     PROFILE_DIRECTORY, PROFILE_TEST, PROFILE_BRUCE, PROFILE_TATA
 
-TEST_PROFILE = u"data/profiles/test"
-BRUCE_PROFILE = u"data/profiles/bruce"
-REPO = u"/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests"
 
 class FileTest(unittest.TestCase):
     """test that all fields are correctly validated"""
 
     def setUp(self):
         """override one in unittest.TestCase"""
-        self.document = FileDocument()
+        self.document = FileDocument(PROFILE_TEST, PROFILE_DIRECTORY)
         self.document.add_repository(REPO)
         # first test to call must write test file to get correct
         # execution of the others
-        if not os.path.exists(TEST_PROFILE):
+        if not os.path.exists(os.path.join(PROFILE_DIRECTORY, PROFILE_TEST)):
             self.test_save()
 
     def _assertContent(self, doc):
@@ -36,18 +36,11 @@ class FileTest(unittest.TestCase):
         self.assertEquals("Mr", doc.get_title())
         self.assertEquals("manu", doc.get_firstname())
         self.assertEquals("breton", doc.get_lastname())
-        self.assertEquals("emb", doc.get_pseudo())
-        self.assertEquals(unicode(unittest.__file__, ENCODING), doc.get_photo())
+        self.assertEquals(QUESTION_MARK(), doc.get_photo())
         self.assertEquals("manu@ft.com", doc.get_email())
-        self.assertEquals("12/01/2005", doc.get_birthday())
-        self.assertEquals("fr", doc.get_language())
-        self.assertEquals("12 rue V Hugo", doc.get_address())
-        self.assertEquals("34000", doc.get_postcode())
-        self.assertEquals("Paris", doc.get_city())
-        self.assertEquals("France", doc.get_country())
-        self.assertEquals("anything", doc.get_description())
-        self.assertEquals([u'blabla', u'bla bla bla', u''], doc.get_hobbies())
-        self.assertEquals({'color': u'blue', 'homepage': u'manu.com'},
+        self.assertEquals({'City': u'', 'color': u'blue', 'Country': u'',
+                           'Favourite Book': u'', 'homepage': u'manu.com',
+                           'Favourite Movie': u'', 'Sport': u'', 'Studies': u''},
                           doc.get_custom_attributes())
         # assert correct sharing
         shared_dict = {}
@@ -77,25 +70,23 @@ class FileTest(unittest.TestCase):
         peers = doc.get_peers()
         self.assertEquals(peers.has_key(u'bruce'), True)
         self.assertEquals(peers[u'bruce'].state, PeerDescriptor.FRIEND)
-        self.assertEquals(peers[u'bruce'].document.get_pseudo(), u"john")
         self.assertEquals(peers[u'bruce'].connected, False)
 
     # PERSONAL TAB
     def test_save(self):
+        # write bruce blog
+        try:
+            bruce_blog = load_blogs(PROFILE_BRUCE, PROFILE_DIRECTORY)
+        except ValueError:
+            bruce_blog = Blogs(PROFILE_BRUCE, PROFILE_DIRECTORY, pseudo=PROFILE_BRUCE)
+            bruce_blog.add_blog("Hi Buddy", PROFILE_BRUCE)
+            bruce_blog.save()
+        # write data
         self.document.set_title(u"Mr")
         self.document.set_firstname(u"manu")
         self.document.set_lastname(u"breton")
-        self.document.set_pseudo(u"emb")
-        self.document.set_photo(unicode(unittest.__file__, ENCODING))
+        self.document.set_photo(QUESTION_MARK())
         self.document.set_email(u"manu@ft.com")
-        self.document.set_birthday(u"12/01/2005")
-        self.document.set_language(u"fr")
-        self.document.set_address(u"12 rue V Hugo")
-        self.document.set_postcode(u"34000")
-        self.document.set_city(u"Paris")
-        self.document.set_country(u"France")
-        self.document.set_description(u"anything")
-        self.document.set_hobbies([u"blabla", u"bla bla bla", u""])
         self.document.add_custom_attributes((u"homepage", u"manu.com"))
         self.document.add_custom_attributes((u'color', u'blue'))
         # set files
@@ -107,38 +98,40 @@ class FileTest(unittest.TestCase):
         self.document.tag_files((abspath(u"data"), ["date.txt"], u"tagos"))
         self.document.tag_files((abspath(u"data/subdir1/subsubdir"), ["null", "dummy.txt"], u"empty"))
         # set peers
-        bruce_doc = FileDocument()
-        bruce_doc.load(BRUCE_PROFILE)
+        bruce_doc = FileDocument(PROFILE_BRUCE, PROFILE_DIRECTORY)
+        bruce_doc.load()
         self.document.make_friend(u"bruce")
         self.document.fill_data((u"bruce", bruce_doc))
-        self.document.fill_blog((u"bruce", load_blogs(BRUCE_PROFILE)))
+        self.document.fill_blog((u"bruce", load_blogs(PROFILE_BRUCE, PROFILE_DIRECTORY)))
         # write file
-        self.document.save(TEST_PROFILE)
+        self.document.save()
         # check content
         self._assertContent(self.document)
 
     def test_load(self):
-        self.document.load(TEST_PROFILE)
+        self.document.load()
         self._assertContent(self.document)
 
     def test_import(self):
-        self.document.load(TEST_PROFILE)
-        new_doc = CacheDocument()
+        self.document.load()
+        new_doc = CacheDocument(PROFILE_TEST, PROFILE_DIRECTORY)
         new_doc.import_document(self.document)
         self._assertContent(new_doc)
 
     def test_save_and_load(self):
-        self.document.load(TEST_PROFILE)
+        self.document.load()
         self.document.share_file((REPO+"/data/subdir1/TOtO.txt", True))
-        self.document.save("data/profiles/tata")
-        new_doc = FileDocument()
-        new_doc.load("data/profiles/tata")
+        sav_doc = FileDocument(PROFILE_TATA, PROFILE_DIRECTORY)
+        sav_doc.import_document(self.document)
+        sav_doc.save()
+        new_doc = FileDocument(PROFILE_TATA, PROFILE_DIRECTORY)
+        new_doc.load()
         container = new_doc.get_container(REPO+u"/data/subdir1")
         self.assert_(dict.has_key(container, "TOtO.txt"))
 
     def test_load_and_save(self):
-        self.document.load(TEST_PROFILE)
-        new_doc = CacheDocument()
+        self.document.load()
+        new_doc = CacheDocument(PROFILE_TATA, PROFILE_DIRECTORY)
         new_doc.import_document(self.document)
         new_doc.remove_repository(REPO)
         self.assertEquals(new_doc.get_files(), {})
@@ -146,26 +139,24 @@ class FileTest(unittest.TestCase):
         new_doc.add_repository(REPO+u"/data/subdir1")
         self.assertEquals(new_doc.get_files()[REPO+u"/data/profiles"]._shared, False)
         self.assert_(new_doc.get_files()[REPO+u"/data/subdir1"] != None)
-        new_doc.save("data/profiles/toto")
+        new_doc.save()
+        check_doc = FileDocument(PROFILE_TATA, PROFILE_DIRECTORY)
+        check_doc.load()
+        self.assertEquals(check_doc.get_files()[REPO+u"/data/profiles"]._shared, False)
+        self.assert_(check_doc.get_files()[REPO+u"/data/subdir1"] != None)
+        
         
     def test_default(self):
-        document = FileDocument()
+        document = FileDocument(PROFILE_TEST, PROFILE_DIRECTORY)
         self.assertEquals(u"Mr", document.get_title())
         self.assertEquals(u"Emmanuel", document.get_firstname())
         self.assertEquals(u"Breton", document.get_lastname())
-        self.assertEquals(u"emb", document.get_pseudo())
         self.assertEquals(u'/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/question_mark.gif',
                           document.get_photo())
         self.assertEquals(u"emb@logilab.fr", document.get_email())
-        self.assertEquals(u"01/04/2005", document.get_birthday())
-        self.assertEquals(u"fr", document.get_language())
-        self.assertEquals(u"", document.get_address())
-        self.assertEquals(u"75", document.get_postcode())
-        self.assertEquals(u"", document.get_city())
-        self.assertEquals(u"", document.get_country())
-        self.assertEquals(u"Developer/Designer of this handful plugin", document.get_description())
-        self.assertEquals([], document.get_hobbies())
-        self.assertEquals({},
+        self.assertEquals({'City': u'', 'Country': u'',
+                           'Favourite Book': u'', 'Favourite Movie': u'',
+                           'Sport': u'', 'Studies': u''},
                           document.get_custom_attributes())
         # assert correct sharing
         self.assertEquals([], document.get_shared(REPO))
@@ -174,28 +165,19 @@ class FileTest(unittest.TestCase):
         self.assertEquals({}, document.get_peers())
         
     def test_view(self):
-        self.document.load(TEST_PROFILE)
+        self.document.load()
         result = StringIO()
         view = PrintView(self.document, result, do_import=True)
         self.assertEquals(result.getvalue(), """Mr
 manu
 breton
-emb
-/usr/lib/python2.3/unittest.pyc
+%s
 manu@ft.com
-12/01/2005
-fr
-12 rue V Hugo
-34000
-Paris
-France
-anything
 /home/emb/.solipsis/download
-[u'blabla', u'bla bla bla', u'']
-{'color': u'blue', 'homepage': u'manu.com'}
+{'City': u'', 'Studies': u'', 'color': u'blue', 'Country': u'', 'Favourite Book': u'', 'Favourite Movie': u'', 'Sport': u'', 'homepage': u'manu.com'}
 {u'/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests': {Dc:tests(?-,'none',#0) : [{Dc:data(?-,'none',#3) : [{Dc:emptydir(?Y,'none',#-1) : []}, Fc:routage(?Y,'none'), Fc:date.txt(?-,'tagos'), {Dc:subdir1(?Y,'none',#-1) : [{Dc:subsubdir(?-,'none',#2) : [Fc:null(?Y,'empty'), Fc:dummy.txt(?Y,'empty')]}]}]}]}}
 {u'bruce': bruce (%s)}
-"""% PeerDescriptor.FRIEND)
+"""% (QUESTION_MARK(), PeerDescriptor.FRIEND))
         result.close()
         
 if __name__ == '__main__':

@@ -13,6 +13,8 @@ from solipsis.services.profile.view import HtmlView
 class ProfileDialog(wx.Dialog, UIProxyReceiver):
     def __init__(self, parent, id, plugin=None, **kwds):
         UIProxyReceiver.__init__(self)
+        self.facade = None
+        self.plugin = plugin
         args = (parent, id)
         # begin wxGlade: ProfileDialog.__init__
         kwds["style"] = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.THICK_FRAME
@@ -23,22 +25,17 @@ class ProfileDialog(wx.Dialog, UIProxyReceiver):
         self.__do_layout()
         # end wxGlade
 
-        self.plugin = plugin
-        self.peer_id = _("Anonymous")
-
-    def Show(self, peer_desc, do_show=True):
-        """overrides Show"""
-        self.peer_id = peer_desc.peer_id
-        pseudo = peer_desc.document.get_pseudo()
-        self.SetTitle("%s's %s"% (pseudo, _("Profile")))
-        view = HtmlView(peer_desc.document)
-        self.profile_window.SetPage(view.get_view(True))
-        wx.Dialog.Show(self, do_show)
-
+    def set_facade(self, facade, auto_refresh):
+        self.facade = facade
+        view = HtmlView(self.facade.get_document(),
+                        html_window=self.profile_window,
+                        auto_refresh=auto_refresh)
+        self.facade.add_view(view)
+    
     def __set_properties(self):
         # begin wxGlade: ProfileDialog.__set_properties
         self.SetTitle(_("Profile"))
-        self.SetMinSize((460, 410))
+        self.SetSize((460, 410))
         # end wxGlade
 
     def __do_layout(self):

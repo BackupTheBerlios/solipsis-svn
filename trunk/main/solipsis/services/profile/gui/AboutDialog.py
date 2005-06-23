@@ -18,8 +18,6 @@ class AboutDialog(wx.Dialog):
         kwds["style"] = wx.DEFAULT_DIALOG_STYLE|wx.STAY_ON_TOP
         wx.Dialog.__init__(self, *args, **kwds)
         self.tore_pic = wx.StaticBitmap(self, -1, wx.Bitmap(TORE_IMG(), wx.BITMAP_TYPE_ANY), style=wx.SIMPLE_BORDER)
-        self.title_lbl = wx.StaticText(self, -1, _("Solipsis Profile"), style=wx.ALIGN_CENTRE)
-        self.version_lbl = wx.StaticText(self, -1, "", style=wx.ALIGN_CENTRE)
         self.disclaimer_lbl = wx.TextCtrl(self, -1, _("Disclaimer"), style=wx.TE_MULTILINE|wx.TE_READONLY|wx.TE_CENTRE|wx.TE_LINEWRAP|wx.TE_WORDWRAP|wx.NO_BORDER)
         self.separator = wx.StaticLine(self, -1)
         self.display_check = wx.CheckBox(self, -1, _("Display at startup"))
@@ -48,15 +46,14 @@ class AboutDialog(wx.Dialog):
     def __set_properties(self):
         # begin wxGlade: AboutDialog.__set_properties
         self.SetTitle(_("About Profile"))
-        self.SetMinSize((300, 300))
-        self.tore_pic.SetMinSize((1, 1))
+        self.SetSize((300, 300))
+        self.tore_pic.SetMinSize((300, 156))
         self.disclaimer_lbl.SetBackgroundColour(wx.Colour(226, 226, 226))
         self.disclaimer_lbl.Enable(False)
         self.display_check.SetValue(1)
         # end wxGlade
-        self.SetSize((300, 300))
+        self.SetTitle("%s %s"% (_("Solipsis Profile"), VERSION))
         self.display_check.SetValue(self.display)
-        self.title_lbl.SetLabel("Solipsis Profile v.%s"% VERSION)
         self.disclaimer_lbl.SetValue(DISCLAIMER)
 
     def __do_layout(self):
@@ -64,10 +61,8 @@ class AboutDialog(wx.Dialog):
         sizer_3 = wx.BoxSizer(wx.VERTICAL)
         sizer_5 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_3.Add(self.tore_pic, 0, wx.ALIGN_CENTER_HORIZONTAL, 0)
-        sizer_3.Add(self.title_lbl, 0, wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL, 0)
-        sizer_3.Add(self.version_lbl, 0, wx.EXPAND|wx.ALIGN_CENTER_HORIZONTAL, 0)
-        sizer_3.Add(self.disclaimer_lbl, 1, wx.EXPAND, 0)
-        sizer_3.Add(self.separator, 1, wx.EXPAND, 0)
+        sizer_3.Add(self.disclaimer_lbl, 1, wx.ALL|wx.EXPAND, 5)
+        sizer_3.Add(self.separator, 0, wx.EXPAND, 0)
         sizer_5.Add(self.display_check, 1, wx.EXPAND|wx.ADJUST_MINSIZE, 0)
         sizer_5.Add(self.button_1, 0, wx.ALL|wx.ALIGN_RIGHT, 5)
         sizer_3.Add(sizer_5, 0, wx.EXPAND, 0)

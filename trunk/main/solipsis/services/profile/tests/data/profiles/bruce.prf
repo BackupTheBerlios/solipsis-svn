@@ -1,26 +1,25 @@
 #ISO-8859-1
 
 [Personal]
-city = Los Angeles
-language = English
 firstname = Bruce
 title = Mr
-photo = /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/profile_male.gif
-pseudo = john
-birthday = 1/6/1947
-postcode = 920
 lastname = Willis
-address = Hill
-country = US
+download_repo = /home/emb/.solipsis/download
+repositories = 
+photo = /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/profile_male.gif
 email = bruce.willis@stars.com
-description = Lots of movies, quite famous, doesn't look much but very effective
+
+[Files]
 
 [Custom]
+City = 
+Country = 
+Favourite Book = 
 music = jazz
+Favourite Movie = 
+Sport = 
+Studies = 
 film = Die Hard
-hobbies = cinema,theatre,cop,action
-
-[File]
 
 [Others]
 

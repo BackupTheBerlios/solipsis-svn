@@ -3,26 +3,25 @@ gathared in views.py. Documents are to be seen as completely
 independant from views"""
 
 import unittest
-import time
 from ConfigParser import ConfigParser
 from os.path import abspath
+
 from solipsis.services.profile.document import CustomConfigParser, \
       AbstractDocument, CacheDocument, FileDocument
 from solipsis.services.profile.data import DEFAULT_TAG, PeerDescriptor
+from solipsis.services.profile.tests import PROFILE_DIRECTORY, PROFILE_TEST, REPO
 from solipsis.services.profile import ENCODING
-
-TEST_PROFILE = "data/profiles/test"
-REPO = u"/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests"
 
 class DocumentTest(unittest.TestCase):
     """test that all fields are correctly validated"""
 
     def setUp(self):
         """override one in unittest.TestCase"""
-        self.documents = [CacheDocument(), FileDocument()]
+        self.documents = [CacheDocument(PROFILE_TEST, PROFILE_DIRECTORY),
+                          FileDocument(PROFILE_TEST, PROFILE_DIRECTORY)]
         for document in self.documents:
             document.add_repository(REPO)
-        self.abstract_doc = AbstractDocument()
+        self.abstract_doc = AbstractDocument(PROFILE_TEST, PROFILE_DIRECTORY)
         self.abstract_doc.add_repository(REPO)
 
     def test_config_parser(self):
@@ -68,14 +67,6 @@ class DocumentTest(unittest.TestCase):
             self.assertRaises(TypeError, document.set_lastname, [u"breton", ])
             document.set_lastname(u"breton")
     
-    def test_pseudo(self):
-        """pseudo as unicode"""
-        self.assertRaises(NotImplementedError, self.abstract_doc.get_pseudo)
-        for document in self.documents:
-            self.assertRaises(TypeError, document.set_pseudo, "emb")
-            self.assertRaises(TypeError, document.set_pseudo, [u"manu", u"emb"])
-            document.set_pseudo(u"emb")
-    
     def test_photo(self):
         """photo as unicode"""
         self.assertRaises(NotImplementedError, self.abstract_doc.get_photo)
@@ -91,94 +82,14 @@ class DocumentTest(unittest.TestCase):
             self.assertRaises(TypeError, document.set_email, [u"manu@ft", ])
             document.set_email(u"manu@ft.com")
         
-    def test_birthday(self):
-        """birthday as datetime"""
-        self.assertRaises(NotImplementedError, self.abstract_doc.get_birthday)
-        for document in self.documents:
-            document.set_birthday(u"12/01/2005")
-            birthday = document.get_birthday()
-            document.set_birthday("12 jan 2005")
-            self.assertEquals(document.get_birthday(), birthday)
-            document.set_birthday("2005/01/12")
-            self.assertEquals(document.get_birthday(), birthday)
-            document.set_birthday("12-01-2005")
-            self.assertEquals(document.get_birthday(), birthday)
-            document.set_birthday("12012005")
-            self.assertEquals(document.get_birthday(), birthday)
-            document.set_birthday("12/01")
-            self.assertEquals(document.get_birthday(), birthday)
-            
-    def test_language(self):
-        """language as unicode"""
-        self.assertRaises(NotImplementedError, self.abstract_doc.get_language)
-        for document in self.documents:
-            self.assertRaises(TypeError, document.set_language, "fr")
-            self.assertRaises(TypeError, document.set_language, [u"fr", u"sp"])
-            document.set_language(u"fr")
-        
-    def test_address(self):
-        """address as unicode"""
-        self.assertRaises(NotImplementedError, self.abstract_doc.get_address)
-        for document in self.documents:
-            self.assertRaises(TypeError, document.set_address, "12 rue V Hugo")
-            self.assertRaises(TypeError, document.set_address, [u"12",
-                                                                u"rue V Hugo"])
-            document.set_address(u"12 rue V Hugo")
-        
-    def test_postcode(self):
-        """postcode as int convertable"""
-        self.assertRaises(NotImplementedError, self.abstract_doc.get_postcode)
-        for document in self.documents:
-            self.assertRaises(TypeError, document.set_postcode, "34.000")
-            self.assertRaises(TypeError, document.set_postcode, "34 000")
-            self.assertRaises(TypeError, document.set_postcode, "Herault")
-            self.assertRaises(TypeError, document.set_birthday, ["34", ])
-            document.set_postcode(u"34000")
-            document.set_postcode("34000")
-        
-    def test_city(self):
-        """city as unicode"""
-        self.assertRaises(NotImplementedError, self.abstract_doc.get_city)
-        for document in self.documents:
-            self.assertRaises(TypeError, document.set_city, "Paris")
-            self.assertRaises(TypeError, document.set_city, [u"Paris", ])
-            document.set_city(u"Paris")
-        
-    def test_country(self):
-        """country as unicode"""
-        self.assertRaises(NotImplementedError, self.abstract_doc.get_country)
-        for document in self.documents:
-            self.assertRaises(TypeError, document.set_country, "France")
-            self.assertRaises(TypeError, document.set_country, [u"France", ])
-            document.set_country(u"France")
-        
-    def test_description(self):
-        """description as unicode"""
-        self.assertRaises(NotImplementedError, self.abstract_doc.get_description)
-        for document in self.documents:
-            self.assertRaises(TypeError, document.set_description, "anything")
-            self.assertRaises(TypeError, document.set_description, [u"anything", ])
-            document.set_description(u"anything")
-        
     def test_download_repo(self):
         """download_repo as unicode"""
         self.assertRaises(NotImplementedError, self.abstract_doc.get_download_repo)
         for document in self.documents:
             self.assertRaises(TypeError, document.set_download_repo, "anything")
             self.assertRaises(TypeError, document.set_download_repo, [u"anything", ])
-            document.set_description(u"anything")
         
     # CUSTOM TAB
-    def test_hobbies(self):
-        """hobbies as unicode (multiple lines)"""
-        self.assertRaises(NotImplementedError, self.abstract_doc.get_hobbies)
-        for document in self.documents:
-            self.assertRaises(TypeError, document.set_hobbies,
-                              "blabla\nbla bla bla\n")
-            self.assertRaises(TypeError, document.set_hobbies,
-                              u"blabla\nbla bla bla\n")
-            document.set_hobbies([u"blabla", u"bla bla bla", u""])
-        
     def test_custom_attributes(self):
         """custom_attributes as pair of key/unicode-value"""
         self.assertRaises(NotImplementedError, self.abstract_doc.get_custom_attributes)
@@ -290,7 +201,7 @@ class DocumentTest(unittest.TestCase):
                 abspath(u"data/profiles/.svn"))._tag, u"first")
 
     def test_get_shared_files(self):
-        document = CacheDocument()
+        document = CacheDocument(PROFILE_TEST, PROFILE_DIRECTORY)
         document.add_repository(REPO)
         document.add((abspath(u"data")))
         document.share_file((abspath(u"data"), True))
@@ -313,7 +224,7 @@ class DocumentTest(unittest.TestCase):
 
     def test_multiple_repos(self):
         """coherency when several repos in use"""
-        document = CacheDocument()
+        document = CacheDocument(PROFILE_TEST, PROFILE_DIRECTORY)
         # create 2 repos
         document.add_repository(REPO + "/data/profiles")
         document.tag_files((REPO + "/data/profiles", ["bruce.prf", ".svn"], u"first"))
@@ -381,8 +292,8 @@ class DocumentTest(unittest.TestCase):
             self.assertRaises(TypeError, document.fill_data,
                               (u"pseudo", u"tag description"))
             self.assertEquals(document.has_peer(u"emb"), False)
-            file_doc = FileDocument()
-            file_doc.load(TEST_PROFILE)
+            file_doc = FileDocument(PROFILE_TEST, PROFILE_DIRECTORY)
+            file_doc.load()
             document.fill_data((u"emb", file_doc))
     
     def test_peers_status(self):

@@ -6,7 +6,6 @@ import sys
 import os.path
 from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxyReceiver
-from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile import DOWNLOAD, DOWNLOAD_DIR, DOWNLOAD_REPO
 
 # begin wxGlade: dependencies
@@ -19,9 +18,8 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
         self.plugin = plugin
         self.peer_id = _("Anonymous")
         self.download_repo = DOWNLOAD_REPO
-        self.facade = get_facade()
+        self.facade = None
         args = (parent, id)
-        
         # begin wxGlade: FileDialog.__init__
         kwds["style"] = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.THICK_FRAME
         wx.Dialog.__init__(self, *args, **kwds)
@@ -49,7 +47,7 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
         """add shared directory to list"""
         # pop up to choose repository
         dlg = wx.DirDialog(self, message=_("Choose location to download files into"),
-                           defaultPath = self.facade.get_document("cache").get_download_repo(),
+                           defaultPath = self.facade.get_document().get_download_repo(),
                            style=wx.DD_DEFAULT_STYLE|wx.DD_NEW_DIR_BUTTON)
         if dlg.ShowModal() == wx.ID_OK:
             # path chosen
@@ -72,7 +70,9 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
     def refresh(self, files=None):
         """overrides Show, files is {repos: [FileDescriptors], }"""
         if files is None:
-            files = self.facade.get_document("cache").get_shared_files()
+            if self.facade is None:
+                return
+            files = self.facade.get_document().get_shared_files()
         self.peerfiles_list.DeleteAllItems()
         if len(files) > 0:
             # reformat data
@@ -104,7 +104,7 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
         if isinstance(peer_desc, unicode) or isinstance(peer_desc, str):
             wx.Dialog.SetTitle(self, peer_desc)
             return
-        if peer_desc:
+        if peer_desc and peer_desc.document:
             self.peer_id = peer_desc.peer_id
             pseudo = peer_desc.document.get_pseudo()
         else:
@@ -118,17 +118,19 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
         self.download_repo = value
         self.repo_button.SetToolTipString(self.download_repo)
         self.SetTitle()
+
+    def set_facade(self, facade):
+        self.facade = facade
         
     def __set_properties(self):
         # begin wxGlade: FileDialog.__set_properties
         self.SetTitle(_("Chose Files"))
-        self.SetMinSize((460, 410))
+        self.SetSize((460, 410))
         self.repo_button.SetToolTipString(_("Dowload repository"))
         self.repo_button.SetSize(self.repo_button.GetBestSize())
         self.download_button.SetToolTipString(_("Download selected files"))
         self.download_button.SetSize(self.download_button.GetBestSize())
         # end wxGlade
-        
         if not self.plugin:
             self.download_button.Enable(False)
 

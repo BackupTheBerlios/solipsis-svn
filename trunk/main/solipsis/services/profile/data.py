@@ -21,13 +21,9 @@
 import os, os.path
 import pickle
 import time
-import sys
-import solipsis
 
 from solipsis.services.profile import ENCODING, PROFILE_DIR, \
-     PROFILE_FILE, BLOG_EXT, BULB_ON_IMG, BULB_OFF_IMG
-
-#TODO utiliser unicode pour les chemins de l'arborescence
+     BLOG_EXT, BULB_ON_IMG, BULB_OFF_IMG, VERSION
 
 DEFAULT_TAG = u"none"
 SHARING_ALL = -1
@@ -42,32 +38,129 @@ def assert_dir(path):
     assert os.path.isdir(path), \
            "[%s] not a valid directory"% path.encode(ENCODING)
     
+# PEERS
+#######
+
+class PeerDescriptor:
+    """contains information relative to peer"""
+
+    ANONYMOUS = 'Anonym'
+    FRIEND = 'Friend'
+    BLACKLISTED = 'Blacklisted'
+    COLORS = {ANONYMOUS: 'black',
+              FRIEND:'blue',
+              BLACKLISTED:'red'}
+    
+    def __init__(self, peer_id, document=None, blog=None,
+                 pseudo=None, state=ANONYMOUS, connected=False):
+        # status
+        self.peer_id = peer_id
+        self.state = state
+        self.connected = connected
+        # data
+        from solipsis.services.profile.document import CacheDocument
+        self.document = document or CacheDocument(peer_id)
+        self.blog = blog or Blogs(peer_id, pseudo=pseudo)
+        self.shared_files = None
+
+    def __repr__(self):
+        return "%s (%s)"% (self.peer_id, self.state)
+
+    def get_id(self):
+        """retrun id filled in document or id if no document"""
+        return self.peer_id
+
+    def get_pseudo(self):
+        """retrun pseudo filled in document or id if no document"""
+        return self.blog.pseudo
+
+    def copy(self):
+        """return copied instance of PeerDescriptor.
+
+        Beware: shallow copy for document. deep for others members"""
+        return PeerDescriptor(self.peer_id,
+                              self.document.copy(),
+                              self.blog.copy(),
+                              self.get_pseudo(),
+                              self.state,
+                              self.connected)
+
+    def load(self):
+        """load both document & blog"""
+        self.document.load()
+        self.set_blog(load_blogs(self.peer_id))
+
+    def save(self):
+        """save both document & blog"""
+        self.document.save()
+        self.blog.save()
+
+    def set_connected(self, enable):
+        """change user's connected status"""
+        self.connected = enable
+
+    def set_blog(self, blog):
+        """blog is instance Blogs"""
+        self.blog = blog
+
+    def set_document(self, document):
+        """set member of type AbstractDocument"""
+        self.document = document
+
+    def set_shared_files(self, files):
+        """blog is instance Blogs"""
+        self.shared_files = files
+        
+    def html(self):
+        """render peer in HTML"""
+        return "<img src='%s'/><font color=%s>%s</font>"\
+               % (self.connected and BULB_ON_IMG() or BULB_OFF_IMG(),
+                  PeerDescriptor.COLORS[self.state],
+                  self.get_pseudo())
+    
 # BLOGS
 #######
 
-def load_blogs(file_name=None):
+def load_blogs(peer_id, directory=PROFILE_DIR):
     """use pickle to loas blogs. file name given without extension
     (same model as profile"""
     # reformating name
-    if not file_name:
-        file_name =  os.path.join(PROFILE_DIR, PROFILE_FILE)
+    file_name =  os.path.join(directory, peer_id)
     file_name += BLOG_EXT
     # loading
     if os.path.exists(file_name):
         blog_file = open(file_name)
         blogs = pickle.load(blog_file)
         blog_file.close()
+        return retro_compatibility(blogs)
+    else:
+        raise ValueError("blog file %s not found"% file_name)
+
+def retro_compatibility(blogs):
+    """make sure that downloaded version is the good one"""
+    if not hasattr(blogs, "version"):
+        # v 0.1.0
+        blogs.pseudo = blogs.owner
+        blogs._id = blogs.owner
+        blogs._dir = PROFILE_DIR
+        return blogs.copy()
+    elif blogs.version == "0.2.0":
         return blogs
     else:
-        print "blog file %s not found"% file_name
-        return Blogs()
-
+        raise ValueError("blog format not recognized.")
+        
+    
 class Blogs:
     """container for all blogs, responsible for authentification"""
 
-    def __init__(self, owner=None):
-        self.owner = owner
+
+    def __init__(self, peer_id, directory=PROFILE_DIR, pseudo=None):
+        self.pseudo = pseudo or peer_id
+        self._id = peer_id
+        self._dir = directory
         self.blogs = []
+        # tag class to be enable retro-compatibility
+        self.version = VERSION
 
     def __str__(self):
         return str(self.blogs)
@@ -75,39 +168,30 @@ class Blogs:
     def __getitem__(self, index):
         return self.blogs[index]
 
-    def save(self, file_name):
+    def get_id(self):
+        """return file name of blog"""
+        return os.path.join(self._dir, self._id) + BLOG_EXT
+
+    def save(self):
         """use pickle to save to blog_file"""
-        # reformating name
-        if not file_name:
-            file_name =  os.path.join(PROFILE_DIR, PROFILE_FILE)
-        file_name += BLOG_EXT
         # saving
-        blog_file = open(file_name, 'w')
+        blog_file = open(self.get_id(), 'w')
         pickle.dump(self, file=blog_file, protocol=pickle.HIGHEST_PROTOCOL)
         blog_file.close()
 
     def copy(self):
         """return new instance of Blogs with same attributes"""
-        copied = Blogs(self.owner)
+        copied = Blogs(self._id, self._dir, self.pseudo)
         for index, blog in enumerate(self.blogs):
             copied.add_blog(blog.text, blog.author, blog.date)
             for comment in blog.comments:
                 copied.add_comment(index, comment.text, blog.author, blog.date)
         return copied
 
-    def set_owner(self, pseudo):
-        """owner is used to manage writing rights on blog"""
-        for blog in self.blogs:
-            for comment in blog.comments:
-                if comment.author == self.owner:
-                    comment.set_author(pseudo)
-            blog.set_author(pseudo)
-        self.owner = pseudo
-
     def add_blog(self, text, author, date=None):
         """store blog in cache as wx.HtmlListBox is virtual.
         return blog's id"""
-        if author != self.owner:
+        if author != self.pseudo:
             raise AssertionError("not authorized")
         else:
             self.blogs.append(Blog(text, author, date))
@@ -119,7 +203,7 @@ class Blogs:
 
     def remove_blog(self, index, pseudo):
         """delete blog"""
-        if pseudo != self.owner:
+        if pseudo != self.pseudo:
             raise AssertionError("not authorized")
         else:
             if index < len(self.blogs):
@@ -153,13 +237,13 @@ class Blog:
     def __repr__(self):
         return "%s (%d)"% (self.text, len(self.comments))
 
-    def set_author(self, author):
-        """set author of blog/comment"""
-        self.author = author
-
     def add_comment(self, text, pseudo, date=None):
         """add sub blog (comment) to blog"""
         self.comments.append(Blog(text, pseudo, date))
+
+    def count_blogs(self):
+        """return number of blogs"""
+        return len(self.comments)
         
     def html(self):
         """return html view of blog"""
@@ -180,73 +264,6 @@ class Blog:
         """return blog as main entry"""
         return "<p'>%s</p><p align='right'><cite>%s, %s</cite></p>"\
                % (self.text, self.author, self.date)
-    
-# PEERS
-#######
-
-class PeerDescriptor:
-    """contains information relative to peer of neighbourhood"""
-
-    ANONYMOUS = 'Anonym'
-    FRIEND = 'Friend'
-    BLACKLISTED = 'Blacklisted'
-    COLORS = {ANONYMOUS: 'black',
-              FRIEND:'blue',
-              BLACKLISTED:'red'}
-    
-    def __init__(self, peer_id, state=ANONYMOUS, connected=False, document=None, blog=None):
-        self.peer_id = peer_id
-        self.state = state
-        self.connected = connected
-        self.document = document
-        self.blog = blog
-        self.shared_files = None
-
-    def __repr__(self):
-        return "%s (%s)"% (self.peer_id, self.state)
-
-    def get_pseudo(self):
-        """retrun pseudo filled in document or id if no document"""
-        if self.document:
-            return self.document.get_pseudo()
-        else:
-            return self.peer_id
-
-    def copy(self):
-        """return copied instance of PeerDescriptor.
-
-        Beware: shallow copy for document. deep for others members"""
-        copied = PeerDescriptor(self.peer_id, self.state, self.connected)
-        copied_doc = self.document
-        copied_blog = self.blog and self.blog.copy() or None
-        copied_files = self.shared_files and self.shared_files.copy() or None
-        copied.set_document(copied_doc)
-        copied.set_blog(copied_blog)
-        copied.set_shared_files(copied_files)
-        return copied
-
-    def set_connected(self, enable):
-        """change user's connected status"""
-        self.connected = enable
-
-    def set_blog(self, blog):
-        """blog is instance Blogs"""
-        self.blog = blog
-
-    def set_document(self, document):
-        """set member of type AbstractDocument"""
-        self.document = document
-
-    def set_shared_files(self, files):
-        """blog is instance Blogs"""
-        self.shared_files = files
-        
-    def html(self):
-        """render peer in HTML"""
-        return "<img src='%s'/><font color=%s>%s</font>"\
-               % (self.connected and BULB_ON_IMG() or BULB_OFF_IMG(),
-                  PeerDescriptor.COLORS[self.state],
-                  self.document and self.document.get_pseudo() or "unknown")
         
 # FILES
 #######
@@ -261,9 +278,11 @@ class ContainerMixin:
     def __init__(self, path, share=False, tag=DEFAULT_TAG):
         if not isinstance(path, unicode):
             raise TypeError("path [%s] expected as unicode"% path)
+        self._tag = None
+        self._shared = None
+        self._data = None
         self.tag(tag)
         self.share(share)
-        self._data = None
         # init path
         self.path = ContainerMixin._validate(self, path)
         self.name = os.path.basename(self.path)

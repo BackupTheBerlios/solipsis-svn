@@ -34,7 +34,7 @@ from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile.network import NetworkManager
 from solipsis.services.profile.document import CacheDocument, FileDocument
 from solipsis.services.profile.view import GuiView, HtmlView, PrintView
-from solipsis.services.profile.gui.ProfileFrame import ProfileFrame
+from solipsis.services.profile.gui.EditorFrame import EditorFrame
 
       
 class Plugin(ServicePlugin):
@@ -52,20 +52,18 @@ class Plugin(ServicePlugin):
         # (this is where duplicated code starts to appear...)
         self.host = socket.gethostbyname(socket.gethostname())
         self.port = random.randrange(7000, 7100)
-        self.network = NetworkManager(self.host,  random.randrange(7100, 7200),
-                                      self.service_api, get_facade())
         # init facade. Views will be initialized in Enable
         # (views depend on graphical mode)
-        self.facade = get_facade()
-        self.profile_frame = None
-        self.node_id = None
+        self.network = None
+        self.facade = None
+        self.editor_frame = None
         # declare actions
-        self.MAIN_ACTION = {"Modify ...": self.show_profile,
+        self.MAIN_ACTION = {"Modify Profile...": self.modify_profile,
                             }
-        self.POINT_ACTIONS = {"Get profile...": self.get_profile,
-                              "Get blog...": self.get_blog_file,
-                              "Get files...": self.select_files,
-                              }
+        self.POINT_ACTIONS = {"View all...": self.show_profile,
+                              "View profile...": self.get_profile,
+                              "View blog...": self.get_blog_file,
+                              "Get files...": self.select_files,}
 
     # Service setup
 
@@ -75,9 +73,12 @@ class Plugin(ServicePlugin):
     def EnableBasic(self):
         """enable non graphic part"""
         set_solipsis_dir(self.service_api.GetDirectory())
-        # TODO: expose interface of facade to netClient
-        self.facade.load_profile(os.path.join(PROFILE_DIR, PROFILE_FILE))
+        pseudo = self.service_api.GetNode().pseudo
+        self.facade = get_facade(pseudo)
+        self.facade.load_profile()
         # launch network
+        self.network = NetworkManager(self.host,  random.randrange(7100, 7200),
+                                      self.service_api, get_facade())
         self.network.start_listening()
         
     def Enable(self):
@@ -87,20 +88,20 @@ class Plugin(ServicePlugin):
         e.g. opening sockets, collecting data from directories, etc.
         """
         set_solipsis_dir(self.service_api.GetDirectory())
+        pseudo = self.service_api.GetNode().pseudo
+        self.facade = get_facade(pseudo)
+        self.facade.load_profile()
         # init windows
         main_window = self.service_api.GetMainWindow()
+        # TODO: create dynamic option object (for standalone & display)
         options = {}
         options["standalone"] = False
-        # profile_frame created at once since linked to facade & thus
+        # editor_frame created at once since linked to facade & thus
         # needed for all actions (get_blog, get_files), even if not
         # displayed right at beginning
-        self.profile_frame = ProfileFrame(options, main_window, -1, "",
+        self.editor_frame = EditorFrame(options, main_window, -1, "",
                                           plugin=self)
-        self.node_id = self.service_api.GetNode().pseudo
         # create views & doc
-        self.facade.load_profile(
-            os.path.join(PROFILE_DIR, PROFILE_FILE), self.profile_frame)
-        self.facade.refresh_html_preview()
         # Set up main GUI hooks
         menu = wx.Menu()
         for action, method in self.MAIN_ACTION.iteritems():
@@ -112,6 +113,8 @@ class Plugin(ServicePlugin):
             wx.EVT_MENU(main_window, item_id, _clicked)
         self.service_api.SetMenu(self.GetTitle(), menu)
         # launch network
+        self.network = NetworkManager(self.host,  random.randrange(7100, 7200),
+                                      self.service_api, get_facade())
         self.network.start_listening()
     
     def Disable(self):
@@ -120,27 +123,15 @@ class Plugin(ServicePlugin):
         self.network.stop_listening()
 
     # Service methods
-    def show_profile(self):
+    def modify_profile(self):
         """display profile once loaded"""
-        if self.profile_frame:
-            self.profile_frame.Show()
-            self.profile_frame.blog_tab.on_update()
-
-    # Transfer methods
-    def _on_new_profile(self, document, peer_id):
-        """store and display file object corresponding to profile"""
-        print "downloaded profile", document.get_pseudo(), peer_id
-        self.facade.fill_data((peer_id, document))
-        if self.profile_frame:
-            self.profile_frame.display_profile(peer_id)
-    
-    def _on_new_blog(self, blog, peer_id):
-        """store and display file object corresponding to blog"""
-        self.facade.fill_blog((peer_id, blog))
-    
-    def _on_shared_files(self, files, peer_id):
-        """store and display file object corresponding to blog"""
-        self.facade.fill_shared_files((peer_id, files))
+        if self.editor_frame:
+            self.editor_frame.Show()
+            
+    def show_profile(self, peer_id):
+        """display profile once loaded"""
+        if self.viewer_frame:
+            self.viewer_frame.Show(peer_id)
 
     def get_profile(self, peer_id):
         """request downwload of profile"""
@@ -154,7 +145,7 @@ class Plugin(ServicePlugin):
 
     def get_files(self, peer_id, file_names):
         """request downwload of given files"""
-        deferred = self.network.get_files(peer_id, file_names)
+        deferred = self.network.get_files(peer_id, file_names, self._on_all_files)
         deferred and deferred.addCallback(
             lambda file_name: sys.stdout.write("%s downloaded\n"% file_name))
 
@@ -162,6 +153,36 @@ class Plugin(ServicePlugin):
         """request downwload of list of shared files"""
         deferred = self.network.get_shared_files(peer_id)
         deferred and deferred.addCallback(self._on_shared_files, peer_id)
+
+    # callbacks methods
+    def _on_new_profile(self, document, peer_id):
+        """store and display file object corresponding to profile"""
+        print "downloaded profile", document.get_pseudo(), peer_id
+        self.facade.fill_data((peer_id, document))
+        if self.editor_frame:
+            self.editor_frame.display_profile(peer_id)
+    
+    def _on_new_blog(self, blog, peer_id):
+        """store and display file object corresponding to blog"""
+        self.facade.fill_blog((peer_id, blog))
+    
+    def _on_shared_files(self, files, peer_id):
+        """store and display file object corresponding to blog"""
+        self.facade.fill_shared_files((peer_id, files))
+    
+    def _on_all_files(self):
+        """store and display file object corresponding to blog"""
+        if self.editor_frame:
+            def display_message():
+                dlg = wx.MessageDialog(self.service_api.GetMainWindow(),
+                                       'Download complete!',
+                                       'No more file to download',
+                                       wx.OK | wx.ICON_INFORMATION)
+                dlg.ShowModal()
+                dlg.Destroy()
+            wx.CallAfter(display_message)
+        else:
+            print 'No more file to download'
 
     # Service description methods
     def GetTitle(self):
@@ -194,7 +215,7 @@ class Plugin(ServicePlugin):
     # UI event responses
     def DoAction(self, it):
         """Called when the general action is invoked, if available."""
-        self.show_profile()
+        self.modify_profile()
 
     def DoPointToPointAction(self, it, peer):
         """Called when a point-to-point action is invoked, if available."""

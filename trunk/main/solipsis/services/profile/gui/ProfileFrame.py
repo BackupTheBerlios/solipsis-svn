@@ -183,7 +183,7 @@ class ProfileFrame(wx.Frame):
             style=wx.SAVE)
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            self.facade.save_profile(path)
+            self.facade.save_profile()
         
     def on_export(self, evt):
         """export .html"""
@@ -273,13 +273,13 @@ class ProfileFrame(wx.Frame):
     def display_profile(self, peer_id):
         """display blog in dedicated window"""
         # blog dialog
-        peer_desc = self.facade.get_document('cache').get_peer(peer_id)
+        peer_desc = self.facade.get_peer(peer_id)
         self.profile_dlg.Show(peer_desc)
         
     def display_blog(self, peer_id, blog):
         """display blog in dedicated window"""
         # blog dialog
-        peer_desc = self.facade.get_document('cache').get_peer(peer_id)
+        peer_desc = self.facade.get_peer(peer_id)
         self.peer_dlg.SetTitle(peer_desc)
         # display
         self.peer_dlg.Show(blog)
@@ -287,7 +287,7 @@ class ProfileFrame(wx.Frame):
     def display_files(self, peer_id, files):
         """display blog in dedicated window"""
         # file dialog
-        peer_desc = self.facade.get_document('cache').get_peer(peer_id)
+        peer_desc = self.facade.get_peer(peer_id)
         self.file_dlg.SetTitle(peer_desc)
         # display files {repos: {names:tags}, }
         self.file_dlg.Show(files=files)
@@ -304,7 +304,7 @@ class ProfileFrame(wx.Frame):
     def __set_properties(self):
         # begin wxGlade: ProfileFrame.__set_properties
         self.SetTitle(_("profile_frame"))
-        self.SetMinSize((460, 500))
+        self.SetSize((460, 500))
         self.profile_statusbar.SetStatusWidths([-1])
         # statusbar fields
         profile_statusbar_fields = [_("status")]

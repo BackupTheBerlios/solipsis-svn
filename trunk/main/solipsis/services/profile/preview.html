@@ -39,24 +39,8 @@
   <div id="email"
        tal:content="email">manu@logilab.fr
   </div>
-  <div>
-    <span tal:content="birthday">12/01/2005</span>
-    <span tal:content="language">(fr)</span>
-  </div>
-  <div>       
-    <span tal:content="address">12 r V Hugo</span>
-    <span tal:content="postcode">92</span>
-    <span tal:content="city">Suresnes</span>
-    <span tal:content="country">France</span>
-  </div>
-  <div id="description"
-       tal:content="description">Anything
-  </div>
 
   <h2 class="header">Special Interests</h2>
-  <div>
-     <div tal:repeat="hobby hobbies" tal:omit-tag=""><span tal:content="hobby">element</span> | </div>
-  </div>
   <div>
     <div tal:repeat="name attributes/keys" tal:omit-tag=""><div><b tal:content="name">name</b>: <span tal:content="python:attributes[name]">value</span></div></div>
   </div>
@@ -78,7 +62,7 @@
   <table>
     <tr tal:repeat="info ordered_peers">
       <td tal:content="python:info.state">state</td>
-      <td tal:content="python:info.document and info.document.get_pseudo() or '--'">pseudo</td>
+      <td tal:content="python:info.document and info.document._id or '--'">pseudo</td>
       <td tal:content="python:info.peer_id">node</td>
     </tr>
   </table>

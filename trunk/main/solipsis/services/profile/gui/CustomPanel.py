@@ -45,7 +45,6 @@ class CustomPanel(wx.Panel):
     def PopulateList(self):
         self.custom_list.InsertColumn(0, _("MetaData"))
         self.custom_list.InsertColumn(1, _("Custom value"))
-        
         self.custom_list.SetColumnWidth(0, wx.LIST_AUTOSIZE_USEHEADER)
         self.custom_list.SetColumnWidth(1, wx.LIST_AUTOSIZE_USEHEADER)
         
