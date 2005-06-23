@@ -428,12 +428,15 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.connection_trials = 5
         self._TryConnect()
 
-    def _MoveNode(self, (x, y), jump=False):
+    def _MoveNode(self, (x, y), jump=False, jump_near=False):
         """
         Move the node and update our world view.
         """
-        self.world.UpdateNodePosition(Position((x, y, 0)), jump=jump)
-        self.node_proxy.Move(str(long(x)), str(long(y)), str(0))
+        self.world.UpdateNodePosition(Position((x, y, 0)), jump=jump or jump_near)
+        if jump_near:
+            self.node_proxy.JumpNearPosition(str(long(x)), str(long(y)), str(0))
+        else:
+            self.node_proxy.Move(str(long(x)), str(long(y)), str(0))
 
     def _DestroyProgress(self):
         """
@@ -561,7 +564,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         jump_dialog = PositionJumpDialog(config_data=self.config_data, parent=self.main_window)
         if jump_dialog.ShowModal() == wx.ID_OK:
             x, y = jump_dialog.GetPosition()
-            self._MoveNode((x * self.world_size, y * self.world_size), jump=True)
+            self._MoveNode((x * self.world_size, y * self.world_size), jump_near=True)
 
     def _OnKill(self, evt):
         """

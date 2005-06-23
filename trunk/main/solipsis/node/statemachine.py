@@ -151,8 +151,9 @@ class StateMachine(object):
         # BEST peer discovered at the end of a FINDNEAREST chain
         self.best_peer = None
         self.best_distance = 0.0
-        # Address of peer we asked a JUMPNEAR
+        # Address of peer whom we asked a JUMPNEAR
         self.jump_near_address = None
+        self.jump_near_position = None
 
         # Delayed calls
         for delayed in self.peer_timeouts.values():
@@ -619,8 +620,16 @@ class StateMachine(object):
             return
 
         if self.future_topology.HasGlobalConnectivity():
-            self._SwitchTopologies()
-            self.SetState(states.Connecting())
+            if self.jump_near_position:
+                # If we are jumping near a position, ask target position to the best peer
+                message = self._PeerMessage('JUMPNEAR')
+                address = self.best_peer.address
+                self._SendToAddress(address, message)
+                self.jump_near_address = address
+            else:
+                # Otherwise, just go on with the connecting procedure
+                self._SwitchTopologies()
+                self.SetState(states.Connecting())
             return
 
         if already_best:
@@ -736,6 +745,7 @@ class StateMachine(object):
             return
         peer = self._Peer(args)
         self.jump_near_address = None
+        self.jump_near_position = None
 
         # Really jump near the target peer
         self.future_topology = Topology()
@@ -800,7 +810,7 @@ class StateMachine(object):
             addresses = self.bootup_addresses
         self._StartFindNearest([Address(host, port) for host, port in addresses])
 
-    def MoveTo(self, (x, y, z)):
+    def MoveTo(self, (x, y, z), jump_near=False):
         """
         Move to a given absolute position in the world.
         """
@@ -809,12 +819,13 @@ class StateMachine(object):
         y %= self.world_size
         position = Position((x, y, z))
         old_position = self.node.position
+        self.jump_near_position = jump_near and position or None
 
         # Hackish: we first change the position to check the global connectivity,
         # then possibly set it back to its former value
         self.topology.SetOrigin((x, y))
 
-        if self.topology.HasGlobalConnectivity():
+        if not jump_near and self.topology.HasGlobalConnectivity():
             # We still have the global connectivity,
             # so we simply notify our peers of the position change
             self.node.position = position

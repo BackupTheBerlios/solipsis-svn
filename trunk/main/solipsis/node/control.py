@@ -150,11 +150,22 @@ class RemoteControl(object):
 
     def remote_JumpNear(self, connect_id, addr_info):
         """
-        Move to another position in the world.
+        Jump near another peer.
         """
         self._CheckConnectId(connect_id)
         address = Address.FromStruct(addr_info)
         self.state_machine.JumpNear(address)
+        return True
+
+    def remote_JumpNearPosition(self, connect_id, x, y, z):
+        """
+        Jump near an absolute position.
+        """
+        self._CheckConnectId(connect_id)
+        x = float(x)
+        y = float(y)
+        z = float(z)
+        self.state_machine.MoveTo((x, y, z), jump_near=True)
         return True
 
     def remote_Move(self, connect_id, x, y, z):
