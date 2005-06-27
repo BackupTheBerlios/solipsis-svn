@@ -5,6 +5,8 @@
 import wx
 
 from solipsis.util.wxutils import _
+from solipsis.services.profile.view import ViewerView
+from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile.gui.ViewerFrame import ViewerFrame
 
 class ViewerApp(wx.App):
@@ -14,10 +16,16 @@ class ViewerApp(wx.App):
         wx.App.__init__(self, *args)
         
     def OnInit(self):
+        """overrides"""
+        facade = get_facade("demi")
+        facade.load_profile()
+        # set up GUI
         wx.InitAllImageHandlers()
         viewer_frame = ViewerFrame(self.options, None, -1, "Profile Viewer")
         self.SetTopWindow(viewer_frame)
         viewer_frame.Show()
+        # set up facade
+        facade.add_view(ViewerView(facade._desc, viewer_frame))
         return 1
 
 # end of class ViewerApp

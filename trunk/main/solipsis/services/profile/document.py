@@ -56,6 +56,8 @@ class AbstractDocument:
         # point out file where document is saved
         self._id = _id
         self._dir = directory
+        # memory
+        self.last_downloaded_desc = None
         # load default values
         for custom_interest in DEFAULT_INTERESTS:
             if not self.has_custom_attribute(custom_interest):
@@ -71,6 +73,10 @@ class AbstractDocument:
     def get_id(self):
         """return identifiant of Document"""
         return os.path.join(self._dir, self._id) + PROFILE_EXT
+
+    def get_last_downloaded_desc(self):
+        """return identifiant of Document"""
+        return self.last_downloaded_desc
 
     def open(self):
         """returns a file object containing values"""
@@ -416,6 +422,7 @@ class AbstractDocument:
             self.add_peer(peer_id)
         peer_desc = self.get_peer(peer_id)
         peer_desc.set_document(document)
+        self.last_downloaded_desc = peer_desc
         return peer_desc
 
     def fill_blog(self, (peer_id, blog)):
@@ -426,6 +433,7 @@ class AbstractDocument:
             self.add_peer(peer_id)
         peer_desc = self.get_peer(peer_id)
         peer_desc.set_blog(blog)
+        self.last_downloaded_desc = peer_desc
         return peer_desc
             
     def fill_shared_files(self, (peer_id, files)):
@@ -436,6 +444,7 @@ class AbstractDocument:
             self.add_peer(peer_id)
         peer_desc = self.get_peer(peer_id)
         peer_desc.set_shared_files(files)
+        self.last_downloaded_desc = peer_desc
         return peer_desc
         
 
@@ -458,10 +467,7 @@ class CacheDocument(AbstractDocument):
         AbstractDocument.__init__(self, _id, directory, name)
 
     def __str__(self):
-        from solipsis.services.profile.view import PrintView
-        result = StringIO()
-        PrintView(self, result, do_import=True)
-        return result.getvalue()
+        return self.__dict__
         
     # MENU
 
@@ -1100,7 +1106,8 @@ class FileDocument(AbstractDocument):
         # extract name of files saved on HD
         if peer_desc.document:
             peer_desc.document.save()
-        description = ",".join([peer_desc.state,
+        description = ",".join([peer_desc.get_pseudo(),
+                                peer_desc.state,
                                 peer_desc.peer_id,
                                 time.asctime()])
         self.config.set(SECTION_OTHERS, peer_desc.peer_id, description)
@@ -1118,7 +1125,7 @@ class FileDocument(AbstractDocument):
         """retreive stored value (friendship, path) for peer_id"""
         try:
             infos = self.config.get(SECTION_OTHERS, peer_id).split(",")
-            state, _id, creation_date = infos
+            pseudo, state, _id, creation_date = infos
             if _id != peer_id:
                 print "file corrupted: %s != %s" % (_id, peer_id)
                 return PeerDescriptor(peer_id)
@@ -1130,8 +1137,12 @@ class FileDocument(AbstractDocument):
                     blogs = load_blogs(peer_id, file_doc._dir)
                 except ValueError, err:
                     print str(err)
-            return PeerDescriptor(peer_id, document=file_doc, blog=blogs,
-                                  state=state, connected=False)
+            return PeerDescriptor(peer_id,
+                                  document=file_doc,
+                                  blog=blogs,
+                                  pseudo=pseudo,
+                                  state=state,
+                                  connected=False)
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
             return  PeerDescriptor(peer_id)
     

@@ -166,19 +166,20 @@ class FileTest(unittest.TestCase):
         
     def test_view(self):
         self.document.load()
-        result = StringIO()
-        view = PrintView(self.document, result, do_import=True)
-        self.assertEquals(result.getvalue(), """Mr
-manu
-breton
-%s
-manu@ft.com
-/home/emb/.solipsis/download
-{'City': u'', 'Studies': u'', 'color': u'blue', 'Country': u'', 'Favourite Book': u'', 'Favourite Movie': u'', 'Sport': u'', 'homepage': u'manu.com'}
-{u'/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests': {Dc:tests(?-,'none',#0) : [{Dc:data(?-,'none',#3) : [{Dc:emptydir(?Y,'none',#-1) : []}, Fc:routage(?Y,'none'), Fc:date.txt(?-,'tagos'), {Dc:subdir1(?Y,'none',#-1) : [{Dc:subsubdir(?-,'none',#2) : [Fc:null(?Y,'empty'), Fc:dummy.txt(?Y,'empty')]}]}]}]}}
-{u'bruce': bruce (%s)}
-"""% (QUESTION_MARK(), PeerDescriptor.FRIEND))
-        result.close()
+        self.assertEquals(self.document.get_title(), "Mr")
+        self.assertEquals(self.document.get_firstname(), "manu")
+        self.assertEquals(self.document.get_lastname(), "breton")
+        self.assertEquals(self.document.get_photo(), QUESTION_MARK())
+        self.assertEquals(self.document.get_email(), "manu@ft.com")
+        self.assertEquals(self.document.get_download_repo(), "/home/emb/.solipsis/download")
+        self.assertEquals(self.document.get_custom_attributes(), {'City': u'', 'Studies': u'',
+                                                            'color': u'blue', 'Country': u'',
+                                                            'Favourite Book': u'', 'Favourite Movie': u'',
+                                                            'Sport': u'', 'homepage': u'manu.com'})
+        self.assertEquals(str(self.document.get_files()),
+                          "{u'/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests': {Dc:tests(?-,'none',#0) : [{Dc:data(?-,'none',#3) : [{Dc:emptydir(?Y,'none',#-1) : []}, Fc:routage(?Y,'none'), Fc:date.txt(?-,'tagos'), {Dc:subdir1(?Y,'none',#-1) : [{Dc:subsubdir(?-,'none',#2) : [Fc:null(?Y,'empty'), Fc:dummy.txt(?Y,'empty')]}]}]}]}}")
+        self.assertEquals(str(self.document.get_peers()),
+                          "{u'bruce': bruce (%s)}"% PeerDescriptor.FRIEND)
         
 if __name__ == '__main__':
     unittest.main()

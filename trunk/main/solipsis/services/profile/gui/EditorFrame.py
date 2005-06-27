@@ -9,14 +9,15 @@ from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile.data import PeerDescriptor
 from solipsis.services.profile import PROFILE_DIR, skip_disclaimer
 
+from solipsis.services.profile.gui.FileDialog import FileDialog
+from solipsis.services.profile.gui.ProfileDialog import ProfileDialog
+from solipsis.services.profile.gui.AboutDialog import AboutDialog
+
 # begin wxGlade: dependencies
 from BlogPanel import BlogPanel
 from FilePanel import FilePanel
 from PersonalPanel import PersonalPanel
 # end wxGlade
-from solipsis.services.profile.gui.FileDialog import FileDialog
-from solipsis.services.profile.gui.ProfileDialog import ProfileDialog
-from solipsis.services.profile.gui.AboutDialog import AboutDialog
 
 class EditorFrame(wx.Frame):
     """Frame where profile is edited"""

@@ -7,7 +7,7 @@ import wx
 
 from solipsis.util.wxutils import _
 from solipsis.services.profile.facade import get_facade
-from solipsis.services.profile.view import GuiView
+from solipsis.services.profile.view import EditorView
 from solipsis.services.profile.gui.EditorFrame import EditorFrame
 
 class EditorApp(wx.App):
@@ -26,7 +26,7 @@ class EditorApp(wx.App):
         self.SetTopWindow(editor_frame)
         editor_frame.Show()
         # set up facade
-        facade.add_view(GuiView(facade.get_document(), editor_frame))
+        facade.add_view(EditorView(facade._desc, editor_frame))
         return 1
 
 # end of class EditorApp

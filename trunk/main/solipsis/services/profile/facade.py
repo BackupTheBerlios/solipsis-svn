@@ -67,8 +67,8 @@ class Facade:
     def add_view(self, view):
         """add  a view object to facade"""
         self.views[view.get_name()] = view
-        view.import_document(self._desc.document)
-        view.update_blogs(self._desc.blog)
+        view.import_desc(self._desc)
+        view.update_blogs()
 
     # documents
     def get_document(self):
@@ -79,7 +79,7 @@ class Facade:
         """associate given document with peer"""
         self._desc.document.import_document(document)
         for view in self.views:
-            view.import_document(document)
+            view.import_desc(self._desc)
 
     # blog
     def add_blog(self, text):
@@ -114,7 +114,7 @@ class Facade:
     def update_blogs(self):
         """trigger update of views with new blogs"""
         for view in self.views.values():
-            view.update_blogs(self._desc.blog)
+            view.update_blogs()
 
     # proxy
     def _try_change(self, value, setter, updater):
@@ -164,7 +164,7 @@ class Facade:
     def export_profile(self, path):
         """write profile in html format"""
         html_file = open(path, "w")
-        html_view = HtmlView(self._desc.document)
+        html_view = HtmlView(self._desc)
         html_file.write(html_view.get_view(True).encode(ENCODING))
     
     def save_profile(self):
@@ -183,7 +183,7 @@ class Facade:
             print err, "Using blank one"
         # update
         for view in self.views.values():
-            view.import_document(self._desc.document)
+            view.import_desc(self._desc)
         self.update_blogs()
 
     # PERSONAL TAB
@@ -310,11 +310,17 @@ class Facade:
                                 "set_connected",
                                 "update_peers")
 
-    def fill_data(self, (peer_id, document)):
+    def set_data(self, (peer_id, document)):
         """sets peer as friend """
         return self._try_change((peer_id, document),
                                 "fill_data",
                                 "update_peers")
+
+    def fill_data(self, (peer_id, document)):
+        """sets peer as friend """
+        return self._try_change((peer_id, document),
+                                "fill_data",
+                                "display_peer")
 
     def fill_blog(self, (peer_id, blog)):
         """sets peer as friend """

@@ -106,7 +106,7 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
             return
         if peer_desc and peer_desc.document:
             self.peer_id = peer_desc.peer_id
-            pseudo = peer_desc.document.get_pseudo()
+            pseudo = peer_desc.get_pseudo()
         else:
             pseudo = self.peer_id
         wx.Dialog.SetTitle(self, "%s's %s to go into %s"\

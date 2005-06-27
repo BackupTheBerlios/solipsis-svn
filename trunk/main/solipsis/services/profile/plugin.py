@@ -33,8 +33,9 @@ from solipsis.services.profile import PROFILE_DIR, PROFILE_FILE, set_solipsis_di
 from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile.network import NetworkManager
 from solipsis.services.profile.document import CacheDocument, FileDocument
-from solipsis.services.profile.view import GuiView, HtmlView, PrintView
+from solipsis.services.profile.view import EditorView, ViewerView, HtmlView, PrintView
 from solipsis.services.profile.gui.EditorFrame import EditorFrame
+from solipsis.services.profile.gui.ViewerFrame import ViewerFrame
 
       
 class Plugin(ServicePlugin):
@@ -60,7 +61,7 @@ class Plugin(ServicePlugin):
         # declare actions
         self.MAIN_ACTION = {"Modify Profile...": self.modify_profile,
                             }
-        self.POINT_ACTIONS = {"View all...": self.show_profile,
+        self.POINT_ACTIONS = {#"View all...": self.show_profile,
                               "View profile...": self.get_profile,
                               "View blog...": self.get_blog_file,
                               "Get files...": self.select_files,}
@@ -98,8 +99,12 @@ class Plugin(ServicePlugin):
         options["standalone"] = False
         self.editor_frame = EditorFrame(options, main_window, -1, "",
                                           plugin=self)
-        self.facade.add_view(GuiView(self.facade.get_document(),
+        self.viewer_frame = ViewerFrame(options, main_window, -1, "",
+                                          plugin=self)
+        self.facade.add_view(EditorView(self.facade._desc,
                                      self.editor_frame))
+        self.facade.add_view(ViewerView(self.facade._desc,
+                                     self.viewer_frame))
         # Set up main GUI hooks
         menu = wx.Menu()
         for action, method in self.MAIN_ACTION.iteritems():
@@ -166,10 +171,8 @@ class Plugin(ServicePlugin):
     # callbacks methods
     def _on_new_profile(self, document, peer_id):
         """store and display file object corresponding to profile"""
-        print "downloaded profile", document.get_pseudo(), peer_id
+        print "downloaded profile", peer_id
         self.facade.fill_data((peer_id, document))
-        if self.editor_frame:
-            self.editor_frame.display_profile(peer_id)
     
     def _on_new_blog(self, blog, peer_id):
         """store and display file object corresponding to blog"""
@@ -254,7 +257,7 @@ class Plugin(ServicePlugin):
         """delegate to network"""
         if self.facade.is_activated():
             self.network.on_lost_peer(peer_id)
-            self.facade.set_connected(peer_id, False)
+            self.facade.set_connected((peer_id, False))
 
     def GotServiceData(self, peer_id, data):
         """delegate to network"""

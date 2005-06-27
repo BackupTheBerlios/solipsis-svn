@@ -379,9 +379,8 @@ class ProfileClientFactory(ClientFactory):
 
     def _on_profile_complete(self, document, peer_id):
         """callback when autoloading of profile successful"""
-        print "downloaded profile", document.get_pseudo(), peer_id
-        self.manager.facade.fill_data((peer_id, document))
-        self.manager.facade.set_connected(peer_id, True)
+        self.manager.facade.set_data((peer_id, document))
+        self.manager.facade.set_connected((peer_id, True))
     
 # SERVER
 class ProfileServerProtocol(basic.LineOnlyReceiver):
@@ -639,7 +638,7 @@ class PeerClientFactory(ClientFactory):
 
     def _on_complete_profile(self, file_obj):
         """callback when finished downloading profile"""
-        file_doc = FileDocument()
+        file_doc = FileDocument(self.peer_id)
         file_doc.read(file_obj)
         return file_doc
 
@@ -693,9 +692,10 @@ class DeferredUpload(defer.Deferred):
     """Deferred (from twisted.internet.defer) with information about
     its status"""
 
-    def __init__(self, message, file_name=None):
+    def __init__(self, peer_id, message, file_name=None):
         defer.Deferred.__init__(self)
         self.message = message
+        self.peer_id = peer_id
         self.file_name = file_name
         self.file = None
         self.set_callbacks()
@@ -880,10 +880,10 @@ class PeerServerFactory(ServerFactory):
             self.file_names = file_names
         # get first
         if self.file_names:
-            deferred = DeferredUpload(action, self.file_names.pop())
+            deferred = DeferredUpload(peer_id, action, self.file_names.pop())
             deferred.addCallback(self._next_file, peer_id, action, remote_ip)
         else:
-            deferred = DeferredUpload(action)
+            deferred = DeferredUpload(peer_id, action)
         # store deferred and ask client
         self.deferreds[remote_ip] = deferred
         message = make_message(action, self.manager.host, self.port)
@@ -895,7 +895,7 @@ class PeerServerFactory(ServerFactory):
         print "_next_file", file_obj, peer_id, action, remote_ip
         # proceed next
         if self.file_names:
-            deferred = DeferredUpload(action, self.file_names.pop())
+            deferred = DeferredUpload(peer_id, action, self.file_names.pop())
             deferred.addCallback(self._next_file, peer_id, action, remote_ip)
             # store deferred and ask client
             self.deferreds[remote_ip] = deferred

@@ -75,11 +75,12 @@ class HtmlTest(unittest.TestCase):
     def setUp(self):
         """override one in unittest.TestCase"""
         self.document = CacheDocument(PROFILE_TEST, PROFILE_DIRECTORY)
-        self.view = HtmlView(self.document)
+        self.desc = PeerDescriptor(PROFILE_TEST, document=self.document)
+        self.view = HtmlView(self.desc)
 
     def assert_template(self):
         """diff result from view with expeceted template"""
-        self.view.import_document(self.document)
+        self.view.import_desc(self.desc)
         result = difflib.ndiff([line.strip() for line in self.print_template().splitlines()],
                                [line.strip() for line in self.view.get_view(True).splitlines()],
                                charjunk=lambda x: x in [' ', '\t'])

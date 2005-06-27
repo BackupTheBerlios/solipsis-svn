@@ -272,7 +272,7 @@ class ProfileFrame(wx.Frame):
 
     def display_profile(self, peer_id):
         """display blog in dedicated window"""
-        # blog dialog
+        # profile dialog
         peer_desc = self.facade.get_peer(peer_id)
         self.profile_dlg.Show(peer_desc)
         
@@ -344,7 +344,7 @@ class ProfileFrame(wx.Frame):
             self.blacklisted_item.Check(True)
         else:
             self.anonymous_item.Check(True)
-        # (dis)activate items
+        # (dxis)activate items
         self.getblog_item.Enable(enable)
         self.getfiles_item.Enable(enable)
         self.anonymous_item.Enable(enable)

@@ -44,19 +44,19 @@ from solipsis.util.uiproxy import UIProxy
 class AbstractView:
     """Base class for all views"""
 
-    def __init__(self, document, do_import=True, name="abstract"):
-        self.document = document
+    def __init__(self, desc, do_import=True, name="abstract"):
+        self._desc = desc
         self.name = name
         if do_import:
-            self.import_document(document)  
+            self.import_desc(desc)  
 
     def get_name(self):
         """used as key in index"""
         return self.name
 
-    def import_document(self, document):
+    def import_desc(self, desc):
         """update view with document"""
-        self.document = document
+        self._desc = desc
         # personal tab
         self.update_title()
         self.update_firstname()
@@ -102,11 +102,11 @@ class AbstractView:
         raise NotImplementedError
 
     # BLOG TAB
-    def update_blogs(self, blogs):
+    def update_blogs(self):
         """blog"""
         raise NotImplementedError
 
-    def display_blog(self, peer_id, blog):
+    def display_blog(self):
         """display blog"""
         raise NotImplementedError
 
@@ -119,7 +119,7 @@ class AbstractView:
         """file"""
         raise NotImplementedError
 
-    def display_files(self, peer_id, files):
+    def display_files(self):
         """display shared files"""
         raise NotImplementedError
 
@@ -128,14 +128,18 @@ class AbstractView:
         """peer"""
         raise NotImplementedError
 
+    def display_peer(self):
+        """display shared files"""
+        raise NotImplementedError
+
 
 class PrintView(AbstractView):
     """synthetises information and renders it in HTML"""
 
-    def __init__(self, document, stream=open("view.out", "w"),
+    def __init__(self, desc, stream=open("view.out", "w"),
                  do_import=False, name="print"):
         self.output = stream
-        AbstractView.__init__(self, document, do_import, name)
+        AbstractView.__init__(self, desc, do_import, name)
 
     def println(self, string):
         """convert unicode if necessary and writes in correct place"""
@@ -149,139 +153,64 @@ class PrintView(AbstractView):
     # PERSONAL TAB
     def update_title(self):
         """title"""
-        self.println(self.document.get_title())
+        self.println(self._desc.document.get_title())
 
     def update_firstname(self):
         """firstname"""
-        self.println(self.document.get_firstname())
+        self.println(self._desc.document.get_firstname())
         
     def update_lastname(self):
         """lastname"""
-        self.println(self.document.get_lastname())
+        self.println(self._desc.document.get_lastname())
 
     def update_photo(self):
         """photo"""
-        self.println(self.document.get_photo())    
+        self.println(self._desc.document.get_photo())    
 
     def update_email(self):
         """email"""
-        self.println(self.document.get_email())   
+        self.println(self._desc.document.get_email())   
 
     def update_download_repo(self):
         """download_repo"""
-        self.println(self.document.get_download_repo())
+        self.println(self._desc.document.get_download_repo())
 
     # CUSTOM TAB
     def update_custom_attributes(self):
         """dict custom_attributes"""
-        self.println(self.document.get_custom_attributes())
+        self.println(self._desc.document.get_custom_attributes())
 
     # BLOG TAB
-    def update_blogs(self, blogs):
+    def update_blogs(self):
         """blog"""
-        self.println(pickle.dumps(blogs))
+        self.println(pickle.dumps(_desc.blog))
         
-    def display_blog(self, peer_id, blog):
+    def display_blog(self):
         """display blog"""
-        self.println("%s: %s"% (peer_id, blog))
-
-    def display_files(self, peer_id, files):
-        """display shared files"""
-        self.println("%s: %s"% (peer_id, files))
+        self.println("%s: %s"% (_desc.peer_id, _desc.blog))
         
     # FILE TAB
     def update_files(self):
         """file"""
-        self.println(self.document.get_files())
+        self.println(self._desc.document.get_files())
+
+    def display_files(self):
+        """display shared files"""
+        self.println("%s: %s"% (_desc.peer_id, _desc.shared_files))
         
     # OTHERS TAB        
     def update_peers(self):
         """peer"""
-        self.println(self.document.get_peers())
-        
+        self.println(self._desc.document.get_peers())
 
-class GuiView(AbstractView):
-    """synthetises information and renders it in HTML"""
-
-    def __init__(self, document, frame,
-                 do_import=True, name="gui"):
-        # link to the frame used by view
-        self.frame = frame
-        # init view
-        AbstractView.__init__(self, document, do_import, name)
-
-    # PERSONAL TAB: frame.personal_tab
-    def update_title(self):
-        """title"""
-        self.frame.personal_tab.title_value.SetValue(self.document.get_title())
-
-    def update_firstname(self):
-        """firstname"""
-        self.frame.personal_tab.firstname_value.SetValue(
-            self.document.get_firstname())
-        
-    def update_lastname(self):
-        """lastname"""
-        self.frame.personal_tab.lastname_value.SetValue(
-            self.document.get_lastname())
-
-    def update_photo(self):
-        """photo"""
-        self.frame.personal_tab.photo_button.SetBitmapLabel(
-            wx.Bitmap(self.document.get_photo(), wx.BITMAP_TYPE_ANY))
-
-    def update_email(self):
-        """email"""
-        self.frame.personal_tab.email_value.SetValue(
-            self.document.get_email())     
-
-    def update_download_repo(self):
-        """download_repo"""
-        self.frame.file_tab.file_dlg.set_download_repo(
-            self.document.get_download_repo())
-
-    def update_custom_attributes(self):
-        """dict custom_attributes"""
-        self.frame.personal_tab.custom_list.DeleteAllItems()
-        for key, value in self.document.get_custom_attributes().iteritems():
-            index = self.frame.personal_tab.custom_list.InsertStringItem(
-                sys.maxint, key)
-            self.frame.personal_tab.custom_list.SetStringItem(index, 1, value)
-
-    # BLOG TAB
-    def update_blogs(self, blogs):
-        """blog"""
-        self.frame.blog_tab.on_update()
-        
-    def display_blog(self, peer_id, blog):
-        """display blog"""
-        self.frame.display_blog(peer_id, blog)
-        
-    # FILE TAB : frame.file_tab        
-    def reset_files(self):
-        """file"""
-        self.frame.file_tab.reset_files()
-        
-    def update_files(self):
-        """file"""
-        for sharing_container in self.document.get_files().values():
-            self.frame.file_tab.cb_update_tree(sharing_container)
-
-    def display_files(self, peer_id, files):
-        """display shared files"""
-        self.frame.display_files(peer_id, files)
-        
-    # OTHERS TAB
-    def update_peers(self):
-        """peer"""
-        # XXX FIXME: REPLACE other_tab with menu ?
-        pass
-#         self.frame.other_tab.cb_update_peers(self.document.get_peers())
+    def display_peer(self):
+        """display peer profile"""
+        self.println("%s: %s"% (_desc.peer_id, _desc.get_pseudo()))
 
 class HtmlView(AbstractView):
     """synthetises information and renders it in HTML"""
 
-    def __init__(self, document, html_window=None, auto_refresh=False,
+    def __init__(self, desc, html_window=None, auto_refresh=False,
                  do_import=True, name="html"):
         # init HTML string, wxWidget
         self.view = None
@@ -293,11 +222,12 @@ class HtmlView(AbstractView):
         self.template = simpleTAL.compileHTMLTemplate(template_file,
                                                       inputEncoding=ENCODING)
         template_file.close()
-        self.context.addGlobal("pseudo", document._id)
+        self.context.addGlobal("pseudo", desc.document._id)
         # init view
-        AbstractView.__init__(self, document, do_import, name)
+        AbstractView.__init__(self, desc, do_import, name)
+        self._update_view()
 
-    def update_view(self):
+    def _update_view(self):
         """rebuild HTML View"""
         self.view and self.view.close()
         self.view = StringIO()
@@ -307,7 +237,7 @@ class HtmlView(AbstractView):
     def get_view(self, update=False):
         """returns HTML String"""
         if update:
-            self.update_view()
+            self._update_view()
         return unicode(self.view.getvalue(), ENCODING)
 
     def set_auto_refresh(self, enable):
@@ -317,55 +247,55 @@ class HtmlView(AbstractView):
     # PERSONAL TAB: frame.personal_tab
     def update_title(self):
         """title"""
-        self.context.addGlobal("title", self.document.get_title())
+        self.context.addGlobal("title", self._desc.document.get_title())
         if self.auto_refresh:
-            self.update_view()
+            self._update_view()
 
     def update_firstname(self):
         """firstname"""
-        self.context.addGlobal("firstname", self.document.get_firstname())
+        self.context.addGlobal("firstname", self._desc.document.get_firstname())
         if self.auto_refresh:
-            self.update_view()
+            self._update_view()
         
     def update_lastname(self):
         """lastname"""
-        self.context.addGlobal("lastname", self.document.get_lastname())
+        self.context.addGlobal("lastname", self._desc.document.get_lastname())
         if self.auto_refresh:
-            self.update_view()
+            self._update_view()
 
     def update_photo(self):
         """photo"""
-        self.context.addGlobal("photo", self.document.get_photo())
+        self.context.addGlobal("photo", self._desc.document.get_photo())
         if self.auto_refresh:
-            self.update_view()
+            self._update_view()
 
     def update_email(self):
         """email"""
-        self.context.addGlobal("email", self.document.get_email())
+        self.context.addGlobal("email", self._desc.document.get_email())
         if self.auto_refresh:
-            self.update_view() 
+            self._update_view() 
 
     def update_download_repo(self):
         """download_repo"""
-        self.context.addGlobal("download_repo", self.document.get_download_repo())
+        self.context.addGlobal("download_repo", self._desc.document.get_download_repo())
         if self.auto_refresh:
-            self.update_view()
+            self._update_view()
 
     def update_custom_attributes(self):
         """dict custom_attributes"""
         self.context.addGlobal("attributes",
-                               self.document.get_custom_attributes())
+                               self._desc.document.get_custom_attributes())
         if self.auto_refresh:
-            self.update_view()
+            self._update_view()
 
     # BLOG TAB
-    def update_blogs(self, blogs):
+    def update_blogs(self):
         """blog"""
-        self.context.addGlobal("blogs", blogs)
+        self.context.addGlobal("blog", self._desc.blog)
         if self.auto_refresh:
-            self.update_view()
+            self._update_view()
         
-    def display_blog(self, peer_id, blog):
+    def display_blog(self):
         """display blog"""
         pass
         
@@ -373,23 +303,189 @@ class HtmlView(AbstractView):
     def update_files(self):
         """file"""
         html_format = {}
-        for repo in self.document.get_repositories():
+        for repo in self._desc.document.get_repositories():
             content = {}
             html_format[repo] = content
-            for container in self.document.get_shared(repo):
+            for container in self._desc.document.get_shared(repo):
                 content[container.path[len(repo):]] = container._tag
         self.context.addGlobal("files", html_format)
         if self.auto_refresh:
-            self.update_view()
+            self._update_view()
             
-    def display_files(self, peer_id, files):
+    def display_files(self):
         """display shared files"""
-        self.context.addGlobal("shared_files", (peer_id, files))
+        self.context.addGlobal("shared_files", (self._desc.peer_id, self._desc.shared_files))
         
     # OTHERS TAB
     def update_peers(self):
         """peer"""
         self.context.addGlobal("ordered_peers",
-                               self.document.get_ordered_peers())
+                               self._desc.document.get_ordered_peers())
         if self.auto_refresh:
-            self.update_view()
+            self._update_view()
+        
+    def display_peer(self):
+        """display blog"""
+        pass
+
+
+class EditorView(AbstractView):
+    """synthetises information and renders it in HTML"""
+
+    def __init__(self, desc, frame,
+                 do_import=True, name="editor"):
+        # link to the frame used by view
+        self.frame = frame
+        # init view
+        AbstractView.__init__(self, desc, do_import, name)
+
+    # PERSONAL TAB: frame.personal_tab
+    def update_title(self):
+        """title"""
+        self.frame.personal_tab.title_value.SetValue(self._desc.document.get_title())
+
+    def update_firstname(self):
+        """firstname"""
+        self.frame.personal_tab.firstname_value.SetValue(
+            self._desc.document.get_firstname())
+        
+    def update_lastname(self):
+        """lastname"""
+        self.frame.personal_tab.lastname_value.SetValue(
+            self._desc.document.get_lastname())
+
+    def update_photo(self):
+        """photo"""
+        self.frame.personal_tab.photo_button.SetBitmapLabel(
+            wx.Bitmap(self._desc.document.get_photo(), wx.BITMAP_TYPE_ANY))
+
+    def update_email(self):
+        """email"""
+        self.frame.personal_tab.email_value.SetValue(
+            self._desc.document.get_email())     
+
+    def update_download_repo(self):
+        """download_repo"""
+        self.frame.file_tab.file_dlg.set_download_repo(
+            self._desc.document.get_download_repo())
+
+    def update_custom_attributes(self):
+        """dict custom_attributes"""
+        self.frame.personal_tab.custom_list.DeleteAllItems()
+        for key, value in self._desc.document.get_custom_attributes().iteritems():
+            index = self.frame.personal_tab.custom_list.InsertStringItem(
+                sys.maxint, key)
+            self.frame.personal_tab.custom_list.SetStringItem(index, 1, value)
+
+    # BLOG TAB
+    def update_blogs(self):
+        """blog"""
+        self.frame.blog_tab.on_update()
+        
+    def display_blog(self):
+        """display blog"""
+        # used by viewer view
+        pass
+        
+    # FILE TAB : frame.file_tab        
+    def reset_files(self):
+        """file"""
+        self.frame.file_tab.reset_files()
+        
+    def update_files(self):
+        """file"""
+        for sharing_container in self._desc.document.get_files().values():
+            self.frame.file_tab.cb_update_tree(sharing_container)
+
+    def display_files(self):
+        """display shared files"""
+        # used by viewer view
+        pass
+        
+    # OTHERS TAB
+    def update_peers(self):
+        """peer"""
+        # was used in "Contacts" tab
+        pass
+        
+    def display_peer(self):
+        """peer"""
+        # used by viewer view
+        pass
+
+class ViewerView(AbstractView):
+    """synthetises information and renders it in HTML"""
+
+    def __init__(self, desc, frame,
+                 do_import=False, name="viewer"):
+        # link to the frame used by view
+        self.frame = frame
+        # init view
+        AbstractView.__init__(self, desc, do_import, name)
+        
+    # PERSONAL TAB
+    def update_title(self):
+        """display title in view"""
+        pass
+
+    def update_firstname(self):
+        """display firstname in view"""
+        pass
+
+    def update_lastname(self):
+        """lastname"""
+        pass
+
+    def update_photo(self):
+        """photo"""
+        pass
+
+    def update_email(self):
+        """email"""
+        pass
+
+    def update_download_repo(self):
+        """download_repo"""
+        pass
+
+    # CUSTOM TAB
+    def update_custom_attributes(self):
+        """custom_attributes"""
+        pass
+
+    # BLOG TAB
+    def update_blogs(self):
+        """blog"""
+#         peer_desc = self._desc.document.get_last_downloaded_desc()
+#         self.frame.blog_tab.on_update(peer_desc.blog)
+        
+    def display_blog(self):
+        """display blog"""
+        peer_desc = self._desc.document.get_last_downloaded_desc()
+        self.frame.display_blog(peer_desc.peer_id, peer_desc.blog)
+        
+    # FILE TAB : frame.file_tab        
+    def reset_files(self):
+        """file"""
+#         self.frame.file_tab.reset_files()
+        
+    def update_files(self):
+        """file"""
+#         for sharing_container in self._desc.document.get_files().values():
+#             self.frame.file_tab.cb_update_tree(sharing_container)
+
+    def display_files(self):
+        """display shared files"""
+        peer_desc = self._desc.document.get_last_downloaded_desc()
+        self.frame.display_files(peer_desc.peer_id, peer_desc.shared_files)
+        
+    # OTHERS TAB
+    def update_peers(self):
+        """peer"""
+        pass
+        
+    def display_peer(self):
+        """peer"""
+        peer_desc = self._desc.document.get_last_downloaded_desc()
+        self.frame.display_profile(peer_desc.peer_id)
+
