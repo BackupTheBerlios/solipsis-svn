@@ -50,10 +50,9 @@ class AbstractDocument:
 
     Setters check input type. Getters are abstract"""
 
-    def __init__(self, _id, directory=PROFILE_DIR, pseudo=None, name="abstract"):
+    def __init__(self, _id, directory=PROFILE_DIR, name="abstract"):
         # used by facade when multiple documents
         self.name = name
-        self.pseudo = pseudo or _id 
         # point out file where document is saved
         self._id = _id
         self._dir = directory
@@ -81,7 +80,7 @@ class AbstractDocument:
 
     def open(self):
         """returns a file object containing values"""
-        file_doc = FileDocument(self._id, self._dir, self.pseudo)
+        file_doc = FileDocument(self._id, self._dir)
         file_doc.import_document(self)
         return file_doc.open()
 
@@ -95,7 +94,6 @@ class AbstractDocument:
         """copy data from another document into self"""
         #TODO: use better system for catching exceptions
         try:
-            self.pseudo = other_document.pseudo
             # personal data (unicode)
             self.set_title(other_document.get_title())
             self.set_firstname(other_document.get_firstname())
@@ -125,13 +123,13 @@ class AbstractDocument:
     # MENU
     def save(self):
         """fill document with information from .profile file"""
-        doc = FileDocument(self._id, self._dir, self.pseudo)
+        doc = FileDocument(self._id, self._dir)
         doc.import_document(self)
         doc.save()
 
     def load(self):
         """fill document with information from .profile file"""
-        doc = FileDocument(self._id, self._dir, self.pseudo)
+        doc = FileDocument(self._id, self._dir)
         doc.load()
         self.import_document(doc)
     
@@ -453,20 +451,22 @@ class AbstractDocument:
 class CacheDocument(AbstractDocument):
     """data container on cache"""
 
-    def __init__(self, _id, directory=PROFILE_DIR, pseudo=None, name="cache"):
+    def __init__(self, _id, directory=PROFILE_DIR, name="cache"):
         self.title = u""
-        self.firstname = u""
-        self.lastname = u""
+        self.firstname = u"Name"
+        self.lastname = u"Lastname"
         self.photo = QUESTION_MARK()
-        self.email = u""
+        self.email = u"email"
         self.download_repo = unicode(DOWNLOAD_REPO)
         # dictionary of file. {att_name : att_value}
         self.custom_attributes = {}
+        for interest in DEFAULT_INTERESTS:
+            self.custom_attributes[interest] = u""
         # {root: DirContainers}
         self.files = {}
         # dictionary of peers. {pseudo : PeerDescriptor}
         self.peers = {}
-        AbstractDocument.__init__(self, _id, directory, pseudo, name)
+        AbstractDocument.__init__(self, _id, directory, name)
 
     def __str__(self):
         return self.__dict__
@@ -712,14 +712,14 @@ class CustomConfigParser(ConfigParser.ConfigParser):
 class FileDocument(AbstractDocument):
     """data container on file"""
 
-    def __init__(self, _id, directory=PROFILE_DIR, pseudo=None, name="file"):
+    def __init__(self, _id, directory=PROFILE_DIR, name="file"):
         self.encoding = ENCODING
         self.config = CustomConfigParser()
         self.config.add_section(SECTION_PERSONAL)
         self.config.add_section(SECTION_CUSTOM)
         self.config.add_section(SECTION_FILE)
         self.config.add_section(SECTION_OTHERS)
-        AbstractDocument.__init__(self, _id, directory, pseudo, name)
+        AbstractDocument.__init__(self, _id, directory, name)
 
     def __str__(self):
         result = StringIO()
@@ -777,7 +777,7 @@ class FileDocument(AbstractDocument):
             return unicode(self.config.get(SECTION_PERSONAL, "title"),
                            self.encoding)
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-            return u"Mr"
+            return u""
         
     def set_firstname(self, value):
         """sets new value for firstname"""
@@ -792,7 +792,7 @@ class FileDocument(AbstractDocument):
             return unicode(self.config.get(SECTION_PERSONAL, "firstname",
                                            "Emmanuel"), self.encoding)
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-            return u"Emmanuel"
+            return u"Name"
 
     def set_lastname(self, value):
         """sets new value for lastname"""
@@ -807,7 +807,7 @@ class FileDocument(AbstractDocument):
             return unicode(self.config.get(SECTION_PERSONAL, "lastname"),
                            self.encoding)
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-            return u"Breton"
+            return u"Firstnam"
 
     def set_photo(self, value):
         """sets new value for photo"""
@@ -840,7 +840,7 @@ class FileDocument(AbstractDocument):
             return unicode(self.config.get(SECTION_PERSONAL, "email"),
                            self.encoding)
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-            return u"emb@logilab.fr"
+            return u"email"
 
     def set_download_repo(self, value):
         """sets new value for download_repo"""
@@ -1108,7 +1108,7 @@ class FileDocument(AbstractDocument):
         # extract name of files saved on HD
         if peer_desc.document:
             peer_desc.document.save()
-        description = ",".join([peer_desc.get_pseudo(),
+        description = ",".join([peer_desc._id,
                                 peer_desc.state,
                                 peer_desc.peer_id,
                                 time.asctime()])
@@ -1127,13 +1127,13 @@ class FileDocument(AbstractDocument):
         """retreive stored value (friendship, path) for peer_id"""
         try:
             infos = self.config.get(SECTION_OTHERS, peer_id).split(",")
-            pseudo, state, _id, creation_date = infos
-            if _id != peer_id:
-                print "file corrupted: %s != %s" % (_id, peer_id)
+            pseudo, state, p_id, creation_date = infos
+            if p_id != peer_id:
+                print "file corrupted: %s != %s" % (p_id, peer_id)
                 return PeerDescriptor(peer_id)
             file_doc = None
             blogs = None
-            file_doc = FileDocument(peer_id, self._dir, self.pseudo)
+            file_doc = FileDocument(peer_id, self._dir)
             if file_doc.load():
                 try: 
                     blogs = load_blogs(peer_id, file_doc._dir)

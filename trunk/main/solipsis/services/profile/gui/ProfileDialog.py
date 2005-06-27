@@ -25,8 +25,10 @@ class ProfileDialog(wx.Dialog, UIProxyReceiver):
         self.__do_layout()
         # end wxGlade
 
-    def set_page(self, page):
-        self.profile_window.SetPage(page)
+    def set_page(self, peer_desc):
+        view = HtmlView(peer_desc)
+        self.profile_window.SetPage(view.get_view())
+        self.SetTitle("%s's %s"% (peer_desc.get_pseudo(), _("Profile")))
         self.Show()
 
     def set_facade(self, facade, auto_refresh):

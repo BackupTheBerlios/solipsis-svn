@@ -243,8 +243,7 @@ class ViewerFrame(wx.Frame):
         """display blog in dedicated window"""
         # profile dialog
         peer_desc = self.facade.get_peer(peer_id)
-        view = HtmlView(peer_desc)
-        self.profile_dlg.set_page(view.get_view())
+        self.profile_dlg.set_page(peer_desc)
         
     def display_blog(self, peer_id, blog):
         """display blog in dedicated window"""
