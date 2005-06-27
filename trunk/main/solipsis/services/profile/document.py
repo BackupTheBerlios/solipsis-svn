@@ -50,9 +50,10 @@ class AbstractDocument:
 
     Setters check input type. Getters are abstract"""
 
-    def __init__(self, _id, directory=PROFILE_DIR, name="abstract"):
+    def __init__(self, _id, directory=PROFILE_DIR, pseudo=None, name="abstract"):
         # used by facade when multiple documents
         self.name = name
+        self.pseudo = pseudo or _id 
         # point out file where document is saved
         self._id = _id
         self._dir = directory
@@ -80,7 +81,7 @@ class AbstractDocument:
 
     def open(self):
         """returns a file object containing values"""
-        file_doc = FileDocument(self._id, self._dir)
+        file_doc = FileDocument(self._id, self._dir, self.pseudo)
         file_doc.import_document(self)
         return file_doc.open()
 
@@ -94,6 +95,7 @@ class AbstractDocument:
         """copy data from another document into self"""
         #TODO: use better system for catching exceptions
         try:
+            self.pseudo = other_document.pseudo
             # personal data (unicode)
             self.set_title(other_document.get_title())
             self.set_firstname(other_document.get_firstname())
@@ -123,13 +125,13 @@ class AbstractDocument:
     # MENU
     def save(self):
         """fill document with information from .profile file"""
-        doc = FileDocument(self._id, self._dir)
+        doc = FileDocument(self._id, self._dir, self.pseudo)
         doc.import_document(self)
         doc.save()
 
     def load(self):
         """fill document with information from .profile file"""
-        doc = FileDocument(self._id, self._dir)
+        doc = FileDocument(self._id, self._dir, self.pseudo)
         doc.load()
         self.import_document(doc)
     
@@ -451,7 +453,7 @@ class AbstractDocument:
 class CacheDocument(AbstractDocument):
     """data container on cache"""
 
-    def __init__(self, _id, directory=PROFILE_DIR, name="cache"):
+    def __init__(self, _id, directory=PROFILE_DIR, pseudo=None, name="cache"):
         self.title = u""
         self.firstname = u""
         self.lastname = u""
@@ -464,7 +466,7 @@ class CacheDocument(AbstractDocument):
         self.files = {}
         # dictionary of peers. {pseudo : PeerDescriptor}
         self.peers = {}
-        AbstractDocument.__init__(self, _id, directory, name)
+        AbstractDocument.__init__(self, _id, directory, pseudo, name)
 
     def __str__(self):
         return self.__dict__
@@ -710,14 +712,14 @@ class CustomConfigParser(ConfigParser.ConfigParser):
 class FileDocument(AbstractDocument):
     """data container on file"""
 
-    def __init__(self, _id, directory=PROFILE_DIR, name="file"):
+    def __init__(self, _id, directory=PROFILE_DIR, pseudo=None, name="file"):
         self.encoding = ENCODING
         self.config = CustomConfigParser()
         self.config.add_section(SECTION_PERSONAL)
         self.config.add_section(SECTION_CUSTOM)
         self.config.add_section(SECTION_FILE)
         self.config.add_section(SECTION_OTHERS)
-        AbstractDocument.__init__(self, _id, directory, name)
+        AbstractDocument.__init__(self, _id, directory, pseudo, name)
 
     def __str__(self):
         result = StringIO()
@@ -1131,7 +1133,7 @@ class FileDocument(AbstractDocument):
                 return PeerDescriptor(peer_id)
             file_doc = None
             blogs = None
-            file_doc = FileDocument(peer_id, self._dir)
+            file_doc = FileDocument(peer_id, self._dir, self.pseudo)
             if file_doc.load():
                 try: 
                     blogs = load_blogs(peer_id, file_doc._dir)
