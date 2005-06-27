@@ -35,7 +35,6 @@ global solipsis_dir
 def set_solipsis_dir(new_dir):
     """directory must be set at launch time since it's read in file
     conf (and passed to the application through params"""
-    print "set_solipsis_dir", new_dir
     global solipsis_dir
     solipsis_dir = new_dir
 

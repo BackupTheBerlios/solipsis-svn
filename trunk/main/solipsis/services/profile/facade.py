@@ -177,7 +177,10 @@ class Facade:
         for view in self.views.values():
             view.reset_files()
         # load
-        self._desc.load()
+        try:
+            self._desc.load()
+        except ValueError, err:
+            print err, "Using blank one"
         # update
         for view in self.views.values():
             view.import_document(self._desc.document)

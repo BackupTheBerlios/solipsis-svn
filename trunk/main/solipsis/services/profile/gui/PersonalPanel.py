@@ -36,7 +36,7 @@ class PersonalPanel(wx.Panel):
         self.email_lbl = wx.StaticText(self, -1, _("E-mail: "))
         self.email_value = wx.TextCtrl(self, -1, "")
         self.photo_button = wx.BitmapButton(self, -1, wx.Bitmap(QUESTION_MARK(),wx.BITMAP_TYPE_ANY))
-        self.key_value = wx.TextCtrl(self, -1, _("favorite book"))
+        self.key_value = wx.TextCtrl(self, -1, _("Favourite Book"))
         self.custom_value = wx.TextCtrl(self, -1, _("Harry Potter"))
         self.add_custom_button = wx.BitmapButton(self, -1, wx.Bitmap(ADD_CUSTOM(),wx.BITMAP_TYPE_ANY))
         self.del_custom_button = wx.BitmapButton(self, -1, wx.Bitmap(DEL_CUSTOM(),wx.BITMAP_TYPE_ANY))
@@ -135,9 +135,6 @@ class PersonalPanel(wx.Panel):
         self.facade.add_custom_attributes((self.key_value.GetValue(),
                                            self.custom_value.GetValue()))
         self.do_modified(True)
-        # resize columns
-        self.custom_list.SetColumnWidth(0, wx.LIST_AUTOSIZE)
-        self.custom_list.SetColumnWidth(1, wx.LIST_AUTOSIZE)
 
     def on_del(self, evt):
         """a custom attribute has been modified"""

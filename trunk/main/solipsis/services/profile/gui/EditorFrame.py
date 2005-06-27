@@ -3,6 +3,7 @@
 """Main class of editing GUI"""
 
 import wx
+import sys
 from solipsis.util.wxutils import _
 from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile.data import PeerDescriptor
@@ -119,10 +120,11 @@ class EditorFrame(wx.Frame):
             path = dlg.GetPath()
             self.facade.export_profile(path)
         
-    def on_close(self, evt):
+    def on_close(self, evt=None):
         """hide  application"""
         # ask for saving
         if self.modified:
+            self.do_modified(False)
             dlg = wx.MessageDialog(
                 self,
                 'Your profile has been modified. Do you want to change it?',
@@ -140,6 +142,7 @@ class EditorFrame(wx.Frame):
         """termainate application"""
         self.profile_dlg.Destroy()
         self.Destroy()
+        sys.exit()
         
     def on_about(self, evt):
         """display about"""

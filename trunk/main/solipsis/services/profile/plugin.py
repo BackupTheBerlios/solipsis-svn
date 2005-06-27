@@ -96,12 +96,10 @@ class Plugin(ServicePlugin):
         # TODO: create dynamic option object (for standalone & display)
         options = {}
         options["standalone"] = False
-        # editor_frame created at once since linked to facade & thus
-        # needed for all actions (get_blog, get_files), even if not
-        # displayed right at beginning
         self.editor_frame = EditorFrame(options, main_window, -1, "",
                                           plugin=self)
-        # create views & doc
+        self.facade.add_view(GuiView(self.facade.get_document(),
+                                     self.editor_frame))
         # Set up main GUI hooks
         menu = wx.Menu()
         for action, method in self.MAIN_ACTION.iteritems():
@@ -119,7 +117,18 @@ class Plugin(ServicePlugin):
     
     def Disable(self):
         """It is called when the user chooses to disable the service."""
-        self.facade.save_profile()
+        # ask for saving (ca not simply call Close() on editor frame
+        # method because of multithreading and the frame is destroyed
+        # before the user actually answer to the popup
+        if self.editor_frame.modified:
+            self.editor_frame.do_modified(False)
+            dlg = wx.MessageDialog(
+                self.editor_frame,
+                'Your profile has been modified. Do you want to change it?',
+                'Saving Dialog',
+                wx.YES_NO | wx.ICON_INFORMATION)
+            if dlg.ShowModal() == wx.ID_YES:
+                self.facade.save_profile()
         self.network.stop_listening()
 
     # Service methods
