@@ -147,10 +147,15 @@ class NetworkManager:
 
     def on_new_peer(self, peer, service):
         """tries to connect to new peer"""
+        self._on_new_peer(peer.id_)
+
+    def _on_new_peer(self, peer_id):
+        """tries to connect to new peer"""
         # declare known port to other peer throug service_api
-        if not self.remote_ips.has_key(peer.id_):
+        if not self.remote_ips.has_key(peer_id):
+            self.remote_ips[peer_id] = None
             message = self.make_message(MESSAGE_HELLO, self.port)
-            self.service_api.SendData(peer.id_, message)
+            self.service_api.SendData(peer_id, message)
 
     def on_lost_peer(self, peer_id):
         """tries to connect to new peer"""
@@ -158,31 +163,28 @@ class NetworkManager:
         # close connections and clean server
         if self.remote_ips.has_key(peer_id):
             remote_ip = self.remote_ips[peer_id]
-            if self.remote_ids.has_key(remote_ip):
-                del self.remote_ids[remote_ip]
             self.server.lose_local_server(remote_ip)
             self.client.lose_dedicated_client(remote_ip)
             # clean cache
             del self.remote_ips[peer_id]
+            if self.remote_ids.has_key(remote_ip):
+                del self.remote_ids[remote_ip]
 
     def on_change_peer(self, peer, service):
         """tries to connect to new peer"""
-        self.on_lost_peer(peer.id_)
-        self.on_new_peer(peer, service)
-
-    def _init_peer(self, peer_id, remote_ip):
-        """set up cache for given peer"""
-        self.remote_ips[peer_id] = remote_ip
-        self.remote_ids[remote_ip] = peer_id
+        if not self.remote_ips.has_key(peer.id_):
+            self.on_new_peer(peer, service)
 
     def on_service_data(self, peer_id, message):
         """demand to establish connection from peer that failed to
         connect through TCP"""
         try:
+            # check client is known
+            self._on_new_peer(peer_id)
             # parse message
             command, r_ip, r_port, data = parse_message(message)
             # create client if necessary
-            if not self.remote_ips.has_key(peer_id):
+            if self.remote_ips[peer_id] is None:
                 self.remote_ips[peer_id] = r_ip
                 self.remote_ids[r_ip] = peer_id
                 print "received UDP from new peer [%s]:"% r_ip, message
@@ -317,7 +319,7 @@ class ProfileClientProtocol(basic.LineOnlyReceiver):
 
     def sendLine(self, line):
         """overrides in order to ease debug"""
-        print "Cl.Manager sending", line
+        print "Client manager sending:", line
         basic.LineOnlyReceiver.sendLine(self, line)  
         
     def connectionMade(self):
@@ -363,6 +365,7 @@ class ProfileClientFactory(ClientFactory):
         if not self.dedicated_clients.has_key(remote_ip):
             client = PeerClientFactory(self.manager, remote_ip)
             self.dedicated_clients[remote_ip] = client
+            print "connection successfull to", remote_ip
         else:
             print "already created"
         
@@ -374,6 +377,7 @@ class ProfileClientFactory(ClientFactory):
         """on TCP failure, use udp"""
         # clean cache
         remote_ip = connector.getDestination().host
+        print "Could not connect to", remote_ip
         self.disconnect_tcp(remote_ip)
         
     def lose_dedicated_client(self, remote_ip):
@@ -399,7 +403,7 @@ class ProfileServerProtocol(basic.LineOnlyReceiver):
 
     def sendLine(self, line):
         """overrides in order to ease debug"""
-        print "Svr.Manager sending", line
+        print "Server Manager sending:", line
         basic.LineOnlyReceiver.sendLine(self, line)           
             
     def connectionMade(self):
@@ -409,6 +413,7 @@ class ProfileServerProtocol(basic.LineOnlyReceiver):
         local_ip = self.transport.getHost().host
         server = self.factory.get_local_server(remote_ip)
         message = "%s %s:%d"% (SERVER_SEND_ID, local_ip, server.port)
+        print "created local server (%s) for"% server.port, remote_ip
         self.sendLine(message)
 
 class ProfileServerFactory(ServerFactory):
