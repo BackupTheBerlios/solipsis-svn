@@ -92,7 +92,7 @@ def parse_message(message):
 def make_message(command, host, port, data=''):
     """format message to be sent via service_api"""
     message = "%s %s:%d %s"% (command, host, port, data)
-    print "sending", message
+    print "sending UDP:", message
     return message
 
 def get_free_port():
@@ -147,51 +147,50 @@ class NetworkManager:
 
     def on_new_peer(self, peer, service):
         """tries to connect to new peer"""
-        # parse address, 
-        remote_ip, port = parse_address(service.address)
-        print "*****", remote_ip, port 
-        # set up information in cache
-        self._init_peer(peer.id_, remote_ip)
         # declare known port to other peer throug service_api
-        message = make_message(MESSAGE_HELLO, self.host, self.port)
-        self.service_api.SendData(peer.id_, message)
+        if not self.remote_ips.has_key(peer.id_):
+            message = make_message(MESSAGE_HELLO, self.host, self.port)
+            self.service_api.SendData(peer.id_, message)
+
+    def on_lost_peer(self, peer_id):
+        """tries to connect to new peer"""
+        # TODO: do this cleanup after a TIMEOUT
+        # close connections and clean server
+        if self.remote_ips.has_key(peer_id):
+            remote_ip = self.remote_ips[peer_id]
+            if self.remote_ids.has_key(remote_ip):
+                del self.remote_ids[remote_ip]
+            self.server.lose_local_server(remote_ip)
+            self.client.lose_dedicated_client(remote_ip)
+            # clean cache
+            del self.remote_ips[peer_id]
+
+    def on_change_peer(self, peer, service):
+        """tries to connect to new peer"""
+        self.on_lost_peer(peer.id_)
+        self.on_new_peer(peer, service)
 
     def _init_peer(self, peer_id, remote_ip):
         """set up cache for given peer"""
         self.remote_ips[peer_id] = remote_ip
         self.remote_ids[remote_ip] = peer_id
 
-    def on_lost_peer(self, peer_id):
-        """tries to connect to new peer"""
-        # TODO: do this cleanup after a TIMEOUT
-        # close connections and clean server
-        self.server.lose_local_server(self.remote_ips[peer_id])
-        self.client.lose_dedicated_client(self.remote_ips[peer_id])
-        # clean cache
-        del self.remote_ips[peer_id]
-
-    def on_change_peer(self, peer, service):
-        """tries to connect to new peer"""
-        r_ip, r_port = parse_address(service.address)
-        if r_ip != self.remote_ips[peer.id_]:
-            self.on_lost_peer(peer.id_)
-            self.on_new_peer(peer, service)
-        # else peer only moved...
-
-    def on_service_data(self, peer_id, data):
+    def on_service_data(self, peer_id, message):
         """demand to establish connection from peer that failed to
         connect through TCP"""
         try:
-            print "Received", data
             # parse message
-            command, r_ip, r_port, data = parse_message(data)
+            command, r_ip, r_port, data = parse_message(message)
             # create client if necessary
             if not self.remote_ips.has_key(peer_id):
-                self._init_peer(peer_id, r_ip)
-            # check IP
-            assert r_ip == self.remote_ips[peer_id], \
-                   "incoherent ip %s instead of %s"\
-                   % (r_ip, self.remote_ips[peer_id])
+                self.remote_ips[peer_id] = r_ip
+                self.remote_ids[r_ip] = peer_id
+                print "received UDP from new peer [%s]:"% r_ip, message
+            else:
+                print "received UDP from %s:"% self.remote_ips[peer_id], message
+                assert r_ip == self.remote_ips[peer_id], \
+                       "incoherent ip: message indicates %s instead of %s"\
+                       % (r_ip, self.remote_ips[peer_id])
             # making tcp connection
             if command == MESSAGE_HELLO:
                 self.client.connect_tcp(r_ip, r_port)
@@ -299,7 +298,7 @@ class ProfileClientProtocol(basic.LineOnlyReceiver):
 
     def lineReceived(self, line):
         """incomming connection from other peer"""
-        print "Cl.Manager received", line
+        print "Client Manager received from %s:"% self.transport.getPeer().host, line
         # on greeting, stores info about remote host (profile id)
         if line.startswith(SERVER_SEND_ID):
             # get remote information
@@ -393,7 +392,7 @@ class ProfileServerProtocol(basic.LineOnlyReceiver):
 
     def lineReceived(self, line):
         """incomming connection from other peer"""
-        print "Svr.Manager received", line
+        print "Server Manager received from %s"% self.transport.getPeer().host, line
 
     def sendLine(self, line):
         """overrides in order to ease debug"""
@@ -504,7 +503,7 @@ class PeerClientProtocol(PeerProtocol):
     
     def lineReceived(self, line):
         """Override this for when each line is received."""
-        print "client received", line
+        print "client received fom %s"% self.transport.getPeer().host, line
         # UPLOAD
         # FIXME factorize with server
         if line.startswith(ASK_UPLOAD_FILES):
@@ -789,7 +788,7 @@ class PeerServerProtocol(PeerProtocol):
     # FIXME: CHECK UPDATE NEEDED
     def lineReceived(self, line):
         """Override this for when each line is received."""
-        print "server received", line
+        print "server received from %s"% self.transport.getPeer().host, line
         # donwnload file
         if line.startswith(ASK_DOWNLOAD_FILES):
             file_name = line[len(ASK_DOWNLOAD_FILES)+1:].strip()
