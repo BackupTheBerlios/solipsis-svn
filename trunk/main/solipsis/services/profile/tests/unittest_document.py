@@ -206,7 +206,6 @@ class DocumentTest(unittest.TestCase):
         document.add((abspath(u"data")))
         document.share_file((abspath(u"data"), True))
         # following line overridden by previous one
-        document.share_file((abspath(u"data/été.txt"), False))
         document.share_file((abspath(u"data/.path"), True))
         document.share_files((abspath(u"data/profiles"),
                               ["bruce.prf", "demi.prf"],
@@ -219,7 +218,6 @@ class DocumentTest(unittest.TestCase):
         shared_files.sort()
         self.assertEquals(shared_files, [REPO + u"/data/.path",
                                          REPO + u"/data/date.txt",
-                                         REPO + u"/data/été.txt",
                                          REPO + u"/data/profiles/bruce.prf",
                                          REPO + u"/data/profiles/demi.prf",
                                          REPO + u"/data/routage",

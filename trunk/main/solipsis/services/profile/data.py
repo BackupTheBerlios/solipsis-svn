@@ -580,7 +580,7 @@ def test_basic():
                    u".path",
                    u"subdir1"]
     print "*"
-    print "iso:", [u"routage",
+    print "utf:", [u"routage",
                    unicode("été.txt", "utf-8"),
                    u"date.txt",
                    u"profiles",
