@@ -24,16 +24,14 @@
 import socket
 import random
 import wx
-import os
 import sys
 
 from solipsis.util.wxutils import _
 from solipsis.services.plugin import ServicePlugin
-from solipsis.services.profile import PROFILE_DIR, PROFILE_FILE, set_solipsis_dir
+from solipsis.services.profile import set_solipsis_dir
 from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile.network import NetworkManager
-from solipsis.services.profile.document import CacheDocument, FileDocument
-from solipsis.services.profile.view import EditorView, ViewerView, HtmlView, PrintView
+from solipsis.services.profile.view import EditorView, ViewerView
 from solipsis.services.profile.gui.EditorFrame import EditorFrame
 from solipsis.services.profile.gui.ViewerFrame import ViewerFrame
 
@@ -161,7 +159,8 @@ class Plugin(ServicePlugin):
 
     def get_files(self, peer_id, file_names):
         """request downwload of given files"""
-        deferred = self.network.get_files(peer_id, file_names, self._on_all_files)
+        deferred = self.network.get_files(peer_id, file_names,
+                                          self._on_all_files)
         deferred and deferred.addCallback(
             lambda file_name: sys.stdout.write("%s downloaded\n"% file_name))
 

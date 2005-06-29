@@ -89,12 +89,6 @@ def parse_message(message):
         result.append(None)
     return result
 
-def make_message(command, host, port, data=''):
-    """format message to be sent via service_api"""
-    message = "%s %s:%d %s"% (command, host, port, data)
-    print "sending UDP:", message
-    return message
-
 def get_free_port():
     """return available port on localhost"""
     free_port = FREE_PORTS.pop()
@@ -145,11 +139,17 @@ class NetworkManager:
         """close all active connections"""
         self.client.disconnect()
 
+    def make_message(self, command, port, data=''):
+        """format message to be sent via service_api"""
+        message = "%s %s:%d %s"% (command, self.host, port, data)
+        print "sending UDP:", message
+        return message
+
     def on_new_peer(self, peer, service):
         """tries to connect to new peer"""
         # declare known port to other peer throug service_api
         if not self.remote_ips.has_key(peer.id_):
-            message = make_message(MESSAGE_HELLO, self.host, self.port)
+            message = self.make_message(MESSAGE_HELLO, self.port)
             self.service_api.SendData(peer.id_, message)
 
     def on_lost_peer(self, peer_id):
@@ -195,7 +195,8 @@ class NetworkManager:
             if command == MESSAGE_HELLO:
                 self.client.connect_tcp(r_ip, r_port)
             # upload
-            elif command in [MESSAGE_PROFILE, MESSAGE_BLOG, MESSAGE_SHARED, MESSAGE_FILES]:
+            elif command in [MESSAGE_PROFILE, MESSAGE_BLOG,
+                             MESSAGE_SHARED, MESSAGE_FILES]:
                 # get dedicated client (or None if not yet initialized)
                 dedicated_client = self.client.get_dedicated_client(
                     self.remote_ips[peer_id])
@@ -221,7 +222,7 @@ class NetworkManager:
 
     def _upload_impossible(self, peer_id, remote_ip, remote_port):
         """notify via udp that upload is not possible"""
-        message = make_message(MESSAGE_ERROR, remote_ip, remote_port)
+        message = self.make_message(MESSAGE_ERROR, remote_port)
         self.service_api.SendData(peer_id, message)
 
     def get_profile(self, peer_id):
@@ -298,7 +299,8 @@ class ProfileClientProtocol(basic.LineOnlyReceiver):
 
     def lineReceived(self, line):
         """incomming connection from other peer"""
-        print "Client Manager received from %s:"% self.transport.getPeer().host, line
+        print "Client Manager received from %s:"\
+              % self.transport.getPeer().host, line
         # on greeting, stores info about remote host (profile id)
         if line.startswith(SERVER_SEND_ID):
             # get remote information
@@ -392,7 +394,8 @@ class ProfileServerProtocol(basic.LineOnlyReceiver):
 
     def lineReceived(self, line):
         """incomming connection from other peer"""
-        print "Server Manager received from %s"% self.transport.getPeer().host, line
+        print "Server Manager received from %s"\
+              % self.transport.getPeer().host, line
 
     def sendLine(self, line):
         """overrides in order to ease debug"""
@@ -753,8 +756,9 @@ class DeferredUpload(defer.Deferred):
             self.file.seek(0)
             return self.file
 
-    def _on_error(self, error):
-        print "ERROR:", error
+    def _on_error(self, err):
+        """callback on exception"""
+        print "ERROR:", err
         traceback.print_exc()
 
     # FIXME factorize with server
@@ -887,7 +891,7 @@ class PeerServerFactory(ServerFactory):
             deferred = DeferredUpload(peer_id, action)
         # store deferred and ask client
         self.deferreds[remote_ip] = deferred
-        message = make_message(action, self.manager.host, self.port)
+        message = self.manager.make_message(action, self.port)
         self.manager.service_api.SendData(peer_id, message)
         return deferred
         
@@ -900,7 +904,7 @@ class PeerServerFactory(ServerFactory):
             deferred.addCallback(self._next_file, peer_id, action, remote_ip)
             # store deferred and ask client
             self.deferreds[remote_ip] = deferred
-            message = make_message(action, self.manager.host, self.port)
+            message = self.manager.make_message(action, self.port)
             self.manager.service_api.SendData(peer_id, message)
         else:
             self.manager._on_all_files()
