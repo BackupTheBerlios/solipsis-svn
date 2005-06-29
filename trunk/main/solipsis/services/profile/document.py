@@ -694,6 +694,10 @@ class CacheDocument(AbstractDocument):
 # FILEDOCUMENT
 class CustomConfigParser(ConfigParser.ConfigParser):
     """simple wrapper to make config file case sensitive"""
+
+    def __init__(self, encoding):
+        ConfigParser.ConfigParser.__init__(self)
+        self.encoding = encoding
     
     # only allow '=' to split key and value
     OPTCRE =  re.compile(
@@ -707,14 +711,17 @@ class CustomConfigParser(ConfigParser.ConfigParser):
     
     def optionxform(self, option):
         """override default implementation to make it case sensitive"""
-        return str(option)
+        if isinstance(option, unicode):
+            return option.encode(self.encoding)
+        else:
+            return str(option)
 
 class FileDocument(AbstractDocument):
     """data container on file"""
 
     def __init__(self, _id, directory=PROFILE_DIR, name="file"):
         self.encoding = ENCODING
-        self.config = CustomConfigParser()
+        self.config = CustomConfigParser(ENCODING)
         self.config.add_section(SECTION_PERSONAL)
         self.config.add_section(SECTION_CUSTOM)
         self.config.add_section(SECTION_FILE)
@@ -742,7 +749,7 @@ class FileDocument(AbstractDocument):
     def read(self, stream):
         """import profile from given stream (file object like)"""
         self.encoding = stream.readline()[1:]
-        self.config = CustomConfigParser()
+        self.config = CustomConfigParser(self.encoding)
         self.config.readfp(stream)
 
     def write(self, stream):
@@ -807,7 +814,7 @@ class FileDocument(AbstractDocument):
             return unicode(self.config.get(SECTION_PERSONAL, "lastname"),
                            self.encoding)
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-            return u"Firstnam"
+            return u"Lastname"
 
     def set_photo(self, value):
         """sets new value for photo"""
@@ -1108,7 +1115,7 @@ class FileDocument(AbstractDocument):
         # extract name of files saved on HD
         if peer_desc.document:
             peer_desc.document.save()
-        description = ",".join([peer_desc._id,
+        description = ",".join([peer_desc.peer_id,
                                 peer_desc.state,
                                 peer_desc.peer_id,
                                 time.asctime()])

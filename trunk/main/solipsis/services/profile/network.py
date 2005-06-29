@@ -149,6 +149,7 @@ class NetworkManager:
         """tries to connect to new peer"""
         # parse address, 
         remote_ip, port = parse_address(service.address)
+        print "*****", remote_ip, port 
         # set up information in cache
         self._init_peer(peer.id_, remote_ip)
         # declare known port to other peer throug service_api
@@ -181,6 +182,7 @@ class NetworkManager:
         """demand to establish connection from peer that failed to
         connect through TCP"""
         try:
+            print "Received", data
             # parse message
             command, r_ip, r_port, data = parse_message(data)
             # create client if necessary

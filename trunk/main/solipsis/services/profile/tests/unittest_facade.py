@@ -87,7 +87,9 @@ class FacadeTest(unittest.TestCase):
                            abspath(u'data/.svn'): u'none',
                            abspath(u'data/subdir1'): u'none',
                            abspath(u'data/profiles'): u'none',
-                           abspath(u'data/emptydir'): u'none'})
+                           abspath(u'data/emptydir'): u'none',
+                           abspath(unicode('data/élève', ENCODING)): u'none',
+                           abspath(unicode('data/été.txt', ENCODING)): u'none'})
         self.assertRaises(AssertionError, self.facade.expand_dir,
                           abspath(u"data/routage"))
         self.facade.expand_dir(abspath(u"data/emptydir"))

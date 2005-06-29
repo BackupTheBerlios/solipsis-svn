@@ -7,6 +7,7 @@ import os.path
 from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxyReceiver
 from solipsis.services.profile import DOWNLOAD, DOWNLOAD_DIR, DOWNLOAD_REPO
+from solipsis.services.profile.facade import get_facade
 
 # begin wxGlade: dependencies
 # end wxGlade
@@ -18,7 +19,7 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
         self.plugin = plugin
         self.peer_id = _("Anonymous")
         self.download_repo = DOWNLOAD_REPO
-        self.facade = None
+        self.facade = get_facade()
         args = (parent, id)
         # begin wxGlade: FileDialog.__init__
         kwds["style"] = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.THICK_FRAME

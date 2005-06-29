@@ -148,12 +148,12 @@ class FileTest(unittest.TestCase):
         
     def test_default(self):
         document = FileDocument(PROFILE_TEST, PROFILE_DIRECTORY)
-        self.assertEquals(u"Mr", document.get_title())
-        self.assertEquals(u"Emmanuel", document.get_firstname())
-        self.assertEquals(u"Breton", document.get_lastname())
+        self.assertEquals(u"", document.get_title())
+        self.assertEquals(u"Name", document.get_firstname())
+        self.assertEquals(u"Lastname", document.get_lastname())
         self.assertEquals(u'/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/question_mark.gif',
                           document.get_photo())
-        self.assertEquals(u"emb@logilab.fr", document.get_email())
+        self.assertEquals(u"email", document.get_email())
         self.assertEquals({'City': u'', 'Country': u'',
                            'Favourite Book': u'', 'Favourite Movie': u'',
                            'Sport': u'', 'Studies': u''},

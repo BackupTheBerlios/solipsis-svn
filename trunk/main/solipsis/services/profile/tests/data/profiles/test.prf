@@ -1,4 +1,4 @@
-#ISO-8859-1
+#iso-8859-1
 [Personal]
 firstname = manu
 title = Mr
@@ -16,7 +16,7 @@ email = manu@ft.com
 /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/emptydir = shared,none
 
 [Others]
-bruce = bruce,Friend,bruce,Tue Jun 28 12:28:35 2005
+bruce = bruce,Friend,bruce,Wed Jun 29 10:54:48 2005
 
 [Custom]
 City = 

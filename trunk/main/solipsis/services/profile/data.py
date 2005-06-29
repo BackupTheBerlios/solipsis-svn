@@ -1,3 +1,4 @@
+# -*- coding: iso-8859-1 -*-
 # <copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
 # Copyright (C) 2002-2005 France Telecom R&D
@@ -31,12 +32,12 @@ SHARING_ALL = -1
 def assert_file(path):
     """raise ValueError if not a file"""
     assert os.path.isfile(path), \
-           "[%s] not a valid file"% path.encode(ENCODING)
+           "[%s] not a valid file"% path
 
 def assert_dir(path):
     """raise ValueError if not a file"""
     assert os.path.isdir(path), \
-           "[%s] not a valid directory"% path.encode(ENCODING)
+           "[%s] not a valid directory"% path
     
 # PEERS
 #######
@@ -325,7 +326,7 @@ class FileContainer(ContainerMixin):
 
     def __init__(self, path, share=False, tag=DEFAULT_TAG):
         ContainerMixin.__init__(self, path, share, tag)
-        assert_file(path)
+        assert_file(path.encode(ENCODING))
         
     def __str__(self):
         return "Fc:%s(?%s,'%s')"% (self.name.encode(ENCODING),
@@ -337,7 +338,7 @@ class FileContainer(ContainerMixin):
     def _validate(self, path):
         """assert path exists and is a file"""
         path = ContainerMixin._validate(self, path)
-        assert_file(path)
+        assert_file(path.encode(ENCODING))
         return path
         
 class DirContainer(dict, ContainerMixin):
@@ -347,7 +348,7 @@ class DirContainer(dict, ContainerMixin):
 
     def __init__(self, path, share=False, tag=DEFAULT_TAG):
         ContainerMixin.__init__(self, path, share, tag)
-        assert_dir(path)
+        assert_dir(path.encode(ENCODING))
         dict.__init__(self)
         
     def __str__(self):
@@ -405,7 +406,7 @@ class DirContainer(dict, ContainerMixin):
         assert path.startswith(self.path), "'%s' not in container '%s'"\
                % (path, self.path)
         # check validity
-        assert_dir(path)
+        assert_dir(path.encode(ENCODING))
         # make path relative
         return path
 
@@ -420,12 +421,12 @@ class DirContainer(dict, ContainerMixin):
     def _add(self, local_key, value=None):
         """add File/DirContainer"""
         path = os.path.join(self.path, local_key)
-        if os.path.isdir(path):
+        if os.path.isdir(path.encode(ENCODING)):
             dict.__setitem__(self, local_key, value or DirContainer(path))
-        elif os.path.isfile(path):
+        elif os.path.isfile(path.encode(ENCODING)):
             dict.__setitem__(self, local_key, value or FileContainer(path))
         else:
-            raise AssertionError("%s not a valid file/dir" % path)
+            raise AssertionError("%s not a valid file/dir" % path.encode(ENCODING))
         return dict.__getitem__(self, local_key)
 
     def has_key(self, full_path):
@@ -469,7 +470,7 @@ class DirContainer(dict, ContainerMixin):
     def expand_dir(self, full_path=None):
         """put into cache new information when dir expanded in tree"""
         if full_path:
-            assert_dir(full_path)
+            assert_dir(full_path.encode(ENCODING))
             container = self[full_path]
         else:
             container = self
@@ -480,7 +481,7 @@ class DirContainer(dict, ContainerMixin):
     def share_content(self, full_path, share=True):
         """wrapps sharing methods matching 'full_path' with list or path"""
         if isinstance(full_path, str) or isinstance(full_path, unicode):
-            assert_dir(full_path)
+            assert_dir(full_path.encode(ENCODING))
             self[full_path]._share_dir(share)
         elif isinstance(full_path, list) or isinstance(full_path, tuple):
             self._share_dirs(full_path, share)
@@ -546,3 +547,65 @@ class DirContainer(dict, ContainerMixin):
                 if container._shared:
                     result += 1
             return result
+
+def test_basic():
+    repo = "/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data"
+    urepo = u"/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data"
+    import locale
+    locale.setlocale(locale.LC_CTYPE, "")
+    print "*"
+    print "str:", os.listdir(repo)
+    print "*"
+    print "LIS:", os.listdir(urepo)
+    print "*"
+    print "iso:",  os.listdir(unicode(repo, "iso-8859-1"))
+    print "*"
+    print "utf:",  os.listdir(unicode(repo, "utf-8"))
+    print "*"
+    print "RAW:", [u"routage",
+                   u"été.txt",
+                   u"date.txt",
+                   u"profiles",
+                   u"élève",
+                   u"emptydir",
+                   u".path",
+                   u"subdir1"]
+    print "*"
+    print "iso:", [u"routage",
+                   unicode("été.txt", "iso-8859-1"),
+                   u"date.txt",
+                   u"profiles",
+                   unicode("élève", "iso-8859-1"),
+                   u"emptydir",
+                   u".path",
+                   u"subdir1"]
+    print "*"
+    print "iso:", [u"routage",
+                   unicode("été.txt", "utf-8"),
+                   u"date.txt",
+                   u"profiles",
+                   unicode("élève", "utf-8"),
+                   u"emptydir",
+                   u".path",
+                   u"subdir1"]
+    print "*"
+#     files = os.listdir(urepo)
+#     files += [u".path",
+#               u"date.txt",
+#               u"été.txt",
+#               u"profiles/bruce.prf",
+#               u"profiles/demi.prf",
+#               u"routage",
+#               u"subdir1/date.doc"]
+#     file_names = [name.encode(ENCODING) for name in files]
+#     for file_name in file_names:
+#         if os.path.isfile(os.path.join(repo, file_name)):
+#             print "is file", file_name
+#         elif os.path.isdir(os.path.join(repo, file_name)):
+#             print "is dir", file_name
+#         else:
+#             print "exists", file_name, os.path.exists(os.path.join(repo, file_name))
+            
+            
+if __name__ == "__main__":
+    test_basic()

@@ -23,7 +23,7 @@ import os, os.path
 import gettext 
 _ = gettext.gettext
 
-ENCODING = "ISO-8859-1"
+ENCODING = "iso-8859-1"
 VERSION = "0.2.0"
 DISCLAIMER = "All data in profiles are shared within Solipsis communauty"
 

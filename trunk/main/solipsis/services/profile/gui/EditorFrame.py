@@ -103,6 +103,7 @@ class EditorFrame(wx.Frame):
               or "Disactivated"
         active = self.activate_item.IsChecked()
         self.facade.activate(active)
+        self.plugin.activate(active)
         
     def on_save(self, evt):
         """save .prf"""

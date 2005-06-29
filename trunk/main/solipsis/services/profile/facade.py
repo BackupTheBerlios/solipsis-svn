@@ -144,6 +144,10 @@ class Facade:
         """forward command to cache"""
         return self._desc.document.get_container(name)
     
+    def get_peers(self):
+        """returns PeerDescriptor with given id"""
+        return self._desc.document.get_peers()
+    
     def get_peer(self, peer_id):
         """returns PeerDescriptor with given id"""
         return self._desc.document.get_peer(peer_id)

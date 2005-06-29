@@ -25,7 +25,7 @@ class DocumentTest(unittest.TestCase):
         self.abstract_doc.add_repository(REPO)
 
     def test_config_parser(self):
-        writer = CustomConfigParser()
+        writer = CustomConfigParser(ENCODING)
         writer.add_section('TEST')
         writer.set('TEST', "Windows:path", "not a valid linux:path!")
         writer.write(open("generated/config.test", "w"))
@@ -36,7 +36,7 @@ class DocumentTest(unittest.TestCase):
         self.assert_(reader.has_option('TEST', "Windows"))
         self.assertEquals(reader.get('TEST', "Windows"), "path = not a valid linux:path!")
         # custom reader
-        reader = CustomConfigParser()
+        reader = CustomConfigParser(ENCODING)
         reader.readfp(open("generated/config.test"))
         self.assert_(reader.has_section('TEST'))
         self.assert_(reader.has_option('TEST', "Windows:path"))
@@ -205,6 +205,8 @@ class DocumentTest(unittest.TestCase):
         document.add_repository(REPO)
         document.add((abspath(u"data")))
         document.share_file((abspath(u"data"), True))
+        # following line overridden by previous one
+        document.share_file((abspath(u"data/été.txt"), False))
         document.share_file((abspath(u"data/.path"), True))
         document.share_files((abspath(u"data/profiles"),
                               ["bruce.prf", "demi.prf"],
@@ -215,12 +217,13 @@ class DocumentTest(unittest.TestCase):
         shared_files = [file_container.path for file_container
                         in document.get_shared_files()[REPO]]
         shared_files.sort()
-        self.assertEquals(shared_files, [REPO + "/data/.path",
-                                         REPO + "/data/date.txt",
-                                         REPO + "/data/profiles/bruce.prf",
-                                         REPO + "/data/profiles/demi.prf",
-                                         REPO + "/data/routage",
-                                         REPO + "/data/subdir1/date.doc"])
+        self.assertEquals(shared_files, [REPO + u"/data/.path",
+                                         REPO + u"/data/date.txt",
+                                         REPO + u"/data/été.txt",
+                                         REPO + u"/data/profiles/bruce.prf",
+                                         REPO + u"/data/profiles/demi.prf",
+                                         REPO + u"/data/routage",
+                                         REPO + u"/data/subdir1/date.doc"])
 
     def test_multiple_repos(self):
         """coherency when several repos in use"""

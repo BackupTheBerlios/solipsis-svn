@@ -52,12 +52,14 @@ class Plugin(ServicePlugin):
         # TODO: smartly discover our own address IP
         # (this is where duplicated code starts to appear...)
         self.host = socket.gethostbyname(socket.gethostname())
+        print "gethostbyname",  self.host
         self.port = random.randrange(7000, 7100)
         # init facade. Views will be initialized in Enable
         # (views depend on graphical mode)
         self.network = None
         self.facade = None
         self.editor_frame = None
+        self.peer_services = {}
         # declare actions
         self.MAIN_ACTION = {"Modify Profile...": self.modify_profile,
                             }
@@ -168,6 +170,16 @@ class Plugin(ServicePlugin):
         deferred = self.network.get_shared_files(peer_id)
         deferred and deferred.addCallback(self._on_shared_files, peer_id)
 
+    def activate(self, active):
+        """eable/disable service"""
+        if not active:
+            self.network.stop_listening()
+            self.network.disconnect()
+        else:
+            self.network.start_listening()
+            for peer_id in self.peer_services.keys():
+                self.NewPeer(*self.peer_services[peer_id])
+
     # callbacks methods
     def _on_new_profile(self, document, peer_id):
         """store and display file object corresponding to profile"""
@@ -245,16 +257,19 @@ class Plugin(ServicePlugin):
     # FIXME: reactivate when efficient
     def NewPeer(self, peer, service):
         """delegate to network"""
+        self.peer_services[peer.id_] = (peer, service)
         if self.facade.is_activated():
             self.network.on_new_peer(peer, service)
 
     def ChangedPeer(self, peer, service):
         """delegate to network"""
+        self.peer_services[peer.id_] = (peer, service)
         if self.facade.is_activated():
             self.network.on_change_peer(peer, service)
 
     def LostPeer(self, peer_id):
         """delegate to network"""
+        del self.peer_services[peer_id]
         if self.facade.is_activated():
             self.network.on_lost_peer(peer_id)
             self.facade.set_connected((peer_id, False))
