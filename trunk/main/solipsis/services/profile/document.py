@@ -32,7 +32,8 @@ from solipsis.services.profile import ENCODING, QUESTION_MARK, \
      PROFILE_DIR, PROFILE_EXT, DOWNLOAD_REPO, DEFAULT_INTERESTS
 from solipsis.services.profile.data import DEFAULT_TAG, \
      DirContainer, FileContainer, ContainerMixin, \
-     SharedFiles, PeerDescriptor, Blogs, load_blogs
+     SharedFiles, PeerDescriptor, \
+     Blogs, retro_compatibility, load_blogs
 
 DATE_FORMAT = "%d/%m/%Y"
 SECTION_PERSONAL = "Personal"
@@ -427,6 +428,7 @@ class AbstractDocument:
 
     def fill_blog(self, (peer_id, blog)):
         """stores CacheDocument associated with peer"""
+        blog = retro_compatibility(blog)
         if not isinstance(blog, Blogs):
             raise TypeError("data expected as AbstractDocument")
         if not self.has_peer(peer_id):

@@ -235,6 +235,7 @@ class NetworkManager:
             return client.get_profile()
         # no client available means no server on the other side: try
         # download with our server
+        print "No direct TCP connection to %s: asks upload"% self.remote_ips[peer_id]
         server = self.server.get_local_server(self.remote_ips[peer_id])
         if server:
             return server.prepare_reception(peer_id, MESSAGE_PROFILE,
@@ -250,6 +251,7 @@ class NetworkManager:
             return client.get_blog_file()
         # no client available means no server on the other side: try
         # download with our server
+        print "No direct TCP connection to %s: asks upload"% self.remote_ips[peer_id]
         server = self.server.get_local_server(self.remote_ips[peer_id])
         if server:
             return server.prepare_reception(peer_id, MESSAGE_BLOG,
@@ -263,9 +265,9 @@ class NetworkManager:
         client = self.client.get_dedicated_client(self.remote_ips[peer_id])
         if client:
             return client.get_shared_files()
-        print "using server"
         # no client available means no server on the other side: try
         # download with our server
+        print "No direct TCP connection to %s: asks upload"% self.remote_ips[peer_id]
         server = self.server.get_local_server(self.remote_ips[peer_id])
         if server:
             return server.prepare_reception(peer_id, MESSAGE_SHARED,
@@ -282,6 +284,7 @@ class NetworkManager:
             return client.get_files(file_names)
         # no client available means no server on the other side: try
         # download with our server
+        print "No direct TCP connection to %s: asks upload"% self.remote_ips[peer_id]
         server = self.server.get_local_server(self.remote_ips[peer_id])
         if server:
             return server.prepare_reception(peer_id, MESSAGE_FILES,
