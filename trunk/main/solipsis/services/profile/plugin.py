@@ -80,7 +80,7 @@ class Plugin(ServicePlugin):
         # launch network
         self.network = NetworkManager(self.host,  random.randrange(7100, 7200),
                                       self.service_api, get_facade())
-        self.network.start_listening()
+        self.activate()
         
     def Enable(self):
         """
@@ -118,7 +118,7 @@ class Plugin(ServicePlugin):
         # launch network
         self.network = NetworkManager(self.host,  random.randrange(7100, 7200),
                                       self.service_api, get_facade())
-        self.network.start_listening()
+        self.activate()
     
     def Disable(self):
         """It is called when the user chooses to disable the service."""
@@ -134,7 +134,7 @@ class Plugin(ServicePlugin):
                 wx.YES_NO | wx.ICON_INFORMATION)
             if dlg.ShowModal() == wx.ID_YES:
                 self.facade.save_profile()
-        self.network.stop_listening()
+        self.activate(False)
 
     # Service methods
     def modify_profile(self):
@@ -169,7 +169,7 @@ class Plugin(ServicePlugin):
         deferred = self.network.get_shared_files(peer_id)
         deferred and deferred.addCallback(self._on_shared_files, peer_id)
 
-    def activate(self, active):
+    def activate(self, active=True):
         """eable/disable service"""
         if not active:
             self.network.stop_listening()
