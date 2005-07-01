@@ -4,7 +4,7 @@
 import wx
 
 from solipsis.util.wxutils import _
-from solipsis.services.profile import set_always_display
+from solipsis.services.profile import set_always_display, DISPLAY_IMG
 
 # begin wxGlade: dependencies
 # end wxGlade
@@ -16,7 +16,7 @@ class DownloadDialog(wx.Dialog):
         # begin wxGlade: DownloadDialog.__init__
         kwds["style"] = wx.CAPTION
         wx.Dialog.__init__(self, *args, **kwds)
-        self.bitmap_1 = wx.StaticBitmap(self, -1, wx.Bitmap("/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/download_complete.gif", wx.BITMAP_TYPE_ANY))
+        self.bitmap_1 = wx.StaticBitmap(self, -1, wx.Bitmap(DISPLAY_IMG(), wx.BITMAP_TYPE_ANY))
         self.dl_label = wx.StaticText(self, -1, _("Download Complete"))
         self.separator_copy = wx.StaticLine(self, -1)
         self.always_display_check = wx.CheckBox(self, -1, _("Always display"))
