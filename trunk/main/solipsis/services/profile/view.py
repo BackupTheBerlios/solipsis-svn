@@ -313,7 +313,7 @@ class HtmlView(AbstractView):
             content = {}
             html_format[unicodeWrapper(repo)] = content
             for container in self._desc.document.get_shared(repo):
-                content[container.path[len(repo):]] = container._tag
+                content[container.get_path()[len(repo):]] = container._tag
         self.context.addGlobal("files", html_format)
         if self.auto_refresh:
             self._update_view()

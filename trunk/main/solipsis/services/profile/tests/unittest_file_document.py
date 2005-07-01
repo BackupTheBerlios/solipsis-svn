@@ -45,7 +45,7 @@ class FileTest(unittest.TestCase):
         # assert correct sharing
         shared_dict = {}
         for container in  doc.get_shared(REPO):
-            shared_dict[container.path] = container
+            shared_dict[container.get_path()] = container
         expected_files = {REPO + u'/data/subdir1/subsubdir/null': u'empty',
                           REPO + u'/data/subdir1': u'none',
                           REPO + u'/data/subdir1/subsubdir/dummy.txt': u'empty',

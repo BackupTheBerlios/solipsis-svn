@@ -245,8 +245,9 @@ class FilePanel(wx.Panel):
     def _add_item_in_tree(self, parent, container):
         """add items in tree"""
         # create item
+        container_path = container.get_path()
         if container.get_data() is None:
-            name = os.path.basename(container.path)
+            name = os.path.basename(container_path)
             child = self.tree_list.AppendItem(parent, name)
             container.set_data(child)
             self.tree_list.SetItemImage(child, self.tree_fldridx, which = wx.TreeItemIcon_Normal)
@@ -259,7 +260,7 @@ class FilePanel(wx.Panel):
         else:
             str_shared = str(nb_shared)
         self.tree_list.SetItemText(child, u"%s"% str_shared, NB_SHARED_COL)
-        self.tree_list.SetItemText(child, container.path, FULL_PATH_COL)
+        self.tree_list.SetItemText(child, container_path, FULL_PATH_COL)
         return child
 
     def _get_selected_listitems(self):

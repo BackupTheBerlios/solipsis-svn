@@ -79,8 +79,8 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
             file_data = []
             for file_descs in files.values():
                 for file_desc in file_descs:
-                    file_data.append([file_desc.path,
-                                      os.path.basename(file_desc.path),
+                    file_data.append([file_desc.get_path(),
+                                      file_desc.name,
                                       file_desc._tag])
             # clear previous data
             for key in self.data.keys():

@@ -693,7 +693,6 @@ class CacheDocument(AbstractDocument):
         
     def set_peer(self, (peer_id, peer_desc)):
         """stores Peer object"""
-        print "*** set peer", peer_id, peer_desc.pseudo
         self.peers[peer_id] = peer_desc
         peer_desc.set_node_id(peer_id)
         

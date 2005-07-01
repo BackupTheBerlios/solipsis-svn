@@ -283,8 +283,9 @@ class ContainerMixin:
         self.tag(tag)
         self.share(share)
         # init path
-        self.path = ContainerMixin._validate(self, path)
-        self.name = os.path.basename(self.path)
+        path =  ContainerMixin._validate(self, path)
+        self._paths = path.split(os.sep)
+        self.name = self._paths[-1]
 
     def tag(self, tag):
         """set tag"""
@@ -304,6 +305,9 @@ class ContainerMixin:
     def get_data(self):
         """used by GUI"""
         return self._data
+
+    def get_path(self):
+        return os.sep.join(self._paths)
     
     def _validate(self, path):
         """assert path is valid"""
@@ -313,8 +317,6 @@ class ContainerMixin:
 
     def import_data(self, container):
         """copy data from container"""
-        assert self.path == container.path, \
-               "containers %s & %s not compatible"% (self, container)
         self.tag(container._tag)
         self.shared(container._shared)
         self._data = container._data
@@ -324,7 +326,7 @@ class FileContainer(ContainerMixin):
 
     def __init__(self, path, share=False, tag=DEFAULT_TAG):
         ContainerMixin.__init__(self, path, share, tag)
-        assert_file(path.encode(ENCODING))
+        assert_file(self.get_path().encode(ENCODING))
         
     def __str__(self):
         return "Fc:%s(?%s,'%s')"% (self.name.encode(ENCODING),
@@ -333,12 +335,6 @@ class FileContainer(ContainerMixin):
     def __repr__(self):
         return str(self)
 
-    def _validate(self, path):
-        """assert path exists and is a file"""
-        path = ContainerMixin._validate(self, path)
-        assert_file(path.encode(ENCODING))
-        return path
-        
 class DirContainer(dict, ContainerMixin):
     """Structure to store data in cache:
     
@@ -346,7 +342,7 @@ class DirContainer(dict, ContainerMixin):
 
     def __init__(self, path, share=False, tag=DEFAULT_TAG):
         ContainerMixin.__init__(self, path, share, tag)
-        assert_dir(path.encode(ENCODING))
+        assert_dir(self.get_path().encode(ENCODING))
         dict.__init__(self)
         
     def __str__(self):
@@ -356,14 +352,25 @@ class DirContainer(dict, ContainerMixin):
                  self._tag.encode(ENCODING)  or "-",
                  self.nb_shared(),
                  str(self.values()))
+    
     def __repr__(self):
         return str(self)
 
+    def _format_path(self, path):
+        """assert path exists and is a file"""
+        container_path = self.get_path()
+        # check included in path
+        assert path.startswith(container_path), "'%s' not in container '%s'"\
+               % (path, container_path)
+        # make path relative
+        return path[len(container_path)+1:]
+
     def __getitem__(self, full_path):
         full_path = ContainerMixin._validate(self, full_path)
-        container = self
         local_path = self._format_path(full_path)
         local_keys = [path for path in local_path.split(os.path.sep) if path]
+        # walk through containers
+        container = self
         for local_key in local_keys:
             if not dict.has_key(container, local_key):
                 container = container._add(local_key)
@@ -375,14 +382,15 @@ class DirContainer(dict, ContainerMixin):
         full_path = ContainerMixin._validate(self, full_path)
         assert isinstance(value, ContainerMixin), \
                "Added value '%s' must be a sharable object" % value
-        assert value.path.startswith(full_path), \
+        assert value.get_path().startswith(full_path), \
                "Added value '%s' not coherent with path '%s'"\
                % (value, full_path)
         container = self
         local_path = self._format_path(full_path)
         local_keys = [path for path in local_path.split(os.path.sep) if path]
         for local_key in local_keys:
-            if value and container.path == os.path.dirname(full_path):
+            container_path = container.get_path()
+            if value and container_path == os.path.dirname(full_path):
                 # add value if defined AND right place to do so
                 dict.__setitem__(container, os.path.basename(full_path), value)
             else:
@@ -397,28 +405,9 @@ class DirContainer(dict, ContainerMixin):
         container = self[os.path.dirname(full_path)]
         dict.__delitem__(container, os.path.basename(full_path))
 
-    def _validate(self, path):
-        """assert path exists and is a file"""
-        path = ContainerMixin._validate(self, path)
-        # check included in self.path
-        assert path.startswith(self.path), "'%s' not in container '%s'"\
-               % (path, self.path)
-        # check validity
-        assert_dir(path.encode(ENCODING))
-        # make path relative
-        return path
-
-    def _format_path(self, path):
-        """assert path exists and is a file"""
-        # check included in self.path
-        assert path.startswith(self.path), "'%s' not in container '%s'"\
-               % (path, self.path)
-        # make path relative
-        return path[len(self.path)+1:]
-
     def _add(self, local_key, value=None):
         """add File/DirContainer"""
-        path = os.path.join(self.path, local_key)
+        path = os.path.join(self.get_path(), local_key)
         if os.path.isdir(path.encode(ENCODING)):
             dict.__setitem__(self, local_key, value or DirContainer(path))
         elif os.path.isfile(path.encode(ENCODING)):
@@ -444,8 +433,9 @@ class DirContainer(dict, ContainerMixin):
     def keys(self):
         """overrides dict methode"""
         # add owned keys
+        path = self.get_path()
         all_keys = []
-        all_keys += [os.path.join(self.path, key)
+        all_keys += [os.path.join(path, key)
                      for key in dict.keys(self)]
         # add children's ones
         for container in [dir_c for dir_c in self.values()
@@ -473,8 +463,9 @@ class DirContainer(dict, ContainerMixin):
             container = self[full_path]
         else:
             container = self
-        for path in [os.path.join(container.path, path)
-                     for path in os.listdir(container.path)]:
+        container_path = container.get_path()
+        for path in [os.path.join(container_path, path)
+                     for path in os.listdir(container_path)]:
             container.add(path)
 
     def share_content(self, full_path, share=True):

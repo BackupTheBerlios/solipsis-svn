@@ -214,7 +214,7 @@ class DocumentTest(unittest.TestCase):
         document.share_files((REPO + "/data/subdir1",
                               ["date.doc"],
                               True))
-        shared_files = [file_container.path for file_container
+        shared_files = [file_container.get_path() for file_container
                         in document.get_shared_files()[REPO]]
         shared_files.sort()
         self.assertEquals(shared_files, [REPO + u"/data/.path",

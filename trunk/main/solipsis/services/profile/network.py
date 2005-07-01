@@ -388,7 +388,6 @@ class ProfileClientFactory(ClientFactory):
 
     def _on_profile_complete(self, document, peer_id):
         """callback when autoloading of profile successful"""
-        print "***", peer_id, document.pseudo
         get_facade().set_data((peer_id, document))
         get_facade().set_connected((peer_id, True))
     
