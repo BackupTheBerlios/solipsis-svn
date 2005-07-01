@@ -23,7 +23,6 @@ class EditorFrame(wx.Frame):
     """Frame where profile is edited"""
     
     def __init__(self, options, parent, id, title, plugin=None, **kwds):
-        self.facade = get_facade()
         self.plugin = plugin
         self.modified = False
         self.options = options
@@ -70,16 +69,19 @@ class EditorFrame(wx.Frame):
             pass
 
         self.profile_dlg = ProfileDialog(parent, -1, plugin=self.plugin)
-        self.personal_tab.set_facade(self.facade)
-        self.blog_tab.set_facade(self.facade)
-        self.file_tab.set_facade(self.facade)
-        self.profile_dlg.set_facade(self.facade, auto_refresh=True)
         # events
         self.bind_controls()
         # disclaimer
         if not skip_disclaimer():
             self.on_about(None)
 
+    def on_change_facade(self):
+        """update facade"""
+        self.personal_tab.on_change_facade()
+        self.blog_tab.on_change_facade()
+        self.file_tab.on_change_facade()
+        self.profile_dlg.on_change_facade(auto_refresh=True)
+        
     # EVENTS
     
     def bind_controls(self):
@@ -102,12 +104,11 @@ class EditorFrame(wx.Frame):
         print self.activate_item.IsChecked() and "Activating..." \
               or "Disactivated"
         active = self.activate_item.IsChecked()
-        self.facade.activate(active)
-        self.plugin.activate(active)
+        get_facade().activate(active)
         
     def on_save(self, evt):
         """save .prf"""
-        self.facade.save_profile()
+        get_facade().save_profile()
         self.do_modified(False)
         
     def on_export(self, evt):
@@ -115,12 +116,12 @@ class EditorFrame(wx.Frame):
         dlg = wx.FileDialog(
             self, message="Export HTML file as ...",
             defaultDir=PROFILE_DIR,
-            defaultFile="%s.html"% self.facade.get_pseudo(),
+            defaultFile="%s.html"% get_facade().get_pseudo(),
             wildcard="HTML File (*.html)|*.html",
             style=wx.SAVE)
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            self.facade.export_profile(path)
+            get_facade().export_profile(path)
         
     def on_close(self, evt=None):
         """hide  application"""
@@ -133,7 +134,7 @@ class EditorFrame(wx.Frame):
                 'Saving Dialog',
                 wx.YES_NO | wx.ICON_INFORMATION)
             if dlg.ShowModal() == wx.ID_YES:
-                self.facade.save_profile()
+                get_facade().save_profile()
         # close dialog
         if self.options["standalone"]:
             self._close()

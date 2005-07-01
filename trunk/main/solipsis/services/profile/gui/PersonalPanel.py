@@ -9,6 +9,7 @@ from StringIO import StringIO
 from wx import ImageFromStream, BitmapFromImage
 
 from solipsis.util.wxutils import _
+from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile import QUESTION_MARK, ADD_CUSTOM, DEL_CUSTOM
 
 # begin wxGlade: dependencies
@@ -18,7 +19,6 @@ class PersonalPanel(wx.Panel):
     def __init__(self, parent, id,
                  cb_modified=lambda x: sys.stdout.write(str(x))):
         # set members
-        self.facade = None
         self.edited_item = None
         self.do_modified = cb_modified
         args = (parent, id)
@@ -75,25 +75,25 @@ class PersonalPanel(wx.Panel):
         
     def on_title(self, evt):
         """language loses focus"""
-        if self.facade.change_title(evt.GetString()) != False:
+        if get_facade().change_title(evt.GetString()) != False:
             self.do_modified(True)
         evt.Skip()
         
     def on_firstname(self, evt):
         """firstname loses focus"""
-        if self.facade.change_firstname(evt.GetEventObject().GetValue()) != False:
+        if get_facade().change_firstname(evt.GetEventObject().GetValue()) != False:
             self.do_modified(True)
         evt.Skip()
         
     def on_lastname(self, evt):
         """lastname loses focus"""
-        if self.facade.change_lastname(evt.GetEventObject().GetValue()) != False:
+        if get_facade().change_lastname(evt.GetEventObject().GetValue()) != False:
             self.do_modified(True)
         evt.Skip()
     
     def on_email(self, evt):
         """email loses focus"""
-        if self.facade.change_email(evt.GetEventObject().GetValue()) != False:
+        if get_facade().change_email(evt.GetEventObject().GetValue()) != False:
             self.do_modified(True)
         evt.Skip()
 
@@ -111,7 +111,7 @@ class PersonalPanel(wx.Panel):
         
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            if self.facade.change_photo(path) != False:
+            if get_facade().change_photo(path) != False:
                 self.do_modified(True)
         dlg.Destroy()
 
@@ -132,7 +132,7 @@ class PersonalPanel(wx.Panel):
             index = self.custom_list.InsertStringItem(sys.maxint, self.key_value.GetValue())
             self.custom_list.SetStringItem(index, 1, self.custom_value.GetValue())
         # update cache
-        self.facade.add_custom_attributes((self.key_value.GetValue(),
+        get_facade().add_custom_attributes((self.key_value.GetValue(),
                                            self.custom_value.GetValue()))
         self.do_modified(True)
 
@@ -141,13 +141,12 @@ class PersonalPanel(wx.Panel):
         # update data
         if self.custom_list.DeleteItem(self.custom_list.FindItem(0, self.key_value.GetValue())):
             # update cache
-            self.facade.del_custom_attributes(self.key_value.GetValue())
+            get_facade().del_custom_attributes(self.key_value.GetValue())
             self.do_modified(True)
 
-    def set_facade(self, facade):
+    def on_change_facade(self):
         """setter"""
-        self.facade = facade
-        self.nickname_value.SetValue(self.facade.get_pseudo())
+        self.nickname_value.SetValue(get_facade().get_pseudo())
 
     def __set_properties(self):
         # begin wxGlade: PersonalPanel.__set_properties

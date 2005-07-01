@@ -27,7 +27,6 @@ import tempfile
 import sys
 import re
 from os.path import isfile, isdir
-from StringIO import StringIO
 from solipsis.services.profile import ENCODING, QUESTION_MARK, \
      PROFILE_DIR, PROFILE_EXT, DOWNLOAD_REPO, DEFAULT_INTERESTS
 from solipsis.services.profile.data import DEFAULT_TAG, \
@@ -46,16 +45,38 @@ SHARE_NONE = "none"
 
 NO_PATH = "UNKNOWN"
 
+def read_document(stream):
+    """use FileDocument to load document"""
+    encoding = stream.readline()[1:]
+    config = CustomConfigParser(encoding)
+    config.readfp(stream)
+    stream.close()
+    try:
+        pseudo = unicode(config.get(SECTION_PERSONAL, "pseudo", "Anonymous"),
+                         encoding)
+    except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+        print "Could not retreive pseudo"
+        pseudo = "Anonymous"
+    doc = FileDocument(pseudo)
+    doc.encoding = encoding
+    doc.config = config
+    return doc
+
+def load_document(pseudo, directory=PROFILE_DIR):
+    """build FileDocumentn from file"""
+    doc = FileDocument(pseudo, directory)
+    if not doc.load():
+        print "Could not find document"
+    return doc
+    
 class AbstractDocument:
     """Base class for data container. Acts as validator.
 
     Setters check input type. Getters are abstract"""
 
-    def __init__(self, _id, directory=PROFILE_DIR, name="abstract"):
-        # used by facade when multiple documents
-        self.name = name
+    def __init__(self, pseudo, directory=PROFILE_DIR):
         # point out file where document is saved
-        self._id = _id
+        self.pseudo = pseudo
         self._dir = directory
         # memory
         self.last_downloaded_desc = None
@@ -65,29 +86,19 @@ class AbstractDocument:
                 self.add_custom_attributes((custom_interest, u""))
 
     def __repr__(self):
-        return self.name
-
-    def get_name(self):
-        """used as key in index"""
-        return self.name
+        return self.pseudo
 
     def get_id(self):
         """return identifiant of Document"""
-        return os.path.join(self._dir, self._id) + PROFILE_EXT
+        return os.path.join(self._dir, self.pseudo) + PROFILE_EXT
 
     def get_last_downloaded_desc(self):
         """return identifiant of Document"""
         return self.last_downloaded_desc
 
-    def open(self):
-        """returns a file object containing values"""
-        file_doc = FileDocument(self._id, self._dir)
-        file_doc.import_document(self)
-        return file_doc.open()
-
     def copy(self):
         """return copy of this document"""
-        copied_doc = self.__class__(self._id, self._dir)
+        copied_doc = self.__class__(self.pseudo, self._dir)
         copied_doc.import_document(self)
         return copied_doc
         
@@ -117,22 +128,32 @@ class AbstractDocument:
             self.reset_peers()
             peers = other_document.get_peers()
             for peer_id, peer_desc in peers.iteritems():
-                self.add_peer(peer_id, peer_desc.copy())
+                self.set_peer((peer_id, PeerDescriptor(peer_desc.pseudo,
+                                                       document=peer_desc.document,
+                                                       blog=peer_desc.blog,
+                                                       state=peer_desc.state)))
         except TypeError, error:
             print error, "Using default values"
 
     # MENU
     def save(self):
         """fill document with information from .profile file"""
-        doc = FileDocument(self._id, self._dir)
+        doc = FileDocument(self.pseudo, self._dir)
         doc.import_document(self)
         doc.save()
-
+        
     def load(self):
         """fill document with information from .profile file"""
-        doc = FileDocument(self._id, self._dir)
-        doc.load()
+        doc = FileDocument(self.pseudo, self._dir)
+        result = doc.load()
         self.import_document(doc)
+        return result
+        
+    def to_stream(self):
+        """fill document with information from .profile file"""
+        doc = FileDocument(self.pseudo, self._dir)
+        doc.import_document(self)
+        return doc.to_stream()
     
     # PERSONAL TAB    
     def set_title(self, value):
@@ -359,7 +380,7 @@ class AbstractDocument:
         """empty all information concerning peers"""
         raise NotImplementedError
         
-    def add_peer(self, peer_id, peer_desc=None):
+    def set_peer(self, (peer_id, peer_desc)):
         """stores Peer object"""
         raise NotImplementedError
         
@@ -390,10 +411,7 @@ class AbstractDocument:
         """change connected status of given peer and updates views"""
         if self.has_peer(peer_id):
             peer_desc = self.get_peer(peer_id)
-            if peer_desc.state == PeerDescriptor.ANONYMOUS:
-                self.remove_peer(peer_id)
-            else:
-                peer_desc.set_connected(connected)
+            peer_desc.set_connected(connected)
     
     def make_friend(self, peer_id):
         """sets peer as friend """
@@ -409,8 +427,7 @@ class AbstractDocument:
 
     def _change_status(self, peer_id, status):
         """mark given peer as Friend, Blacklisted or Anonymous"""
-        if not self.has_peer(peer_id):
-            self.add_peer(peer_id)
+        assert self.has_peer(peer_id), "no profile for %s"% peer_id
         peer_desc = self.get_peer(peer_id)
         peer_desc.state = status
         return peer_desc
@@ -420,8 +437,10 @@ class AbstractDocument:
         if not isinstance(document, AbstractDocument):
             raise TypeError("data expected as AbstractDocument")
         if not self.has_peer(peer_id):
-            self.add_peer(peer_id)
-        peer_desc = self.get_peer(peer_id)
+            peer_desc = PeerDescriptor(document.pseudo, document=document)
+            self.set_peer((peer_id, peer_desc))
+        else:
+            peer_desc = self.get_peer(peer_id)
         peer_desc.set_document(document)
         self.last_downloaded_desc = peer_desc
         return peer_desc
@@ -432,8 +451,10 @@ class AbstractDocument:
         if not isinstance(blog, Blogs):
             raise TypeError("data expected as AbstractDocument")
         if not self.has_peer(peer_id):
-            self.add_peer(peer_id)
-        peer_desc = self.get_peer(peer_id)
+            peer_desc = PeerDescriptor(blog.pseudo, blog=blog)
+            self.set_peer((peer_id, peer_desc))
+        else:
+            peer_desc = self.get_peer(peer_id)
         peer_desc.set_blog(blog)
         self.last_downloaded_desc = peer_desc
         return peer_desc
@@ -442,8 +463,8 @@ class AbstractDocument:
         """connect shared files with shared files"""
         if not isinstance(files, SharedFiles):
             raise TypeError("data expected as SharedFiles")
-        if not self.has_peer(peer_id):
-            self.add_peer(peer_id)
+        assert self.has_peer(peer_id), "no profile for %s in %s"\
+               % (peer_id, self.__class__)
         peer_desc = self.get_peer(peer_id)
         peer_desc.set_shared_files(files)
         self.last_downloaded_desc = peer_desc
@@ -453,7 +474,7 @@ class AbstractDocument:
 class CacheDocument(AbstractDocument):
     """data container on cache"""
 
-    def __init__(self, _id, directory=PROFILE_DIR, name="cache"):
+    def __init__(self, pseudo, directory=PROFILE_DIR):
         self.title = u""
         self.firstname = u"Name"
         self.lastname = u"Lastname"
@@ -468,7 +489,7 @@ class CacheDocument(AbstractDocument):
         self.files = {}
         # dictionary of peers. {pseudo : PeerDescriptor}
         self.peers = {}
-        AbstractDocument.__init__(self, _id, directory, name)
+        AbstractDocument.__init__(self, pseudo, directory)
 
     def __str__(self):
         return self.__dict__
@@ -670,11 +691,11 @@ class CacheDocument(AbstractDocument):
         """empty all information concerning peers"""
         self.peers = {}
         
-    def add_peer(self, peer_id, peer_desc=None):
+    def set_peer(self, (peer_id, peer_desc)):
         """stores Peer object"""
-        if peer_desc is None:
-            peer_desc = PeerDescriptor(peer_id)
+        print "*** set peer", peer_id, peer_desc.pseudo
         self.peers[peer_id] = peer_desc
+        peer_desc.set_node_id(peer_id)
         
     def remove_peer(self, peer_id):
         """del Peer object"""
@@ -721,45 +742,28 @@ class CustomConfigParser(ConfigParser.ConfigParser):
 class FileDocument(AbstractDocument):
     """data container on file"""
 
-    def __init__(self, _id, directory=PROFILE_DIR, name="file"):
+    def __init__(self, pseudo, directory=PROFILE_DIR):
         self.encoding = ENCODING
         self.config = CustomConfigParser(ENCODING)
         self.config.add_section(SECTION_PERSONAL)
+        self.config.set(SECTION_PERSONAL, "pseudo", pseudo)
         self.config.add_section(SECTION_CUSTOM)
         self.config.add_section(SECTION_FILE)
         self.config.add_section(SECTION_OTHERS)
-        AbstractDocument.__init__(self, _id, directory, name)
+        AbstractDocument.__init__(self, pseudo, directory)
 
     def __str__(self):
-        result = StringIO()
-        return self.write(result).getvalue()
-
-    def open(self):
-        """returns a file object containing values"""
-        file_obj = tempfile.TemporaryFile()
-        self.write(file_obj)
-        file_obj.seek(0)
-        return file_obj
+        return self.pseudo
     
     # MENU
 
     def save(self):
         """fill document with information from .profile file"""
         profile_file = open(self.get_id(), 'w')
-        self.write(profile_file).close()
-
-    def read(self, stream):
-        """import profile from given stream (file object like)"""
-        self.encoding = stream.readline()[1:]
-        self.config = CustomConfigParser(self.encoding)
-        self.config.readfp(stream)
-
-    def write(self, stream):
-        """export encoding along with profile"""
-        stream.write("#%s\n"% self.encoding)
-        self.config.write(stream)
-        return stream
-
+        profile_file.write("#%s\n"% self.encoding)
+        self.config.write(profile_file)
+        profile_file.close()
+        
     def load(self,):
         """fill document with information from .profile file"""
         # load profile
@@ -768,9 +772,19 @@ class FileDocument(AbstractDocument):
             return False
         else:
             profile_file = open(self.get_id())
-            self.read(profile_file)
+            self.encoding = profile_file.readline()[1:]
+            self.config = CustomConfigParser(self.encoding)
+            self.config.readfp(profile_file)
             profile_file.close()
             return True
+
+    def to_stream(self):
+        """returns a file object containing values"""
+        file_obj = tempfile.TemporaryFile()
+        file_obj.write("#%s\n"% self.encoding)
+        self.config.write(file_obj)
+        file_obj.seek(0)
+        return file_obj
         
     # PERSONAL TAB
     def set_title(self, value):
@@ -1105,23 +1119,21 @@ class FileDocument(AbstractDocument):
         self.config.remove_section(SECTION_OTHERS)
         self.config.add_section(SECTION_OTHERS)
         
-    def add_peer(self, peer_id, peer_desc=None):
+    def set_peer(self, (peer_id, peer_desc)):
         """stores Peer object"""
-        if peer_desc and peer_desc.state != PeerDescriptor.ANONYMOUS:
-            self._write_peer(peer_desc)
-        #else:
-        #    print "peer %s is anonymous, does not write him"% peer_id
+        self._write_peer(peer_id, peer_desc)
+        peer_desc.set_node_id(peer_id)
         
-    def _write_peer(self, peer_desc):
+    def _write_peer(self, peer_id, peer_desc):
         """stores Peer object"""
         # extract name of files saved on HD
         if peer_desc.document:
             peer_desc.document.save()
-        description = ",".join([peer_desc.peer_id,
+        description = ",".join([peer_desc.pseudo,
                                 peer_desc.state,
-                                peer_desc.peer_id,
+                                peer_id,
                                 time.asctime()])
-        self.config.set(SECTION_OTHERS, peer_desc.peer_id, description)
+        self.config.set(SECTION_OTHERS, peer_id, description)
         
     def remove_peer(self, peer_id):
         """del Peer object"""
@@ -1138,24 +1150,24 @@ class FileDocument(AbstractDocument):
             infos = self.config.get(SECTION_OTHERS, peer_id).split(",")
             pseudo, state, p_id, creation_date = infos
             if p_id != peer_id:
-                print "file corrupted: %s != %s" % (p_id, peer_id)
-                return PeerDescriptor(peer_id)
+                print "file corrupted: %s (%s) != %s" \
+                      % (p_id, creation_date, peer_id)
+                return PeerDescriptor(pseudo)
             file_doc = None
             blogs = None
-            file_doc = FileDocument(peer_id, self._dir)
+            file_doc = FileDocument(pseudo, self._dir)
             if file_doc.load():
                 try: 
-                    blogs = load_blogs(peer_id, file_doc._dir)
+                    blogs = load_blogs(pseudo, file_doc._dir)
                 except ValueError, err:
                     print str(err)
-            return PeerDescriptor(peer_id,
+            return PeerDescriptor(pseudo,
                                   document=file_doc,
                                   blog=blogs,
-                                  pseudo=pseudo,
                                   state=state,
                                   connected=False)
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-            return  PeerDescriptor(peer_id)
+            return  PeerDescriptor(u"Anonymous")
     
     def get_peers(self):
         """returns Peers"""
@@ -1179,7 +1191,7 @@ class FileDocument(AbstractDocument):
         """mark given peer as Friend, Blacklisted or Anonymous"""
         peer_desc = AbstractDocument._change_status(self, peer_id, status)
         if status != PeerDescriptor.ANONYMOUS:
-            self._write_peer(peer_desc)
+            self._write_peer(peer_id, peer_desc)
         else:
             self.remove_peer(peer_id)
 
@@ -1187,7 +1199,7 @@ class FileDocument(AbstractDocument):
         """stores CacheDocument associated with peer"""
         peer_desc = AbstractDocument.fill_data(self, (peer_id, document))
         if peer_desc.state != PeerDescriptor.ANONYMOUS:
-            self._write_peer(peer_desc)
+            self._write_peer(peer_id, peer_desc)
 
     def fill_blog(self, (peer_id, blog)):
         """stores CacheDocument associated with peer"""

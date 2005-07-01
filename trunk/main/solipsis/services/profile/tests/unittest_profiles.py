@@ -36,13 +36,13 @@ class ProfileTest(unittest.TestCase):
                           self.bruce_doc.get_custom_attributes())
 
     def test_peer_status(self):
-        self.assertEquals(self.demi_doc.has_peer(self.bruce_doc._id), False)
-        self.demi_doc.fill_data((self.bruce_doc._id, self.bruce_doc))
-        self.assertEquals(self.demi_doc.has_peer(self.bruce_doc._id), False)
-        self.demi_doc.make_friend(self.bruce_doc._id)
-        self.assertEquals(self.demi_doc.has_peer(self.bruce_doc._id), True)
-        self.demi_doc.unmark_peer(self.bruce_doc._id)
-        self.assertEquals(self.demi_doc.has_peer(self.bruce_doc._id), False)
+        self.assertEquals(self.demi_doc.has_peer(self.bruce_doc.pseudo), False)
+        self.demi_doc.fill_data((self.bruce_doc.pseudo, self.bruce_doc))
+        self.assertEquals(self.demi_doc.has_peer(self.bruce_doc.pseudo), True)
+        self.demi_doc.make_friend(self.bruce_doc.pseudo)
+        self.assertEquals(self.demi_doc.has_peer(self.bruce_doc.pseudo), True)
+        self.demi_doc.unmark_peer(self.bruce_doc.pseudo)
+        self.assertEquals(self.demi_doc.has_peer(self.bruce_doc.pseudo), False)
         
 if __name__ == '__main__':
     unittest.main()

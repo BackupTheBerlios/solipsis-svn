@@ -61,6 +61,7 @@ class PeerHtmlListBox(wx.HtmlListBox):
 class BlogDialog(wx.Dialog, UIProxyReceiver):
     def __init__(self, parent, id, plugin=None, **kwds):
         UIProxyReceiver.__init__(self)
+        self.peer_desc = None
         args = (parent, id)
         # begin wxGlade: BlogDialog.__init__
         kwds["style"] = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.THICK_FRAME
@@ -78,7 +79,6 @@ class BlogDialog(wx.Dialog, UIProxyReceiver):
 
         # specific stuff
         self.plugin = plugin
-        self.peer_id = None
         self.bind_controls()
 
     def Show(self, blog, do_show=True):
@@ -92,11 +92,11 @@ class BlogDialog(wx.Dialog, UIProxyReceiver):
         if isinstance(peer_desc, unicode) or isinstance(peer_desc, str):
             wx.Dialog.SetTitle(self, peer_desc)
             return
-        if peer_desc and peer_desc.document:
-            self.peer_id = peer_desc.peer_id
-            pseudo = peer_desc.get_pseudo()
+        if peer_desc:
+            self.peer_desc = peer_desc
+            pseudo = peer_desc.pseudo
         else:
-            pseudo = self.peer_id
+            pseudo = "Anonymous"
         wx.Dialog.SetTitle(self, "%s's %s"% (pseudo, _("Blog")))
 
         

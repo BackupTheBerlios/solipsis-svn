@@ -52,44 +52,35 @@ class PeerDescriptor:
               FRIEND:'blue',
               BLACKLISTED:'red'}
     
-    def __init__(self, peer_id, document=None, blog=None,
-                 pseudo=None, state=ANONYMOUS, connected=False):
+    def __init__(self, pseudo, document=None, blog=None,
+                 state=ANONYMOUS, connected=False):
         # status
-        self.peer_id = peer_id
+        self.pseudo = pseudo
         self.state = state
         self.connected = connected
         # data
         from solipsis.services.profile.document import CacheDocument
-        self.document = document or CacheDocument(peer_id)
-        self.blog = blog or Blogs(peer_id, pseudo=pseudo)
+        self.document = document or CacheDocument(pseudo)
+        self.blog = blog or Blogs(pseudo)
         self.shared_files = None
+        # node_id
+        self.node_id = None
 
     def __repr__(self):
-        return "%s (%s)"% (self.peer_id, self.state)
-
-    def get_id(self):
-        """retrun id filled in document or id if no document"""
-        return self.peer_id
-
-    def get_pseudo(self):
-        """retrun pseudo filled in document or id if no document"""
-        return self.blog.pseudo
+        return "%s (%s)"% (self.pseudo, self.state)
 
     def copy(self):
-        """return copied instance of PeerDescriptor.
-
-        Beware: shallow copy for document. deep for others members"""
-        return PeerDescriptor(self.peer_id,
+        """return copied instance of PeerDescriptor"""
+        return PeerDescriptor(self.pseudo,
                               self.document.copy(),
                               self.blog.copy(),
-                              self.get_pseudo(),
                               self.state,
                               self.connected)
 
     def load(self):
         """load both document & blog"""
         self.document.load()
-        self.set_blog(load_blogs(self.peer_id))
+        self.set_blog(load_blogs(self.pseudo))
 
     def save(self):
         """save both document & blog"""
@@ -111,22 +102,26 @@ class PeerDescriptor:
     def set_shared_files(self, files):
         """blog is instance Blogs"""
         self.shared_files = files
+
+    def set_node_id(self, node_id):
+        """set when peer_desc is assciated with a node"""
+        self.node_id = node_id
         
     def html(self):
         """render peer in HTML"""
         return "<img src='%s'/><font color=%s>%s</font>"\
                % (self.connected and BULB_ON_IMG() or BULB_OFF_IMG(),
                   PeerDescriptor.COLORS[self.state],
-                  self.get_pseudo())
+                  self.pseudo)
     
 # BLOGS
 #######
 
-def load_blogs(peer_id, directory=PROFILE_DIR):
+def load_blogs(pseudo, directory=PROFILE_DIR):
     """use pickle to loas blogs. file name given without extension
     (same model as profile"""
     # reformating name
-    file_name =  os.path.join(directory, peer_id)
+    file_name =  os.path.join(directory, pseudo)
     file_name += BLOG_EXT
     # loading
     if os.path.exists(file_name):
@@ -140,12 +135,16 @@ def load_blogs(peer_id, directory=PROFILE_DIR):
 def retro_compatibility(blogs):
     """make sure that downloaded version is the good one"""
     if not hasattr(blogs, "version"):
-        # v 0.1.0
+        # v 0.1.0: owner only
         blogs.pseudo = blogs.owner
-        blogs._id = blogs.owner
         blogs._dir = PROFILE_DIR
         return blogs.copy()
     elif blogs.version == "0.2.0":
+        # v 0.2.0: path derived from _id & _dir. owner becomes pseudo
+        blogs.pseudo = blogs._id
+        return blogs.copy()
+    elif blogs.version == "0.2.1":
+        # v 0.2.1: path derived from pseudo & dir. _id removed
         return blogs
     else:
         raise ValueError("blog format not recognized.")
@@ -155,9 +154,8 @@ class Blogs:
     """container for all blogs, responsible for authentification"""
 
 
-    def __init__(self, peer_id, directory=PROFILE_DIR, pseudo=None):
-        self.pseudo = pseudo or peer_id
-        self._id = peer_id
+    def __init__(self, pseudo, directory=PROFILE_DIR):
+        self.pseudo = pseudo 
         self._dir = directory
         self.blogs = []
         # tag class to be enable retro-compatibility
@@ -171,7 +169,7 @@ class Blogs:
 
     def get_id(self):
         """return file name of blog"""
-        return os.path.join(self._dir, self._id) + BLOG_EXT
+        return os.path.join(self._dir, self.pseudo) + BLOG_EXT
 
     def save(self):
         """use pickle to save to blog_file"""
@@ -182,7 +180,7 @@ class Blogs:
 
     def copy(self):
         """return new instance of Blogs with same attributes"""
-        copied = Blogs(self._id, self._dir, self.pseudo)
+        copied = Blogs(self.pseudo, self._dir)
         for index, blog in enumerate(self.blogs):
             copied.add_blog(blog.text, blog.author, blog.date)
             for comment in blog.comments:
@@ -426,7 +424,8 @@ class DirContainer(dict, ContainerMixin):
         elif os.path.isfile(path.encode(ENCODING)):
             dict.__setitem__(self, local_key, value or FileContainer(path))
         else:
-            raise AssertionError("%s not a valid file/dir" % path.encode(ENCODING))
+            raise AssertionError("%s not a valid file/dir" \
+                                 % path.encode(ENCODING))
         return dict.__getitem__(self, local_key)
 
     def has_key(self, full_path):
@@ -547,65 +546,3 @@ class DirContainer(dict, ContainerMixin):
                 if container._shared:
                     result += 1
             return result
-
-def test_basic():
-    repo = "/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data"
-    urepo = u"/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data"
-    import locale
-    locale.setlocale(locale.LC_CTYPE, "")
-    print "*"
-    print "str:", os.listdir(repo)
-    print "*"
-    print "LIS:", os.listdir(urepo)
-    print "*"
-    print "iso:",  os.listdir(unicode(repo, "iso-8859-1"))
-    print "*"
-    print "utf:",  os.listdir(unicode(repo, "utf-8"))
-    print "*"
-    print "RAW:", [u"routage",
-                   u"été.txt",
-                   u"date.txt",
-                   u"profiles",
-                   u"élève",
-                   u"emptydir",
-                   u".path",
-                   u"subdir1"]
-    print "*"
-    print "iso:", [u"routage",
-                   unicode("été.txt", "iso-8859-1"),
-                   u"date.txt",
-                   u"profiles",
-                   unicode("élève", "iso-8859-1"),
-                   u"emptydir",
-                   u".path",
-                   u"subdir1"]
-    print "*"
-    print "utf:", [u"routage",
-                   unicode("été.txt", "utf-8"),
-                   u"date.txt",
-                   u"profiles",
-                   unicode("élève", "utf-8"),
-                   u"emptydir",
-                   u".path",
-                   u"subdir1"]
-    print "*"
-#     files = os.listdir(urepo)
-#     files += [u".path",
-#               u"date.txt",
-#               u"été.txt",
-#               u"profiles/bruce.prf",
-#               u"profiles/demi.prf",
-#               u"routage",
-#               u"subdir1/date.doc"]
-#     file_names = [name.encode(ENCODING) for name in files]
-#     for file_name in file_names:
-#         if os.path.isfile(os.path.join(repo, file_name)):
-#             print "is file", file_name
-#         elif os.path.isdir(os.path.join(repo, file_name)):
-#             print "is dir", file_name
-#         else:
-#             print "exists", file_name, os.path.exists(os.path.join(repo, file_name))
-            
-            
-if __name__ == "__main__":
-    test_basic()

@@ -28,18 +28,15 @@ from solipsis.services.profile.data import PeerDescriptor, Blogs
 from solipsis.services.profile.document import CacheDocument
 from solipsis.services.profile.view import HtmlView
 
-def get_facade(peer_id=None, directory=PROFILE_DIR, pseudo=None):
+def create_facade(pseudo, directory=PROFILE_DIR):
     """implements pattern singleton on Facade. User may specify
     document end/or view to initialize facade with at creation"""
-    if not Facade.s_facade:
-        assert peer_id, "Facade must be created with user's id"
-        Facade.s_facade = Facade(pseudo, peer_id, directory)
-    else:
-        if peer_id:
-            f_id = Facade.s_facade._desc.peer_id
-            assert f_id == peer_id,  "given pseudo %s does not match id %s" \
-                   % (peer_id, f_id)
-        #else: nothing to do but returning facade
+    Facade.s_facade = Facade(pseudo, directory)
+    return Facade.s_facade
+
+def get_facade():
+    """implements pattern singleton on Facade. User may specify
+    document end/or view to initialize facade with at creation"""
     return Facade.s_facade
 
 class Facade:
@@ -47,21 +44,17 @@ class Facade:
     
     s_facade = None
 
-    def __init__(self, pseudo, peer_id, directory=PROFILE_DIR):
-        self._desc = PeerDescriptor(peer_id,
-                                    document=CacheDocument(peer_id, directory),
-                                    blog=Blogs(pseudo, peer_id, directory),
-                                    pseudo=pseudo)
+    def __init__(self, pseudo, directory=PROFILE_DIR):
+        self._desc = PeerDescriptor(pseudo,
+                                    document=CacheDocument(pseudo, directory),
+                                    blog=Blogs(pseudo, directory))
+        self.pseudo = pseudo
         self._activated = True
         self.views = {}
 
     def get_pseudo(self):
         """return pseudo"""
-        return self._desc.get_pseudo()
-
-    def get_id(self):
-        """return pseudo"""
-        return self._desc.peer_id
+        return self.pseudo
 
     # views
     def add_view(self, view):
@@ -85,12 +78,12 @@ class Facade:
     def add_blog(self, text):
         """store blog in cache as wx.HtmlListBox is virtual.
         return blog's index"""
-        self._desc.blog.add_blog(text, self._desc.peer_id)
+        self._desc.blog.add_blog(text, self.pseudo)
         self.update_blogs()
 
     def remove_blog(self, index):
         """delete blog"""
-        self._desc.blog.remove_blog(index, self._desc.peer_id)
+        self._desc.blog.remove_blog(index, self.pseudo)
         self.update_blogs()
         
     def add_comment(self, (index, text, author)):
@@ -130,7 +123,7 @@ class Facade:
 
     def get_profile(self):
         """return a file object like on profile"""
-        return self._desc.document.open()
+        return self._desc.document.to_stream()
 
     def get_blog_file(self):
         """return a file object like on blog"""
@@ -296,10 +289,10 @@ class Facade:
                                "update_files")
 
     # OTHERS TAB
-    def add_peer(self, value):
+    def set_peer(self, (peer_id, peer_desc)):
         """sets peer as friend """
-        return self._try_change(value,
-                                "add_peer",
+        return self._try_change((peer_id, peer_desc),
+                                "set_peer",
                                 "update_peers")
     
     def remove_peer(self, value):

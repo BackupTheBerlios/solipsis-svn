@@ -25,10 +25,10 @@ class BlogTest(unittest.TestCase):
         
     def setUp(self):
         """override one in unittest.TestCase"""
-        self.blog = Blogs(PROFILE_TEST, directory=PROFILE_DIRECTORY, pseudo=PSEUDO)
-        self.blog.add_blog("first blog", PSEUDO)
-        self.blog.add_blog("second blog", PSEUDO)
-        self.blog.add_comment(0, "commenting the first", "manu")
+        self.blog = Blogs(PROFILE_TEST, directory=PROFILE_DIRECTORY)
+        self.blog.add_blog("first blog", PROFILE_TEST)
+        self.blog.add_blog("second blog", PROFILE_TEST)
+        self.blog.add_comment(0, "commenting the first", PSEUDO)
         self.blog.save()
     
     def test_blog(self):
@@ -46,8 +46,8 @@ class BlogTest(unittest.TestCase):
     def test_copy(self):
         copied_blog = self.blog.copy()
         # add some blogs in first
-        self.blog.add_blog("more blog", PSEUDO)
-        self.blog.add_comment(0, "commenting (again) the first", "manu")
+        self.blog.add_blog("more blog", PROFILE_TEST)
+        self.blog.add_comment(0, "commenting (again) the first", PSEUDO)
         # check result
         self.assertEquals(self.blog.count_blogs(), 3)
         self.assertEquals(self.blog.get_blog(0).count_blogs(), 2)

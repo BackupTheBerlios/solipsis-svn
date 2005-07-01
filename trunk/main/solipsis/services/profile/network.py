@@ -15,7 +15,7 @@ from twisted.protocols import basic
 from StringIO import StringIO
 
 from solipsis.services.profile import ENCODING, FREE_PORTS
-from solipsis.services.profile.document import FileDocument
+from solipsis.services.profile.document import read_document
 from solipsis.services.profile.facade import get_facade
 
 TIMEOUT = 60
@@ -109,12 +109,11 @@ def release_port(port):
 class NetworkManager:
     """high level class managing clients and servers for each peer"""
 
-    def __init__(self, host, known_port, service_api, facade):
+    def __init__(self, host, known_port, service_api):
         # service socket
         self.host = host
         self.port = known_port
         self.service_api = service_api
-        self.facade = facade
         # server and client manager (listening to known port and
         # spawing dedicated servers / clients
         self.client = ProfileClientFactory(self, service_api)
@@ -389,8 +388,9 @@ class ProfileClientFactory(ClientFactory):
 
     def _on_profile_complete(self, document, peer_id):
         """callback when autoloading of profile successful"""
-        self.manager.facade.set_data((peer_id, document))
-        self.manager.facade.set_connected((peer_id, True))
+        print "***", peer_id, document.pseudo
+        get_facade().set_data((peer_id, document))
+        get_facade().set_connected((peer_id, True))
     
 # SERVER
 class ProfileServerProtocol(basic.LineOnlyReceiver):
@@ -519,8 +519,7 @@ class PeerClientProtocol(PeerProtocol):
         # FIXME factorize with server
         if line.startswith(ASK_UPLOAD_FILES):
             file_name = line[len(ASK_UPLOAD_FILES)+1:].strip()
-            file_desc = self.factory.manager.facade.\
-                             get_file_container(file_name)
+            file_desc = get_facade().get_file_container(file_name)
             # check shared
             if file_desc._shared:
                 print "sending", file_name
@@ -531,19 +530,19 @@ class PeerClientProtocol(PeerProtocol):
                 print "permission denied"
         # donwnload blog
         elif line == ASK_UPLOAD_BLOG:
-            blog_stream = self.factory.manager.facade.get_blog_file()
+            blog_stream = get_facade().get_blog_file()
             deferred = basic.FileSender().\
                        beginFileTransfer(blog_stream, self.transport)
             deferred.addCallback(lambda x: self.transport.loseConnection())
         # donwnload list of shared files
         elif line == ASK_UPLOAD_SHARED:
-            files_stream = self.factory.manager.facade.get_shared_files()
+            files_stream = get_facade().get_shared_files()
             deferred = basic.FileSender().beginFileTransfer(files_stream,
                                                             self.transport)
             deferred.addCallback(lambda x: self.transport.loseConnection())
         # donwnload profile
         elif line == ASK_UPLOAD_PROFILE:
-            file_obj = self.factory.manager.facade.get_profile()
+            file_obj = get_facade().get_profile()
             deferred = basic.FileSender().\
                        beginFileTransfer(file_obj, self.transport)
             deferred.addCallback(lambda x: self.transport.loseConnection())
@@ -650,9 +649,7 @@ class PeerClientFactory(ClientFactory):
 
     def _on_complete_profile(self, file_obj):
         """callback when finished downloading profile"""
-        file_doc = FileDocument(self.peer_id)
-        file_doc.read(file_obj)
-        return file_doc
+        return read_document(file_obj)
 
     def _on_complete_pickle(self, file_obj):
         """callback when finished downloading blog"""
@@ -772,9 +769,7 @@ class DeferredUpload(defer.Deferred):
     # FIXME factorize with server
     def _on_complete_profile(self, file_obj):
         """callback when finished downloading profile"""
-        file_doc = FileDocument()
-        file_doc.read(file_obj)
-        return file_doc
+        return read_document(file_obj)
 
     # FIXME factorize with server
     def _on_complete_pickle(self, file_obj):
@@ -804,8 +799,7 @@ class PeerServerProtocol(PeerProtocol):
         # donwnload file
         if line.startswith(ASK_DOWNLOAD_FILES):
             file_name = line[len(ASK_DOWNLOAD_FILES)+1:].strip()
-            file_desc = self.factory.manager.facade.\
-                             get_file_container(file_name)
+            file_desc = get_facade().get_file_container(file_name)
             # check shared
             if file_desc._shared:
                 print "sending", file_name
@@ -816,19 +810,19 @@ class PeerServerProtocol(PeerProtocol):
                 print "permission denied"
         # donwnload blog
         elif line == ASK_DOWNLOAD_BLOG:
-            blog_stream = self.factory.manager.facade.get_blog_file()
+            blog_stream = get_facade().get_blog_file()
             deferred = basic.FileSender().\
                        beginFileTransfer(blog_stream, self.transport)
             deferred.addCallback(lambda x: self.transport.loseConnection())
         # donwnload list of shared files
         elif line == ASK_DOWNLOAD_SHARED:
-            files_stream = self.factory.manager.facade.get_shared_files()
+            files_stream = get_facade().get_shared_files()
             deferred = basic.FileSender().beginFileTransfer(files_stream,
                                                             self.transport)
             deferred.addCallback(lambda x: self.transport.loseConnection())
         # donwnload profile
         elif line == ASK_DOWNLOAD_PROFILE:
-            file_obj = self.factory.manager.facade.get_profile()
+            file_obj = get_facade().get_profile()
             deferred = basic.FileSender().\
                        beginFileTransfer(file_obj, self.transport)
             deferred.addCallback(lambda x: self.transport.loseConnection())

@@ -26,7 +26,6 @@ from solipsis.services.profile.gui.AboutDialog import AboutDialog
 
 class ViewerFrame(wx.Frame):
     def __init__(self, options, parent, id, title, plugin=None, **kwds):
-        self.facade = get_facade()
         self.plugin = plugin
         self.options = options
         args = (parent, id, title)
@@ -91,11 +90,9 @@ class ViewerFrame(wx.Frame):
         self.file_dlg = UIProxy(FileDialog(parent, -1, plugin=self.plugin))
         self.bind_controls()
 
-    def set_facade(self, facade):
-        self.facade = facade
-        self.html_view.set_facade(self.facade)
-        self.blog_panel.set_facade(self.facade)
-        self.file_panel.set_facade(self.facade)
+    def on_change_facade(self):
+        self.blog_panel.on_change_facade()
+        self.file_panel.on_change_facade()
 
     # EVENTS
     
@@ -129,11 +126,11 @@ class ViewerFrame(wx.Frame):
             style=wx.SAVE)
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            self.facade.export_profile(path)
+            get_facade().export_profile(path)
         
     def on_close(self, evt):
         """hide  application"""
-        self.facade.save_profile()
+        get_facade().save_profile()
         if self.options["standalone"]:
             self._close()
         else:
@@ -157,12 +154,12 @@ class ViewerFrame(wx.Frame):
             style=wx.OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()[:-4]
-            loader = FileDocument()
-            loader.load(path)
+            loader = FileDocument(path)
+            loader.load()
             blogs = load_blogs(path)
-            pseudo = loader.get_pseudo()
-            self.facade.fill_data((pseudo, loader))
-            self.facade.get_peer(pseudo).set_blog(blogs)
+            pseudo = loader.pseudo
+            get_facade().fill_data((pseudo, loader))
+            get_facade().get_peer(pseudo).set_blog(blogs)
 
     def on_get_all(self, evt):
         """display peer's blog"""
@@ -172,12 +169,12 @@ class ViewerFrame(wx.Frame):
         """display peer's files"""
         peer_id = self.other_tab.get_peer_selected()
         if peer_id:
-            peer_desc = self.facade.get_peer(peer_id)
+            peer_desc = get_facade().get_peer(peer_id)
             if peer_desc.connected:
                 self.plugin.get_profile(peer_id)
             else:
                 print "not connected"
-                self.display_profile(peer_id, peer_desc.blog)
+                self.display_profile(peer_desc)
         else:
             "no peer selected"
 
@@ -185,12 +182,12 @@ class ViewerFrame(wx.Frame):
         """display peer's blog"""
         peer_id = self.other_tab.get_peer_selected()
         if peer_id:
-            peer_desc = self.facade.get_peer(peer_id)
+            peer_desc = get_facade().get_peer(peer_id)
             if peer_desc.connected:
                 self.plugin.get_blog_file(peer_id)
             else:
                 print "not connected"
-                self.display_blog(peer_id, peer_desc.blog)
+                self.display_blog(peer_desc)
         else:
             print "no peer selected"
 
@@ -198,13 +195,12 @@ class ViewerFrame(wx.Frame):
         """display peer's files"""
         peer_id = self.other_tab.get_peer_selected()
         if peer_id:
-            peer_desc = self.facade.get_peer(peer_id)
+            peer_desc = get_facade().get_peer(peer_id)
             if peer_desc.connected:
                 self.plugin.select_files(peer_id)
             else:
-                shared_files = peer_desc.document.get_shared_files()
-                print shared_files
-                self.display_files(peer_id, shared_files)
+                print "not connected"
+                self.display_files(peer_desc)
         else:
             "no peer selected"
 
@@ -212,7 +208,7 @@ class ViewerFrame(wx.Frame):
         """end application"""
         pseudo = self.other_tab.get_peer_selected()
         if pseudo:
-            self.facade.make_friend(pseudo)
+            get_facade().make_friend(pseudo)
         else:
             print "no peer selected"
 
@@ -220,7 +216,7 @@ class ViewerFrame(wx.Frame):
         """end application"""
         pseudo = self.other_tab.get_peer_selected()
         if pseudo:
-            self.facade.blacklist_peer(pseudo)
+            get_facade().blacklist_peer(pseudo)
         else:
             print "no peer selected"
 
@@ -228,7 +224,7 @@ class ViewerFrame(wx.Frame):
         """end application"""
         pseudo = self.other_tab.get_peer_selected()
         if pseudo:
-            self.facade.unmark_peer(pseudo)
+            get_facade().unmark_peer(pseudo)
         else:
             print "no peer selected"
 
@@ -239,27 +235,24 @@ class ViewerFrame(wx.Frame):
         about_dlg = AboutDialog(not skip_disclaimer(), self, -1)
         about_dlg.Show()
 
-    def display_profile(self, peer_id):
+    def display_profile(self, peer_desc):
         """display blog in dedicated window"""
         # profile dialog
-        peer_desc = self.facade.get_peer(peer_id)
         self.profile_dlg.set_page(peer_desc)
         
-    def display_blog(self, peer_id, blog):
+    def display_blog(self, peer_desc):
         """display blog in dedicated window"""
         # blog dialog
-        peer_desc = self.facade.get_peer(peer_id)
         self.peer_dlg.SetTitle(peer_desc)
         # display
-        self.peer_dlg.Show(blog)
+        self.peer_dlg.Show(peer_desc.blog)
 
-    def display_files(self, peer_id, files):
+    def display_files(self, peer_desc):
         """display blog in dedicated window"""
         # file dialog
-        peer_desc = self.facade.get_peer(peer_id)
         self.file_dlg.SetTitle(peer_desc)
         # display files {repos: {names:tags}, }
-        self.file_dlg.Show(files=files)
+        self.file_dlg.Show(files=peer_desc.shared_files)
 
     def __set_properties(self):
         # begin wxGlade: ViewerFrame.__set_properties

@@ -24,7 +24,7 @@ import gettext
 _ = gettext.gettext
 
 ENCODING = "iso-8859-1"
-VERSION = "0.2.0"
+VERSION = "0.2.1"
 DISCLAIMER = "All data in profiles are shared within Solipsis communauty"
 
 PROFILE_DIR = os.sep.join([os.path.expanduser("~"), u".solipsis", u"profiles"])
@@ -65,6 +65,7 @@ PROFILE_FILE = ".default"
 PROFILE_EXT = ".prf"
 BLOG_EXT = ".blog"
 DISCLAIMER_FILE = ".no_disclaim"
+DISPLAY_FILE = ".no_display"
 
 DEFAULT_INTERESTS = [_("City"), _("Country"),
                      _("Sport"), _("Studies"),
@@ -99,3 +100,22 @@ def set_display_at_startup(display):
         else:
             disclaimer = open(os.path.join(PROFILE_DIR, DISCLAIMER_FILE), "w")
             disclaimer.close()
+
+def always_display():
+    """returns true if About Dialog must be displayed at launch of
+    profile"""
+    return not os.path.exists(os.path.join(PROFILE_DIR, DISPLAY_FILE))
+
+def set_always_display(display):
+    """enable/disable display of About Dialog at launch of profile"""
+    if display:
+        if always_display():
+            # already configure to skip
+            pass
+        else:
+            os.remove(os.path.join(PROFILE_DIR, DISPLAY_FILE))
+    else:
+        if always_display():
+            displayer = open(os.path.join(PROFILE_DIR, DISPLAY_FILE), "w")
+            displayer.close()
+        # else: already configure not to skip

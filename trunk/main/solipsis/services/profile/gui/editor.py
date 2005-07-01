@@ -6,7 +6,7 @@
 import wx
 
 from solipsis.util.wxutils import _
-from solipsis.services.profile.facade import get_facade
+from solipsis.services.profile.facade import create_facade
 from solipsis.services.profile.view import EditorView
 from solipsis.services.profile.gui.EditorFrame import EditorFrame
 
@@ -18,7 +18,7 @@ class EditorApp(wx.App):
         
     def OnInit(self):
         """overrides"""
-        facade = get_facade("manu")
+        facade = create_facade("manu")
         facade.load_profile()
         # set up GUI
         wx.InitAllImageHandlers()
@@ -27,6 +27,7 @@ class EditorApp(wx.App):
         editor_frame.Show()
         # set up facade
         facade.add_view(EditorView(facade._desc, editor_frame))
+        editor_frame.on_change_facade()
         return 1
 
 # end of class EditorApp

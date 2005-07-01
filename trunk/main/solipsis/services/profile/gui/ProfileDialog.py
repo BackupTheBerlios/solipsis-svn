@@ -4,6 +4,7 @@
 import wx
 from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxyReceiver
+from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile.gui.PreviewPanel import MyHtmlWindow
 from solipsis.services.profile.view import HtmlView
 
@@ -13,7 +14,6 @@ from solipsis.services.profile.view import HtmlView
 class ProfileDialog(wx.Dialog, UIProxyReceiver):
     def __init__(self, parent, id, plugin=None, **kwds):
         UIProxyReceiver.__init__(self)
-        self.facade = None
         self.plugin = plugin
         args = (parent, id)
         # begin wxGlade: ProfileDialog.__init__
@@ -28,15 +28,14 @@ class ProfileDialog(wx.Dialog, UIProxyReceiver):
     def set_page(self, peer_desc):
         view = HtmlView(peer_desc)
         self.profile_window.SetPage(view.get_view())
-        self.SetTitle("%s's %s"% (peer_desc.get_pseudo(), _("Profile")))
+        self.SetTitle("%s's %s"% (peer_desc.pseudo, _("Profile")))
         self.Show()
 
-    def set_facade(self, facade, auto_refresh):
-        self.facade = facade
-        view = HtmlView(self.facade._desc,
+    def on_change_facade(self, auto_refresh):
+        view = HtmlView(get_facade()._desc,
                         html_window=self.profile_window,
                         auto_refresh=auto_refresh)
-        self.facade.add_view(view)
+        get_facade().add_view(view)
     
     def __set_properties(self):
         # begin wxGlade: ProfileDialog.__set_properties

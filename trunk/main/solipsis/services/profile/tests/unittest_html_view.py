@@ -9,7 +9,7 @@ from os.path import abspath
 from solipsis.services.profile.data import PeerDescriptor
 from solipsis.services.profile.document import CacheDocument, FileDocument
 from solipsis.services.profile.view import HtmlView
-from solipsis.services.profile.tests import PROFILE_DIRECTORY, PROFILE_TEST
+from solipsis.services.profile.tests import PROFILE_DIRECTORY, PROFILE_TEST, PSEUDO
 from solipsis.services.profile import images_dir
 
 TEMPLATE = """<html>
@@ -95,7 +95,7 @@ class HtmlTest(unittest.TestCase):
     def print_template(self):
         """fill template with values"""
         return TEMPLATE % (self.document.get_photo(),
-                           self.document._id,
+                           self.document.pseudo,
                            self.document.get_title(),
                            self.document.get_firstname(),
                            self.document.get_lastname(),
@@ -117,7 +117,7 @@ class HtmlTest(unittest.TestCase):
             html.append("""
     <dt>%s</dt>
     <dd>%d shared files</dd>
-"""% (repo, len(self.document.get_shared(repo))))
+"""% (os.path.basename(repo), len(self.document.get_shared(repo))))
         # concatenate all description of directories & return result
         return ''.join(html)
 
@@ -133,9 +133,9 @@ class HtmlTest(unittest.TestCase):
       <td>%s</td>
       <td>%s</td>
       <td>%s</td>
-    </tr>"""% (peers_desc.state,
-               doc and doc._id or "--",
-               peers_desc.peer_id))
+    </tr>"""% (peers_desc.pseudo,
+               peers_desc.state,
+               doc and doc.get_email() or "--"))
         return ''.join(html)
         
     
@@ -165,14 +165,16 @@ class HtmlTest(unittest.TestCase):
             
     # OTHERS TAB
     def test_ordered_peer(self):
-        self.document.add_peer(u"nico")
+        self.document.set_peer((u"emb", PeerDescriptor(PSEUDO)))
+        self.document.set_peer((u"albert", PeerDescriptor(PSEUDO)))
+        self.document.set_peer((u"star", PeerDescriptor(PSEUDO)))
         self.document.make_friend(u"emb")
         self.document.make_friend(u"star")
         self.document.make_friend(u"albert")
         self.assert_template()
         
     def test_adding_peer(self):
-        self.document.add_peer(u"nico")
+        self.document.set_peer((u"nico", PeerDescriptor(PSEUDO)))
         self.assert_template()
         
     def test_filling_data(self):
@@ -180,6 +182,7 @@ class HtmlTest(unittest.TestCase):
         self.assert_template()
     
     def test_peers_status(self):
+        self.document.set_peer((u"nico", PeerDescriptor(PSEUDO)))
         self.document.blacklist_peer(u"nico")
         self.assert_template()
 

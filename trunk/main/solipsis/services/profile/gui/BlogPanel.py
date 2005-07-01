@@ -4,6 +4,7 @@
 import wx
 import sys
 from solipsis.util.wxutils import _
+from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile import ADD_BLOG, DEL_BLOG, ADD_COMMENT
 
 
@@ -14,50 +15,48 @@ class MyHtmlListBox(wx.HtmlListBox):
 
     def __init__(self, parent, id):
         wx.HtmlListBox.__init__(self, parent, id)
-        self.facade = None
         self.SetItemCount(0)
 
-    def set_facade(self, facade):
+    def on_change_facade(self):
         """setter"""
-        self.facade = facade
+        pass
         
     def add_blog(self, text):
         """store blog in cache as wx.HtmlListBox is virtual"""
-        assert self.facade, "Facade not initialiazed"
-        self.facade.add_blog(text)
+        assert get_facade(), "Facade not initialiazed"
+        get_facade().add_blog(text)
 
     def remove_blog(self):
-        assert self.facade, "Facade not initialiazed"
+        assert get_facade(), "Facade not initialiazed"
         selected = self.GetSelection()
         if selected != wx.NOT_FOUND:
-            self.facade.remove_blog(selected)
+            get_facade().remove_blog(selected)
         else:
             print "none selected"
         
     def add_comment(self, text):
         """store blog in cache as wx.HtmlListBox is virtual"""
-        assert self.facade, "Facade not initialiazed"
+        assert get_facade(), "Facade not initialiazed"
         selected = self.GetSelection()
         if selected != wx.NOT_FOUND:
-            self.facade.add_comment((selected, text, self.facade.get_pseudo()))
+            get_facade().add_comment((selected, text, get_facade().get_pseudo()))
         else:
             print "none selected"
 
     def OnGetItem(self, n):
         """callback to display item"""
-        assert self.facade, "Facade not initialiazed"
-        return self.facade.get_blog(n).html()
+        assert get_facade(), "Facade not initialiazed"
+        return get_facade().get_blog(n).html()
 
     def refresh(self):
-        assert self.facade, "Facade not initialiazed"
-        self.SetItemCount(self.facade.count_blogs())
+        assert get_facade(), "Facade not initialiazed"
+        self.SetItemCount(get_facade().count_blogs())
         self.RefreshAll()
 
 class BlogPanel(wx.Panel):
     def __init__(self, parent, id, 
                  cb_modified=lambda x: sys.stdout.write(str(x))):
         # set members
-        self.facade = None
         self.do_modified = cb_modified
         args = (parent, id)
         kwds = {}
@@ -98,10 +97,9 @@ class BlogPanel(wx.Panel):
     def on_update(self):
         self.blog_list.refresh()
 
-    def set_facade(self, facade):
+    def on_change_facade(self):
         """setter"""
-        self.facade = facade
-        self.blog_list.set_facade(self.facade)
+        self.blog_list.on_change_facade()
         
     def __set_properties(self):
         # begin wxGlade: BlogPanel.__set_properties
@@ -112,7 +110,6 @@ class BlogPanel(wx.Panel):
         self.comment_blog_button.SetToolTipString(_("Comment"))
         self.comment_blog_button.SetSize(self.comment_blog_button.GetBestSize())
         # end wxGlade
-        self.blog_list.set_facade(self.facade)
 
     def __do_layout(self):
         # begin wxGlade: BlogPanel.__do_layout

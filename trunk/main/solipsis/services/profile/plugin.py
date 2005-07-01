@@ -28,12 +28,13 @@ import sys
 
 from solipsis.util.wxutils import _
 from solipsis.services.plugin import ServicePlugin
-from solipsis.services.profile import set_solipsis_dir
-from solipsis.services.profile.facade import get_facade
+from solipsis.services.profile import set_solipsis_dir, always_display
+from solipsis.services.profile.facade import create_facade, get_facade
 from solipsis.services.profile.network import NetworkManager
 from solipsis.services.profile.view import EditorView, ViewerView
 from solipsis.services.profile.gui.EditorFrame import EditorFrame
 from solipsis.services.profile.gui.ViewerFrame import ViewerFrame
+from solipsis.services.profile.gui.DownloadDialog import DownloadDialog
 
       
 class Plugin(ServicePlugin):
@@ -52,10 +53,7 @@ class Plugin(ServicePlugin):
         self.host = socket.gethostbyname(socket.gethostname())
         print "gethostbyname",  self.host
         self.port = random.randrange(7000, 7100)
-        # init facade. Views will be initialized in Enable
-        # (views depend on graphical mode)
         self.network = None
-        self.facade = None
         self.editor_frame = None
         self.peer_services = {}
         # declare actions
@@ -74,13 +72,10 @@ class Plugin(ServicePlugin):
     def EnableBasic(self):
         """enable non graphic part"""
         set_solipsis_dir(self.service_api.GetDirectory())
-        pseudo = self.service_api.GetNode().pseudo
-        self.facade = get_facade(pseudo)
-        self.facade.load_profile()
-        # launch network
-        self.network = NetworkManager(self.host,  random.randrange(7100, 7200),
-                                      self.service_api, get_facade())
-        self.activate()
+        self.network = NetworkManager(self.host,
+                                      random.randrange(7100, 7200),
+                                      self.service_api)
+        self.activate(True)
         
     def Enable(self):
         """
@@ -89,9 +84,6 @@ class Plugin(ServicePlugin):
         e.g. opening sockets, collecting data from directories, etc.
         """
         set_solipsis_dir(self.service_api.GetDirectory())
-        pseudo = self.service_api.GetNode().pseudo
-        self.facade = get_facade(pseudo)
-        self.facade.load_profile()
         # init windows
         main_window = self.service_api.GetMainWindow()
         # TODO: create dynamic option object (for standalone & display)
@@ -101,10 +93,6 @@ class Plugin(ServicePlugin):
                                           plugin=self)
         self.viewer_frame = ViewerFrame(options, main_window, -1, "",
                                           plugin=self)
-        self.facade.add_view(EditorView(self.facade._desc,
-                                     self.editor_frame))
-        self.facade.add_view(ViewerView(self.facade._desc,
-                                     self.viewer_frame))
         # Set up main GUI hooks
         menu = wx.Menu()
         for action, method in self.MAIN_ACTION.iteritems():
@@ -116,9 +104,10 @@ class Plugin(ServicePlugin):
             wx.EVT_MENU(main_window, item_id, _clicked)
         self.service_api.SetMenu(self.GetTitle(), menu)
         # launch network
-        self.network = NetworkManager(self.host,  random.randrange(7100, 7200),
-                                      self.service_api, get_facade())
-        self.activate()
+        self.network = NetworkManager(self.host,
+                                      random.randrange(7100, 7200),
+                                      self.service_api)
+        self.activate(True)
     
     def Disable(self):
         """It is called when the user chooses to disable the service."""
@@ -133,7 +122,7 @@ class Plugin(ServicePlugin):
                 'Saving Dialog',
                 wx.YES_NO | wx.ICON_INFORMATION)
             if dlg.ShowModal() == wx.ID_YES:
-                self.facade.save_profile()
+                get_facade().save_profile()
         self.activate(False)
 
     # Service methods
@@ -183,27 +172,25 @@ class Plugin(ServicePlugin):
     def _on_new_profile(self, document, peer_id):
         """store and display file object corresponding to profile"""
         print "downloaded profile", peer_id
-        self.facade.fill_data((peer_id, document))
+        get_facade().fill_data((peer_id, document))
     
     def _on_new_blog(self, blog, peer_id):
         """store and display file object corresponding to blog"""
-        self.facade.fill_blog((peer_id, blog))
+        get_facade().fill_blog((peer_id, blog))
     
     def _on_shared_files(self, files, peer_id):
         """store and display file object corresponding to blog"""
-        self.facade.fill_shared_files((peer_id, files))
+        get_facade().fill_shared_files((peer_id, files))
     
     def _on_all_files(self):
         """store and display file object corresponding to blog"""
         if self.editor_frame:
             def display_message():
-                dlg = wx.MessageDialog(self.service_api.GetMainWindow(),
-                                       'Download complete!',
-                                       'No more file to download',
-                                       wx.OK | wx.ICON_INFORMATION)
+                dlg = DownloadDialog(always_display(), self.editor_frame, -1)
                 dlg.ShowModal()
                 dlg.Destroy()
-            wx.CallAfter(display_message)
+            if always_display():
+                wx.CallAfter(display_message)
         else:
             print 'No more file to download'
 
@@ -242,7 +229,7 @@ class Plugin(ServicePlugin):
 
     def DoPointToPointAction(self, it, peer):
         """Called when a point-to-point action is invoked, if available."""
-        if self.facade.is_activated():
+        if get_facade() and get_facade().is_activated():
             # retreive corect method
             actions = self.POINT_ACTIONS.values()
             # call method on peer
@@ -257,28 +244,38 @@ class Plugin(ServicePlugin):
     def NewPeer(self, peer, service):
         """delegate to network"""
         self.peer_services[peer.id_] = (peer, service)
-        if self.facade.is_activated():
+        if get_facade() and get_facade().is_activated():
             self.network.on_new_peer(peer, service)
 
     def ChangedPeer(self, peer, service):
         """delegate to network"""
         self.peer_services[peer.id_] = (peer, service)
-        if self.facade.is_activated():
+        if get_facade() and get_facade().is_activated():
             self.network.on_change_peer(peer, service)
 
     def LostPeer(self, peer_id):
         """delegate to network"""
         del self.peer_services[peer_id]
-        if self.facade.is_activated():
+        if get_facade() and get_facade().is_activated():
             self.network.on_lost_peer(peer_id)
-            self.facade.set_connected((peer_id, False))
+            get_facade().set_connected((peer_id, False))
 
     def GotServiceData(self, peer_id, data):
         """delegate to network"""
-        if self.facade.is_activated():
+        if get_facade() and get_facade().is_activated():
             self.network.on_service_data(peer_id, data)
 
     def ChangedNode(self, node):
         """need to update node_id"""
-        # FIXME new node_id ? what consequence on network? cache?
-        pass
+        # ChangedNode is call more than one time on change. Thus, be
+        # careful not to do the job every time
+        if get_facade() is None or get_facade().get_pseudo() != node.pseudo:
+            facade = create_facade(node.pseudo)
+            facade.load_profile()
+            if self.editor_frame:
+                facade.add_view(EditorView(facade._desc,
+                                           self.editor_frame))
+                self.editor_frame.on_change_facade()
+                facade.add_view(ViewerView(facade._desc,
+                                           self.viewer_frame))
+                self.viewer_frame.on_change_facade()

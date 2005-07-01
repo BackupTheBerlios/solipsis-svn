@@ -2,9 +2,10 @@
 [Personal]
 firstname = manu
 title = Mr
-lastname = breton
-repositories = /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests
 photo = /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/question_mark.gif
+repositories = /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests
+pseudo = test
+lastname = breton
 email = manu@ft.com
 
 [Files]
@@ -16,7 +17,7 @@ email = manu@ft.com
 /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/emptydir = shared,none
 
 [Others]
-bruce = bruce,Friend,bruce,Wed Jun 29 13:27:41 2005
+bruce = bruce,Friend,bruce,Thu Jun 30 16:58:16 2005
 
 [Custom]
 City = 

@@ -45,7 +45,7 @@ class AbstractView:
     """Base class for all views"""
 
     def __init__(self, desc, do_import=True, name="abstract"):
-        self._desc = desc
+        _desc = desc
         self.name = name
         if do_import:
             self.import_desc(desc)  
@@ -187,7 +187,7 @@ class PrintView(AbstractView):
         
     def display_blog(self):
         """display blog"""
-        self.println("%s: %s"% (_desc.peer_id, _desc.blog))
+        self.println(str(_desc.blog))
         
     # FILE TAB
     def update_files(self):
@@ -196,7 +196,7 @@ class PrintView(AbstractView):
 
     def display_files(self):
         """display shared files"""
-        self.println("%s: %s"% (_desc.peer_id, _desc.shared_files))
+        self.println(str(_desc.shared_files))
         
     # OTHERS TAB        
     def update_peers(self):
@@ -205,7 +205,7 @@ class PrintView(AbstractView):
 
     def display_peer(self):
         """display peer profile"""
-        self.println("%s: %s"% (_desc.peer_id, _desc.get_pseudo()))
+        self.println(str(_desc.doc))
 
 class HtmlView(AbstractView):
     """synthetises information and renders it in HTML"""
@@ -222,7 +222,7 @@ class HtmlView(AbstractView):
         self.template = simpleTAL.compileHTMLTemplate(template_file,
                                                       inputEncoding=ENCODING)
         template_file.close()
-        self.context.addGlobal("pseudo", desc.get_pseudo())
+        self.context.addGlobal("pseudo", desc.pseudo)
         # init view
         AbstractView.__init__(self, desc, do_import, name)
         self._update_view()
@@ -302,10 +302,16 @@ class HtmlView(AbstractView):
     # FILE TAB : frame.file_tab
     def update_files(self):
         """file"""
+        # define wrapper to make available some functions to template
+        class unicodeWrapper(unicode):
+            def __init__(self, *args):
+                unicode.__init__(self, *args)
+                self.basename = os.path.basename(self)
+        # create object for context
         html_format = {}
         for repo in self._desc.document.get_repositories():
             content = {}
-            html_format[repo] = content
+            html_format[unicodeWrapper(repo)] = content
             for container in self._desc.document.get_shared(repo):
                 content[container.path[len(repo):]] = container._tag
         self.context.addGlobal("files", html_format)
@@ -314,7 +320,7 @@ class HtmlView(AbstractView):
             
     def display_files(self):
         """display shared files"""
-        self.context.addGlobal("shared_files", (self._desc.peer_id, self._desc.shared_files))
+        self.context.addGlobal("shared_files", self._desc.shared_files)
         
     # OTHERS TAB
     def update_peers(self):
@@ -462,7 +468,7 @@ class ViewerView(AbstractView):
     def display_blog(self):
         """display blog"""
         peer_desc = self._desc.document.get_last_downloaded_desc()
-        self.frame.display_blog(peer_desc.peer_id, peer_desc.blog)
+        self.frame.display_blog(peer_desc)
         
     # FILE TAB : frame.file_tab        
     def reset_files(self):
@@ -477,7 +483,7 @@ class ViewerView(AbstractView):
     def display_files(self):
         """display shared files"""
         peer_desc = self._desc.document.get_last_downloaded_desc()
-        self.frame.display_files(peer_desc.peer_id, peer_desc.shared_files)
+        self.frame.display_files(peer_desc)
         
     # OTHERS TAB
     def update_peers(self):
@@ -487,5 +493,5 @@ class ViewerView(AbstractView):
     def display_peer(self):
         """peer"""
         peer_desc = self._desc.document.get_last_downloaded_desc()
-        self.frame.display_profile(peer_desc.peer_id)
+        self.frame.display_profile(peer_desc)
 

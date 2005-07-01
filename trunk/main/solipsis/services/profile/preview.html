@@ -47,9 +47,10 @@
 
   <h2 class="header">Personal Files</h2>
   <dl>
-    <div tal:repeat ="repository files/keys" 
+    <div tal:define="os.path pyth"
+	 tal:repeat ="repository files/keys" 
 	 tal:omit-tag="">
-      <dt tal:content="repository">
+      <dt tal:content="python: repository.basename">
 	repository
       </dt>
       <dd tal:content="python:'%d shared files'% len(files[repository].keys())">
@@ -61,9 +62,9 @@
   <h2 class="header">Known Neighbors</h2>
   <table>
     <tr tal:repeat="info ordered_peers">
+      <td tal:content="python:info.pseudo">pseudo</td>
       <td tal:content="python:info.state">state</td>
-      <td tal:content="python:info.document and info.document._id or '--'">pseudo</td>
-      <td tal:content="python:info.peer_id">node</td>
+      <td tal:content="python:info.document and info.document.get_email() or '--'">email</td>
     </tr>
   </table>
 </body>

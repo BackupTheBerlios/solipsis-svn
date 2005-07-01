@@ -7,8 +7,8 @@ from StringIO import StringIO
 from solipsis.services.profile.document import CacheDocument, FileDocument
 from solipsis.services.profile.data import DEFAULT_TAG, PeerDescriptor
 from solipsis.services.profile.view import PrintView
-from solipsis.services.profile.facade import get_facade, Facade
-from solipsis.services.profile.tests import PROFILE_DIRECTORY, PROFILE_TEST, REPO
+from solipsis.services.profile.facade import create_facade, get_facade, Facade
+from solipsis.services.profile.tests import PROFILE_DIRECTORY, PROFILE_TEST, REPO, PSEUDO
 from solipsis.services.profile import ENCODING
 from os.path import abspath
 
@@ -19,6 +19,10 @@ class FacadeTest(unittest.TestCase):
         """override one in unittest.TestCase"""
         self.facade = Facade(PROFILE_TEST, PROFILE_DIRECTORY)
         self.facade.add_repository(REPO)
+
+    def test_creation(self):
+        self.assertEquals(get_facade(), None)
+        self.assert_(create_facade(PROFILE_TEST))
 
     # PERSONAL TAB
     def test_change_title(self):
@@ -177,19 +181,19 @@ class FacadeTest(unittest.TestCase):
                           u"tag desc 3")
 
     # OTHERS TAB
-    def test_add_peer(self):
+    def test_set_peer(self):
         self.assertEquals(self.facade.has_peer(u"emb"), False)
-        self.facade.add_peer(u"emb")
+        self.facade.set_peer((u"emb", PeerDescriptor(PSEUDO)))
         self.assertEquals(self.facade.has_peer(u"emb"), True)
         
     def test_fill_data(self):
-        self.facade.add_peer(u"emb")
         self.facade.fill_data((u"emb", FileDocument(PROFILE_TEST, PROFILE_DIRECTORY)))
         self.assert_(self.facade.get_peer(u"emb").document)
         self.facade.remove_peer(u"emb")
         self.assertEquals(self.facade.has_peer(u"emb"), False)
     
     def test_status(self):
+        self.facade.set_peer((u"emb", PeerDescriptor(PSEUDO)))
         self.facade.make_friend(u"emb")
         self.assertEquals(self.facade.get_peer(u"emb").state,
                           PeerDescriptor.FRIEND)

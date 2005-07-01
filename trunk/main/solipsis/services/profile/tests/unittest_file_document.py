@@ -100,9 +100,9 @@ class FileTest(unittest.TestCase):
         # set peers
         bruce_doc = FileDocument(PROFILE_BRUCE, PROFILE_DIRECTORY)
         bruce_doc.load()
-        self.document.make_friend(u"bruce")
         self.document.fill_data((u"bruce", bruce_doc))
         self.document.fill_blog((u"bruce", load_blogs(PROFILE_BRUCE, PROFILE_DIRECTORY)))
+        self.document.make_friend(u"bruce")
         # write file
         self.document.save()
         # check content
