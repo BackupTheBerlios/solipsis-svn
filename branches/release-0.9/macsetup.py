@@ -28,7 +28,7 @@ license = "COPYRIGHT"
 packages = []
 includes = ['solipsis.node.main']
 resources = []
-data_files = []
+data_files = [('.', ['twistednode.py'])]
 
 #
 # Find all packages and modules
