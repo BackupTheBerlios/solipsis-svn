@@ -28,7 +28,7 @@ class EditorFrame(wx.Frame):
         self.options = options
         args = (parent, id, title)
         # begin wxGlade: EditorFrame.__init__
-        kwds["style"] = wx.ICONIZE|wx.CAPTION|wx.MINIMIZE|wx.CLOSE_BOX|wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.SYSTEM_MENU|wx.RESIZE_BORDER|wx.CLIP_CHILDREN
+        kwds["style"] = wx.DEFAULT_FRAME_STYLE
         wx.Frame.__init__(self, *args, **kwds)
         self.profile_book = wx.Notebook(self, -1, style=0)
         
