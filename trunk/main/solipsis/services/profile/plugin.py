@@ -146,9 +146,9 @@ class Plugin(ServicePlugin):
         deferred = self.network.get_blog_file(peer_id)
         deferred and deferred.addCallback(self._on_new_blog, peer_id)
 
-    def get_files(self, peer_id, file_names):
+    def get_files(self, peer_id, split_paths):
         """request downwload of given files"""
-        deferred = self.network.get_files(peer_id, file_names,
+        deferred = self.network.get_files(peer_id, split_paths,
                                           self._on_all_files)
         deferred and deferred.addCallback(
             lambda file_name: sys.stdout.write("%s downloaded\n"% file_name))

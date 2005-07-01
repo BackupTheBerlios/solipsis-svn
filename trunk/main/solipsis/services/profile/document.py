@@ -210,8 +210,6 @@ class AbstractDocument:
         
     def set_download_repo(self, value):
         """sets new value for download_repo"""
-        if value == self.get_download_repo():
-            return False
         if not isinstance(value, unicode):
             raise TypeError("download_repo '%s' expected as unicode"% value)
     def get_download_repo(self):
@@ -556,10 +554,8 @@ class CacheDocument(AbstractDocument):
 
     def set_download_repo(self, value):
         """sets new value for download_repo"""
-        if AbstractDocument.set_download_repo(self, value) is False:
-            return False
+        AbstractDocument.set_download_repo(self, value)
         self.download_repo = value
-        return self.download_repo
     
     def get_download_repo(self):
         """returns value of download_repo"""
@@ -869,7 +865,6 @@ class FileDocument(AbstractDocument):
         AbstractDocument.set_download_repo(self, value)
         self.config.set(SECTION_PERSONAL, "download_repo",
                         value.encode(self.encoding))
-        return value.encode(self.encoding)
         
     def get_download_repo(self):
         """returns value of download_repo"""

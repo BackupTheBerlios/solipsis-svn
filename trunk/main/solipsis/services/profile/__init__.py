@@ -67,6 +67,7 @@ PROFILE_EXT = ".prf"
 BLOG_EXT = ".blog"
 DISCLAIMER_FILE = ".no_disclaim"
 DISPLAY_FILE = ".no_display"
+UNIVERSAL_SEP = r"\\"
 
 DEFAULT_INTERESTS = [_("City"), _("Country"),
                      _("Sport"), _("Studies"),

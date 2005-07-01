@@ -14,7 +14,7 @@ from twisted.internet import error
 from twisted.protocols import basic
 from StringIO import StringIO
 
-from solipsis.services.profile import ENCODING, FREE_PORTS
+from solipsis.services.profile import ENCODING, FREE_PORTS, UNIVERSAL_SEP
 from solipsis.services.profile.document import read_document
 from solipsis.services.profile.facade import get_facade
 
@@ -274,13 +274,13 @@ class NetworkManager:
         # no server either: other client can not connect to us
         print "DOWNLOAD SHARED LIST IMPOSSIBLE"
 
-    def get_files(self, peer_id, file_names, _on_all_files):
+    def get_files(self, peer_id, split_paths, _on_all_files):
         """retreive file"""
         self._on_all_files = _on_all_files
         # try standard download
         client = self.client.get_dedicated_client(self.remote_ips[peer_id])
         if client:
-            return client.get_files(file_names)
+            return client.get_files(split_paths)
         # no client available means no server on the other side: try
         # download with our server
         print "No direct TCP connection to %s: asks upload"% self.remote_ips[peer_id]
@@ -288,7 +288,7 @@ class NetworkManager:
         if server:
             return server.prepare_reception(peer_id, MESSAGE_FILES,
                                             self.remote_ips[peer_id],
-                                            file_names)
+                                            split_paths)
         # no server either: other client can not connect to us
         print "DOWNLOAD FILES IMPOSSIBLE"
     
@@ -517,7 +517,8 @@ class PeerClientProtocol(PeerProtocol):
         # UPLOAD
         # FIXME factorize with server
         if line.startswith(ASK_UPLOAD_FILES):
-            file_name = line[len(ASK_UPLOAD_FILES)+1:].strip()
+            file_path = line[len(ASK_UPLOAD_FILES)+1:].strip()
+            file_name = os.sep.join(file_path.split(UNIVERSAL_PATH))
             file_desc = get_facade().get_file_container(file_name)
             # check shared
             if file_desc._shared:
@@ -566,13 +567,14 @@ class PeerClientProtocol(PeerProtocol):
                 self.setRawMode()
                 # TODO: check place where to download and non overwriting
                 # create file
-                file_name = self.factory.files.pop()
+                file_path = self.factory.files.pop()
                 down_path = os.path.abspath(os.path.join(
                     get_facade().get_document().get_download_repo(),
-                    os.path.basename(file_name)))
+                    file_path[-1]))
                 print "loading into", down_path
                 self.file = open(down_path, "w+b")
-                self.sendLine("%s %s"% (self.factory.download, file_name))
+                self.sendLine("%s %s"% (self.factory.download,
+                                        UNIVERSAL_SEP.join(file_path)))
             else:
                 self.factory.manager._on_all_files()
         elif self.factory.download.startswith(ASK_DOWNLOAD_BLOG)\
@@ -681,10 +683,10 @@ class PeerClientFactory(ClientFactory):
         self.download = ASK_DOWNLOAD_SHARED
         return self.connect().addCallback(self._on_complete_pickle)
             
-    def get_files(self, file_names):
+    def get_files(self, split_paths):
         """download given list of file"""
-        for file_name in file_names:
-            self.files.append(file_name)
+        for split_path in split_paths:
+            self.files.append(split_path)
         self.download = ASK_DOWNLOAD_FILES
         return self.connect().addCallback(self._on_complete_file)
 
@@ -700,11 +702,11 @@ class DeferredUpload(defer.Deferred):
     """Deferred (from twisted.internet.defer) with information about
     its status"""
 
-    def __init__(self, peer_id, message, file_name=None):
+    def __init__(self, peer_id, message, spit_path=None):
         defer.Deferred.__init__(self)
         self.message = message
         self.peer_id = peer_id
-        self.file_name = file_name
+        self.spit_path = spit_path
         self.file = None
         self.set_callbacks()
 
@@ -724,9 +726,10 @@ class DeferredUpload(defer.Deferred):
             # TODO: check place where to download and non overwriting
             down_path = os.path.abspath(os.path.join(
                 get_facade().get_document().get_download_repo(),
-                os.path.basename(self.file_name)))
+                self.spit_path[-1]))
             self.file = open(down_path, "w+b")
-            message = "%s %s"% (ASK_UPLOAD_FILES, self.file_name)
+            message = "%s %s"% (ASK_UPLOAD_FILES,
+                                UNIVERSAL_SEP.join(self.spit_path))
         else:
             print "%s not valid"% self.message
             message = MESSAGE_ERROR
@@ -797,7 +800,8 @@ class PeerServerProtocol(PeerProtocol):
         print "server received from %s"% self.transport.getPeer().host, line
         # donwnload file
         if line.startswith(ASK_DOWNLOAD_FILES):
-            file_name = line[len(ASK_DOWNLOAD_FILES)+1:].strip()
+            file_path = line[len(ASK_DOWNLOAD_FILES)+1:].strip()
+            file_name = os.sep.join(file_path.split(UNIVERSAL_SEP))
             file_desc = get_facade().get_file_container(file_name)
             # check shared
             if file_desc._shared:
@@ -866,7 +870,7 @@ class PeerServerFactory(ServerFactory):
         self.files = []
         # file upload: this dictionary stores requests of remote peers
         self.deferreds = {}
-        self.file_names = []
+        self.files = []
         
     def start_listening(self):
         """open local server of profiles"""
@@ -877,16 +881,16 @@ class PeerServerFactory(ServerFactory):
         self.listener.stopListening()
         release_port(self.port)
 
-    def prepare_reception(self, peer_id, action, remote_ip, file_names=None):
+    def prepare_reception(self, peer_id, action, remote_ip, split_paths=None):
         """waiting for a connection from remote_ip client wich will
         push file/profile/blog into server (according to nature of
         action)"""
         # prepare list of files to dl
-        if file_names:
-            self.file_names = file_names
-        # get first
-        if self.file_names:
-            deferred = DeferredUpload(peer_id, action, self.file_names.pop())
+        if split_paths:
+            for split_path in split_paths:
+                self.files.append(split_path)
+            # get first
+            deferred = DeferredUpload(peer_id, action, self.files.pop())
             deferred.addCallback(self._next_file, peer_id, action, remote_ip)
         else:
             deferred = DeferredUpload(peer_id, action)
@@ -900,8 +904,8 @@ class PeerServerFactory(ServerFactory):
         """send request for next file to be uploaded"""
         print "_next_file", file_obj, peer_id, action, remote_ip
         # proceed next
-        if self.file_names:
-            deferred = DeferredUpload(peer_id, action, self.file_names.pop())
+        if self.files:
+            deferred = DeferredUpload(peer_id, action, self.files.pop())
             deferred.addCallback(self._next_file, peer_id, action, remote_ip)
             # store deferred and ask client
             self.deferreds[remote_ip] = deferred

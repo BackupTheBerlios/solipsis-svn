@@ -89,7 +89,7 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
             for path, name, tag in file_data:
                 index = self.peerfiles_list.InsertStringItem(sys.maxint, name)
                 self.peerfiles_list.SetStringItem(index, 1, tag)
-                self.data[index] = path
+                self.data[index] = path.split(os.sep)
         # show result
         self.peerfiles_list.SetColumnWidth(0, wx.LIST_AUTOSIZE)
         self.peerfiles_list.SetColumnWidth(1, wx.LIST_AUTOSIZE)
@@ -100,18 +100,21 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
             self.refresh(files)
         wx.Dialog.Show(self, do_show)
 
-    def SetTitle(self, peer_desc=None):
-        if isinstance(peer_desc, unicode) or isinstance(peer_desc, str):
-            wx.Dialog.SetTitle(self, peer_desc)
-            return
-        if peer_desc:
-            self.peer_desc = peer_desc
-            pseudo = peer_desc.pseudo
-        else:
-            pseudo = "Anonymous"
-        wx.Dialog.SetTitle(self, "%s %s %s %s"\
-                           % (_("files of "), pseudo, _(" going into"),
-                              os.path.basename(self.download_repo)))
+    def SetTitle(self, title=None):
+        if not title:
+            if self.peer_desc:
+                title = self.peer_desc.pseudo + "'s files"
+            else:
+                title = "your files"
+            if self.download_repo:
+                title += " going into " + os.path.basename(self.download_repo)
+        wx.Dialog.SetTitle(self, title)
+
+    def set_desc(self, value):
+        """set value and update Title"""
+        self.peer_desc = value
+        self.SetTitle()
+
 
     def set_download_repo(self, value):
         """set value and update Title"""
@@ -120,7 +123,8 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
         self.SetTitle()
 
     def on_change_facade(self):
-        self.SetTitle(get_facade()._desc)
+        self.peer_desc = get_facade()._desc
+        self.SetTitle()
         
     def __set_properties(self):
         # begin wxGlade: FileDialog.__set_properties

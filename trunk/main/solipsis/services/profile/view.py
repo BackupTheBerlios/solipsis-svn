@@ -452,7 +452,8 @@ class ViewerView(AbstractView):
 
     def update_download_repo(self):
         """download_repo"""
-        pass
+        self.frame.file_dlg.set_download_repo(
+            self._desc.document.get_download_repo())
 
     # CUSTOM TAB
     def update_custom_attributes(self):

@@ -250,7 +250,8 @@ class ViewerFrame(wx.Frame):
     def display_files(self, peer_desc):
         """display blog in dedicated window"""
         # file dialog
-        self.file_dlg.SetTitle(peer_desc)
+        self.file_dlg.set_desc(peer_desc)
+        self.file_dlg.SetTitle()
         # display files {repos: {names:tags}, }
         self.file_dlg.Show(files=peer_desc.shared_files)
 
