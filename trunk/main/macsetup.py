@@ -7,7 +7,7 @@ Usage:
 
 After creating the .app file, it is probably useful to store
 it in a compressed archive:
-    % zip -yr Solipsis-macosx10.3.zip Solipsis.app
+    % zip -9yr Solipsis-macosx10.3.zip Solipsis.app
 """
 
 import os
@@ -28,7 +28,7 @@ license = "COPYRIGHT"
 packages = []
 includes = ['solipsis.node.main']
 resources = []
-data_files = []
+data_files = [('.', ['twistednode.py'])]
 
 #
 # Find all packages and modules
@@ -78,7 +78,6 @@ for dirpath, dirnames, filenames in os.walk('.'):
             if filename.endswith('.' + ext):
                 break
         else:
-            #print "> excluding:", filename
             continue
         path = os.path.join(dirpath, filename)
         resources.append(path)
