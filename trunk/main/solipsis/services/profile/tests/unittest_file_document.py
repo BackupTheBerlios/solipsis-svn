@@ -9,7 +9,7 @@ import os.path
 from pprint import pprint
 from os.path import abspath
 from difflib import Differ
-from solipsis.services.profile import QUESTION_MARK
+from solipsis.services.profile import QUESTION_MARK, PROFILE_EXT
 from solipsis.services.profile.data import PeerDescriptor, load_blogs
 from solipsis.services.profile.file_document import FileDocument
 from solipsis.services.profile.cache_document import CacheDocument
@@ -28,7 +28,7 @@ class FileTest(unittest.TestCase):
         self.document.add_repository(REPO)
         # first test to call must write test file to get correct
         # execution of the others
-        if not os.path.exists(os.path.join(PROFILE_DIRECTORY, PROFILE_TEST)):
+        if not os.path.exists(os.path.join(PROFILE_DIRECTORY, PROFILE_TEST + PROFILE_EXT)):
             self.test_save()
 
     def _assertContent(self, doc):

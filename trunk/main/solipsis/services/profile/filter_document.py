@@ -51,7 +51,7 @@ class FilterValue:
         
     def does_match(self, data):
         """apply regex on data and returns True if there is any match"""
-        if not self.activated:
+        if not self.activated or len(self.description) == 0:
             return False
         if self.regex.match(data) is None:
             return False
@@ -81,7 +81,7 @@ class FilterPersonalMixin(AbstractPersonalData):
         """set member both in cache & in file"""
         member.set_value(value, activate)
         self.config.set(SECTION_PERSONAL, str(member),
-                        ",".join((activate, value)))
+                        ",".join((str(activate), value)))
         return member
         
     # PERSONAL TAB
@@ -148,7 +148,7 @@ class FilterPersonalMixin(AbstractPersonalData):
     def add_custom_attributes(self, (key, value, activate)):
         """sets new value for custom_attributes"""
         AbstractPersonalData.add_custom_attributes(self, (key, value))
-        self.config.set(SECTION_CUSTOM, key, ",".join((activate, value)))
+        self.config.set(SECTION_CUSTOM, key, ",".join((str(activate), value)))
         if not self.has_custom_attribute(key):
             self.custom_attributes[key] = FilterValue(key, value, activate)
         else:
@@ -191,21 +191,21 @@ class FilterSharingMixin:
         """return true if the key exists"""
         return self.files_attributess.has_key(key)
     
-    def add_files_attributess(self, (key, value, activate)):
+    def add_files_attributes(self, (key, value, activate)):
         """sets new value for files_attributess"""
-        self.config.set(SECTION_FILE, key, ",".join((activate, value)))
+        self.config.set(SECTION_FILE, key, ",".join((str(activate), value)))
         if not self.has_files_attributes(key):
             self.files_attributess[key] = FilterValue(key, value, activate)
         else:
             self.files_attributess[key].set_value(value, activate)
         
-    def remove_files_attributess(self, value):
+    def remove_files_attributes(self, value):
         """sets new value for files_attributess"""
         if self.files_attributess.has_key(value):
             self.config.remove_option(SECTION_FILE, value)
             del self.files_attributess[value]
             
-    def get_files_attributess(self):
+    def get_files_attributes(self):
         """returns value of files_attributess"""
         return self.files_attributess
 
@@ -224,17 +224,20 @@ class FilterSaverMixin(FileSaverMixin):
         for personal_option in self.config.options(SECTION_PERSONAL):
             activate, description = self.config.get(
                 SECTION_PERSONAL, personal_option).split(',', 1)
-            getattr(self, "set_"+personal_option)((description, activate))
+            getattr(self, "set_"+personal_option)(
+                (unicode(description, self.encoding), bool(activate)))
         # sync custom
         for custom_option in self.config.options(SECTION_CUSTOM):
             activate, description = self.config.get(
                 SECTION_CUSTOM, custom_option).split(',', 1)
-            self.add_custom_attributes((custom_option, description, activate))
+            self.add_custom_attributes(
+                (custom_option, unicode(description, self.encoding), bool(activate)))
         # sync files
         for file_option in self.config.options(SECTION_FILE):
             activate, description = self.config.get(
                 SECTION_FILE, file_option).split(',', 1)
-            self.add_files_attributes((file_option, description, activate))
+            self.add_files_attributes((
+                file_option, unicode(description, self.encoding), bool(activate)))
 
 class FilterDocument(FilterPersonalMixin, FilterSharingMixin, FilterSaverMixin):
     """Describes all data needed in profile in a file"""

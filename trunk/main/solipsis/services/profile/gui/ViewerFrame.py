@@ -8,7 +8,7 @@ from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxy
 from solipsis.services.profile import PROFILE_DIR, PROFILE_FILE, \
      skip_disclaimer
-from solipsis.services.profile.document import FileDocument
+from solipsis.services.profile.file_document import FileDocument
 from solipsis.services.profile.view import HtmlView
 from solipsis.services.profile.data import PeerDescriptor, load_blogs
 from solipsis.services.profile.facade import get_facade
