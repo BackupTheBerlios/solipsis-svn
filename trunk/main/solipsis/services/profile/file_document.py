@@ -1,3 +1,5 @@
+# pylint: disable-msg=W0201
+#
 # <copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
 # Copyright (C) 2002-2005 France Telecom R&D
@@ -33,14 +35,6 @@ from solipsis.services.profile.data import DEFAULT_TAG, \
 from solipsis.services.profile.document import CustomConfigParser, SaverMixin, \
      AbstractPersonalData, AbstractSharingData, AbstractContactsData, \
      SECTION_PERSONAL, SECTION_CUSTOM, SECTION_OTHERS, SECTION_FILE
-
-
-DATE_FORMAT = "%d/%m/%Y"
-
-SHARE_ALL = "All"
-SHARE_NONE = "none"
-
-NO_PATH = "UNKNOWN"
 
 class FilePersonalMixin(AbstractPersonalData):
     """Implements API for all pesonal data in a File oriented context"""

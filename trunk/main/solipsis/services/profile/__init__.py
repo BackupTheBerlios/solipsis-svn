@@ -65,6 +65,7 @@ TORE_IMG = lambda : os.path.join(images_dir(), u"tore.gif")
 PROFILE_FILE = ".default"
 PROFILE_EXT = ".prf"
 BLOG_EXT = ".blog"
+FILTER_EXT = ".filt"
 DISCLAIMER_FILE = ".no_disclaim"
 DISPLAY_FILE = ".no_display"
 UNIVERSAL_SEP = r"\\"

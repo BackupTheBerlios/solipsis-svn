@@ -1,3 +1,5 @@
+# pylint: disable-msg=W0201
+#
 # <copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
 # Copyright (C) 2002-2005 France Telecom R&D
@@ -27,18 +29,18 @@ from solipsis.services.profile.data import DirContainer
 from solipsis.services.profile.document import SaverMixin, \
      AbstractPersonalData, AbstractSharingData, AbstractContactsData
 
-
-DATE_FORMAT = "%d/%m/%Y"
-
-SHARE_ALL = "All"
-SHARE_NONE = "none"
-
-NO_PATH = "UNKNOWN"
-
 class CachePersonalMixin(AbstractPersonalData):
     """Implements API for all pesonal data in cache"""
 
     def __init__(self):
+        self.title = u""
+        self.firstname = u"Name"
+        self.lastname = u"Lastname"
+        self.photo = QUESTION_MARK()
+        self.email = u"email"
+        self.download_repo = unicode(DOWNLOAD_REPO)
+        # dictionary of file. {att_name : att_value}
+        self.custom_attributes = {}
         for interest in DEFAULT_INTERESTS:
             self.custom_attributes[interest] = u""
         AbstractPersonalData.__init__(self)
@@ -133,6 +135,8 @@ class CacheSharingMixin(AbstractSharingData):
     """Implements API for all file data in cache"""
 
     def __init__(self):
+        # {root: DirContainers}
+        self.files = {}
         AbstractSharingData.__init__(self)
         
     # FILE TAB
@@ -239,6 +243,8 @@ class CacheContactMixin(AbstractContactsData):
     """Implements API for all contact data in cache"""
 
     def __init__(self):
+        # dictionary of peers. {pseudo : PeerDescriptor}
+        self.peers = {}
         AbstractContactsData.__init__(self)
         
     # OTHERS TAB
@@ -273,18 +279,6 @@ class CacheDocument(CachePersonalMixin, CacheSharingMixin,
     """Describes all data needed in profile in a file"""
 
     def __init__(self, pseudo, directory=PROFILE_DIR):
-        self.title = u""
-        self.firstname = u"Name"
-        self.lastname = u"Lastname"
-        self.photo = QUESTION_MARK()
-        self.email = u"email"
-        self.download_repo = unicode(DOWNLOAD_REPO)
-        # dictionary of file. {att_name : att_value}
-        self.custom_attributes = {}
-        # {root: DirContainers}
-        self.files = {}
-        # dictionary of peers. {pseudo : PeerDescriptor}
-        self.peers = {}
         CachePersonalMixin.__init__(self)
         CacheSharingMixin.__init__(self)
         CacheContactMixin.__init__(self)

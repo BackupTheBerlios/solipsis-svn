@@ -1,3 +1,6 @@
+# pylint: disable-msg=W0223
+#
+# <copyright>
 # <copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
 # Copyright (C) 2002-2005 France Telecom R&D
@@ -34,6 +37,8 @@ SECTION_PERSONAL = "Personal"
 SECTION_CUSTOM = "Custom"
 SECTION_OTHERS = "Others"
 SECTION_FILE = "Files"
+
+#TODO: move download repo in option object
 
 def read_document(stream):
     """use FileDocument to load document"""
