@@ -59,7 +59,7 @@ class PeerDescriptor:
         self.state = state
         self.connected = connected
         # data
-        from solipsis.services.profile.document import CacheDocument
+        from solipsis.services.profile.cache_document import CacheDocument
         self.document = document or CacheDocument(pseudo)
         self.blog = blog or Blogs(pseudo)
         self.shared_files = None
@@ -307,6 +307,7 @@ class ContainerMixin:
         return self._data
 
     def get_path(self):
+        """return well formated path correspondinf to file"""
         return os.sep.join(self._paths)
     
     def _validate(self, path):

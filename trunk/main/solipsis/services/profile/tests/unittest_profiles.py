@@ -5,7 +5,8 @@ independant from views"""
 import unittest, sys
 from difflib import Differ
 from StringIO import StringIO
-from solipsis.services.profile.document import FileDocument, CacheDocument
+from solipsis.services.profile.file_document import FileDocument
+from solipsis.services.profile.cache_document import CacheDocument
 from solipsis.services.profile.view import PrintView, HtmlView
 from solipsis.services.profile.tests import PROFILE_DIRECTORY, PROFILE_TEST, \
      PROFILE_BRUCE, PROFILE_DEMI

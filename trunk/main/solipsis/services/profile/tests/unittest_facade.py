@@ -4,7 +4,8 @@ available. This facade will be used both by GUI and unittests."""
 import unittest
 from StringIO import StringIO
 
-from solipsis.services.profile.document import CacheDocument, FileDocument
+from solipsis.services.profile.file_document import FileDocument
+from solipsis.services.profile.cache_document import CacheDocument
 from solipsis.services.profile.data import DEFAULT_TAG, PeerDescriptor
 from solipsis.services.profile.view import PrintView
 from solipsis.services.profile.facade import create_facade, get_facade, Facade

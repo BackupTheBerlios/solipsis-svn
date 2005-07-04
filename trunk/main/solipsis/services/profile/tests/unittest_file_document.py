@@ -3,16 +3,16 @@
 gathared in views.py. Documents are to be seen as completely
 independant from views"""
 
+import sys
 import unittest
 import os.path
 from pprint import pprint
 from os.path import abspath
 from difflib import Differ
-from StringIO import StringIO
 from solipsis.services.profile import QUESTION_MARK
 from solipsis.services.profile.data import PeerDescriptor, load_blogs
-from solipsis.services.profile.document import FileDocument, CacheDocument
-from solipsis.services.profile.view import PrintView, HtmlView
+from solipsis.services.profile.file_document import FileDocument
+from solipsis.services.profile.cache_document import CacheDocument
 from solipsis.services.profile.data import DirContainer, Blogs
 from solipsis.services.profile import ENCODING, PROFILE_DIR
 from solipsis.services.profile.tests import REPO, \

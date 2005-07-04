@@ -136,9 +136,12 @@ class AbstractView:
 class PrintView(AbstractView):
     """synthetises information and renders it in HTML"""
 
-    def __init__(self, desc, stream=open("view.out", "w"),
+    def __init__(self, desc, stream=None,
                  do_import=False, name="print"):
-        self.output = stream
+        if stream != None:
+            self.output = stream
+        else:
+            stream = open("view.out", "w")
         AbstractView.__init__(self, desc, do_import, name)
 
     def println(self, string):

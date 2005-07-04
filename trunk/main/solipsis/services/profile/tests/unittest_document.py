@@ -6,8 +6,9 @@ import unittest
 from ConfigParser import ConfigParser
 from os.path import abspath
 
-from solipsis.services.profile.document import CustomConfigParser, \
-      AbstractDocument, CacheDocument, FileDocument
+from solipsis.services.profile.document import CustomConfigParser, AbstractDocument
+from solipsis.services.profile.file_document import FileDocument
+from solipsis.services.profile.cache_document import CacheDocument
 from solipsis.services.profile.data import DEFAULT_TAG, PeerDescriptor
 from solipsis.services.profile.tests import PROFILE_DIRECTORY, PROFILE_TEST, \
      REPO, PSEUDO, TEST_DIR
@@ -283,8 +284,6 @@ class DocumentTest(unittest.TestCase):
     def test_filling_data(self):
         """fill data"""
         for document in self.documents:
-            self.assertRaises(TypeError, document.fill_data,
-                              (u"pseudo", u"tag description"))
             self.assertEquals(document.has_peer(u"emb"), False)
             file_doc = FileDocument(PROFILE_TEST, PROFILE_DIRECTORY)
             file_doc.load()

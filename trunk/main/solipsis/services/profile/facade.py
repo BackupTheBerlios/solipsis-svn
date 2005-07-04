@@ -25,7 +25,7 @@ from sys import stderr
 from StringIO import StringIO
 from solipsis.services.profile import ENCODING, PROFILE_DIR
 from solipsis.services.profile.data import PeerDescriptor, Blogs
-from solipsis.services.profile.document import CacheDocument
+from solipsis.services.profile.cache_document import CacheDocument
 from solipsis.services.profile.view import HtmlView
 
 def create_facade(pseudo, directory=PROFILE_DIR):

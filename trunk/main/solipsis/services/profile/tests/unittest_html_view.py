@@ -7,7 +7,8 @@ import difflib
 import os
 from os.path import abspath
 from solipsis.services.profile.data import PeerDescriptor
-from solipsis.services.profile.document import CacheDocument, FileDocument
+from solipsis.services.profile.file_document import FileDocument
+from solipsis.services.profile.cache_document import CacheDocument
 from solipsis.services.profile.view import HtmlView
 from solipsis.services.profile.tests import PROFILE_DIRECTORY, PROFILE_TEST, PSEUDO
 from solipsis.services.profile import images_dir
