@@ -63,6 +63,17 @@ class FilterTest(unittest.TestCase):
             
     def test_load(self):
         self.document.load()
+        self.assertEquals(self.document.get_title().description, u"Mr")
+        self.assertEquals(self.document.get_firstname().description, u"")
+        self.assertEquals(self.document.get_lastname().description, u"breton")
+        self.assertEquals(self.document.get_photo().description, QUESTION_MARK())
+        self.assertEquals(self.document.get_email().description, u"manu@ft.com")
+        self.assertEquals(self.document.has_custom_attribute(u'color'), True)
+        self.assertEquals(self.document.has_files_attributes(u'MP3'), True)
+
+    def test_customs(self):
+        self.document.load()
+        customs = self.document.get_custom_attributes()
 
 if __name__ == '__main__':
     unittest.main()
