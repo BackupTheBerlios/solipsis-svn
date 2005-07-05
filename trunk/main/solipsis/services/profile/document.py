@@ -211,8 +211,11 @@ class AbstractSharingData:
             for repo, sharing_cont in other_document.get_files().iteritems():
                 self.add_repository(repo)
                 for full_path, container in sharing_cont.flat().iteritems():
-                    self.share_file((full_path, container._shared))
-                    self.tag_file((full_path, container._tag))
+                    try:
+                        self.share_file((full_path, container._shared))
+                        self.tag_file((full_path, container._tag))
+                    except KeyError, err:
+                        print "Error on file name:", err
         except TypeError, error:
             print error, "Using default values for files"
         
