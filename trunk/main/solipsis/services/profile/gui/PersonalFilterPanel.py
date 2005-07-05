@@ -3,6 +3,9 @@
 
 import wx
 
+from solipsis.util.wxutils import _
+from solipsis.services.profile import ADD_CUSTOM, DEL_CUSTOM
+
 # begin wxGlade: dependencies
 # end wxGlade
 
@@ -35,9 +38,13 @@ class PersonalFilterPanel(wx.Panel):
 
     def __set_properties(self):
         # begin wxGlade: PersonalFilterPanel.__set_properties
+        self.title_value.Enable(False)
         self.title_value.SetSelection(0)
+        self.firstname_value.Enable(False)
+        self.lastname_value.Enable(False)
         self.nickname_value.SetToolTipString(_("How you appear to other peers"))
         self.nickname_value.Enable(False)
+        self.email_value.Enable(False)
         self.add_p_filter_button.SetSize(self.add_p_filter_button.GetBestSize())
         self.del_p_filter_button.SetSize(self.del_p_filter_button.GetBestSize())
         # end wxGlade

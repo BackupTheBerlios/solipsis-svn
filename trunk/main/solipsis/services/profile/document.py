@@ -257,7 +257,7 @@ class AbstractSharingData:
         container = self.get_container(value)
         for dir_container in [cont for cont in container.values()
                               if isinstance(cont, DirContainer)]:
-            self.expand_dir(dir_container.path)
+            self.expand_dir(dir_container.get_path())
 
     def share_dirs(self, pair):
         """forward command to cache"""

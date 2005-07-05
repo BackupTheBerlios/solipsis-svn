@@ -3,6 +3,9 @@
 
 import wx
 
+from solipsis.util.wxutils import _
+from solipsis.services.profile import ADD_CUSTOM, DEL_CUSTOM
+
 # begin wxGlade: dependencies
 # end wxGlade
 

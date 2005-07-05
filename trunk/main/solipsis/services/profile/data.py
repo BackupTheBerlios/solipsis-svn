@@ -99,9 +99,13 @@ class PeerDescriptor:
         """set member of type AbstractDocument"""
         self.document = document
 
-    def set_shared_files(self, files):
+    def set_shared_files(self, files=None):
         """blog is instance Blogs"""
-        self.shared_files = files
+        if files != None:
+            self.shared_files = files
+        else:
+            assert self.document, "set_shared_files called whereas no document"
+            self.shared_files = self.document.get_shared_files()
 
     def set_node_id(self, node_id):
         """set when peer_desc is assciated with a node"""
@@ -269,7 +273,12 @@ class Blog:
 
 class SharedFiles(dict):
     """dict wrapper (useless for now)"""
-    pass
+
+    def flatten(self):
+        result = []
+        for containers in self.values():
+            result += containers
+        return result
 
 class ContainerMixin:
     """Factorize sharing tools on containers"""
@@ -465,9 +474,16 @@ class DirContainer(dict, ContainerMixin):
         else:
             container = self
         container_path = container.get_path()
-        for path in [os.path.join(container_path, path)
-                     for path in os.listdir(container_path)]:
-            container.add(path)
+        # bug in list dir: not always returning unicode!! may return
+        # str if not ascii.
+        for file_name in os.listdir(container_path):
+            try:
+                if isinstance(file_name, str):
+                    file_name = unicode(file_name, ENCODING)
+                path = os.path.join(container_path, file_name)
+                container.add(path)
+            except UnicodeDecodeError:
+                print "Unicode error on %s", file_name
 
     def share_content(self, full_path, share=True):
         """wrapps sharing methods matching 'full_path' with list or path"""

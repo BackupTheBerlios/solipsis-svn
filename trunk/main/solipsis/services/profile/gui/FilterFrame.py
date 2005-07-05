@@ -3,13 +3,21 @@
 
 import wx
 
+from solipsis.util.wxutils import _
+
+from solipsis.services.profile.gui.AboutDialog import AboutDialog
+
 # begin wxGlade: dependencies
 from FileFilterPanel import FileFilterPanel
 from PersonalFilterPanel import PersonalFilterPanel
 # end wxGlade
 
 class FilterFrame(wx.Frame):
-    def __init__(self, *args, **kwds):
+    def __init__(self, options, parent, id, title, plugin=None, **kwds):
+        self.plugin = plugin
+        self.modified = False
+        self.options = options
+        args = (parent, id, title)
         # begin wxGlade: FilterFrame.__init__
         kwds["style"] = wx.DEFAULT_FRAME_STYLE
         wx.Frame.__init__(self, *args, **kwds)
@@ -39,6 +47,21 @@ class FilterFrame(wx.Frame):
         self.__set_properties()
         self.__do_layout()
         # end wxGlade
+        
+        # events
+        self.bind_controls()
+        
+    # EVENTS
+    
+    def bind_controls(self):
+        """bind all controls with facade"""
+        # action
+        self.Bind(wx.EVT_MENU, self.on_activate, id=self.activate_item.GetId())
+        self.Bind(wx.EVT_MENU, self.on_save, id=self.save_item.GetId())
+        self.Bind(wx.EVT_MENU, self.on_close, id=self.quit_item.GetId())
+        self.Bind(wx.EVT_CLOSE, self.on_close)
+        # about
+        self.Bind(wx.EVT_MENU, self.on_about,id=self.about_item.GetId())
 
     def __set_properties(self):
         # begin wxGlade: FilterFrame.__set_properties

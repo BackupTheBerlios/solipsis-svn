@@ -31,13 +31,16 @@ class FilterValue:
     """wrapper for filter: regex, description ans state"""
 
     def __init__(self, name, value=u"", activate=False):
-        self.name = name
         self.description = value
         self.regex = re.compile(value)
         self.activated = activate
+        self._name = name # name of member which is defined by FilterValue
+
+    def __repr__(self):
+        return "%s, %s"% (self.description, self.activated and "(1)" or "(0)")
 
     def __str__(self):
-        return self.name
+        return self._name
 
     def set_value(self, value, activate=True):
         """recompile regex and (dis)activate filter"""
@@ -50,13 +53,14 @@ class FilterValue:
         self.activated = activate
         
     def does_match(self, data):
-        """apply regex on data and returns True if there is any match"""
+        """apply regex on data and returns self if there is any match"""
+        # no match -> return false
         if not self.activated or len(self.description) == 0:
             return False
         if self.regex.match(data) is None:
             return False
-        else:
-            return True
+        # match -> return true
+        return self
 
 class FilterPersonalMixin(AbstractPersonalData):
     """Implements API for all pesonal data in cache"""
@@ -225,19 +229,19 @@ class FilterSaverMixin(FileSaverMixin):
             activate, description = self.config.get(
                 SECTION_PERSONAL, personal_option).split(',', 1)
             getattr(self, "set_"+personal_option)(
-                (unicode(description, self.encoding), bool(activate)))
+                (unicode(description, self.encoding), activate == "True"))
         # sync custom
         for custom_option in self.config.options(SECTION_CUSTOM):
             activate, description = self.config.get(
                 SECTION_CUSTOM, custom_option).split(',', 1)
             self.add_custom_attributes(
-                (custom_option, unicode(description, self.encoding), bool(activate)))
+                (custom_option, unicode(description, self.encoding), activate == "True"))
         # sync files
         for file_option in self.config.options(SECTION_FILE):
             activate, description = self.config.get(
                 SECTION_FILE, file_option).split(',', 1)
             self.add_files_attributes((
-                file_option, unicode(description, self.encoding), bool(activate)))
+                file_option, unicode(description, self.encoding), activate == "True"))
 
 class FilterDocument(FilterPersonalMixin, FilterSharingMixin, FilterSaverMixin):
     """Describes all data needed in profile in a file"""
@@ -257,3 +261,26 @@ class FilterDocument(FilterPersonalMixin, FilterSharingMixin, FilterSaverMixin):
         """copy data from another document into self"""
         FilterPersonalMixin.import_document(self, other_document)
         FilterSharingMixin.import_document(self, other_document)
+
+    def does_match(self, peer_desc):
+        """check that given peer_desc matches FilterValues"""
+        matches = []
+        if peer_desc.document:
+            matches.append(self.title.does_match(peer_desc.document.get_title()))
+            matches.append(self.firstname.does_match(peer_desc.document.get_firstname()))
+            matches.append(self.lastname.does_match(peer_desc.document.get_lastname()))
+            matches.append(self.photo.does_match(peer_desc.document.get_photo()))
+            matches.append(self.email.does_match(peer_desc.document.get_email()))
+            # dictionary of custom attributes
+            peer_customs = peer_desc.document.get_custom_attributes()
+            for custom_name, custom_filter in self.custom_attributes.iteritems():
+                if peer_customs.has_key(custom_name):
+                    matches.append(custom_filter.does_match(peer_customs[custom_name]))
+        if peer_desc.shared_files:
+            # dictionary of files
+            for filter_name, file_filter in self.files_attributess.iteritems():
+                for file_container in peer_desc.shared_files.flatten():
+                    matches.append(file_filter.does_match(file_container.name))
+        # remove False from matches
+        matches = [match for match in matches if match != False]
+        return matches
