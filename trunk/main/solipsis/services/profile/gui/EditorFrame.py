@@ -38,8 +38,6 @@ class EditorFrame(wx.Frame):
         self.profile_item = wx.Menu()
         self.activate_item = wx.MenuItem(self.profile_item, wx.NewId(), _("&Online\tCtrl+O"), _("Allow users seeing profile"), wx.ITEM_CHECK)
         self.profile_item.AppendItem(self.activate_item)
-        self.filters_item = wx.MenuItem(self.profile_item, wx.NewId(), _("&Filters...\tCtrl+F"), _("Create active filters to get notified on peers approach"), wx.ITEM_NORMAL)
-        self.profile_item.AppendItem(self.filters_item)
         self.profile_item.AppendSeparator()
         self.export_item = wx.MenuItem(self.profile_item, wx.NewId(), _("&Export HTML ...\tCtrl+E"), _("Write profile as HTML File"), wx.ITEM_NORMAL)
         self.profile_item.AppendItem(self.export_item)
@@ -134,7 +132,7 @@ class EditorFrame(wx.Frame):
                 'Saving Dialog',
                 wx.YES_NO | wx.ICON_INFORMATION)
             if dlg.ShowModal() == wx.ID_YES:
-                get_facade().save_profile()
+                self.on_save()
         # close dialog
         if self.options["standalone"]:
             self._close()
@@ -179,7 +177,6 @@ class EditorFrame(wx.Frame):
         # end wxGlade
         
         self.do_modified(False)
-        self.filters_item.Enable(False)
         self.activate_item.Check()
         # should be passed through constructor but wxglade does not allow it
         self.personal_tab.do_modified = self.do_modified

@@ -43,7 +43,6 @@ class ViewerFrame(wx.Frame):
         self.action_item = wx.Menu()
         self.export_item = wx.MenuItem(self.action_item, wx.NewId(), _("&Export HTML ...\tCtrl+E"), _("Write profile as HTML File"), wx.ITEM_NORMAL)
         self.action_item.AppendItem(self.export_item)
-        self.action_item.AppendSeparator()
         self.quit_item = wx.MenuItem(self.action_item, wx.NewId(), _("&Close\tCtrl+W"), _("Close profile management"), wx.ITEM_NORMAL)
         self.action_item.AppendItem(self.quit_item)
         self.viewer_menu.Append(self.action_item, _("Action"))
@@ -67,7 +66,7 @@ class ViewerFrame(wx.Frame):
         self.status_item.AppendItem(self.blacklisted_item)
         self.viewer_menu.Append(self.status_item, _("Status"))
         self.help_menu = wx.Menu()
-        self.about_item = wx.MenuItem(self.help_menu, wx.NewId(), _("About..."), "", wx.ITEM_NORMAL)
+        self.about_item = wx.MenuItem(self.help_menu, wx.NewId(), _("About...\tCtrl+?"), "", wx.ITEM_NORMAL)
         self.help_menu.AppendItem(self.about_item)
         self.viewer_menu.Append(self.help_menu, _("Help"))
         # Menu Bar end

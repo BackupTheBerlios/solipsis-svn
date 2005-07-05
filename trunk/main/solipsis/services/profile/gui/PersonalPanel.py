@@ -123,15 +123,7 @@ class PersonalPanel(wx.Panel):
         
     def on_add(self, evt):
         """a custom attribute has been modified"""
-        if self.edited_item and self.edited_item[1] == self.key_value.GetValue():
-            # update data
-            self.custom_list.SetStringItem(self.edited_item[0], 0, self.key_value.GetValue())
-            self.custom_list.SetStringItem(self.edited_item[0], 1, self.custom_value.GetValue())
-        else:
-            # new
-            index = self.custom_list.InsertStringItem(sys.maxint, self.key_value.GetValue())
-            self.custom_list.SetStringItem(index, 1, self.custom_value.GetValue())
-        # update cache
+        # update cache, facade will refresh window (through GuiView)
         get_facade().add_custom_attributes((self.key_value.GetValue(),
                                            self.custom_value.GetValue()))
         self.do_modified(True)
@@ -139,7 +131,8 @@ class PersonalPanel(wx.Panel):
     def on_del(self, evt):
         """a custom attribute has been modified"""
         # update data
-        if self.custom_list.DeleteItem(self.custom_list.FindItem(0, self.key_value.GetValue())):
+        index = self.custom_list.FindItem(0, self.key_value.GetValue())
+        if index != -1 and self.custom_list.DeleteItem(index):
             # update cache
             get_facade().del_custom_attributes(self.key_value.GetValue())
             self.do_modified(True)
