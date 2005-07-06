@@ -106,30 +106,14 @@ class AbstractView:
         """blog"""
         raise NotImplementedError
 
-    def display_blog(self):
-        """display blog"""
-        raise NotImplementedError
-
     # FILE TAB  
-    def reset_files(self):
-        """file"""
-        pass
-    
     def update_files(self):
         """file"""
-        raise NotImplementedError
-
-    def display_files(self):
-        """display shared files"""
         raise NotImplementedError
 
     # OTHERS TAB
     def update_peers(self):
         """peer"""
-        raise NotImplementedError
-
-    def display_peer(self):
-        """display shared files"""
         raise NotImplementedError
 
 
@@ -188,27 +172,15 @@ class PrintView(AbstractView):
         """blog"""
         self.println(pickle.dumps(_desc.blog))
         
-    def display_blog(self):
-        """display blog"""
-        self.println(str(_desc.blog))
-        
     # FILE TAB
     def update_files(self):
         """file"""
         self.println(self._desc.document.get_files())
-
-    def display_files(self):
-        """display shared files"""
-        self.println(str(_desc.shared_files))
         
     # OTHERS TAB        
     def update_peers(self):
         """peer"""
         self.println(self._desc.document.get_peers())
-
-    def display_peer(self):
-        """display peer profile"""
-        self.println(str(_desc.doc))
 
 class HtmlView(AbstractView):
     """synthetises information and renders it in HTML"""
@@ -298,10 +270,6 @@ class HtmlView(AbstractView):
         if self.auto_refresh:
             self._update_view()
         
-    def display_blog(self):
-        """display blog"""
-        pass
-        
     # FILE TAB : frame.file_tab
     def update_files(self):
         """file"""
@@ -320,10 +288,6 @@ class HtmlView(AbstractView):
         self.context.addGlobal("files", html_format)
         if self.auto_refresh:
             self._update_view()
-            
-    def display_files(self):
-        """display shared files"""
-        self.context.addGlobal("shared_files", self._desc.shared_files)
         
     # OTHERS TAB
     def update_peers(self):
@@ -332,10 +296,6 @@ class HtmlView(AbstractView):
                                self._desc.document.get_ordered_peers())
         if self.auto_refresh:
             self._update_view()
-        
-    def display_peer(self):
-        """display blog"""
-        pass
 
 
 class EditorView(AbstractView):
@@ -391,35 +351,18 @@ class EditorView(AbstractView):
         """blog"""
         self.frame.blog_tab.on_update()
         
-    def display_blog(self):
-        """display blog"""
-        # used by viewer view
-        pass
-        
-    # FILE TAB : frame.file_tab        
-    def reset_files(self):
-        """file"""
-        self.frame.file_tab.reset_files()
-        
+    # FILE TAB : frame.file_tab
     def update_files(self):
         """file"""
+        if self.frame.file_tab.dir_list.GetItemCount()>0:
+            self.frame.file_tab.dir_list.DeleteAllItems()
         for sharing_container in self._desc.document.get_files().values():
             self.frame.file_tab.cb_update_tree(sharing_container)
-
-    def display_files(self):
-        """display shared files"""
-        # used by viewer view
-        pass
         
     # OTHERS TAB
     def update_peers(self):
         """peer"""
         # was used in "Contacts" tab
-        pass
-        
-    def display_peer(self):
-        """peer"""
-        # used by viewer view
         pass
 
 class ViewerView(AbstractView):
@@ -465,37 +408,22 @@ class ViewerView(AbstractView):
 
     # BLOG TAB
     def update_blogs(self):
-        """blog"""
-#         peer_desc = self._desc.document.get_last_downloaded_desc()
-#         self.frame.blog_tab.on_update(peer_desc.blog)
-        
-    def display_blog(self):
         """display blog"""
         peer_desc = self._desc.document.get_last_downloaded_desc()
-        self.frame.display_blog(peer_desc)
+        if peer_desc != None:
+            self.frame.display_blog(peer_desc)
         
-    # FILE TAB : frame.file_tab        
-    def reset_files(self):
-        """file"""
-#         self.frame.file_tab.reset_files()
-        
+    # FILE TAB : frame.file_tab
     def update_files(self):
-        """file"""
-#         for sharing_container in self._desc.document.get_files().values():
-#             self.frame.file_tab.cb_update_tree(sharing_container)
-
-    def display_files(self):
         """display shared files"""
         peer_desc = self._desc.document.get_last_downloaded_desc()
-        self.frame.display_files(peer_desc)
+        if peer_desc != None:
+            self.frame.display_files(peer_desc)
         
     # OTHERS TAB
     def update_peers(self):
         """peer"""
-        pass
-        
-    def display_peer(self):
-        """peer"""
         peer_desc = self._desc.document.get_last_downloaded_desc()
-        self.frame.display_profile(peer_desc)
+        if peer_desc != None:
+            self.frame.display_profile(peer_desc)
 

@@ -22,7 +22,8 @@ independant from views"""
 
 import re
 import os.path
-from solipsis.services.profile import PROFILE_DIR, FILTER_EXT, DEFAULT_INTERESTS, ENCODING
+from solipsis.services.profile import PROFILE_DIR, FILTER_EXT, \
+     DEFAULT_INTERESTS, ENCODING
 from solipsis.services.profile.document import AbstractPersonalData, \
      CustomConfigParser, SECTION_PERSONAL, SECTION_CUSTOM, SECTION_FILE
 from solipsis.services.profile.file_document import FileSaverMixin
@@ -176,7 +177,7 @@ class FilterSharingMixin:
         # config
         self.config.add_section(SECTION_FILE)
         # cache dictionary of file. {att_name : att_value}
-        self.files_attributess = {}
+        self.file_filters = {}
         
     def import_document(self, other_document):
         """copy data from another document into self"""
@@ -184,34 +185,34 @@ class FilterSharingMixin:
                "wrong document format. Expecting FilterSharingMixin. Got %s"\
                % other_document.__class__
         try:
-            file_filters = other_document.get_files_attributess()
+            file_filters = other_document.get_files()
             for key, val in file_filters.iteritems():
-                self.add_files_attributess((key, val.description, val.activate))
+                self.add_files((key, val.description, val.activate))
         except TypeError, error:
             print error, "Using default values for personal data"
         
     # FILE TAB
-    def has_files_attributes(self, key):
+    def has_file(self, key):
         """return true if the key exists"""
-        return self.files_attributess.has_key(key)
+        return self.file_filters.has_key(key)
     
-    def add_files_attributes(self, (key, value, activate)):
-        """sets new value for files_attributess"""
+    def add_file(self, (key, value, activate)):
+        """sets new value for files"""
         self.config.set(SECTION_FILE, key, ",".join((str(activate), value)))
-        if not self.has_files_attributes(key):
-            self.files_attributess[key] = FilterValue(key, value, activate)
+        if not self.has_file(key):
+            self.file_filters[key] = FilterValue(key, value, activate)
         else:
-            self.files_attributess[key].set_value(value, activate)
+            self.file_filters[key].set_value(value, activate)
         
-    def remove_files_attributes(self, value):
-        """sets new value for files_attributess"""
-        if self.files_attributess.has_key(value):
+    def del_file(self, value):
+        """sets new value for files"""
+        if self.file_filters.has_key(value):
             self.config.remove_option(SECTION_FILE, value)
-            del self.files_attributess[value]
+            del self.file_filters[value]
             
-    def get_files_attributes(self):
-        """returns value of files_attributess"""
-        return self.files_attributess
+    def get_files(self):
+        """returns value of files"""
+        return self.file_filters
 
 class FilterSaverMixin(FileSaverMixin):
     """Implements API for saving & loading in a File oriented context"""
@@ -234,14 +235,16 @@ class FilterSaverMixin(FileSaverMixin):
         for custom_option in self.config.options(SECTION_CUSTOM):
             activate, description = self.config.get(
                 SECTION_CUSTOM, custom_option).split(',', 1)
-            self.add_custom_attributes(
-                (custom_option, unicode(description, self.encoding), activate == "True"))
+            self.add_custom_attributes((custom_option,
+                                        unicode(description, self.encoding),
+                                        activate == "True"))
         # sync files
         for file_option in self.config.options(SECTION_FILE):
             activate, description = self.config.get(
                 SECTION_FILE, file_option).split(',', 1)
-            self.add_files_attributes((
-                file_option, unicode(description, self.encoding), activate == "True"))
+            self.add_file((file_option,
+                           unicode(description, self.encoding),
+                           activate == "True"))
 
 class FilterDocument(FilterPersonalMixin, FilterSharingMixin, FilterSaverMixin):
     """Describes all data needed in profile in a file"""
@@ -266,19 +269,21 @@ class FilterDocument(FilterPersonalMixin, FilterSharingMixin, FilterSaverMixin):
         """check that given peer_desc matches FilterValues"""
         matches = []
         if peer_desc.document:
-            matches.append(self.title.does_match(peer_desc.document.get_title()))
-            matches.append(self.firstname.does_match(peer_desc.document.get_firstname()))
-            matches.append(self.lastname.does_match(peer_desc.document.get_lastname()))
-            matches.append(self.photo.does_match(peer_desc.document.get_photo()))
-            matches.append(self.email.does_match(peer_desc.document.get_email()))
+            doc = peer_desc.document
+            matches.append(self.title.does_match(doc.get_title()))
+            matches.append(self.firstname.does_match(doc.get_firstname()))
+            matches.append(self.lastname.does_match(doc.get_lastname()))
+            matches.append(self.photo.does_match(doc.get_photo()))
+            matches.append(self.email.does_match(doc.get_email()))
             # dictionary of custom attributes
-            peer_customs = peer_desc.document.get_custom_attributes()
+            peer_customs = doc.get_custom_attributes()
             for custom_name, custom_filter in self.custom_attributes.iteritems():
                 if peer_customs.has_key(custom_name):
-                    matches.append(custom_filter.does_match(peer_customs[custom_name]))
+                    matches.append(
+                        custom_filter.does_match(peer_customs[custom_name]))
         if peer_desc.shared_files:
             # dictionary of files
-            for filter_name, file_filter in self.files_attributess.iteritems():
+            for filter_name, file_filter in self.file_filters.iteritems():
                 for file_container in peer_desc.shared_files.flatten():
                     matches.append(file_filter.does_match(file_container.name))
         # remove False from matches

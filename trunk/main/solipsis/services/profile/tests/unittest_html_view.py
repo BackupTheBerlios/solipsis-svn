@@ -158,7 +158,7 @@ class HtmlTest(unittest.TestCase):
         
     # FILE TAB       
     def test_files(self):
-        self.document.add_repository(abspath(u"."))
+        self.document.add_file(abspath(u"."))
         self.document.expand_dir(abspath(u"data"))
         self.document.share_files((abspath(u"data"), ["routage"], True))
         self.document.share_file((abspath(u"data/emptydir"), True))

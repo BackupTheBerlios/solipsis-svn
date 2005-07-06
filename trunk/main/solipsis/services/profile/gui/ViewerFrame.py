@@ -129,7 +129,7 @@ class ViewerFrame(wx.Frame):
         
     def on_close(self, evt):
         """hide  application"""
-        get_facade().save_profile()
+        get_facade().save()
         if self.options["standalone"]:
             self._close()
         else:

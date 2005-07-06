@@ -163,7 +163,7 @@ class ProfileFrame(wx.Frame):
             style=wx.OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            self.facade.load_profile(path, self)
+            self.facade.load(path, self)
             self.facade.refresh_html_preview()
 
     def on_about(self, evt):
@@ -183,7 +183,7 @@ class ProfileFrame(wx.Frame):
             style=wx.SAVE)
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
-            self.facade.save_profile()
+            self.facade.save()
         
     def on_export(self, evt):
         """export .html"""
@@ -199,7 +199,7 @@ class ProfileFrame(wx.Frame):
         
     def on_close(self, evt):
         """hide  application"""
-        self.facade.save_profile()
+        self.facade.save()
         if self.options["standalone"]:
             self._close()
         else:

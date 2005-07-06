@@ -122,7 +122,7 @@ class Plugin(ServicePlugin):
                 'Saving Dialog',
                 wx.YES_NO | wx.ICON_INFORMATION)
             if dlg.ShowModal() == wx.ID_YES:
-                get_facade().save_profile()
+                get_facade().save()
         self.activate(False)
 
     # Service methods
@@ -173,7 +173,9 @@ class Plugin(ServicePlugin):
         """store and display file object corresponding to profile"""
         print "downloaded profile", peer_id
         get_facade().fill_data((peer_id, document))
-    
+        if self.viewer_frame:
+            self.viewer_frame.profile_dlg.Show()
+            
     def _on_new_blog(self, blog, peer_id):
         """store and display file object corresponding to blog"""
         get_facade().fill_blog((peer_id, blog))
@@ -271,7 +273,7 @@ class Plugin(ServicePlugin):
         # careful not to do the job every time
         if get_facade() is None or get_facade().get_pseudo() != node.pseudo:
             facade = create_facade(node.pseudo)
-            facade.load_profile()
+            facade.load()
             if self.editor_frame:
                 facade.add_view(EditorView(facade._desc,
                                            self.editor_frame))

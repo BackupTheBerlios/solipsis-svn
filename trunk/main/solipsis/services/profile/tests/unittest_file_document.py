@@ -25,7 +25,7 @@ class FileTest(unittest.TestCase):
     def setUp(self):
         """override one in unittest.TestCase"""
         self.document = FileDocument(PROFILE_TEST, PROFILE_DIRECTORY)
-        self.document.add_repository(REPO)
+        self.document.add_file(REPO)
         # first test to call must write test file to get correct
         # execution of the others
         if not os.path.exists(os.path.join(PROFILE_DIRECTORY, PROFILE_TEST + PROFILE_EXT)):
@@ -133,10 +133,10 @@ class FileTest(unittest.TestCase):
         self.document.load()
         new_doc = CacheDocument(PROFILE_TATA, PROFILE_DIRECTORY)
         new_doc.import_document(self.document)
-        new_doc.remove_repository(REPO)
+        new_doc.del_file(REPO)
         self.assertEquals(new_doc.get_files(), {})
-        new_doc.add_repository(REPO+u"/data/profiles")
-        new_doc.add_repository(REPO+u"/data/subdir1")
+        new_doc.add_file(REPO+u"/data/profiles")
+        new_doc.add_file(REPO+u"/data/subdir1")
         self.assertEquals(new_doc.get_files()[REPO+u"/data/profiles"]._shared, False)
         self.assert_(new_doc.get_files()[REPO+u"/data/subdir1"] != None)
         new_doc.save()

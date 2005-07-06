@@ -22,9 +22,9 @@ class DocumentTest(unittest.TestCase):
         self.documents = [CacheDocument(PROFILE_TEST, PROFILE_DIRECTORY),
                           FileDocument(PROFILE_TEST, PROFILE_DIRECTORY)]
         for document in self.documents:
-            document.add_repository(REPO)
+            document.add_file(REPO)
         self.abstract_doc = AbstractDocument(PROFILE_TEST, PROFILE_DIRECTORY)
-        self.abstract_doc.add_repository(REPO)
+        self.abstract_doc.add_file(REPO)
 
     def test_config_parser(self):
         writer = CustomConfigParser(ENCODING)
@@ -204,7 +204,7 @@ class DocumentTest(unittest.TestCase):
 
     def test_get_shared_files(self):
         document = CacheDocument(PROFILE_TEST, PROFILE_DIRECTORY)
-        document.add_repository(REPO)
+        document.add_file(REPO)
         document.add((abspath(u"data")))
         document.share_file((abspath(u"data"), True))
         # following line overridden by previous one
@@ -229,10 +229,10 @@ class DocumentTest(unittest.TestCase):
         """coherency when several repos in use"""
         document = CacheDocument(PROFILE_TEST, PROFILE_DIRECTORY)
         # create 2 repos
-        document.add_repository(REPO + "/data/profiles")
+        document.add_file(REPO + "/data/profiles")
         document.tag_files((REPO + "/data/profiles", ["bruce.prf", ".svn"], u"first"))
         document.share_files((REPO + "/data/profiles", ["bruce.prf", "demi.prf"], True))
-        document.add_repository(REPO + "/data/subdir1")
+        document.add_file(REPO + "/data/subdir1")
         document.tag_files((REPO + "/data/subdir1", ["date.doc", ".svn"], u"second"))
         document.share_files((REPO + "/data/subdir1", ["date.doc", "subsubdir"], True))
         # check sharing state
@@ -249,8 +249,8 @@ class DocumentTest(unittest.TestCase):
         self.assertEquals(document.get_container(
             abspath("data/subdir1/.svn"))._shared, False)
         # check tag
-        self.assertRaises(ValueError, document.add_repository, REPO + "/data/subdir1/subsubdir")
-        self.assertRaises(ValueError, document.add_repository, REPO + "/data")
+        self.assertRaises(ValueError, document.add_file, REPO + "/data/subdir1/subsubdir")
+        self.assertRaises(ValueError, document.add_file, REPO + "/data")
             
     # OTHERS TAB
     def test_reset_peers(self):

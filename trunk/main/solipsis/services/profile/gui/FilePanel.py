@@ -119,7 +119,7 @@ class FilePanel(wx.Panel):
         if dlg.ShowModal() == wx.ID_OK:
             # path chosen
             path = dlg.GetPath()
-            get_facade().add_repository(path)
+            get_facade().add_file(path)
             get_facade().expand_dir(path)
         dlg.Destroy()
         
@@ -133,7 +133,7 @@ class FilePanel(wx.Panel):
             item = get_facade().get_file_container(file_name)
             self.tree_list.DeleteChildren(item.get_data())
             self.tree_list.Delete(item.get_data())
-            get_facade().remove_repository(file_name)
+            get_facade().del_file(file_name)
             self.do_modified(True)
         
     def on_share(self, evt):
@@ -212,11 +212,6 @@ class FilePanel(wx.Panel):
         self.dir_list.SetColumnWidth(0, wx.LIST_AUTOSIZE)
         self.dir_list.SetColumnWidth(TAG_COL, wx.LIST_AUTOSIZE)
         self.dir_list.SetColumnWidth(IS_SHARED_COL, wx.LIST_AUTOSIZE)
-
-    def reset_files(self):
-        """reset view"""
-        self.tree_list.DeleteChildren(self.root)
-        self.dir_list.DeleteAllItems()
     
     def cb_update_tree(self, container):
         """synchronize tree list with sharing container"""

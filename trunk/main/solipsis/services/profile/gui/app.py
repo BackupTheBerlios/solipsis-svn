@@ -25,7 +25,7 @@ def run():
 
     #set up facade
     facade = get_facade()
-    facade.load_profile(os.path.join(PROFILE_DIR, PROFILE_FILE), profile_frame)
+    facade.load(os.path.join(PROFILE_DIR, PROFILE_FILE), profile_frame)
     facade.refresh_html_preview()
 
     #launch gui

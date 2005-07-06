@@ -144,9 +144,9 @@ class CacheSharingMixin(AbstractSharingData):
         """empty all information concerning files"""
         self.files = {}
     
-    def add_repository(self, value):
+    def add_file(self, value):
         """create new DirContainer"""
-        AbstractSharingData.add_repository(self, value)
+        AbstractSharingData.add_file(self, value)
         for existing_repo in self.files:
             if value.startswith(existing_repo):
                 raise ValueError("'%s' part of existing repo %s"\
@@ -157,9 +157,9 @@ class CacheSharingMixin(AbstractSharingData):
             # else: continue
         self.files[value] = DirContainer(value)
         
-    def remove_repository(self, value):
+    def del_file(self, value):
         """create new DirContainer"""
-        AbstractSharingData.remove_repository(self, value)
+        AbstractSharingData.del_file(self, value)
         del self.files[value]
 
     def get_repositories(self):

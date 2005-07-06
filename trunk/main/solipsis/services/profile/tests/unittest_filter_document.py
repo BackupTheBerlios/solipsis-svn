@@ -62,7 +62,7 @@ class FilterTest(unittest.TestCase):
         # set custom interests
         self.document.add_custom_attributes((u'color', u'blue', True))
         # set files
-        self.document.add_files_attributes((u'MP3', u'.*\.mp3$', True))
+        self.document.add_file((u'MP3', u'.*\.mp3$', True))
         # write file
         self.document.save()
             
@@ -79,7 +79,7 @@ class FilterTest(unittest.TestCase):
         self.assertEquals(self.document.get_email().description, u"manu@ft.com")
         self.assertEquals(self.document.get_email().activated, False)
         self.assertEquals(self.document.has_custom_attribute(u'color'), True)
-        self.assertEquals(self.document.has_files_attributes(u'MP3'), True)
+        self.assertEquals(self.document.has_file(u'MP3'), True)
 
     def test_customs(self):
         self.document.load()
@@ -106,7 +106,7 @@ class FilterTest(unittest.TestCase):
         self.document.get_email().activate()
         self.assertEquals(len(self.document.does_match(peer_desc)), 4)
         # add filter for dummy.txt
-        self.document.add_files_attributes((u'Any', u'.*\..*', True))
+        self.document.add_file((u'Any', u'.*\..*', True))
         self.assertEquals(len(self.document.does_match(peer_desc)), 5)
 
 if __name__ == '__main__':

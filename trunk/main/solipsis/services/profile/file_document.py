@@ -182,9 +182,9 @@ class FileSharingMixin(AbstractSharingData):
         self.config.remove_section(SECTION_FILE)
         self.config.add_section(SECTION_FILE)
         
-    def add_repository(self, value):
+    def add_file(self, value):
         """create new DirContainer"""
-        AbstractSharingData.add_repository(self, value)
+        AbstractSharingData.add_file(self, value)
         existing_repos = self.get_repositories()
         # update list of repositories
         for existing_repo in existing_repos:
@@ -198,9 +198,9 @@ class FileSharingMixin(AbstractSharingData):
         existing_repos.append(value)
         self._set_repositories(existing_repos)
         
-    def remove_repository(self, value):
+    def del_file(self, value):
         """create new DirContainer"""
-        AbstractSharingData.remove_repository(self, value)
+        AbstractSharingData.del_file(self, value)
         # delete entry
         values = [repo for repo in self.get_repositories()
                   if repo != value]

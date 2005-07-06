@@ -209,7 +209,7 @@ class AbstractSharingData:
             # file data
             self.reset_files()
             for repo, sharing_cont in other_document.get_files().iteritems():
-                self.add_repository(repo)
+                self.add_file(repo)
                 for full_path, container in sharing_cont.flat().iteritems():
                     try:
                         self.share_file((full_path, container._shared))
@@ -224,7 +224,7 @@ class AbstractSharingData:
         """empty all information concerning files"""
         raise NotImplementedError
         
-    def add_repository(self, value):
+    def add_file(self, value):
         """sets new value for repository"""
         if not isinstance(value, unicode):
             raise TypeError("repository '%s' expected as unicode"% value)
@@ -233,10 +233,14 @@ class AbstractSharingData:
         if not isinstance(value, unicode):
             raise TypeError("repository to add expected as unicode")       
         
-    def remove_repository(self, value):
+    def del_file(self, value):
         """remove repository"""
         if not isinstance(value, unicode):
             raise TypeError("repository to remove expected as unicode")
+        
+    def get_files(self):
+        """returns value of files"""
+        raise NotImplementedError
         
     def add(self, value):
         """add directory into  repository"""
@@ -319,10 +323,6 @@ class AbstractSharingData:
             raise TypeError("path expected as unicode")
         if not isinstance(pair[1], unicode):
             raise TypeError("tag expected as unicode")
-        
-    def get_files(self):
-        """returns value of files"""
-        raise NotImplementedError
         
     def get_repositories(self):
         """returns value of files"""

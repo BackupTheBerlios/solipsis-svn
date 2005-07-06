@@ -19,7 +19,7 @@ class FacadeTest(unittest.TestCase):
     def setUp(self):
         """override one in unittest.TestCase"""
         self.facade = Facade(PROFILE_TEST, PROFILE_DIRECTORY)
-        self.facade.add_repository(REPO)
+        self.facade.add_file(REPO)
 
     def test_creation(self):
         self.assertEquals(get_facade(), None)
@@ -73,11 +73,11 @@ class FacadeTest(unittest.TestCase):
     # FILE TAB
     def test_repository(self):
         facade = Facade(PROFILE_TEST, PROFILE_DIRECTORY)
-        facade.add_repository(abspath(u"data/profiles"))
-        self.assertRaises(KeyError, facade.remove_repository, abspath(u"data"))
-        self.assertRaises(ValueError, facade.add_repository, abspath(u"data"))
-        facade.add_repository(abspath(u"data/emptydir"))
-        facade.remove_repository(abspath(u"data/emptydir"))
+        facade.add_file(abspath(u"data/profiles"))
+        self.assertRaises(KeyError, facade.del_file, abspath(u"data"))
+        self.assertRaises(ValueError, facade.add_file, abspath(u"data"))
+        facade.add_file(abspath(u"data/emptydir"))
+        facade.del_file(abspath(u"data/emptydir"))
 
     def test_expand_dir(self):
         self.assertEquals(self.facade.get_document().get_shared(REPO),

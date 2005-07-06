@@ -106,7 +106,7 @@ class EditorFrame(wx.Frame):
         
     def on_save(self, evt):
         """save .prf"""
-        get_facade().save_profile()
+        get_facade().save()
         self.do_modified(False)
         
     def on_export(self, evt):
@@ -132,7 +132,7 @@ class EditorFrame(wx.Frame):
                 'Saving Dialog',
                 wx.YES_NO | wx.ICON_INFORMATION)
             if dlg.ShowModal() == wx.ID_YES:
-                self.on_save()
+                self.on_save(evt)
         # close dialog
         if self.options["standalone"]:
             self._close()

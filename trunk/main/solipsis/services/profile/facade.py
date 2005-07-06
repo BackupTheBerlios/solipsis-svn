@@ -21,12 +21,13 @@ available. This facade will be used both by GUI and unittests."""
 
 import pickle
 
-from sys import stderr
 from StringIO import StringIO
 from solipsis.services.profile import ENCODING, PROFILE_DIR
-from solipsis.services.profile.data import PeerDescriptor, Blogs
-from solipsis.services.profile.cache_document import CacheDocument
 from solipsis.services.profile.view import HtmlView
+from solipsis.services.profile.data import PeerDescriptor, Blogs
+from solipsis.services.profile.simple_facade import SimpleFacade
+from solipsis.services.profile.cache_document import CacheDocument
+from solipsis.services.profile.filter_document import FilterDocument
 
 def create_facade(pseudo, directory=PROFILE_DIR):
     """implements pattern singleton on Facade. User may specify
@@ -39,40 +40,40 @@ def get_facade():
     document end/or view to initialize facade with at creation"""
     return Facade.s_facade
 
-class Facade:
+def create_filter_facade(pseudo, directory=PROFILE_DIR):
+    """implements pattern singleton on FilterFacade"""
+    FilterFacade.filter_facade = FilterFacade(pseudo, directory)
+    return FilterFacade.filter_facade
+
+def get_filter_facade():
+    """implements pattern singleton on FilterFacade"""
+    return FilterFacade.filter_facade
+
+class FilterFacade(SimpleFacade):
+
+    filter_facade = None
+
+    def __init__(self, pseudo, directory=PROFILE_DIR):
+        SimpleFacade.__init__(self, pseudo, directory)
+        self._desc = PeerDescriptor(pseudo,
+                                    document=FilterDocument(pseudo, directory))
+
+class Facade(SimpleFacade):
     """manages user's actions & connects document and view"""
     
     s_facade = None
 
     def __init__(self, pseudo, directory=PROFILE_DIR):
+        SimpleFacade.__init__(self, pseudo, directory)
         self._desc = PeerDescriptor(pseudo,
                                     document=CacheDocument(pseudo, directory),
                                     blog=Blogs(pseudo, directory))
-        self.pseudo = pseudo
-        self._activated = True
-        self.views = {}
-
-    def get_pseudo(self):
-        """return pseudo"""
-        return self.pseudo
 
     # views
     def add_view(self, view):
         """add  a view object to facade"""
-        self.views[view.get_name()] = view
-        view.import_desc(self._desc)
+        SimpleFacade.add_view(self, view)
         view.update_blogs()
-
-    # documents
-    def get_document(self):
-        """return document associated with peer"""
-        return self._desc.document
-
-    def import_document(self, document):
-        """associate given document with peer"""
-        self._desc.document.import_document(document)
-        for view in self.views:
-            view.import_desc(self._desc)
 
     # blog
     def add_blog(self, text):
@@ -110,21 +111,6 @@ class Facade:
             view.update_blogs()
 
     # proxy
-    def _try_change(self, value, setter, updater):
-        """tries to call function doc_set and then, if succeeded, gui_update"""
-        try:
-            result = getattr(self._desc.document, setter)(value)
-            for view in self.views.values():
-                getattr(view, updater)()
-            return result
-        except TypeError, error:
-            print >> stderr, str(error)
-            raise
-
-    def get_profile(self):
-        """return a file object like on profile"""
-        return self._desc.document.to_stream()
-
     def get_blog_file(self):
         """return a file object like on blog"""
         return StringIO(pickle.dumps(self._desc.blog))
@@ -136,114 +122,34 @@ class Facade:
     def get_file_container(self, name):
         """forward command to cache"""
         return self._desc.document.get_container(name)
-    
-    def get_peers(self):
-        """returns PeerDescriptor with given id"""
-        return self._desc.document.get_peers()
-    
-    def get_peer(self, peer_id):
-        """returns PeerDescriptor with given id"""
-        return self._desc.document.get_peer(peer_id)
-    
-    def has_peer(self, peer_id):
-        """returns PeerDescriptor with given id"""
-        return self._desc.document.has_peer(peer_id)
+
+    def set_data(self, (peer_id, document)):
+        """sets peer as friend """
+        self._desc.document.fill_data((peer_id, document))
     
     # MENU
-    def activate(self, enable=True):
-        """desactivate automatic sharing"""
-        self._activated = enable
-
-    def is_activated(self):
-        """getter for self._activated"""
-        return self._activated
-
     def export_profile(self, path):
         """write profile in html format"""
         html_file = open(path, "w")
         html_view = HtmlView(self._desc)
         html_file.write(html_view.get_view(True).encode(ENCODING))
-    
-    def save_profile(self):
-        """save .profile.solipsis"""
-        self._desc.save()
 
-    def load_profile(self):
+    def load(self):
         """load .profile.solipsis"""
-        # clean
-        for view in self.views.values():
-            view.reset_files()
-        # load
-        try:
-            self._desc.load()
-        except ValueError, err:
-            print err, "Using blank one"
-        # update
-        for view in self.views.values():
-            view.import_desc(self._desc)
+        SimpleFacade.load(self)
         self.update_blogs()
-
-    # PERSONAL TAB
-    def change_title(self, title):
-        """sets new value for title"""
-        return self._try_change(title,
-                                "set_title",
-                                "update_title")
-
-    def change_firstname(self, firstname):
-        """sets new value for firstname"""
-        return self._try_change(firstname,
-                               "set_firstname",
-                               "update_firstname")
-
-    def change_lastname(self, lastname):
-        """sets new value for lastname"""
-        return self._try_change(lastname,
-                               "set_lastname",
-                               "update_lastname")
-
-    def change_photo(self, path):
-        """sets new value for photo"""
-        return self._try_change(path,
-                               "set_photo",
-                               "update_photo")
-
-    def change_email(self, email):
-        """sets new value for email"""
-        return self._try_change(email,
-                               "set_email",
-                               "update_email")
-
-    def change_download_repo(self, path):
-        """sets new value for description"""
-        return self._try_change(path,
-                               "set_download_repo",
-                               "update_download_repo")
-
-    # CUSTOM TAB
-    def add_custom_attributes(self, (key, value)):
-        """sets new value for custom_attributes"""
-        return self._try_change((key, value),
-                               "add_custom_attributes",
-                               "update_custom_attributes")
-
-    def del_custom_attributes(self, key):
-        """sets new value for custom_attributes"""
-        return self._try_change(key,
-                               "remove_custom_attributes",
-                               "update_custom_attributes")
-
+    
     # FILE TAB
-    def add_repository(self, path):
+    def add_file(self, path):
         """sets new value for repositor"""
         return self._try_change(path,
-                               "add_repository",
+                               "add_file",
                                "update_files")
     
-    def remove_repository(self, path):
+    def del_file(self, path):
         """sets new value for repositor"""
         return self._try_change(path,
-                               "remove_repository",
+                               "del_file",
                                "update_files")
     
     def expand_dir(self, path):
@@ -300,36 +206,30 @@ class Facade:
         return self._try_change(value,
                                 "remove_peer",
                                 "update_peers")
-
+    
     def set_connected(self, (peer_id, connected)):
         """change connected status of given peer and updates views"""
         return self._try_change((peer_id, connected),
                                 "set_connected",
                                 "update_peers")
 
-    def set_data(self, (peer_id, document)):
+    def fill_data(self, (peer_id, document)):
         """sets peer as friend """
         return self._try_change((peer_id, document),
                                 "fill_data",
                                 "update_peers")
 
-    def fill_data(self, (peer_id, document)):
-        """sets peer as friend """
-        return self._try_change((peer_id, document),
-                                "fill_data",
-                                "display_peer")
-
     def fill_blog(self, (peer_id, blog)):
         """sets peer as friend """
         return self._try_change((peer_id, blog),
                                 "fill_blog",
-                                "display_blog")
+                                "update_blogs")
     
     def fill_shared_files(self, (peer_id, files)):
         """sets peer as friend """
         return self._try_change((peer_id, files),
                                 "fill_shared_files",
-                                "display_files")
+                                "update_files")
 
     def make_friend(self, peer_id):
         """sets peer as friend """

@@ -19,7 +19,7 @@ class EditorApp(wx.App):
     def OnInit(self):
         """overrides"""
         facade = create_facade("manu")
-        facade.load_profile()
+        facade.load()
         # set up GUI
         wx.InitAllImageHandlers()
         editor_frame = EditorFrame(self.options, None, -1, _("Profile Editor"))

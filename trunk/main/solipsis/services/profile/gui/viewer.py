@@ -18,7 +18,7 @@ class ViewerApp(wx.App):
     def OnInit(self):
         """overrides"""
         facade = create_facade("demi")
-        facade.load_profile()
+        facade.load()
         # set up GUI
         wx.InitAllImageHandlers()
         viewer_frame = ViewerFrame(self.options, None, -1, "Profile Viewer")
