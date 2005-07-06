@@ -6,7 +6,8 @@ import sys
 from solipsis.util.wxutils import _
 from solipsis.services.profile.facade import get_filter_facade
 from solipsis.services.profile.gui.AboutDialog import AboutDialog
-from solipsis.services.profile import skip_disclaimer
+from solipsis.services.profile.gui.ProfileDialog import ProfileDialog
+from solipsis.services.profile import REGEX_HTML, skip_disclaimer
 
 # begin wxGlade: dependencies
 from FileFilterPanel import FileFilterPanel
@@ -37,9 +38,12 @@ class FilterFrame(wx.Frame):
         self.profile_item.AppendItem(self.quit_item)
         self.filter_menu.Append(self.profile_item, _("Action"))
         self.help_menu = wx.Menu()
+        self.help_item = wx.MenuItem(self.help_menu, wx.NewId(), _("Help...\tCtrl+H"), _("Display information about regular expressions"), wx.ITEM_NORMAL)
+        self.help_menu.AppendItem(self.help_item)
+        self.help_menu.AppendSeparator()
         self.about_item = wx.MenuItem(self.help_menu, wx.NewId(), _("About...\tCtrl+?"), "", wx.ITEM_NORMAL)
         self.help_menu.AppendItem(self.about_item)
-        self.filter_menu.Append(self.help_menu, _("Help"))
+        self.filter_menu.Append(self.help_menu, _("Info"))
         # Menu Bar end
         self.filter_statusbar = self.CreateStatusBar(1, 0)
         self.personal_filter_tab = PersonalFilterPanel(self.filter_book, -1)
@@ -50,6 +54,9 @@ class FilterFrame(wx.Frame):
         # end wxGlade
         
         # events
+        self.help_dialog = ProfileDialog(parent, -1)
+        self.help_dialog.profile_window.SetPage(open(REGEX_HTML()).read())
+        self.help_dialog.SetTitle(_("Using regular expressions"))
         self.bind_controls()
         
     # EVENTS
@@ -63,6 +70,7 @@ class FilterFrame(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.on_close)
         # about
         self.Bind(wx.EVT_MENU, self.on_about,id=self.about_item.GetId())
+        self.Bind(wx.EVT_MENU, self.on_help,id=self.help_item.GetId())
 
     def on_activate(self, evt):
         """activate service"""
@@ -95,8 +103,13 @@ class FilterFrame(wx.Frame):
 
     def _close(self):
         """termainate application"""
+        self.help_dialog.Destroy()
         self.Destroy()
         sys.exit()
+
+    def on_help(self, evt):
+        """display dialog about regular expression"""
+        self.help_dialog.Show()
         
     def on_about(self, evt):
         """display about"""

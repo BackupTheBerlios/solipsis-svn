@@ -47,10 +47,11 @@ class EditorFrame(wx.Frame):
         self.profile_item.AppendItem(self.quit_item)
         self.profile_menu.Append(self.profile_item, _("Action"))
         self.help_menu = wx.Menu()
-        self.about_item = wx.MenuItem(self.help_menu, wx.NewId(), _("About...\tCtrl+?"), "", wx.ITEM_NORMAL)
-        self.help_menu.AppendItem(self.about_item)
         self.preview_item = wx.MenuItem(self.help_menu, wx.NewId(), _("Preview...\tCtrl+P"), "", wx.ITEM_NORMAL)
         self.help_menu.AppendItem(self.preview_item)
+        self.help_menu.AppendSeparator()
+        self.about_item = wx.MenuItem(self.help_menu, wx.NewId(), _("About...\tCtrl+?"), "", wx.ITEM_NORMAL)
+        self.help_menu.AppendItem(self.about_item)
         self.profile_menu.Append(self.help_menu, _("Info"))
         # Menu Bar end
         self.profile_statusbar = self.CreateStatusBar(1, 0)

@@ -317,7 +317,7 @@ class FilePanel(wx.Panel):
         self.window_1_pane_2.SetSizer(sizer_2)
         sizer_2.Fit(self.window_1_pane_2)
         sizer_2.SetSizeHints(self.window_1_pane_2)
-        self.window_1.SplitVertically(self.window_1_pane_1, self.window_1_pane_2, 10)
+        self.window_1.SplitVertically(self.window_1_pane_1, self.window_1_pane_2, 200)
         file_sizer.Add(self.window_1, 1, wx.EXPAND, 0)
         self.SetAutoLayout(True)
         self.SetSizer(file_sizer)

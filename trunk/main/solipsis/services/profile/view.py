@@ -489,12 +489,20 @@ class FilterView(AbstractView):
     # CUSTOM TAB
     def update_custom_attributes(self):
         """custom_attributes"""
-        
+        filters_list = self.frame.personal_filter_tab.p_filters_list
+        filters_list.DeleteAllItems()
+        for key, filter_value in self._desc.document.get_custom_attributes().iteritems():
+            index = filters_list.InsertStringItem(sys.maxint, key)
+            filters_list.SetStringItem(index, 1, filter_value.description)
         
     # FILE TAB : frame.file_tab
     def update_files(self):
         """display shared files"""
-        pass
+        filters_list = self.frame.file_filter_tab.f_filters_list
+        filters_list.DeleteAllItems()
+        for key, filter_value in self._desc.document.get_files().iteritems():
+            index = filters_list.InsertStringItem(sys.maxint, key)
+            filters_list.SetStringItem(index, 1, filter_value.description)
         
     # OTHERS TAB
     def update_peers(self):

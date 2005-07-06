@@ -24,6 +24,8 @@ class ProfileDialog(wx.Dialog, UIProxyReceiver):
         self.__set_properties()
         self.__do_layout()
         # end wxGlade
+        
+        self.Bind(wx.EVT_CLOSE, self.on_close)
 
     def set_page(self, peer_desc):
         view = HtmlView(peer_desc)
@@ -35,6 +37,11 @@ class ProfileDialog(wx.Dialog, UIProxyReceiver):
                         html_window=self.profile_window,
                         auto_refresh=auto_refresh)
         get_facade().add_view(view)
+
+    def on_close(self, evt):
+        """hiding instead of closing"""
+        self.Show(False)
+        evt.Skip()
     
     def __set_properties(self):
         # begin wxGlade: ProfileDialog.__set_properties

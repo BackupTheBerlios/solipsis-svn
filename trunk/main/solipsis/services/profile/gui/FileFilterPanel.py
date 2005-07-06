@@ -6,6 +6,8 @@ import sys
 
 from solipsis.util.wxutils import _
 from solipsis.services.profile import ADD_CUSTOM, DEL_CUSTOM
+from solipsis.services.profile.facade import get_filter_facade
+from solipsis.services.profile.filter_document import FilterValue
 
 # begin wxGlade: dependencies
 # end wxGlade
@@ -23,7 +25,7 @@ class FileFilterPanel(wx.Panel):
         wx.Panel.__init__(self, *args, **kwds)
         self.f_action_sizer_staticbox = wx.StaticBox(self, -1, _("Name here a filter to use on file names"))
         self.f_key_value = wx.TextCtrl(self, -1, _("MP3 Filter"))
-        self.f_filter_value = wx.TextCtrl(self, -1, _("*.mp3"))
+        self.f_filter_value = wx.TextCtrl(self, -1, _(".*\\.mp3"))
         self.add_f_filter_button = wx.BitmapButton(self, -1, wx.Bitmap(ADD_CUSTOM(),wx.BITMAP_TYPE_ANY))
         self.del_f_filter_button = wx.BitmapButton(self, -1, wx.Bitmap(DEL_CUSTOM(),wx.BITMAP_TYPE_ANY))
         self.f_filters_list = wx.ListCtrl(self, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
@@ -57,17 +59,21 @@ class FileFilterPanel(wx.Panel):
         
     def on_add(self, evt):
         """a custom attribute has been modified"""
-        # update cache, facade will refresh window (through GuiView)
-        # FIXME => facade
-        self.do_modified(True)
+        try:
+            # update cache, facade will refresh window (through FilterView)
+            filter_value = FilterValue(value=self.f_filter_value.GetValue(),
+                                       activate=True)
+            get_filter_facade().add_file((self.f_key_value.GetValue(), filter_value))
+            self.do_modified(True)
+        except Exception:
+            print "Regular expression not valid. See Info > Help for more information"
 
     def on_del(self, evt):
         """a custom attribute has been modified"""
         # update data
         index = self.f_filters_list.FindItem(0, self.f_key_value.GetValue())
         if index != -1 and self.f_filters_list.DeleteItem(index):
-            # update cache
-            # FIXME => facade
+            get_filter_facade().del_file(self.f_key_value.GetValue())
             self.do_modified(True)
 
     def __set_properties(self):

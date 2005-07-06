@@ -35,8 +35,8 @@ class PersonalFilterPanel(wx.Panel):
         self.pseudo_value = wx.TextCtrl(self, -1, "")
         self.email_checkbox = wx.CheckBox(self, -1, _("E-Mail: "))
         self.email_value = wx.TextCtrl(self, -1, "")
-        self.p_key_value = wx.TextCtrl(self, -1, _("favorite book"))
-        self.p_filter_value = wx.TextCtrl(self, -1, _("*Potter*"))
+        self.p_key_value = wx.TextCtrl(self, -1, _("Favourite Book"))
+        self.p_filter_value = wx.TextCtrl(self, -1, _(".*Potter.*"))
         self.add_p_filter_button = wx.BitmapButton(self, -1, wx.Bitmap(ADD_CUSTOM(),wx.BITMAP_TYPE_ANY))
         self.del_p_filter_button = wx.BitmapButton(self, -1, wx.Bitmap(DEL_CUSTOM(),wx.BITMAP_TYPE_ANY))
         self.p_filters_list = wx.ListCtrl(self, -1, style=wx.LC_REPORT|wx.LC_SINGLE_SEL|wx.LC_SORT_ASCENDING|wx.NO_BORDER)
@@ -82,57 +82,76 @@ class PersonalFilterPanel(wx.Panel):
         
     def on_add(self, evt):
         """a custom attribute has been modified"""
-        # update cache, facade will refresh window (through GuiView)
-        # FIXME => facade
-        self.do_modified(True)
+        try:
+            # update cache, facade will refresh window (through FilterView)
+            filter_value = FilterValue(value=self.p_filter_value.GetValue(),
+                                       activate=True)
+            get_filter_facade().add_custom_attributes((self.p_key_value.GetValue(), filter_value))
+            self.do_modified(True)
+        except Exception:
+            print "Regular expression not valid. See Info > Help for more information"
 
     def on_del(self, evt):
         """a custom attribute has been modified"""
         # update data
         index = self.p_filters_list.FindItem(0, self.p_key_value.GetValue())
         if index != -1 and self.p_filters_list.DeleteItem(index):
-            # update cache
-            # FIXME => facade
+            get_filter_facade().del_custom_attributes(self.p_key_value.GetValue())
             self.do_modified(True)
 
     def on_check_title(self, evt):
         """activate field and notify facade"""
-        filter_value = FilterValue(value=self.title_value.GetValue(),
-                                   activate=self.title_checkbox.IsChecked())
-        if get_filter_facade().change_title(filter_value) != False:
-            self.do_modified(True)
+        try:
+            filter_value = FilterValue(value=self.title_value.GetValue(),
+                                       activate=self.title_checkbox.IsChecked())
+            if get_filter_facade().change_title(filter_value) != False:
+                self.do_modified(True)
+        except Exception:
+            print "Regular expression not valid. See Info > Help for more information"
         evt.Skip()
 
     def on_check_firstname(self, evt):
         """activate field and notify facade"""
-        filter_value = FilterValue(value=self.firstname_value.GetValue(),
-                                   activate=self.firstname_checkbox.IsChecked())
-        if get_filter_facade().change_firstname(filter_value) != False:
-            self.do_modified(True)
+        try:
+            filter_value = FilterValue(value=self.firstname_value.GetValue(),
+                                       activate=self.firstname_checkbox.IsChecked())
+            if get_filter_facade().change_firstname(filter_value) != False:
+                self.do_modified(True)
+        except Exception:
+            print "Regular expression not valid. See Info > Help for more information"
         evt.Skip()
 
     def on_check_lastname(self, evt):
         """activate field and notify facade"""
-        filter_value = FilterValue(value=self.lastname_value.GetValue(),
-                                   activate=self.lastname_checkbox.IsChecked())
-        if get_filter_facade().change_lastname(filter_value) != False:
-            self.do_modified(True)
+        try:
+            filter_value = FilterValue(value=self.lastname_value.GetValue(),
+                                       activate=self.lastname_checkbox.IsChecked())
+            if get_filter_facade().change_lastname(filter_value) != False:
+                self.do_modified(True)
+        except Exception:
+            print "Regular expression not valid. See Info > Help for more information"
         evt.Skip()
 
     def on_check_pseudo(self, evt):
         """activate field and notify facade"""
-        filter_value = FilterValue(value=self.pseudo_value.GetValue(),
-                                   activate=self.pseudo_checkbox.IsChecked())
-        if get_filter_facade().change_pseudo(filter_value) != False:
-            self.do_modified(True)
+        try:
+            filter_value = FilterValue(value=self.pseudo_value.GetValue(),
+                                       activate=self.pseudo_checkbox.IsChecked())
+            if get_filter_facade().change_pseudo(filter_value) != False:
+                self.do_modified(True)
+        except Exception:
+            print "Regular expression not valid. See Info > Help for more information"
         evt.Skip()
 
     def on_check_email(self, evt):
         """activate field and notify facade"""
-        filter_value = FilterValue(value=self.email_value.GetValue(),
-                                   activate=self.email_checkbox.IsChecked())
-        if get_filter_facade().change_email(filter_value) != False:
-            self.do_modified(True)
+        try:
+            filter_value = FilterValue(value=self.email_value.GetValue(),
+                                    activate=self.email_checkbox.IsChecked())
+            if get_filter_facade().change_email(filter_value) != False:
+                self.do_modified(True)
+        except Exception:
+            print "Regular expression not valid. See Info > Help for more information"
         evt.Skip()
 
     def __set_properties(self):
