@@ -51,23 +51,8 @@ class FilterTest(unittest.TestCase):
         # execution of the others
         if not os.path.exists(os.path.join(PROFILE_DIRECTORY, PROFILE_TEST + FILTER_EXT)):
             self.test_save()
-            
-    def test_save(self):
-        # set personal data
-        self.document.set_title((u"Mr", True))
-        self.document.set_firstname((u"", True))
-        self.document.set_lastname((u"breton", True))
-        self.document.set_photo((QUESTION_MARK(), False))
-        self.document.set_email((u"manu@ft.com", False))
-        # set custom interests
-        self.document.add_custom_attributes((u'color', u'blue', True))
-        # set files
-        self.document.add_file((u'MP3', u'.*\.mp3$', True))
-        # write file
-        self.document.save()
-            
-    def test_load(self):
-        self.document.load()
+
+    def assert_content(self):
         self.assertEquals(self.document.get_title().description, u"Mr")
         self.assertEquals(self.document.get_title().activated, True)
         self.assertEquals(self.document.get_firstname().description, u"")
@@ -80,6 +65,30 @@ class FilterTest(unittest.TestCase):
         self.assertEquals(self.document.get_email().activated, False)
         self.assertEquals(self.document.has_custom_attribute(u'color'), True)
         self.assertEquals(self.document.has_file(u'MP3'), True)
+            
+    def test_save(self):
+        # set personal data
+        self.document.set_title(FilterValue(value=u"Mr", activate=True))
+        self.document.set_firstname(FilterValue(value=u"", activate=True))
+        self.document.set_lastname(FilterValue(value=u"breton", activate=True))
+        self.document.set_photo(FilterValue(value=QUESTION_MARK(), activate=False))
+        self.document.set_email(FilterValue(value=u"manu@ft.com", activate=False))
+        # set custom interests
+        self.document.add_custom_attributes((u'color', FilterValue(value=u'blue', activate=True)))
+        # set files
+        self.document.add_file((u'MP3', FilterValue(value=u'.*\.mp3$', activate=True)))
+        # write file
+        self.document.save()
+            
+    def test_load(self):
+        self.document.load()
+        self.assert_content()
+
+    def test_import(self):
+        doc = FilterDocument(PROFILE_TEST, PROFILE_DIRECTORY)
+        doc.load()
+        self.document.import_document(doc)
+        self.assert_content()
 
     def test_customs(self):
         self.document.load()
@@ -88,7 +97,7 @@ class FilterTest(unittest.TestCase):
         self.assertEquals(self.document.get_custom_attributes()[u'color']._name, 'color')
         self.assertEquals(self.document.get_custom_attributes()[u'color'].description, 'blue')
         self.assertEquals(self.document.get_custom_attributes()[u'color'].activated, True)
-        self.document.add_custom_attributes((u'color', u'blue', False))
+        self.document.add_custom_attributes((u'color', FilterValue(value=u'blue', activate=False)))
         self.assertEquals(self.document.get_custom_attributes()[u'color'].activated, False)
         customs = self.document.remove_custom_attributes(u'color')
         self.assertEquals(self.document.has_custom_attribute(u'color'), False)
@@ -106,7 +115,7 @@ class FilterTest(unittest.TestCase):
         self.document.get_email().activate()
         self.assertEquals(len(self.document.does_match(peer_desc)), 4)
         # add filter for dummy.txt
-        self.document.add_file((u'Any', u'.*\..*', True))
+        self.document.add_file((u'Any', FilterValue(value=u'.*\..*', activate=True)))
         self.assertEquals(len(self.document.does_match(peer_desc)), 5)
 
 if __name__ == '__main__':

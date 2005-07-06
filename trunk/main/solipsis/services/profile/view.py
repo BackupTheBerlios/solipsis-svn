@@ -427,3 +427,78 @@ class ViewerView(AbstractView):
         if peer_desc != None:
             self.frame.display_profile(peer_desc)
 
+class FilterView(AbstractView):
+    """synthetises information and renders it in HTML"""
+
+    def __init__(self, desc, frame,
+                 do_import=True, name="filter"):
+        # link to the frame used by view
+        self.frame = frame
+        # init view
+        AbstractView.__init__(self, desc, do_import, name)
+        
+    # PERSONAL TAB
+    def update_title(self):
+        """display title in view"""
+        tab = self.frame.personal_filter_tab
+        filter_title = self._desc.document.get_title()
+        tab.title_checkbox.SetValue(filter_title.activated)
+        tab.title_value.Enable(filter_title.activated)
+        tab.title_value.SetValue(filter_title.description)
+
+    def update_firstname(self):
+        """display firstname in view"""
+        tab = self.frame.personal_filter_tab
+        filter_firstname = self._desc.document.get_firstname()
+        tab.firstname_checkbox.SetValue(filter_firstname.activated)
+        tab.firstname_value.Enable(filter_firstname.activated)
+        tab.firstname_value.SetValue(filter_firstname.description)
+
+    def update_lastname(self):
+        """lastname"""
+        tab = self.frame.personal_filter_tab
+        filter_lastname = self._desc.document.get_lastname()
+        tab.lastname_checkbox.SetValue(filter_lastname.activated)
+        tab.lastname_value.Enable(filter_lastname.activated)
+        tab.lastname_value.SetValue(filter_lastname.description)
+
+    def update_photo(self):
+        """photo"""
+        pass
+
+    def update_pseudo(self):
+        """email"""
+        tab = self.frame.personal_filter_tab
+        filter_filtered_pseudo = self._desc.document.get_filtered_pseudo()
+        tab.pseudo_checkbox.SetValue(filter_filtered_pseudo.activated)
+        tab.pseudo_value.Enable(filter_filtered_pseudo.activated)
+        tab.pseudo_value.SetValue(filter_filtered_pseudo.description)
+
+    def update_email(self):
+        """email"""
+        tab = self.frame.personal_filter_tab
+        filter_email = self._desc.document.get_email()
+        tab.email_checkbox.SetValue(filter_email.activated)
+        tab.email_value.Enable(filter_email.activated)
+        tab.email_value.SetValue(filter_email.description)
+
+    def update_download_repo(self):
+        """download_repo"""
+        pass
+
+    # CUSTOM TAB
+    def update_custom_attributes(self):
+        """custom_attributes"""
+        
+        
+    # FILE TAB : frame.file_tab
+    def update_files(self):
+        """display shared files"""
+        pass
+        
+    # OTHERS TAB
+    def update_peers(self):
+        """peer"""
+        pass
+
+

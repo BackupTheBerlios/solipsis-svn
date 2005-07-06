@@ -4,6 +4,7 @@
 import wx
 import sys
 from solipsis.util.wxutils import _
+from solipsis.services.profile.facade import get_filter_facade
 from solipsis.services.profile.gui.AboutDialog import AboutDialog
 from solipsis.services.profile import skip_disclaimer
 
@@ -67,13 +68,12 @@ class FilterFrame(wx.Frame):
         """activate service"""
         print self.activate_item.IsChecked() and "Activating..." \
               or "Disactivated"
-        active = self.activate_item.IsChecked()
-        # FIXME => facade
+        get_filter_facade().activate(self.activate_item.IsChecked())
         
     def on_save(self, evt):
         """save .prf"""
         self.do_modified(False)
-        # FIXME => facade
+        get_filter_facade().save()
         
     def on_close(self, evt=None):
         """hide  application"""

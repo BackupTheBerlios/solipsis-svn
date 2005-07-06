@@ -496,6 +496,7 @@ class FileSaverMixin(SaverMixin):
         profile_file.write("#%s\n"% self.encoding)
         self.config.write(profile_file)
         profile_file.close()
+        print "Saved", self.get_id()
         
     def load(self,):
         """fill document with information from .profile file"""

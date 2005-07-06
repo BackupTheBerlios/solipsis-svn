@@ -57,6 +57,12 @@ class FilterFacade(SimpleFacade):
         SimpleFacade.__init__(self, pseudo, directory)
         self._desc = PeerDescriptor(pseudo,
                                     document=FilterDocument(pseudo, directory))
+    
+    def change_pseudo(self, value):
+        """sets peer as friend """
+        return self._try_change(value,
+                                "set_filtered_pseudo",
+                                "update_pseudo")
 
 class Facade(SimpleFacade):
     """manages user's actions & connects document and view"""

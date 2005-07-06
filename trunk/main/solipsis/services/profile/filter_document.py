@@ -31,7 +31,7 @@ from solipsis.services.profile.file_document import FileSaverMixin
 class FilterValue:
     """wrapper for filter: regex, description ans state"""
 
-    def __init__(self, name, value=u"", activate=False):
+    def __init__(self, name="no name", value=u"", activate=False):
         self.description = value
         self.regex = re.compile(value)
         self.activated = activate
@@ -42,6 +42,10 @@ class FilterValue:
 
     def __str__(self):
         return self._name
+
+    def __eq__(self, other):
+        return self.description == other.description \
+               and self.activated == other.activated
 
     def set_value(self, value, activate=True):
         """recompile regex and (dis)activate filter"""
@@ -82,77 +86,86 @@ class FilterPersonalMixin(AbstractPersonalData):
             self.custom_attributes[interest] = FilterValue(interest)
         AbstractPersonalData.__init__(self)
 
-    def _set(self, member, value, activate):
+    def _set(self, member, filter_value):
         """set member both in cache & in file"""
+        value, activate = filter_value.description, filter_value.activated
         member.set_value(value, activate)
         self.config.set(SECTION_PERSONAL, str(member),
                         ",".join((str(activate), value)))
         return member
         
     # PERSONAL TAB
-    def set_title(self, (value, activate)):
+    def set_title(self, filter_value):
         """sets new value for title"""
-        if AbstractPersonalData.set_title(self, value) is False:
+        if self.title == filter_value:
             return False
         else:
-            return self._set(self.title, value, activate)
+            return self._set(self.title, filter_value)
     
     def get_title(self):
         """returns value of title"""
         return self.title
         
-    def set_firstname(self, (value, activate)):
+    def set_firstname(self, filter_value):
         """sets new value for firstname"""
-        if AbstractPersonalData.set_firstname(self, value) is False:
+        if self.firstname == filter_value:
             return False
         else:
-            return self._set(self.firstname, value, activate)
+            return self._set(self.firstname, filter_value)
     
     def get_firstname(self):
         """returns value of firstname"""
         return self.firstname
 
-    def set_lastname(self, (value, activate)):
+    def set_lastname(self, filter_value):
         """sets new value for lastname"""
-        if AbstractPersonalData.set_lastname(self, value) is False:
+        if self.lastname == filter_value:
             return False
         else:
-            return self._set(self.lastname, value, activate)
+            return self._set(self.lastname, filter_value)
     
     def get_lastname(self):
         """returns value of lastname"""
         return self.lastname
 
-    def set_photo(self, (value, activate)):
+    def set_photo(self, filter_value):
         """sets new value for photo"""
-        if AbstractPersonalData.set_photo(self, value) is False:
+        if self.photo == filter_value:
             return False
         else:
-            return self._set(self.photo, value, activate)
+            return self._set(self.photo, filter_value)
     
     def get_photo(self):
         """returns value of photo"""
         return self.photo
 
-    def set_email(self, (value, activate)):
+    def set_email(self, filter_value):
         """sets new value for email"""
-        if AbstractPersonalData.set_email(self, value) is False:
+        if self.email == filter_value:
             return False
         else:
-            return self._set(self.email, value, activate)
+            return self._set(self.email, filter_value)
     
     def get_email(self):
         """returns value of email"""
         return self.email
 
+    #FIXME: remove from document and put it in options
+    def set_download_repo(self, value):
+        """sets new value for download_repo"""
+        pass
+    def get_download_repo(self):
+        """returns value of download_repo"""
+        return FilterValue()
+    
     # CUSTOM TAB
     def has_custom_attribute(self, key):
         """return true if the key exists"""
         return self.custom_attributes.has_key(key)
     
-    def add_custom_attributes(self, (key, value, activate)):
+    def add_custom_attributes(self, (key, filter_value)):
         """sets new value for custom_attributes"""
-        AbstractPersonalData.add_custom_attributes(self, (key, value))
+        value, activate = filter_value.description, filter_value.activated
         self.config.set(SECTION_CUSTOM, key, ",".join((str(activate), value)))
         if not self.has_custom_attribute(key):
             self.custom_attributes[key] = FilterValue(key, value, activate)
@@ -181,13 +194,13 @@ class FilterSharingMixin:
         
     def import_document(self, other_document):
         """copy data from another document into self"""
-        assert isinstance(FilterSharingMixin, other_document), \
+        assert isinstance(other_document, FilterSharingMixin), \
                "wrong document format. Expecting FilterSharingMixin. Got %s"\
                % other_document.__class__
         try:
             file_filters = other_document.get_files()
             for key, val in file_filters.iteritems():
-                self.add_files((key, val.description, val.activate))
+                self.add_file((key, val))
         except TypeError, error:
             print error, "Using default values for personal data"
         
@@ -196,8 +209,9 @@ class FilterSharingMixin:
         """return true if the key exists"""
         return self.file_filters.has_key(key)
     
-    def add_file(self, (key, value, activate)):
+    def add_file(self, (key, filter_value)):
         """sets new value for files"""
+        value, activate = filter_value.description, filter_value.activated
         self.config.set(SECTION_FILE, key, ",".join((str(activate), value)))
         if not self.has_file(key):
             self.file_filters[key] = FilterValue(key, value, activate)
@@ -229,22 +243,30 @@ class FilterSaverMixin(FileSaverMixin):
         for personal_option in self.config.options(SECTION_PERSONAL):
             activate, description = self.config.get(
                 SECTION_PERSONAL, personal_option).split(',', 1)
-            getattr(self, "set_"+personal_option)(
-                (unicode(description, self.encoding), activate == "True"))
+            filter_value = FilterValue(
+                value = unicode(description, self.encoding),
+                activate = activate == "True")
+            try:
+                getattr(self, "set_"+personal_option)(filter_value)
+            except AttributeError:
+                print "Corrupted option", personal_option
+                self.config.remove_option(SECTION_PERSONAL, personal_option)
         # sync custom
         for custom_option in self.config.options(SECTION_CUSTOM):
             activate, description = self.config.get(
                 SECTION_CUSTOM, custom_option).split(',', 1)
-            self.add_custom_attributes((custom_option,
-                                        unicode(description, self.encoding),
-                                        activate == "True"))
+            filter_value = FilterValue(
+                value = unicode(description, self.encoding),
+                activate = activate == "True")
+            self.add_custom_attributes((custom_option, filter_value))
         # sync files
         for file_option in self.config.options(SECTION_FILE):
             activate, description = self.config.get(
                 SECTION_FILE, file_option).split(',', 1)
-            self.add_file((file_option,
-                           unicode(description, self.encoding),
-                           activate == "True"))
+            filter_value = FilterValue(
+                value = unicode(description, self.encoding),
+                activate = activate == "True")
+            self.add_file((file_option, filter_value))
 
 class FilterDocument(FilterPersonalMixin, FilterSharingMixin, FilterSaverMixin):
     """Describes all data needed in profile in a file"""
@@ -252,6 +274,7 @@ class FilterDocument(FilterPersonalMixin, FilterSharingMixin, FilterSaverMixin):
     def __init__(self, pseudo, directory=PROFILE_DIR):
         self.encoding = ENCODING
         self.config = CustomConfigParser(ENCODING)
+        self.filtered_pseudo = FilterValue("filtered_pseudo")
         # {root: DirContainers}
         self.files = {}
         # dictionary of peers. {pseudo : PeerDescriptor}
@@ -264,6 +287,17 @@ class FilterDocument(FilterPersonalMixin, FilterSharingMixin, FilterSaverMixin):
         """copy data from another document into self"""
         FilterPersonalMixin.import_document(self, other_document)
         FilterSharingMixin.import_document(self, other_document)
+        
+    def set_filtered_pseudo(self, filter_value):
+        """sets new value for title"""
+        if self.filtered_pseudo == filter_value:
+            return False
+        else:
+            return self._set(self.filtered_pseudo, filter_value)
+    
+    def get_filtered_pseudo(self):
+        """returns value of title"""
+        return self.filtered_pseudo
 
     def does_match(self, peer_desc):
         """check that given peer_desc matches FilterValues"""

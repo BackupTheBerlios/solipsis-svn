@@ -6,6 +6,8 @@ import sys
 
 from solipsis.util.wxutils import _
 from solipsis.services.profile import ADD_CUSTOM, DEL_CUSTOM
+from solipsis.services.profile.facade import get_filter_facade
+from solipsis.services.profile.filter_document import FilterValue
 
 # begin wxGlade: dependencies
 # end wxGlade
@@ -65,6 +67,12 @@ class PersonalFilterPanel(wx.Panel):
         self.lastname_checkbox.Bind(wx.EVT_CHECKBOX, self.on_check_lastname)
         self.pseudo_checkbox.Bind(wx.EVT_CHECKBOX, self.on_check_pseudo)
         self.email_checkbox.Bind(wx.EVT_CHECKBOX, self.on_check_email)
+        # focus
+        self.title_value.Bind(wx.EVT_KILL_FOCUS, self.on_check_title)
+        self.firstname_value.Bind(wx.EVT_KILL_FOCUS, self.on_check_firstname)
+        self.lastname_value.Bind(wx.EVT_KILL_FOCUS, self.on_check_lastname)
+        self.pseudo_value.Bind(wx.EVT_KILL_FOCUS, self.on_check_pseudo)
+        self.email_value.Bind(wx.EVT_KILL_FOCUS, self.on_check_email)
 
     def on_selected(self, evt):
         """meta data"""
@@ -89,28 +97,43 @@ class PersonalFilterPanel(wx.Panel):
 
     def on_check_title(self, evt):
         """activate field and notify facade"""
-        self.title_value.Enable(self.title_checkbox.IsChecked())
-        # FIXME => facade
+        filter_value = FilterValue(value=self.title_value.GetValue(),
+                                   activate=self.title_checkbox.IsChecked())
+        if get_filter_facade().change_title(filter_value) != False:
+            self.do_modified(True)
+        evt.Skip()
 
     def on_check_firstname(self, evt):
         """activate field and notify facade"""
-        self.firstname_value.Enable(self.firstname_checkbox.IsChecked())
-        # FIXME => facade
+        filter_value = FilterValue(value=self.firstname_value.GetValue(),
+                                   activate=self.firstname_checkbox.IsChecked())
+        if get_filter_facade().change_firstname(filter_value) != False:
+            self.do_modified(True)
+        evt.Skip()
 
     def on_check_lastname(self, evt):
         """activate field and notify facade"""
-        self.lastname_value.Enable(self.lastname_checkbox.IsChecked())
-        # FIXME => facade
+        filter_value = FilterValue(value=self.lastname_value.GetValue(),
+                                   activate=self.lastname_checkbox.IsChecked())
+        if get_filter_facade().change_lastname(filter_value) != False:
+            self.do_modified(True)
+        evt.Skip()
 
     def on_check_pseudo(self, evt):
         """activate field and notify facade"""
-        self.pseudo_value.Enable(self.pseudo_checkbox.IsChecked())
-        # FIXME => facade
+        filter_value = FilterValue(value=self.pseudo_value.GetValue(),
+                                   activate=self.pseudo_checkbox.IsChecked())
+        if get_filter_facade().change_pseudo(filter_value) != False:
+            self.do_modified(True)
+        evt.Skip()
 
     def on_check_email(self, evt):
         """activate field and notify facade"""
-        self.email_value.Enable(self.email_checkbox.IsChecked())
-        # FIXME => facade
+        filter_value = FilterValue(value=self.email_value.GetValue(),
+                                   activate=self.email_checkbox.IsChecked())
+        if get_filter_facade().change_email(filter_value) != False:
+            self.do_modified(True)
+        evt.Skip()
 
     def __set_properties(self):
         # begin wxGlade: PersonalFilterPanel.__set_properties
