@@ -51,8 +51,9 @@ class ServiceCollector(object):
             setattr(self, name, fun)
             return fun
 
-    def __init__(self, params, reactor, ui=None):
+    def __init__(self, params, local_ip, reactor, ui=None):
         self.params = params
+        self.host = local_ip
         if ui:
             self.ui = TwistedProxy(ui, reactor)
         self.reactor = reactor
@@ -123,7 +124,7 @@ class ServiceCollector(object):
         # Note: when plugin.Init() is called, everything else should have been
         # properly initialized for the plugin to interact with it.
         try:
-            plugin.Init()
+            plugin.Init(self.host)
         except Exception, e:
             print "Failed to initialize plugin '%s', disabling." % service_id
             traceback.print_exc()

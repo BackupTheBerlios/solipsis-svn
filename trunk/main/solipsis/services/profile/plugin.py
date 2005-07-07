@@ -29,11 +29,13 @@ import sys
 from solipsis.util.wxutils import _
 from solipsis.services.plugin import ServicePlugin
 from solipsis.services.profile import set_solipsis_dir, always_display
-from solipsis.services.profile.facade import create_facade, get_facade
+from solipsis.services.profile.facade import create_facade, get_facade, \
+     create_filter_facade, get_filter_facade
 from solipsis.services.profile.network import NetworkManager
-from solipsis.services.profile.view import EditorView, ViewerView
+from solipsis.services.profile.view import EditorView, ViewerView, FilterView
 from solipsis.services.profile.gui.EditorFrame import EditorFrame
 from solipsis.services.profile.gui.ViewerFrame import ViewerFrame
+from solipsis.services.profile.gui.FilterFrame import FilterFrame
 from solipsis.services.profile.gui.DownloadDialog import DownloadDialog
 
       
@@ -41,23 +43,22 @@ class Plugin(ServicePlugin):
     """This the working class for services plugins."""
 
     
-    def Init(self):
+    def Init(self, local_ip):
         """
         This method does any kind of concrete initialization stuff,
         rather than doing it in __init__.  Especially, the service_api
         must *not* be used in __init__, since all data relating to the
         plugin may not have been initialized on the API side.
         """
-        # TODO: smartly discover our own address IP
-        # (this is where duplicated code starts to appear...)
-        self.host = socket.gethostbyname(socket.gethostname())
-        print "gethostbyname",  self.host
+        self.host = local_ip
         self.port = random.randrange(7000, 7100)
         self.network = None
         self.editor_frame = None
+        self.filter_frame = None
         self.peer_services = {}
         # declare actions
         self.MAIN_ACTION = {"Modify Profile...": self.modify_profile,
+                            "Filter Profiles...": self.filter_profile,
                             }
         self.POINT_ACTIONS = {#"View all...": self.show_profile,
                               "View profile...": self.get_profile,
@@ -93,15 +94,14 @@ class Plugin(ServicePlugin):
                                           plugin=self)
         self.viewer_frame = ViewerFrame(options, main_window, -1, "",
                                           plugin=self)
+        self.filter_frame = FilterFrame(options, main_window, -1, "",
+                                          plugin=self)
         # Set up main GUI hooks
         menu = wx.Menu()
         for action, method in self.MAIN_ACTION.iteritems():
             item_id = wx.NewId()
             menu.Append(item_id, _(action))
-            def _clicked(event):
-                """call profile from main menu"""
-                method()
-            wx.EVT_MENU(main_window, item_id, _clicked)
+            wx.EVT_MENU(main_window, item_id, method)
         self.service_api.SetMenu(self.GetTitle(), menu)
         # launch network
         self.network = NetworkManager(self.host,
@@ -118,18 +118,32 @@ class Plugin(ServicePlugin):
             self.editor_frame.do_modified(False)
             dlg = wx.MessageDialog(
                 self.editor_frame,
-                'Your profile has been modified. Do you want to change it?',
-                'Saving Dialog',
+                'Your profile has been modified. Do you want to save it?',
+                'Saving Profile',
                 wx.YES_NO | wx.ICON_INFORMATION)
             if dlg.ShowModal() == wx.ID_YES:
                 get_facade().save()
+        if self.filter_frame.modified:
+            self.filter_frame.do_modified(False)
+            dlg = wx.MessageDialog(
+                self.editor_frame,
+                'Your filters have been modified. Do you want to save them?',
+                'Saving Filters',
+                wx.YES_NO | wx.ICON_INFORMATION)
+            if dlg.ShowModal() == wx.ID_YES:
+                get_filter_facade().save()
         self.activate(False)
 
     # Service methods
-    def modify_profile(self):
+    def modify_profile(self, evt=None):
         """display profile once loaded"""
         if self.editor_frame:
             self.editor_frame.Show()
+            
+    def filter_profile(self, evt=None):
+        """display profile once loaded"""
+        if self.filter_frame:
+            self.filter_frame.Show()
             
     def show_profile(self, peer_id):
         """display profile once loaded"""
@@ -227,7 +241,10 @@ class Plugin(ServicePlugin):
     # UI event responses
     def DoAction(self, it):
         """Called when the general action is invoked, if available."""
-        self.modify_profile()
+        # retreive corect method
+        actions = self.MAIN_ACTION.values()
+        # call method on peer
+        actions[it]()
 
     def DoPointToPointAction(self, it, peer):
         """Called when a point-to-point action is invoked, if available."""
@@ -281,3 +298,9 @@ class Plugin(ServicePlugin):
                 facade.add_view(ViewerView(facade._desc,
                                            self.viewer_frame))
                 self.viewer_frame.on_change_facade()
+            filter_facade = create_filter_facade(node.pseudo)
+            filter_facade.load()
+            if self.filter_frame:
+                filter_facade.add_view(FilterView(filter_facade._desc,
+                                                  self.filter_frame))
+                self.filter_frame.on_change_facade()

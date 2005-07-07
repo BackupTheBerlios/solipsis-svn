@@ -73,6 +73,7 @@ class StunProtocol(DatagramProtocol, object):
         super(StunProtocol, self).__init__(*args, **kwargs)
 
     def datagramReceived(self, dgram, address):
+        print "stun: ", dgram
         mt, pktlen, tid = struct.unpack('!hh16s', dgram[:20])
         # Check tid is one we sent and haven't had a reply to yet
         if self._pending.has_key(tid):
@@ -101,6 +102,7 @@ class StunProtocol(DatagramProtocol, object):
             logging.error("STUN got an error response")
 
     def gotMappedAddress(self, addr, port):
+        print "got address %s %s (should I have been overridden?)" % (addr, port)
         logging.info("got address %s %s (should I have been overridden?)" % (addr, port))
 
     def sendRequest(self, server, avpairs=()):

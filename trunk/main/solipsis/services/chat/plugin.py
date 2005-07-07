@@ -30,8 +30,9 @@ from gui import ChatWindow
 
 class Plugin(ServicePlugin):
 
-    def Init(self):
+    def Init(self, local_ip):
         self.reactor = self.service_api.GetReactor()
+        self.host = local_ip
         # FIXME: we can use a set here
         self.hosts = {}
         self.str_action = _("Chat with all peers")

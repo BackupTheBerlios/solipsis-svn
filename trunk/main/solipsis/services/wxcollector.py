@@ -32,13 +32,13 @@ class WxServiceCollector(ServiceCollector):
     This is a version of the ServiceCollector enhanced for use
     within a wxWidgets client.
     """
-    def __init__(self, params, ui, reactor):
+    def __init__(self, params, local_ip, ui, reactor):
         self.app = ui
         self.ui = UIProxy(ui)
         self.main_window = ui.main_window
         self.config_data = ui.config_data
         self.charset = GetCharset()
-        ServiceCollector.__init__(self, params, reactor)
+        ServiceCollector.__init__(self, params, local_ip, reactor)
 
     def Reset(self):
         self.action_ids = IdPool()

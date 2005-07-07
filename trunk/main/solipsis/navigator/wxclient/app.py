@@ -24,6 +24,7 @@ import wx
 import wx.xrc
 import bisect
 import re
+import socket
 from wx.xrc import XRCCTRL, XRCID
 
 from solipsis.util.entity import ServiceData
@@ -50,6 +51,7 @@ from PreferencesDialog import PreferencesDialog
 from PositionJumpDialog import PositionJumpDialog
 
 from solipsis.services.wxcollector import WxServiceCollector
+from solipsis.node.discovery.stun import DiscoverAddress
 
 
 class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
@@ -71,6 +73,8 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             #~ gc.set_debug(gc.DEBUG_LEAK)
         else:
             self.memsizer = None
+        # default value will be overridden by stun result
+        self.local_ip = socket.gethostbyname(socket.gethostname())
 
         self.dialogs = None
         self.windows = None
@@ -83,6 +87,29 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         # thus all data must be initialized before
         wx.App.__init__(self, *args, **kargs)
         UIProxyReceiver.__init__(self)
+
+    def InitIpAddress(self):
+        """
+        Get local address from Stun
+        """
+        def _succeed(address):
+            # Discovery succeeded
+            self.local_ip, port = address
+            print "discovery found address %s:%d" % (self.local_ip, port)
+            wx.CallAfter(self.InitServices)
+            wx.CallAfter(self._OpenConnectDialog)
+            
+        def _fail(failure):
+            # Discovery failed => try next discovery method
+            print "discovery failed:", failure.getErrorMessage()
+            print 'using getHostByName:', self.local_ip
+            wx.CallAfter(self.InitServices)
+            wx.CallAfter(self._OpenConnectDialog)
+            
+        d = DiscoverAddress(self.params.port, self.reactor, self.params)
+        d.addCallback(_succeed)
+        d.addErrback(_fail)
+        return d
 
     def InitTwisted(self):
         """
@@ -175,12 +202,14 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         self.network = TwistedProxy(loop, self.reactor)
         self.network.StartURLListener(self.params.url_port_min, self.params.url_port_max)
         SetSolipsisURLHandlers()
+        # get local ip
+        deferred = self.InitIpAddress()
 
     def InitServices(self):
         """
         Initialize all services.
         """
-        self.services = WxServiceCollector(self.params, self, self.reactor)
+        self.services = WxServiceCollector(self.params, self.local_ip, self, self.reactor)
         # Service-specific menus in the menubar: We will insert service menus
         # just before the last menu, which is the "Help" menu
         self.service_menus = []
@@ -265,14 +294,10 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
         
         if self.memsizer:
             self._MemDebug()
-        
-        # 3. Other tasks are launched after the window is drawn
+
+        # 3. Other tasks are launched after ip found out & window is drawn
         wx.CallAfter(self.InitTwisted)
         wx.CallAfter(self.InitNetwork)
-        wx.CallAfter(self.InitServices)
-        
-        # 4. Automatic connection window at start
-        wx.CallAfter(self._OpenConnectDialog)
         
         return True
 

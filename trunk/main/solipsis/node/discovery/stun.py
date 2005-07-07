@@ -68,7 +68,7 @@ def DiscoverAddress(port, reactor, params):
     # Define timeout callback
     def _timeout():
         discovery.Stop()
-        d.errback(Exception("timed out with servers %s" % servers))
+        d.errback(Exception("timed out (%s) with servers %s" % (stun_timeout, servers)))
     timeout = reactor.callLater(stun_timeout, _timeout)
     # Define intermediary succeed callback
     def _succeed(value):

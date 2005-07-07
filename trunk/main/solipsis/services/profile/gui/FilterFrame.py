@@ -58,6 +58,10 @@ class FilterFrame(wx.Frame):
         self.help_dialog.profile_window.SetPage(open(REGEX_HTML()).read())
         self.help_dialog.SetTitle(_("Using regular expressions"))
         self.bind_controls()
+
+    def on_change_facade(self):
+        """called when user changes identity (facade chanegd)"""
+        get_filter_facade().activate(self.activate_item.IsChecked())
         
     # EVENTS
     
@@ -129,7 +133,7 @@ class FilterFrame(wx.Frame):
     def __set_properties(self):
         # begin wxGlade: FilterFrame.__set_properties
         self.SetTitle(_("Profile Filters"))
-        self.SetSize((460, 749))
+        self.SetSize((460, 600))
         self.filter_statusbar.SetStatusWidths([-1])
         # statusbar fields
         filter_statusbar_fields = [_("status")]

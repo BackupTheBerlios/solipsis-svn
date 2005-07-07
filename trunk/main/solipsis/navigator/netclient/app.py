@@ -23,6 +23,7 @@ import bisect
 import gettext
 import threading
 import sys
+import socket
 _ = gettext.gettext
 from pprint import pprint
 from cStringIO import StringIO
@@ -36,6 +37,7 @@ from solipsis.services.collector import ServiceCollector
 from solipsis.util.parameter import Parameters
 from solipsis.util.launch import Launcher
 from solipsis.navigator.netclient import get_log_stream, set_log_stream
+from solipsis.node.discovery.stun import DiscoverAddress
 
 from validators import *
 from viewport import Viewport
@@ -56,6 +58,8 @@ class NavigatorApp(UIProxyReceiver):
         self.alive = True
         self.config_data = ConfigData()
         self.node_proxy = None
+        # default value will be overridden by stun result
+        self.local_ip = socket.gethostbyname(socket.gethostname())
         self.port = kargs.get("port", 1079)
         log_file = kargs.get("log_file", None)
         if log_file:
@@ -82,6 +86,27 @@ class NavigatorApp(UIProxyReceiver):
         else:
             print >> get_log_stream(),  "not listening"
             return None
+
+    def InitIpAddress(self):
+        """
+        Get local address from Stun
+        """
+        def _succeed(address):
+            # Discovery succeeded
+            self.local_ip, port = address
+            print "discovery found address %s:%d" % (self.local_ip, port)
+            self.InitServices()
+            
+        def _fail(failure):
+            # Discovery failed => try next discovery method
+            print "discovery failed:", failure.getErrorMessage()
+            print 'using getHostByName:', self.local_ip
+            self.InitServices()
+            
+        d = DiscoverAddress(self.params.port, self.reactor, self.params)
+        d.addCallback(_succeed)
+        d.addErrback(_fail)
+        return d
 
     def InitTwisted(self):
         """
@@ -112,12 +137,14 @@ class NavigatorApp(UIProxyReceiver):
         loop.start()
         self.network_loop = loop
         self.network = TwistedProxy(loop, self.reactor)
+        # get local ip
+        deferred = self.InitIpAddress()
 
     def InitServices(self):
         """
         Initialize all services.
         """
-        self.services = ServiceCollector(self.params, self.reactor, self)
+        self.services = ServiceCollector(self.params, self.local_ip, self.reactor, self)
         for service in USE_SERVICE:
             service_path = self.services._ServiceDirectory(service)
             service_id, plugin =self.services.LoadService(service_path, service)

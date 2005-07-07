@@ -139,7 +139,7 @@ class PersonalFilterPanel(wx.Panel):
                                        activate=self.pseudo_checkbox.IsChecked())
             if get_filter_facade().change_pseudo(filter_value) != False:
                 self.do_modified(True)
-        except Exception:
+        except Exception, err:
             print "Regular expression not valid. See Info > Help for more information"
         evt.Skip()
 

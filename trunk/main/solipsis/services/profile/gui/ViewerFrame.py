@@ -257,7 +257,7 @@ class ViewerFrame(wx.Frame):
     def __set_properties(self):
         # begin wxGlade: ViewerFrame.__set_properties
         self.SetTitle(_("Profile Viewer"))
-        self.SetSize((460, 500))
+        self.SetSize((460, 600))
         self.viewer_statusbar.SetStatusWidths([-1])
         # statusbar fields
         viewer_statusbar_fields = [_("status")]

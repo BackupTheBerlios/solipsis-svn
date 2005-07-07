@@ -34,12 +34,10 @@ from repository import AvatarRepository
 class Plugin(ServicePlugin):
     avatar_size_step = 12
 
-    def Init(self):
+    def Init(self, local_ip):
         self.avatars = AvatarRepository()
         self.reactor = self.service_api.GetReactor()
-        # TODO: smartly discover our own address IP
-        # (this is where duplicated code starts to appear...)
-        self.host = socket.gethostbyname(socket.gethostname())
+        self.host = local_ip
         self.port = 7780 + random.randrange(0, 100)
         # Network address container: { peer_id => (host, port) }
         self.hosts = {}

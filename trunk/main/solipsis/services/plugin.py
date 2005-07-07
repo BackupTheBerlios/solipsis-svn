@@ -33,13 +33,15 @@ class ServicePlugin(object):
         """
         self.service_api = service_api
     
-    def Init(self):
+    def Init(self, local_ip):
         """
         Please override this method to do any kind of concrete initialization
         stuff, rather than doing it in __init__.
         Especially, the service_api must *not* be used in __init__, since 
         all data relating to the plugin may not have been initialized on the
         API side.
+
+        local_ip is the address ip of the server where the service is running.
         """
         pass
 
