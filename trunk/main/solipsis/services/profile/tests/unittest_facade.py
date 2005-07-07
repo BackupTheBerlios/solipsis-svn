@@ -8,7 +8,8 @@ from solipsis.services.profile.file_document import FileDocument
 from solipsis.services.profile.cache_document import CacheDocument
 from solipsis.services.profile.data import DEFAULT_TAG, PeerDescriptor
 from solipsis.services.profile.view import PrintView
-from solipsis.services.profile.facade import create_facade, get_facade, Facade
+from solipsis.services.profile.facade import create_facade, get_facade, Facade, \
+      create_filter_facade, get_filter_facade
 from solipsis.services.profile.tests import PROFILE_DIRECTORY, PROFILE_TEST, REPO, PSEUDO
 from solipsis.services.profile import ENCODING
 from os.path import abspath
@@ -18,11 +19,11 @@ class FacadeTest(unittest.TestCase):
 
     def setUp(self):
         """override one in unittest.TestCase"""
-        self.facade = Facade(PROFILE_TEST, PROFILE_DIRECTORY)
+        self.facade = create_facade(PROFILE_TEST)
         self.facade.add_file(REPO)
 
     def test_creation(self):
-        self.assertEquals(get_facade(), None)
+        self.assert_(Facade(PROFILE_TEST, PROFILE_DIRECTORY))
         self.assert_(create_facade(PROFILE_TEST))
 
     # PERSONAL TAB
@@ -205,7 +206,12 @@ class FacadeTest(unittest.TestCase):
         self.assertEquals(self.facade.get_peer(u"emb").state,
                           PeerDescriptor.ANONYMOUS)
 
-    #TODO test fill_data
+    def test_does_match(self):
+        # TODO: detail test
+        filter_facade = create_filter_facade(PROFILE_TEST)
+        filter_facade.load()
+        self.facade.fill_data((u"emb", FileDocument(PROFILE_TEST, PROFILE_DIRECTORY)))
+        filter_facade.does_match(u"emb")
 
 
 if __name__ == '__main__':

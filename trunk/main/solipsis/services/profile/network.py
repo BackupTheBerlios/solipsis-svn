@@ -16,7 +16,7 @@ from StringIO import StringIO
 
 from solipsis.services.profile import ENCODING, FREE_PORTS, UNIVERSAL_SEP
 from solipsis.services.profile.document import read_document
-from solipsis.services.profile.facade import get_facade
+from solipsis.services.profile.facade import get_facade, get_filter_facade
 
 TIMEOUT = 60
 
@@ -390,6 +390,7 @@ class ProfileClientFactory(ClientFactory):
         """callback when autoloading of profile successful"""
         get_facade().set_data((peer_id, document))
         get_facade().set_connected((peer_id, True))
+        get_filter_facade().does_match(peer_id)
     
 # SERVER
 class ProfileServerProtocol(basic.LineOnlyReceiver):

@@ -4,9 +4,11 @@
 import wx
 import sys
 from solipsis.util.wxutils import _
+from solipsis.util.uiproxy import UIProxy
 from solipsis.services.profile.facade import get_filter_facade
 from solipsis.services.profile.gui.AboutDialog import AboutDialog
 from solipsis.services.profile.gui.ProfileDialog import ProfileDialog
+from solipsis.services.profile.gui.MatchDialog import MatchDialog
 from solipsis.services.profile import REGEX_HTML, skip_disclaimer
 
 # begin wxGlade: dependencies
@@ -54,6 +56,7 @@ class FilterFrame(wx.Frame):
         # end wxGlade
         
         # events
+        self.match_dlg = UIProxy(MatchDialog(parent, -1, plugin=self.plugin))
         self.help_dialog = ProfileDialog(parent, -1)
         self.help_dialog.profile_window.SetPage(open(REGEX_HTML()).read())
         self.help_dialog.SetTitle(_("Using regular expressions"))

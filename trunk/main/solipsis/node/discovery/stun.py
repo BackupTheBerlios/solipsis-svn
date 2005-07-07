@@ -60,6 +60,7 @@ class _StunDiscovery(stun.StunProtocol):
             self.deferred.callback((addr, int(port)))
 
 def DiscoverAddress(port, reactor, params):
+    print "Using STUN to get public IP (port:%d)"% port
     d = defer.Deferred()
     params.LoadSection('stun', stun_section)
     servers = params.stun_servers or '127.0.0.1'

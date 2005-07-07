@@ -170,7 +170,7 @@ class PrintView(AbstractView):
     # BLOG TAB
     def update_blogs(self):
         """blog"""
-        self.println(pickle.dumps(_desc.blog))
+        self.println(pickle.dumps(self._desc.blog))
         
     # FILE TAB
     def update_files(self):
@@ -509,4 +509,9 @@ class FilterView(AbstractView):
         """peer"""
         pass
 
+        
+    # MATCH TAB
+    def update_match(self):
+        """peer"""
+        self.frame.match_dlg.set_page(self._desc.document.matches)
 

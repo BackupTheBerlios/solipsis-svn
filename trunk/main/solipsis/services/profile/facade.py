@@ -64,6 +64,12 @@ class FilterFacade(SimpleFacade):
                                 "set_filtered_pseudo",
                                 "update_pseudo")
 
+    def does_match(self, peer_id):
+        if get_facade():
+            return self._try_change(get_facade().get_peer(peer_id),
+                                   "does_match",
+                                   "update_match")
+
 class Facade(SimpleFacade):
     """manages user's actions & connects document and view"""
     

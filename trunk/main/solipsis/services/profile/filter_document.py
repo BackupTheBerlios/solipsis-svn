@@ -36,6 +36,7 @@ class FilterValue:
         self.regex = re.compile(value)
         self.activated = activate
         self._name = name # name of member which is defined by FilterValue
+        self._found = None # value which has been matched
 
     def __repr__(self):
         return "%s, %s"% (self.description, self.activated and "(1)" or "(0)")
@@ -65,6 +66,7 @@ class FilterValue:
         if self.regex.match(data) is None:
             return False
         # match -> return true
+        self._found = data
         return self
 
 class FilterPersonalMixin(AbstractPersonalData):
@@ -279,6 +281,7 @@ class FilterDocument(FilterPersonalMixin, FilterSharingMixin, FilterSaverMixin):
         self.files = {}
         # dictionary of peers. {pseudo : PeerDescriptor}
         self.peers = {}
+        self.matches = []
         FilterPersonalMixin.__init__(self)
         FilterSharingMixin.__init__(self)
         FilterSaverMixin.__init__(self, pseudo, directory)
@@ -301,25 +304,24 @@ class FilterDocument(FilterPersonalMixin, FilterSharingMixin, FilterSaverMixin):
 
     def does_match(self, peer_desc):
         """check that given peer_desc matches FilterValues"""
-        matches = []
+        self.matches = []
         if peer_desc.document:
             doc = peer_desc.document
-            matches.append(self.title.does_match(doc.get_title()))
-            matches.append(self.firstname.does_match(doc.get_firstname()))
-            matches.append(self.lastname.does_match(doc.get_lastname()))
-            matches.append(self.photo.does_match(doc.get_photo()))
-            matches.append(self.email.does_match(doc.get_email()))
+            self.matches.append(self.title.does_match(doc.get_title()))
+            self.matches.append(self.firstname.does_match(doc.get_firstname()))
+            self.matches.append(self.lastname.does_match(doc.get_lastname()))
+            self.matches.append(self.photo.does_match(doc.get_photo()))
+            self.matches.append(self.email.does_match(doc.get_email()))
             # dictionary of custom attributes
             peer_customs = doc.get_custom_attributes()
             for custom_name, custom_filter in self.custom_attributes.iteritems():
                 if peer_customs.has_key(custom_name):
-                    matches.append(
+                    self.matches.append(
                         custom_filter.does_match(peer_customs[custom_name]))
         if peer_desc.shared_files:
             # dictionary of files
             for filter_name, file_filter in self.file_filters.iteritems():
                 for file_container in peer_desc.shared_files.flatten():
-                    matches.append(file_filter.does_match(file_container.name))
+                    self.matches.append(file_filter.does_match(file_container.name))
         # remove False from matches
-        matches = [match for match in matches if match != False]
-        return matches
+        self.matches = (peer_desc, [match for match in self.matches if match != False])

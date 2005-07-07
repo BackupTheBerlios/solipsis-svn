@@ -51,6 +51,7 @@ from PreferencesDialog import PreferencesDialog
 from PositionJumpDialog import PositionJumpDialog
 
 from solipsis.services.wxcollector import WxServiceCollector
+from solipsis.services.profile.network import get_free_port, release_port
 from solipsis.node.discovery.stun import DiscoverAddress
 
 
@@ -75,6 +76,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             self.memsizer = None
         # default value will be overridden by stun result
         self.local_ip = socket.gethostbyname(socket.gethostname())
+        self.local_port = get_free_port()
 
         self.dialogs = None
         self.windows = None
@@ -98,6 +100,7 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             print "discovery found address %s:%d" % (self.local_ip, port)
             wx.CallAfter(self.InitServices)
             wx.CallAfter(self._OpenConnectDialog)
+            release_port(self.local_port)
             
         def _fail(failure):
             # Discovery failed => try next discovery method
@@ -105,8 +108,8 @@ class NavigatorApp(wx.App, XRCLoader, UIProxyReceiver):
             print 'using getHostByName:', self.local_ip
             wx.CallAfter(self.InitServices)
             wx.CallAfter(self._OpenConnectDialog)
-            
-        d = DiscoverAddress(self.params.port, self.reactor, self.params)
+            release_port(self.local_port)
+        d = DiscoverAddress(self.local_port, self.reactor, self.params)
         d.addCallback(_succeed)
         d.addErrback(_fail)
         return d
