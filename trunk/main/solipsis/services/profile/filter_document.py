@@ -33,7 +33,7 @@ class FilterValue:
 
     def __init__(self, name="no name", value=u"", activate=False):
         self.description = value
-        self.regex = re.compile(value)
+        self.regex = re.compile(value, re.IGNORECASE)
         self.activated = activate
         self._name = name # name of member which is defined by FilterValue
         self._found = None # value which has been matched
@@ -51,7 +51,7 @@ class FilterValue:
     def set_value(self, value, activate=True):
         """recompile regex and (dis)activate filter"""
         self.description = value
-        self.regex = re.compile(value)
+        self.regex = re.compile(value, re.IGNORECASE)
         self.activated = activate
 
     def activate(self, activate=True):

@@ -11,16 +11,35 @@
 </div>
 
 <p>
-
-</p><h3>Abstract:</h3>
-<div class="ABSTRACT">
-
 This document is an introductory tutorial to using regular expressions.
-</div>
+</p>
 
-</p><h1><a name="SECTION000300000000000000000">
-Simple Patterns</a>
-</h1>
+<h2><a name="SECTION000300000000000000000">
+In short...</a>
+</h2>
+
+<p>
+Filters work on a character by character basis, being insensitive to
+case. If you apply the filter <code>"sound"</code>, it will match both <code>"sound"</code>
+and <code>"SouND"</code> (and other combinaisons of lower and upper caps). Wildchars are available to ease and extend comparaisons, such as '.' standing for
+any single character.  </p><p>
+
+<p>
+For instance the filter <code>"s..nd"</code> will match <code>"sound"</code>, and <code>"sannd"</code> and
+<code>"s,ind"</code> and so one. A consequence is that <code>"sound.mp3"</code> wil match
+<code>"sound.mp3"</code> but also "<code>sound4mp3"</code> or <code>"soundxmp3"</code>. If you really want to
+match a dot, use '\.'. Thus "sound\.mp3" will match "sound.mp3"</p>
+
+<p>
+You may match any number of characters using the wildcar <code>'*'</code>. For
+instance <code>"s*ound"</code> will match <code>"sound"</code> and "<code>ssound"</code> and
+<code>"ssssound"</code>. Thus, combining <code>'.'</code> and <code>'*'</code>, you may filter
+anything. <code>".*mp3"</code> will match anything ending with <code>'mp3'</code>, <code>".*hobbes.*"</code>
+will match anything containing <code>'hobbes'</code> and so on.</p><p>
+
+</p><h2><a name="SECTION000300000000000000000">
+Exhaustive description</a>
+</h2>
 
 <p>
 We'll start by learning about the simplest possible regular
@@ -29,9 +48,9 @@ strings, we'll begin with the most common task: matching characters.
 
 </p><p>
 
-</p><h2><a name="SECTION000310000000000000000">
+</p><h3><a name="SECTION000310000000000000000">
 1 Matching Characters</a>
-</h2>
+</h3>
 
 <p>
 Most letters and characters will simply match themselves.  For
@@ -147,9 +166,9 @@ is often used where you want to match ``any character''.
 
 </p><p>
 
-</p><h2><a name="SECTION000320000000000000000">
+</p><h3><a name="SECTION000320000000000000000">
 2 Repeating Things</a>
-</h2>
+</h3>
 
 <p>
 Being able to match varying sets of characters is the first thing
@@ -272,9 +291,9 @@ as <tt class="regexp">*</tt>, <tt class="regexp">{1,}</tt> is equivalent to <tt 
 they're shorter and easier to read.
 </p>
 
-<h1><a name="SECTION000320000000000000000">
+<h2><a name="SECTION000320000000000000000">
 Acknowledgement</a>
-</h1>
+</h2>
 <p>To: <b><font size="+2">A.M. Kuchling</font></b></p>
 <p>This document consists of the introduction of his very good  document 'Regular Expression HOWTO'.
 (http://www.amk.ca/python/howto/regex/regex.html)</p>

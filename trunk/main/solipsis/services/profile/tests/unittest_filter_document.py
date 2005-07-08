@@ -73,8 +73,8 @@ class FilterTest(unittest.TestCase):
         self.document.set_lastname(FilterValue(value=u"breton", activate=True))
         self.document.set_photo(FilterValue(value=QUESTION_MARK(), activate=False))
         self.document.set_email(FilterValue(value=u"manu@ft.com", activate=False))
-        # set custom interests
-        self.document.add_custom_attributes((u'color', FilterValue(value=u'blue', activate=True)))
+        # set custom interests, working if IGNORECASE set
+        self.document.add_custom_attributes((u'color', FilterValue(value=u'BLUE', activate=True)))
         # set files
         self.document.add_file((u'MP3', FilterValue(value=u'.*\.mp3$', activate=True)))
         # write file
@@ -95,7 +95,7 @@ class FilterTest(unittest.TestCase):
         customs = self.document.get_custom_attributes()
         self.assertEquals(self.document.has_custom_attribute(u'color'), True)
         self.assertEquals(self.document.get_custom_attributes()[u'color']._name, 'color')
-        self.assertEquals(self.document.get_custom_attributes()[u'color'].description, 'blue')
+        self.assertEquals(self.document.get_custom_attributes()[u'color'].description, 'BLUE')
         self.assertEquals(self.document.get_custom_attributes()[u'color'].activated, True)
         self.document.add_custom_attributes((u'color', FilterValue(value=u'blue', activate=False)))
         self.assertEquals(self.document.get_custom_attributes()[u'color'].activated, False)
