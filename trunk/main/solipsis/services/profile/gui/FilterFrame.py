@@ -5,11 +5,12 @@ import wx
 import sys
 from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxy
-from solipsis.services.profile.facade import get_filter_facade
+from solipsis.services.profile import PROFILE_DIR, REGEX_HTML, skip_disclaimer
+from solipsis.services.profile.facade import get_filter_facade, get_facade
+from solipsis.services.profile.file_document import FileDocument
 from solipsis.services.profile.gui.AboutDialog import AboutDialog
 from solipsis.services.profile.gui.ProfileDialog import ProfileDialog
-from solipsis.services.profile.gui.MatchDialog import MatchDialog
-from solipsis.services.profile import REGEX_HTML, skip_disclaimer
+from solipsis.services.profile.gui.MatchFrame import MatchFrame
 
 # begin wxGlade: dependencies
 from FileFilterPanel import FileFilterPanel
@@ -55,8 +56,12 @@ class FilterFrame(wx.Frame):
         self.__do_layout()
         # end wxGlade
         
+        # quite different initialisation according to launched by navigator or not
+        if self.options["standalone"]:
+            self.import_item = wx.MenuItem(self.profile_item, wx.NewId(), _("Import...\tCtrl+I"), _("Load & Match a profile and add it in contact list"), wx.ITEM_NORMAL)
+            self.profile_item.AppendItem(self.import_item)
         # events
-        self.match_dlg = UIProxy(MatchDialog(parent, -1, plugin=self.plugin))
+        self.match_frame = UIProxy(MatchFrame(options, parent, -1, plugin=self.plugin))
         self.help_dialog = ProfileDialog(parent, -1)
         self.help_dialog.profile_window.SetPage(open(REGEX_HTML()).read())
         self.help_dialog.SetTitle(_("Using regular expressions"))
@@ -75,6 +80,8 @@ class FilterFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_save, id=self.save_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_close, id=self.quit_item.GetId())
         self.Bind(wx.EVT_CLOSE, self.on_close)
+        if self.options["standalone"]:
+            self.Bind(wx.EVT_MENU, self.on_import, id=self.import_item.GetId())
         # about
         self.Bind(wx.EVT_MENU, self.on_about,id=self.about_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_help,id=self.help_item.GetId())
@@ -84,6 +91,22 @@ class FilterFrame(wx.Frame):
         print self.activate_item.IsChecked() and "Activating..." \
               or "Disactivated"
         get_filter_facade().activate(self.activate_item.IsChecked())
+
+    def on_import(self, evt):
+        """match current filter with given profile"""
+        dlg = wx.FileDialog(
+            self, message="Match profile ...",
+            defaultDir=PROFILE_DIR,
+            defaultFile="",
+            wildcard="Solipsis file (*.prf)|*.prf",
+            style=wx.OPEN)
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()[:-4]
+            loader = FileDocument(path)
+            loader.load()
+            pseudo = loader.pseudo
+            get_facade().fill_data((pseudo, loader))
+            get_filter_facade().does_match(pseudo)
         
     def on_save(self, evt):
         """save .prf"""

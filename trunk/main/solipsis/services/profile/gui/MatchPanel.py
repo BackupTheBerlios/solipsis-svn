@@ -5,6 +5,7 @@ import wx
 
 from solipsis.util.wxutils import _
 from solipsis.services.profile.gui.PreviewPanel import MyHtmlWindow
+from solipsis.services.profile.view import HtmlView
 
 # begin wxGlade: dependencies
 # end wxGlade
@@ -14,13 +15,19 @@ class MatchPanel(wx.Panel):
         # begin wxGlade: MatchPanel.__init__
         kwds["style"] = wx.TAB_TRAVERSAL
         wx.Panel.__init__(self, *args, **kwds)
-        self.list_sizer_staticbox = wx.StaticBox(self, -1, _("Matches"))
-        self.matches_list = wx.ListCtrl(self, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
-        self.match_preview = MyHtmlWindow(self, -1)
+        self.window_1 = wx.SplitterWindow(self, -1, style=wx.SP_3D|wx.SP_BORDER)
+        self.previews_pane = wx.Panel(self.window_1, -1)
+        self.list_pane = wx.Panel(self.window_1, -1)
+        self.list_sizer_staticbox = wx.StaticBox(self.list_pane, -1, _("Matches"))
+        self.matches_list = wx.ListCtrl(self.list_pane, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+        self.preview_notebook = wx.Notebook(self.previews_pane, -1, style=0)
 
         self.__set_properties()
         self.__do_layout()
         # end wxGlade
+
+        # {peer_id: tab}
+        self.tabs = {}
 
         self.PopulateList()
         self.bind_controls()
@@ -34,6 +41,40 @@ class MatchPanel(wx.Panel):
         self.matches_list.SetColumnWidth(1, 100)
 
     # EVENTS
+
+    def set_tab(self, peer_desc):
+        """add or update tab with preview of given peer"""
+        if peer_desc.node_id in self.tabs:
+            self._update_tab(peer_desc)
+        else:
+            self._add_tab(peer_desc)
+
+    def _add_tab(self, peer_desc):
+        """add tab with preview of given peer"""
+        tab_sizer = wx.BoxSizer(wx.VERTICAL)
+        preview_tab = wx.Panel(self.preview_notebook, -1)
+        match_preview = MyHtmlWindow(preview_tab, -1)
+        tab_sizer.Add(match_preview, 1, wx.EXPAND, 0)
+        preview_tab.preview = match_preview
+        preview_tab.SetAutoLayout(True)
+        preview_tab.SetSizer(tab_sizer)
+        tab_sizer.Fit(preview_tab)
+        tab_sizer.SetSizeHints(preview_tab)
+        self.preview_notebook.AddPage(preview_tab, peer_desc.pseudo)
+        self.tabs[peer_desc.node_id] = preview_tab
+        self._update_tab(peer_desc)
+
+    def _update_tab(self, peer_desc):
+        """update tab with preview of given peer"""
+        view = HtmlView(peer_desc)
+        preview = self.tabs[peer_desc.node_id].preview
+        preview.SetPage(view.get_view())
+        self.tabs[peer_desc.node_id].Show(True)
+
+    def hide_tab(self, peer_id):
+        """hide tab"""
+        if peer_id in self.tabs:
+            self.tabs[peer_id].Hide()
     
     def bind_controls(self):
         """bind all controls with facade"""
@@ -47,10 +88,20 @@ class MatchPanel(wx.Panel):
     def __do_layout(self):
         # begin wxGlade: MatchPanel.__do_layout
         match_sizer = wx.BoxSizer(wx.VERTICAL)
+        preview_sizer = wx.BoxSizer(wx.VERTICAL)
         list_sizer = wx.StaticBoxSizer(self.list_sizer_staticbox, wx.VERTICAL)
         list_sizer.Add(self.matches_list, 1, wx.EXPAND, 0)
-        match_sizer.Add(list_sizer, 1, wx.EXPAND, 0)
-        match_sizer.Add(self.match_preview, 1, wx.EXPAND, 0)
+        self.list_pane.SetAutoLayout(True)
+        self.list_pane.SetSizer(list_sizer)
+        list_sizer.Fit(self.list_pane)
+        list_sizer.SetSizeHints(self.list_pane)
+        preview_sizer.Add(self.preview_notebook, 1, wx.EXPAND, 0)
+        self.previews_pane.SetAutoLayout(True)
+        self.previews_pane.SetSizer(preview_sizer)
+        preview_sizer.Fit(self.previews_pane)
+        preview_sizer.SetSizeHints(self.previews_pane)
+        self.window_1.SplitHorizontally(self.list_pane, self.previews_pane, 20)
+        match_sizer.Add(self.window_1, 1, wx.EXPAND, 0)
         self.SetAutoLayout(True)
         self.SetSizer(match_sizer)
         match_sizer.Fit(self)

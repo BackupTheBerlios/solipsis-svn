@@ -5,7 +5,7 @@
 import wx
 
 from solipsis.util.wxutils import _
-from solipsis.services.profile.facade import create_filter_facade
+from solipsis.services.profile.facade import create_facade, create_filter_facade
 from solipsis.services.profile.view import FilterView
 from solipsis.services.profile.gui.FilterFrame import FilterFrame
 
@@ -16,15 +16,16 @@ class FilterApp(wx.App):
         wx.App.__init__(self, *args)
         
     def OnInit(self):
-        facade = create_filter_facade("manu")
-        facade.load()
+        facade = create_facade("manu")
+        filter_facade = create_filter_facade("manu")
+        filter_facade.load()
         # set up GUI
         wx.InitAllImageHandlers()
         filter_frame = FilterFrame(self.options, None, -1, "")
         self.SetTopWindow(filter_frame)
         filter_frame.Show()
         # set up facade
-        facade.add_view(FilterView(facade._desc, filter_frame))
+        filter_facade.add_view(FilterView(filter_facade._desc, filter_frame))
         return 1
 
 # end of class FilterApp

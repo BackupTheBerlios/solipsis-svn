@@ -513,5 +513,5 @@ class FilterView(AbstractView):
     # MATCH TAB
     def update_match(self):
         """peer"""
-        self.frame.match_dlg.set_page(self._desc.document.matches)
+        self.frame.match_frame.set_page(self._desc.document.matches)
 
