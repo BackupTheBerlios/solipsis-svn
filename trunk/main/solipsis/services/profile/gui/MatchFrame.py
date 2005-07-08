@@ -27,8 +27,10 @@ class MatchFrame(wx.Frame, UIProxyReceiver):
         self.match_frame_menubar = wx.MenuBar()
         self.SetMenuBar(self.match_frame_menubar)
         self.action_menu = wx.Menu()
-        self.getfile_item = wx.MenuItem(self.action_menu, wx.NewId(), _("Get files"), "", wx.ITEM_NORMAL)
+        self.getfile_item = wx.MenuItem(self.action_menu, wx.NewId(), _("&Get files\\Ctrl+G"), "", wx.ITEM_NORMAL)
         self.action_menu.AppendItem(self.getfile_item)
+        self.closematch_item = wx.MenuItem(self.action_menu, wx.NewId(), _("&Close\tCtrl+W"), "", wx.ITEM_NORMAL)
+        self.action_menu.AppendItem(self.closematch_item)
         self.match_frame_menubar.Append(self.action_menu, _("Actions"))
         self.info_menu = wx.Menu()
         self.about_item = wx.MenuItem(self.info_menu, wx.NewId(), _("About...\tCtrl+?"), "", wx.ITEM_NORMAL)
@@ -55,6 +57,8 @@ class MatchFrame(wx.Frame, UIProxyReceiver):
     def bind_controls(self):
         """bind all controls with facade"""
         self.Bind(wx.EVT_MENU, self.on_get_files, id=self.getfile_item.GetId())
+        self.Bind(wx.EVT_MENU, self.on_close, id=self.closematch_item.GetId())
+        self.Bind(wx.EVT_CLOSE, self.on_close)
         # action
         if self.options["standalone"]:
             self.Bind(wx.EVT_MENU, self.on_view_profile, id=self.viewpeer_item.GetId())
@@ -79,6 +83,10 @@ class MatchFrame(wx.Frame, UIProxyReceiver):
                 )
         if dlg.ShowModal() == wx.ID_OK:
             self.matched_panel.hide_tab(dlg.GetStringSelection())
+        
+    def on_close(self, evt=None):
+        """hide  application"""
+        self.Hide()
         
     def on_about(self, evt):
         """display about"""
