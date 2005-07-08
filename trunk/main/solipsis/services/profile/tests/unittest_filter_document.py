@@ -10,7 +10,7 @@ from ConfigParser import ConfigParser
 from solipsis.services.profile import FILTER_EXT, QUESTION_MARK
 from solipsis.services.profile.data import PeerDescriptor
 from solipsis.services.profile.tests import PROFILE_DIRECTORY, PROFILE_TEST
-from solipsis.services.profile.filter_document import FilterValue, FilterDocument
+from solipsis.services.profile.filter_document import FilterValue, PeerMatch, FilterDocument
 from solipsis.services.profile.file_document import FileDocument
 
 class ValueTest(unittest.TestCase):
@@ -23,13 +23,13 @@ class ValueTest(unittest.TestCase):
         self.assertEquals(str(self.title), "title")
         self.assertEquals(self.title.activated, True)
         self.assertEquals(self.title.does_match("Good Omens"), False)
-        self.assertEquals(self.title.does_match("men")._name, "title")
-        self.assertEquals(self.title.does_match("women")._name, "title")
+        self.assertEquals(self.title.does_match("men"), "men")
+        self.assertEquals(self.title.does_match("women"), "women")
 
     def test_setters(self):
         self.title.set_value(".*men.?")
-        self.assertEquals(self.title.does_match("Good Omens")._name, "title")
-        self.assertEquals(self.title.does_match("women")._name, "title")
+        self.assertEquals(self.title.does_match("Good Omens"), "Good Omens")
+        self.assertEquals(self.title.does_match("women"), "women")
         self.title.activate(False)
         self.assertEquals(self.title.does_match("Good Omens"), False)
         self.assertEquals(self.title.does_match("women"), False)
@@ -40,6 +40,40 @@ class ValueTest(unittest.TestCase):
         self.assertEquals(self.title.does_match("Good Omens"), False)
         self.assertEquals(self.title.does_match("men"), False)
         self.assertEquals(self.title.does_match("women"), False)
+
+class MatchTest(unittest.TestCase):
+
+    def setUp(self):
+        # peer
+        peer_document = FileDocument(PROFILE_TEST, PROFILE_DIRECTORY)
+        peer_document.load()
+        self.peer_desc = PeerDescriptor(PROFILE_TEST, document=peer_document)
+        self.peer_desc.set_shared_files()
+        # filter
+        self.document = FilterDocument(PROFILE_TEST, PROFILE_DIRECTORY)
+        self.document.load()
+
+    def test_creation(self):
+        match = PeerMatch(self.peer_desc, self.document)
+        self.assertEquals(match.title, "Mr")
+        self.assertEquals(match.firstname, False)
+        self.assertEquals(match.lastname, "breton")
+        self.assertEquals(match.photo, False)
+        self.assertEquals(match.email, False)
+        self.assertEquals(match.customs, {'color': u'blue'})
+        self.assertEquals(match.files, {})
+
+    def test_activated(self):
+        # activate
+        self.document.get_email().activate()
+        match = PeerMatch(self.peer_desc, self.document)
+        self.assertEquals(match.email, u'manu@ft.com')
+
+    def test_files(self):
+        # add filter for dummy.txt
+        self.document.add_file((u'Any', FilterValue(value=u'.*\..*', activate=True)))
+        match = PeerMatch(self.peer_desc, self.document)
+        self.assertEquals(match.files, {u'Any': [u'dummy.txt']})
 
 class FilterTest(unittest.TestCase):
     """test that all fields are correctly validated"""
@@ -101,22 +135,6 @@ class FilterTest(unittest.TestCase):
         self.assertEquals(self.document.get_custom_attributes()[u'color'].activated, False)
         customs = self.document.remove_custom_attributes(u'color')
         self.assertEquals(self.document.has_custom_attribute(u'color'), False)
-
-    def test_does_match(self):
-        # peer
-        peer_document = FileDocument(PROFILE_TEST, PROFILE_DIRECTORY)
-        peer_document.load()
-        peer_desc = PeerDescriptor(PROFILE_TEST, document=peer_document)
-        peer_desc.set_shared_files()
-        # filter
-        self.document.load()
-        self.assertEquals(self.document.does_match(peer_desc), 3)
-        # activate
-        self.document.get_email().activate()
-        self.assertEquals(self.document.does_match(peer_desc), 4)
-        # add filter for dummy.txt
-        self.document.add_file((u'Any', FilterValue(value=u'.*\..*', activate=True)))
-        self.assertEquals(self.document.does_match(peer_desc), 5)
 
 if __name__ == '__main__':
     unittest.main()

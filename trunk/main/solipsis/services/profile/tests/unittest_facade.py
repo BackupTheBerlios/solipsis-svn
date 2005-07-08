@@ -206,16 +206,17 @@ class FacadeTest(unittest.TestCase):
         self.assertEquals(self.facade.get_peer(u"emb").state,
                           PeerDescriptor.ANONYMOUS)
 
-    def test_does_match(self):
+    def test_match_peer(self):
         # TODO: detail test
         filter_facade = create_filter_facade(PROFILE_TEST, PROFILE_DIRECTORY)
         filter_facade.load()
         document = FileDocument(PROFILE_TEST, PROFILE_DIRECTORY)
         document.load()
-        self.facade.fill_data((PROFILE_TEST, document))
-        self.assertEquals(bool(filter_facade.does_match(PROFILE_TEST)), True)
+        peer_desc = PeerDescriptor(PROFILE_TEST, document=document)
+        self.facade.fill_data((PROFILE_TEST, peer_desc))
+        filter_facade.set_peer((PROFILE_TEST, peer_desc))
         filter_facade.activate(False)
-        self.assertEquals(bool(filter_facade.does_match(PROFILE_TEST)), False)
+        filter_facade.set_peer((PROFILE_TEST, peer_desc))
 
 
 if __name__ == '__main__':

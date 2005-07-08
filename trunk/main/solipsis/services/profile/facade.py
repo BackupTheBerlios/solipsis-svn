@@ -64,17 +64,6 @@ class FilterFacade(SimpleFacade):
                                 "set_filtered_pseudo",
                                 "update_pseudo")
 
-    def does_match(self, peer_id):
-        assert get_facade(), "no facade defined when does_match called"
-        if self.is_activated():
-            return self._try_change(get_facade().get_peer(peer_id),
-                                   "does_match",
-                                   "update_match")
-        else:
-            print "filters not activated. Ignoring", peer_id
-            return False
-        
-
 class Facade(SimpleFacade):
     """manages user's actions & connects document and view"""
     
@@ -211,19 +200,7 @@ class Facade(SimpleFacade):
                                "tag_file",
                                "update_files")
 
-    # OTHERS TAB
-    def set_peer(self, (peer_id, peer_desc)):
-        """sets peer as friend """
-        return self._try_change((peer_id, peer_desc),
-                                "set_peer",
-                                "update_peers")
-    
-    def remove_peer(self, value):
-        """sets peer as friend """
-        return self._try_change(value,
-                                "remove_peer",
-                                "update_peers")
-    
+    # OTHERS TAB    
     def set_connected(self, (peer_id, connected)):
         """change connected status of given peer and updates views"""
         return self._try_change((peer_id, connected),

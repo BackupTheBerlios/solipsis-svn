@@ -175,3 +175,16 @@ class SimpleFacade:
         return self._try_change(path,
                                "del_file",
                                "update_files")
+
+    # OTHERS TAB
+    def set_peer(self, (peer_id, peer_desc)):
+        """sets peer as friend """
+        return self._try_change((peer_id, peer_desc),
+                                "set_peer",
+                                "update_peers")
+    
+    def remove_peer(self, value):
+        """sets peer as friend """
+        return self._try_change(value,
+                                "remove_peer",
+                                "update_peers")

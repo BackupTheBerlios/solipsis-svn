@@ -27,6 +27,56 @@ from solipsis.services.profile import PROFILE_DIR, FILTER_EXT, \
 from solipsis.services.profile.document import AbstractPersonalData, \
      CustomConfigParser, SECTION_PERSONAL, SECTION_CUSTOM, SECTION_FILE
 from solipsis.services.profile.file_document import FileSaverMixin
+from solipsis.services.profile.cache_document import CacheContactMixin
+
+class PeerMatch:
+    """contains all matches for given peer"""
+
+    def __init__(self, peer_desc, filter_doc=None):
+        """contain result of matching a peer_desc with filters"""
+        if filter_doc is None:
+            from solipsis.services.profile.facade import get_filter_facade
+            filter_doc = get_filter_facade().get_document()
+        self.peer_desc = peer_desc
+        self.reset()
+        if peer_desc.document:
+            # personal data
+            peer_doc = peer_desc.document
+            self.title = filter_doc.title.does_match(peer_doc.get_title())
+            self.firstname = filter_doc.firstname.does_match(peer_doc.get_firstname())
+            self.lastname = filter_doc.lastname.does_match(peer_doc.get_lastname())
+            self.photo = filter_doc.photo.does_match(peer_doc.get_photo())
+            self.email = filter_doc.email.does_match(peer_doc.get_email())
+            # custom attributes
+            peer_customs = peer_doc.get_custom_attributes()
+            for c_name, c_filter in filter_doc.custom_attributes.iteritems():
+                if peer_customs.has_key(c_name):
+                    match = c_filter.does_match(peer_customs[c_name])
+                    if match:
+                        self.customs[c_name] = match
+        # files
+        if peer_desc.shared_files:
+            for f_name, file_filter in filter_doc.file_filters.iteritems():
+                for file_container in peer_desc.shared_files.flatten():
+                    match = file_filter.does_match(file_container.name)
+                    if match:
+                        if f_name not in self.files:
+                            self.files[f_name] = []
+                        self.files[f_name].append(match)
+
+    def get_id(self):
+        """returns peer_id associated with this match"""
+        return self.peer_desc.node_id
+
+    def reset(self):
+        """reset all matches"""
+        self.title = False
+        self.firstname = False
+        self.lastname = False
+        self.photo = False
+        self.email = False
+        self.customs = {}
+        self.files = {}
 
 class FilterValue:
     """wrapper for filter: regex, description ans state"""
@@ -36,7 +86,6 @@ class FilterValue:
         self.regex = re.compile(value, re.IGNORECASE)
         self.activated = activate
         self._name = name # name of member which is defined by FilterValue
-        self._found = None # value which has been matched
 
     def __repr__(self):
         return "%s, %s"% (self.description, self.activated and "(1)" or "(0)")
@@ -66,8 +115,7 @@ class FilterValue:
         if self.regex.match(data) is None:
             return False
         # match -> return true
-        self._found = data
-        return self
+        return data
 
 class FilterPersonalMixin(AbstractPersonalData):
     """Implements API for all pesonal data in cache"""
@@ -230,6 +278,18 @@ class FilterSharingMixin:
         """returns value of files"""
         return self.file_filters
 
+class FilterContactMixin(CacheContactMixin):
+    """Implements API for all contact data in cache"""
+
+    def __init__(self):
+        CacheContactMixin.__init__(self)
+        
+    def set_peer(self, (peer_id, peer_desc)):
+        """stores Peer object"""
+        peer_desc.set_node_id(peer_id)
+        peer_match = PeerMatch(peer_desc)
+        self.peers[peer_id] = peer_match
+        
 class FilterSaverMixin(FileSaverMixin):
     """Implements API for saving & loading in a File oriented context"""
 
@@ -270,7 +330,8 @@ class FilterSaverMixin(FileSaverMixin):
                 activate = activate == "True")
             self.add_file((file_option, filter_value))
 
-class FilterDocument(FilterPersonalMixin, FilterSharingMixin, FilterSaverMixin):
+class FilterDocument(FilterPersonalMixin, FilterSharingMixin,
+                     FilterContactMixin, FilterSaverMixin):
     """Describes all data needed in profile in a file"""
 
     def __init__(self, pseudo, directory=PROFILE_DIR):
@@ -280,16 +341,17 @@ class FilterDocument(FilterPersonalMixin, FilterSharingMixin, FilterSaverMixin):
         # {root: DirContainers}
         self.files = {}
         # dictionary of peers. {pseudo : PeerDescriptor}
-        self.peers = {}
         self.matches = []
         FilterPersonalMixin.__init__(self)
         FilterSharingMixin.__init__(self)
+        FilterContactMixin.__init__(self)
         FilterSaverMixin.__init__(self, pseudo, directory)
         
     def import_document(self, other_document):
         """copy data from another document into self"""
         FilterPersonalMixin.import_document(self, other_document)
         FilterSharingMixin.import_document(self, other_document)
+        FilterContactMixin.import_document(self, other_document)
         
     def set_filtered_pseudo(self, filter_value):
         """sets new value for title"""
@@ -301,28 +363,3 @@ class FilterDocument(FilterPersonalMixin, FilterSharingMixin, FilterSaverMixin):
     def get_filtered_pseudo(self):
         """returns value of title"""
         return self.filtered_pseudo
-
-    def does_match(self, peer_desc):
-        """check that given peer_desc matches FilterValues"""
-        self.matches = []
-        if peer_desc.document:
-            doc = peer_desc.document
-            self.matches.append(self.title.does_match(doc.get_title()))
-            self.matches.append(self.firstname.does_match(doc.get_firstname()))
-            self.matches.append(self.lastname.does_match(doc.get_lastname()))
-            self.matches.append(self.photo.does_match(doc.get_photo()))
-            self.matches.append(self.email.does_match(doc.get_email()))
-            # dictionary of custom attributes
-            peer_customs = doc.get_custom_attributes()
-            for custom_name, custom_filter in self.custom_attributes.iteritems():
-                if peer_customs.has_key(custom_name):
-                    self.matches.append(
-                        custom_filter.does_match(peer_customs[custom_name]))
-        if peer_desc.shared_files:
-            # dictionary of files
-            for filter_name, file_filter in self.file_filters.iteritems():
-                for file_container in peer_desc.shared_files.flatten():
-                    self.matches.append(file_filter.does_match(file_container.name))
-        # remove False from matches
-        self.matches = (peer_desc, [match for match in self.matches if match != False])
-        return len(self.matches[1])
