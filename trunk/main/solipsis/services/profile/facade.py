@@ -65,10 +65,15 @@ class FilterFacade(SimpleFacade):
                                 "update_pseudo")
 
     def does_match(self, peer_id):
-        if get_facade():
+        assert get_facade(), "no facade defined when does_match called"
+        if self.is_activated():
             return self._try_change(get_facade().get_peer(peer_id),
                                    "does_match",
                                    "update_match")
+        else:
+            print "filters not activated. Ignoring", peer_id
+            return False
+        
 
 class Facade(SimpleFacade):
     """manages user's actions & connects document and view"""

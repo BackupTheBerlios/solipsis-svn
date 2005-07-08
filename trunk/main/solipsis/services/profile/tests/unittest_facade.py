@@ -19,12 +19,12 @@ class FacadeTest(unittest.TestCase):
 
     def setUp(self):
         """override one in unittest.TestCase"""
-        self.facade = create_facade(PROFILE_TEST)
+        self.facade = create_facade(PROFILE_TEST, PROFILE_DIRECTORY)
         self.facade.add_file(REPO)
 
     def test_creation(self):
         self.assert_(Facade(PROFILE_TEST, PROFILE_DIRECTORY))
-        self.assert_(create_facade(PROFILE_TEST))
+        self.assert_(create_facade(PROFILE_TEST, PROFILE_DIRECTORY))
 
     # PERSONAL TAB
     def test_change_title(self):
@@ -208,10 +208,14 @@ class FacadeTest(unittest.TestCase):
 
     def test_does_match(self):
         # TODO: detail test
-        filter_facade = create_filter_facade(PROFILE_TEST)
+        filter_facade = create_filter_facade(PROFILE_TEST, PROFILE_DIRECTORY)
         filter_facade.load()
-        self.facade.fill_data((u"emb", FileDocument(PROFILE_TEST, PROFILE_DIRECTORY)))
-        filter_facade.does_match(u"emb")
+        document = FileDocument(PROFILE_TEST, PROFILE_DIRECTORY)
+        document.load()
+        self.facade.fill_data((PROFILE_TEST, document))
+        self.assertEquals(bool(filter_facade.does_match(PROFILE_TEST)), True)
+        filter_facade.activate(False)
+        self.assertEquals(bool(filter_facade.does_match(PROFILE_TEST)), False)
 
 
 if __name__ == '__main__':

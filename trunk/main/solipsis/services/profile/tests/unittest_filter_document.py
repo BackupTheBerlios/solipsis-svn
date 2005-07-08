@@ -110,13 +110,13 @@ class FilterTest(unittest.TestCase):
         peer_desc.set_shared_files()
         # filter
         self.document.load()
-        self.assertEquals(len(self.document.does_match(peer_desc)), 3)
+        self.assertEquals(self.document.does_match(peer_desc), 3)
         # activate
         self.document.get_email().activate()
-        self.assertEquals(len(self.document.does_match(peer_desc)), 4)
+        self.assertEquals(self.document.does_match(peer_desc), 4)
         # add filter for dummy.txt
         self.document.add_file((u'Any', FilterValue(value=u'.*\..*', activate=True)))
-        self.assertEquals(len(self.document.does_match(peer_desc)), 5)
+        self.assertEquals(self.document.does_match(peer_desc), 5)
 
 if __name__ == '__main__':
     unittest.main()

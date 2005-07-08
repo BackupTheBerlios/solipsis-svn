@@ -325,3 +325,4 @@ class FilterDocument(FilterPersonalMixin, FilterSharingMixin, FilterSaverMixin):
                     self.matches.append(file_filter.does_match(file_container.name))
         # remove False from matches
         self.matches = (peer_desc, [match for match in self.matches if match != False])
+        return len(self.matches[1])
