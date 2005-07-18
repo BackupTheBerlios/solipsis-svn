@@ -29,6 +29,61 @@ from solipsis.services.profile.document import AbstractPersonalData, \
 from solipsis.services.profile.file_document import FileSaverMixin
 from solipsis.services.profile.cache_document import CacheContactMixin
 
+class FilterValue:
+    """wrapper for filter: regex, description ans state"""
+
+    def __init__(self, name="no name", value=u"", activate=False):
+        self.activated = activate
+        self.description = value
+        self.regex = re.compile(value, re.IGNORECASE)
+        self._name = name # name of member which is defined by FilterValue
+
+    def __repr__(self):
+        return "%s, %s"% (self.description, self.activated and "(1)" or "(0)")
+
+    def __str__(self):
+        return self._name
+
+    def __eq__(self, other):
+        return self.description == other.description \
+               and self.activated == other.activated
+
+    def set_value(self, value, activate=True):
+        """recompile regex and (dis)activate filter"""
+        self.description = value
+        self.regex = re.compile(value, re.IGNORECASE)
+        self.activated = activate
+
+    def activate(self, activate=True):
+        """change state"""
+        self.activated = activate
+        
+    def does_match(self, data):
+        """apply regex on data and returns self if there is any match"""
+        # no match -> return false
+        if not self.activated or len(self.description) == 0:
+            return False
+        if self.regex.match(data) is None:
+            return False
+        # match -> return true
+        return FilterResult(self, data)
+
+class FilterResult:
+
+    def __init__(self, filter_value, match):
+        self.filter_value = filter_value
+        self.match = match
+
+    def get_name(self):
+        return self.filter_value._name
+        self.match = match
+
+    def get_description(self):
+        return self.filter_value.description
+
+    def get_match(self):
+        return self.match
+
 class PeerMatch:
     """contains all matches for given peer"""
 
@@ -68,6 +123,11 @@ class PeerMatch:
         """returns peer_id associated with this match"""
         return self.peer_desc.node_id
 
+    def has_match(self):
+        return self.title or self.firstname or self.lastname \
+               or self.photo or self.email \
+               or self.customs or self.files
+
     def reset(self):
         """reset all matches"""
         self.title = False
@@ -77,45 +137,6 @@ class PeerMatch:
         self.email = False
         self.customs = {}
         self.files = {}
-
-class FilterValue:
-    """wrapper for filter: regex, description ans state"""
-
-    def __init__(self, name="no name", value=u"", activate=False):
-        self.description = value
-        self.regex = re.compile(value, re.IGNORECASE)
-        self.activated = activate
-        self._name = name # name of member which is defined by FilterValue
-
-    def __repr__(self):
-        return "%s, %s"% (self.description, self.activated and "(1)" or "(0)")
-
-    def __str__(self):
-        return self._name
-
-    def __eq__(self, other):
-        return self.description == other.description \
-               and self.activated == other.activated
-
-    def set_value(self, value, activate=True):
-        """recompile regex and (dis)activate filter"""
-        self.description = value
-        self.regex = re.compile(value, re.IGNORECASE)
-        self.activated = activate
-
-    def activate(self, activate=True):
-        """change state"""
-        self.activated = activate
-        
-    def does_match(self, data):
-        """apply regex on data and returns self if there is any match"""
-        # no match -> return false
-        if not self.activated or len(self.description) == 0:
-            return False
-        if self.regex.match(data) is None:
-            return False
-        # match -> return true
-        return data
 
 class FilterPersonalMixin(AbstractPersonalData):
     """Implements API for all pesonal data in cache"""
@@ -338,10 +359,6 @@ class FilterDocument(FilterPersonalMixin, FilterSharingMixin,
         self.encoding = ENCODING
         self.config = CustomConfigParser(ENCODING)
         self.filtered_pseudo = FilterValue("filtered_pseudo")
-        # {root: DirContainers}
-        self.files = {}
-        # dictionary of peers. {pseudo : PeerDescriptor}
-        self.matches = []
         FilterPersonalMixin.__init__(self)
         FilterSharingMixin.__init__(self)
         FilterContactMixin.__init__(self)

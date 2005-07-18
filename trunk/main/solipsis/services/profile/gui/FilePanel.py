@@ -156,6 +156,7 @@ class FilePanel(wx.Panel):
         
     def on_preview(self, evt):
         """display all shared files in a FileDialog"""
+        self.file_dlg.activate()
         self.file_dlg.Show(do_show=not self.file_dlg.IsShown())
         evt.Skip()
 

@@ -366,6 +366,10 @@ class AbstractContactsData:
     def get_last_downloaded_desc(self):
         """return identifiant of Document"""
         return self.last_downloaded_desc
+
+    def reset_last_downloaded_desc(self):
+        """return identifiant of Document"""
+        self.last_downloaded_desc = None
         
     def import_document(self, other_document):
         """copy data from another document into self"""

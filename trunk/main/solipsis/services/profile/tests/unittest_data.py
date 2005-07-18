@@ -2,6 +2,7 @@
 
 import unittest
 import sys
+import os, os.path
 
 from os.path import abspath, join
 from StringIO import StringIO
@@ -10,6 +11,9 @@ from solipsis.services.profile.data import DEFAULT_TAG, \
 from solipsis.services.profile.tests import REPO, PSEUDO, PROFILE_010, \
      PROFILE_DIRECTORY, PROFILE_TEST, PROFILE_BRUCE, GENERATED_DIR
 
+DATA_DIR = "data"
+SAMPLE_FILE = os.path.join(DATA_DIR, "été.txt")
+SAVE_FILE = os.path.join(DATA_DIR, "sav.txt")
         
 class PeerTest(unittest.TestCase):
     """Test PeerDescriptor behaviour"""
@@ -76,7 +80,7 @@ class BlogTest(unittest.TestCase):
         self.assertEquals(loaded_blog.get_blog(3).text, u"A Godess' world.  What do you think?")
 
         
-class DataTest(unittest.TestCase):
+class FileTest(unittest.TestCase):
     """Test cache coherency with following arborescency:
     
     data/
@@ -105,6 +109,36 @@ class DataTest(unittest.TestCase):
     def test_containers(self):
         self.assertRaises(AssertionError, DirContainer,  join(REPO, "data/dummy"))
         self.assertRaises(AssertionError, FileContainer,  join(REPO, "data/dummy.txt"))
+
+    def test_file_with_accent(self):
+        # specific set up
+        if not os.path.exists(SAMPLE_FILE):
+            sample_file = open(SAMPLE_FILE, "w")
+            sample_file.write("created for testing purpose only. Should be removed after tests")
+            sample_file.close()
+        try:
+            # raw listing
+            for file_name in os.listdir(DATA_DIR):
+                path = os.path.join(DATA_DIR, file_name)
+                self.assert_(os.path.exists(path))
+            # write
+            sav = open(SAVE_FILE, 'w')
+            for file_name in os.listdir(DATA_DIR):
+                print >> sav, file_name
+            sav.close()
+            # read
+            old = open(SAVE_FILE)
+            lines = [line[:-1] for line in old.readlines()]
+            old.close()
+            # check
+            for file_name in lines:
+                path = os.path.join(DATA_DIR, file_name)
+                self.assert_(os.path.exists(path))
+        # specific tear down
+        finally:
+            for path in [SAMPLE_FILE, SAVE_FILE]:
+                if os.path.exists(path):
+                    os.remove(path)
 
         
     def test_setting(self):

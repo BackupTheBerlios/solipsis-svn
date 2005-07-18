@@ -23,13 +23,13 @@ class ValueTest(unittest.TestCase):
         self.assertEquals(str(self.title), "title")
         self.assertEquals(self.title.activated, True)
         self.assertEquals(self.title.does_match("Good Omens"), False)
-        self.assertEquals(self.title.does_match("men"), "men")
-        self.assertEquals(self.title.does_match("women"), "women")
+        self.assertEquals(self.title.does_match("men").get_match(), "men")
+        self.assertEquals(self.title.does_match("women").get_match(), "women")
 
     def test_setters(self):
         self.title.set_value(".*men.?")
-        self.assertEquals(self.title.does_match("Good Omens"), "Good Omens")
-        self.assertEquals(self.title.does_match("women"), "women")
+        self.assertEquals(self.title.does_match("Good Omens").get_match(), "Good Omens")
+        self.assertEquals(self.title.does_match("women").get_match(), "women")
         self.title.activate(False)
         self.assertEquals(self.title.does_match("Good Omens"), False)
         self.assertEquals(self.title.does_match("women"), False)
@@ -55,25 +55,25 @@ class MatchTest(unittest.TestCase):
 
     def test_creation(self):
         match = PeerMatch(self.peer_desc, self.document)
-        self.assertEquals(match.title, "Mr")
+        self.assertEquals(match.title.get_match(), "Mr")
         self.assertEquals(match.firstname, False)
-        self.assertEquals(match.lastname, "breton")
+        self.assertEquals(match.lastname.get_match(), "breton")
         self.assertEquals(match.photo, False)
         self.assertEquals(match.email, False)
-        self.assertEquals(match.customs, {'color': u'blue'})
+        self.assertEquals(match.customs['color'].get_match(), u'blue')
         self.assertEquals(match.files, {})
 
     def test_activated(self):
         # activate
         self.document.get_email().activate()
         match = PeerMatch(self.peer_desc, self.document)
-        self.assertEquals(match.email, u'manu@ft.com')
+        self.assertEquals(match.email.get_match(), u'manu@ft.com')
 
     def test_files(self):
         # add filter for dummy.txt
         self.document.add_file((u'Any', FilterValue(value=u'.*\..*', activate=True)))
         match = PeerMatch(self.peer_desc, self.document)
-        self.assertEquals(match.files, {u'Any': [u'dummy.txt']})
+        self.assertEquals(match.files[u'Any'][0].get_match(), u'dummy.txt')
 
 class FilterTest(unittest.TestCase):
     """test that all fields are correctly validated"""

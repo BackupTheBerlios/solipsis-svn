@@ -106,7 +106,7 @@ class FilterFrame(wx.Frame):
             loader.load()
             pseudo = loader.pseudo
             get_facade().fill_data((pseudo, loader))
-            get_filter_facade().does_match(pseudo)
+            get_filter_facade().fill_data((pseudo, loader))
         
     def on_save(self, evt):
         """save .prf"""
@@ -139,6 +139,7 @@ class FilterFrame(wx.Frame):
 
     def on_help(self, evt):
         """display dialog about regular expression"""
+        self.help_dialog.activate()
         self.help_dialog.Show()
         
     def on_about(self, evt):

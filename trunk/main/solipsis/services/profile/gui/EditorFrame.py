@@ -155,7 +155,8 @@ class EditorFrame(wx.Frame):
 
     def on_display_profile(self, evt):
         """display blog in dedicated window"""
-        self.profile_dlg.Show()
+        self.profile_dlg.activate()
+        self.profile_dlg.Show(get_facade()._desc)
 
     def do_modified(self, modified):
         """change state according to modified"""

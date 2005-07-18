@@ -188,14 +188,19 @@ class Plugin(ServicePlugin):
         print "downloaded profile", peer_id
         get_facade().fill_data((peer_id, document))
         if self.viewer_frame:
+            self.viewer_frame.profile_dlg.activate()
             self.viewer_frame.profile_dlg.Show()
             
     def _on_new_blog(self, blog, peer_id):
         """store and display file object corresponding to blog"""
+        if self.viewer_frame:
+            self.viewer_frame.peer_dlg.activate()
         get_facade().fill_blog((peer_id, blog))
     
     def _on_shared_files(self, files, peer_id):
         """store and display file object corresponding to blog"""
+        if self.viewer_frame:
+            self.viewer_frame.file_dlg.activate()
         get_facade().fill_shared_files((peer_id, files))
     
     def _on_all_files(self):

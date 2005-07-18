@@ -237,7 +237,7 @@ class ViewerFrame(wx.Frame):
     def display_profile(self, peer_desc):
         """display blog in dedicated window"""
         # profile dialog
-        self.profile_dlg.set_page(peer_desc)
+        self.profile_dlg.Show(peer_desc)
         
     def display_blog(self, peer_desc):
         """display blog in dedicated window"""

@@ -207,12 +207,6 @@ class Facade(SimpleFacade):
                                 "set_connected",
                                 "update_peers")
 
-    def fill_data(self, (peer_id, document)):
-        """sets peer as friend """
-        return self._try_change((peer_id, document),
-                                "fill_data",
-                                "update_peers")
-
     def fill_blog(self, (peer_id, blog)):
         """sets peer as friend """
         return self._try_change((peer_id, blog),

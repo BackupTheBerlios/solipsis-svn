@@ -7,6 +7,7 @@ import sys
 from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxyReceiver
 from solipsis.services.profile import skip_disclaimer
+from solipsis.services.profile.facade import get_filter_facade
 from solipsis.services.profile.gui.MatchPanel import MatchPanel
 from solipsis.services.profile.gui.AboutDialog import AboutDialog
 
@@ -95,19 +96,16 @@ class MatchFrame(wx.Frame, UIProxyReceiver):
         about_dlg = AboutDialog(not skip_disclaimer(), self, -1)
         about_dlg.Show()
 
-    def set_page(self, (peer_desc, matches)):
-        if not matches:
-            return
-        # preview
-        self.matched_panel.set_tab(peer_desc)
-        # fill list
-        matches_list = self.matched_panel.matches_list
-        matches_list.DeleteAllItems()
-        for filter_value in matches:
-            index = matches_list.InsertStringItem(sys.maxint, filter_value._name)
-            matches_list.SetStringItem(index, 1, filter_value._found)
-            matches_list.SetStringItem(index, 2, filter_value.description)
-        self.Show()
+    def set_page(self):
+        document = get_filter_facade().get_document()
+        last_added = document.get_last_downloaded_desc()
+        if last_added:
+            peer_match = get_filter_facade().get_peer(last_added.node_id)
+            if peer_match.has_match():
+                self.matched_panel.set_matches(peer_match)
+                self.matched_panel.set_tab(peer_match.peer_desc)
+                self.Show()
+            document.reset_last_downloaded_desc()
 
     def __set_properties(self):
         # begin wxGlade: MatchFrame.__set_properties

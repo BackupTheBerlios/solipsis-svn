@@ -390,7 +390,7 @@ class ProfileClientFactory(ClientFactory):
         """callback when autoloading of profile successful"""
         get_facade().set_data((peer_id, document))
         get_facade().set_connected((peer_id, True))
-        get_filter_facade().does_match(peer_id)
+        get_filter_facade().fill_data((peer_id, document))
     
 # SERVER
 class ProfileServerProtocol(basic.LineOnlyReceiver):

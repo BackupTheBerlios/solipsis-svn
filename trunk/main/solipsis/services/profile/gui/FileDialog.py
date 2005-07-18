@@ -19,6 +19,7 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
         self.plugin = plugin
         self.download_repo = DOWNLOAD_REPO
         self.peer_desc = None
+        self.active = False
         args = (parent, id)
         # begin wxGlade: FileDialog.__init__
         kwds["style"] = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.THICK_FRAME
@@ -36,12 +37,22 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
         self.peerfiles_list.InsertColumn(1, "Tag")
         self.bind_controls()
 
+    def activate(self):
+        self.active = True
+
     # EVENTS
     
     def bind_controls(self):
         """bind all controls with facade"""
         self.download_button.Bind(wx.EVT_BUTTON, self.on_download)
         self.repo_button.Bind(wx.EVT_BUTTON, self.on_set_repo)
+        self.Bind(wx.EVT_CLOSE, self.on_close)
+
+    def on_close(self, evt):
+        """hiding instead of closing"""
+        self.active = False
+        wx.Dialog.Show(self, False)
+        evt.Skip()
 
     def on_set_repo(self, evt):
         """add shared directory to list"""
@@ -98,7 +109,11 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
         """overrides Show, files is {repos: {names:tags}, }"""
         if do_show:
             self.refresh(files)
-        wx.Dialog.Show(self, do_show)
+            if self.active:
+                wx.Dialog.Show(self, True)
+        else:
+            self.active = False
+            wx.Dialog.Show(self, False)
 
     def SetTitle(self, title=None):
         if not title:
