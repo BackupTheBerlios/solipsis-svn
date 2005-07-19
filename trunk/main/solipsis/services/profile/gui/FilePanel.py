@@ -9,7 +9,7 @@ from os.path import abspath
 from solipsis.util.wxutils import _
 from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile.data import DirContainer, SHARING_ALL, DEFAULT_TAG
-from solipsis.services.profile import ADD_REPO, DEL_REPO, SHARE, UNSHARE, EDIT, PREVIEW
+from solipsis.services.profile import ADD_REPO, DEL_REPO, SHARE, UNSHARE, EDIT, PREVIEW, ENCODING
 
 from FileDialog import FileDialog
 
@@ -203,11 +203,11 @@ class FilePanel(wx.Panel):
         self.dir_list.DeleteAllItems()
         for name, container in dir_container.iteritems():
             if isinstance(container, DirContainer):
-                index = self.dir_list.InsertImageStringItem(sys.maxint, name, self.dir_fldridx)
+                index = self.dir_list.InsertImageStringItem(sys.maxint, unicode(name, ENCODING), self.dir_fldridx)
                 self.dir_list.SetStringItem(index, IS_SHARED_COL, str(container._shared))
                 self.dir_list.SetStringItem(index, TAG_COL, container._tag)
             else:
-                index = self.dir_list.InsertImageStringItem(sys.maxint, name, self.dir_fileidx)
+                index = self.dir_list.InsertImageStringItem(sys.maxint, unicode(name, ENCODING), self.dir_fileidx)
                 self.dir_list.SetStringItem(index, IS_SHARED_COL, str(container._shared))
                 self.dir_list.SetStringItem(index, TAG_COL, container._tag)
         self.dir_list.SetColumnWidth(0, wx.LIST_AUTOSIZE)
@@ -244,7 +244,7 @@ class FilePanel(wx.Panel):
         container_path = container.get_path()
         if container.get_data() is None:
             name = os.path.basename(container_path)
-            child = self.tree_list.AppendItem(parent, name)
+            child = self.tree_list.AppendItem(parent, unicode(name, ENCODING))
             container.set_data(child)
             self.tree_list.SetItemImage(child, self.tree_fldridx, which = wx.TreeItemIcon_Normal)
             self.tree_list.SetItemImage(child, self.tree_fldropenidx, which = wx.TreeItemIcon_Expanded)

@@ -8,7 +8,7 @@ from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxyReceiver
 from solipsis.services.profile.pathutils import formatbytes
 from solipsis.services.profile.facade import get_facade
-from solipsis.services.profile import DOWNLOAD, DOWNLOAD_DIR, DOWNLOAD_REPO
+from solipsis.services.profile import DOWNLOAD, DOWNLOAD_DIR, DOWNLOAD_REPO, ENCODING
 
 # begin wxGlade: dependencies
 # end wxGlade
@@ -60,7 +60,7 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
         """add shared directory to list"""
         # pop up to choose repository
         dlg = wx.DirDialog(self, message=_("Choose location to download files into"),
-                           defaultPath = get_facade().get_document().get_download_repo(),
+                           defaultPath = unicode(get_facade().get_document().get_download_repo(), ENCODING),
                            style=wx.DD_DEFAULT_STYLE|wx.DD_NEW_DIR_BUTTON)
         if dlg.ShowModal() == wx.ID_OK:
             # path chosen
@@ -101,7 +101,8 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
                 del self.data[key]
             # fill list
             for path, name, tag, size in file_data:
-                index = self.peerfiles_list.InsertStringItem(sys.maxint, name)
+                index = self.peerfiles_list.InsertStringItem(sys.maxint,
+                                                             unicode(name, ENCODING))
                 self.peerfiles_list.SetStringItem(index, 1, tag)
                 self.peerfiles_list.SetStringItem(index, 2, formatbytes(size,
                                                                         kiloname="Ko",

@@ -5,7 +5,7 @@ import wx
 
 from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxyReceiver
-from solipsis.services.profile import set_always_display, DISPLAY_IMG
+from solipsis.services.profile import set_always_display, DISPLAY_IMG, ENCODING
 
 # begin wxGlade: dependencies
 # end wxGlade
@@ -41,7 +41,7 @@ class DownloadDialog(wx.Dialog, UIProxyReceiver):
     def update_file(self, name, size):
         """reset gaucge and display file name"""
         self.SetTitle(_("Downloading %s"% name))
-        self.download_label.SetLabel(name)
+        self.download_label.SetLabel(unicode(name, ENCODING))
         self.download_gauge.SetRange(size)
         self.download_gauge.SetValue(0)
         self.counter += 1
