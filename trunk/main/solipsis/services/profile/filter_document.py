@@ -89,14 +89,27 @@ class PeerMatch:
 
     def __init__(self, peer_desc, filter_doc=None):
         """contain result of matching a peer_desc with filters"""
+        self.peer_desc = peer_desc
+        self.reset()
+        self.match(filter_doc)
+
+    def reset(self):
+        """reset all matches"""
+        self.title = False
+        self.firstname = False
+        self.lastname = False
+        self.photo = False
+        self.email = False
+        self.customs = {}
+        self.files = {}
+
+    def match(self, filter_doc=None):
         if filter_doc is None:
             from solipsis.services.profile.facade import get_filter_facade
             filter_doc = get_filter_facade().get_document()
-        self.peer_desc = peer_desc
-        self.reset()
-        if peer_desc.document:
+        if self.peer_desc.document:
             # personal data
-            peer_doc = peer_desc.document
+            peer_doc = self.peer_desc.document
             self.title = filter_doc.title.does_match(peer_doc.get_title())
             self.firstname = filter_doc.firstname.does_match(peer_doc.get_firstname())
             self.lastname = filter_doc.lastname.does_match(peer_doc.get_lastname())
@@ -110,9 +123,9 @@ class PeerMatch:
                     if match:
                         self.customs[c_name] = match
         # files
-        if peer_desc.shared_files:
+        if self.peer_desc.shared_files:
             for f_name, file_filter in filter_doc.file_filters.iteritems():
-                for file_container in peer_desc.shared_files.flatten():
+                for file_container in self.peer_desc.shared_files.flatten():
                     match = file_filter.does_match(file_container.name)
                     if match:
                         if f_name not in self.files:
@@ -128,15 +141,11 @@ class PeerMatch:
                or self.photo or self.email \
                or self.customs or self.files
 
-    def reset(self):
-        """reset all matches"""
-        self.title = False
-        self.firstname = False
-        self.lastname = False
-        self.photo = False
-        self.email = False
-        self.customs = {}
-        self.files = {}
+    def set_document(self, document):
+        """update filters according to new doc"""
+        self.peer_desc.set_document(document)
+        self.reset()
+        self.match()
 
 class FilterPersonalMixin(AbstractPersonalData):
     """Implements API for all pesonal data in cache"""

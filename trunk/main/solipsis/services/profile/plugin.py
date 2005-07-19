@@ -106,7 +106,8 @@ class Plugin(ServicePlugin):
         # launch network
         self.network = NetworkManager(self.host,
                                       random.randrange(7100, 7200),
-                                      self.service_api)
+                                      self.service_api,
+                                      self.editor_frame.download_dlg)
         self.activate(True)
     
     def Disable(self):
@@ -160,9 +161,11 @@ class Plugin(ServicePlugin):
         deferred = self.network.get_blog_file(peer_id)
         deferred and deferred.addCallback(self._on_new_blog, peer_id)
 
-    def get_files(self, peer_id, split_paths):
+    def get_files(self, peer_id, file_descriptors):
         """request downwload of given files"""
-        deferred = self.network.get_files(peer_id, split_paths,
+        if self.editor_frame and always_display():
+            self.editor_frame.download_dlg.Show()
+        deferred = self.network.get_files(peer_id, file_descriptors,
                                           self._on_all_files)
         deferred and deferred.addCallback(
             lambda file_name: sys.stdout.write("%s downloaded\n"% file_name))
@@ -206,12 +209,7 @@ class Plugin(ServicePlugin):
     def _on_all_files(self):
         """store and display file object corresponding to blog"""
         if self.editor_frame:
-            def display_message():
-                dlg = DownloadDialog(always_display(), self.editor_frame, -1)
-                dlg.ShowModal()
-                dlg.Destroy()
-            if always_display():
-                wx.CallAfter(display_message)
+            self.editor_frame.download_dlg.complete_all_files()
         else:
             print 'No more file to download'
 

@@ -20,6 +20,7 @@
 """Define cache structures used in profile and rendered in list widgets"""
 
 import os, os.path
+import stat
 import pickle
 import time
 
@@ -68,6 +69,9 @@ class PeerDescriptor:
 
     def __repr__(self):
         return "%s (%s)"% (self.pseudo, self.state)
+
+    def get_id(self):
+        return self.node_id
 
     def copy(self):
         """return copied instance of PeerDescriptor"""
@@ -275,6 +279,7 @@ class SharedFiles(dict):
     """dict wrapper (useless for now)"""
 
     def flatten(self):
+        """convert tree of containers to array"""
         result = []
         for containers in self.values():
             result += containers
@@ -337,6 +342,7 @@ class FileContainer(ContainerMixin):
     def __init__(self, path, share=False, tag=DEFAULT_TAG):
         ContainerMixin.__init__(self, path, share, tag)
         assert_file(self.get_path().encode(ENCODING))
+        self.size = os.stat(self.get_path().encode(ENCODING))[stat.ST_SIZE]
         
     def __str__(self):
         return "Fc:%s(?%s,'%s')"% (self.name.encode(ENCODING),

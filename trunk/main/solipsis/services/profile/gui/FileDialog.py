@@ -92,15 +92,16 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
                 for file_desc in file_descs:
                     file_data.append([file_desc.get_path(),
                                       file_desc.name,
-                                      file_desc._tag])
+                                      file_desc._tag,
+                                      file_desc.size])
             # clear previous data
             for key in self.data.keys():
                 del self.data[key]
             # fill list
-            for path, name, tag in file_data:
+            for path, name, tag, size in file_data:
                 index = self.peerfiles_list.InsertStringItem(sys.maxint, name)
                 self.peerfiles_list.SetStringItem(index, 1, tag)
-                self.data[index] = path.split(os.sep)
+                self.data[index] = (path.split(os.sep), size)
         # show result
         self.peerfiles_list.SetColumnWidth(0, wx.LIST_AUTOSIZE)
         self.peerfiles_list.SetColumnWidth(1, wx.LIST_AUTOSIZE)
