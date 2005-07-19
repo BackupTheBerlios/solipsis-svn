@@ -32,6 +32,12 @@ class DownloadDialog(wx.Dialog, UIProxyReceiver):
         self.counter = 0
         self.bind_controls()
 
+    def init(self):
+        """reset gaucge and display file name"""
+        self.SetTitle(_("Downloading ..."))
+        self.counter = 0
+        self.download_gauge.SetValue(0)
+
     def update_file(self, name, size):
         """reset gaucge and display file name"""
         self.SetTitle(_("Downloading %s"% name))

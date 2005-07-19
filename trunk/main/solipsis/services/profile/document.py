@@ -171,8 +171,8 @@ class AbstractPersonalData:
         
     def set_download_repo(self, value):
         """sets new value for download_repo"""
-        if not isinstance(value, unicode):
-            raise TypeError("download_repo '%s' expected as unicode"% value)
+        if not isinstance(value, str):
+            raise TypeError("download_repo '%s' expected as str"% value)
     def get_download_repo(self):
         """returns value of download_repo"""
         raise NotImplementedError

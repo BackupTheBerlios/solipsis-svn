@@ -491,10 +491,8 @@ class PeerProtocol(basic.LineReceiver):
     def sendLine(self, line):
         """overrides in order to ease debug"""
         print "sending", line
-        if isinstance(line, unicode):
-            basic.LineReceiver.sendLine(self, line.encode(ENCODING))
-        else:
-            basic.LineReceiver.sendLine(self, line)
+        assert isinstance(line, str), "%s must be a string"% line
+        basic.LineReceiver.sendLine(self, line)
         
     def lineReceived(self, line):
         """specialised in Client/Server protocol"""

@@ -88,8 +88,8 @@ class DocumentTest(unittest.TestCase):
         """download_repo as unicode"""
         self.assertRaises(NotImplementedError, self.abstract_doc.get_download_repo)
         for document in self.documents:
-            self.assertRaises(TypeError, document.set_download_repo, "anything")
-            self.assertRaises(TypeError, document.set_download_repo, [u"anything", ])
+            self.assertRaises(TypeError, document.set_download_repo, u"anything")
+            self.assertRaises(TypeError, document.set_download_repo, ["anything", ])
         
     # CUSTOM TAB
     def test_custom_attributes(self):

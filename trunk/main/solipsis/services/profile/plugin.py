@@ -164,6 +164,7 @@ class Plugin(ServicePlugin):
     def get_files(self, peer_id, file_descriptors):
         """request downwload of given files"""
         if self.editor_frame and always_display():
+            self.editor_frame.download_dlg.init()
             self.editor_frame.download_dlg.Show()
         deferred = self.network.get_files(peer_id, file_descriptors,
                                           self._on_all_files)

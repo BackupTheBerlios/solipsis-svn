@@ -48,8 +48,8 @@ class FacadeTest(unittest.TestCase):
         self.assertEquals(u"manu@ft.com", self.facade.get_document().get_email())
 
     def test_change_download_repo(self):
-        self.facade.change_download_repo(u'any desc')
-        self.assertEquals(u"any desc", self.facade.get_document().get_download_repo())
+        self.facade.change_download_repo('any desc')
+        self.assertEquals("any desc", self.facade.get_document().get_download_repo())
 
     # CUSTOM TAB
     def test_add_custom_attributes(self):

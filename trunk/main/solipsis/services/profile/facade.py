@@ -127,7 +127,8 @@ class Facade(SimpleFacade):
         
     def get_file_container(self, name):
         """forward command to cache"""
-        name = name.encode(ENCODING)
+        if isinstance(name, unicode):
+            name = name.encode(ENCODING)
         return self._desc.document.get_container(name)
 
     def set_data(self, (peer_id, document)):

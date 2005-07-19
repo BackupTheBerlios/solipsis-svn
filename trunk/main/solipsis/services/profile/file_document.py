@@ -127,16 +127,14 @@ class FilePersonalMixin(AbstractPersonalData):
     def set_download_repo(self, value):
         """sets new value for download_repo"""
         AbstractPersonalData.set_download_repo(self, value)
-        self.config.set(SECTION_PERSONAL, "download_repo",
-                        value.encode(self.encoding))
+        self.config.set(SECTION_PERSONAL, "download_repo", value)
         
     def get_download_repo(self):
         """returns value of download_repo"""
         try:
-            return unicode(self.config.get(SECTION_PERSONAL, "download_repo"),
-                           self.encoding)
+            return self.config.get(SECTION_PERSONAL, "download_repo")
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-            return unicode(DOWNLOAD_REPO)
+            return DOWNLOAD_REPO
 
     # CUSTOM TAB
     def has_custom_attribute(self, key):

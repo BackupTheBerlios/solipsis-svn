@@ -28,7 +28,7 @@ VERSION = "0.2.1"
 DISCLAIMER = "All data in profiles are shared within Solipsis communauty"
 
 PROFILE_DIR = os.sep.join([os.path.expanduser("~"), u".solipsis", u"profiles"])
-DOWNLOAD_REPO = os.sep.join([os.path.expanduser("~"), u".solipsis", u"download"])
+DOWNLOAD_REPO = os.sep.join([os.path.expanduser("~"), ".solipsis", "download"])
 
 global solipsis_dir
 
