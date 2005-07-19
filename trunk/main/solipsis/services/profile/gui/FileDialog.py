@@ -6,6 +6,7 @@ import sys
 import os.path
 from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxyReceiver
+from solipsis.services.profile.pathutils import formatbytes
 from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile import DOWNLOAD, DOWNLOAD_DIR, DOWNLOAD_REPO
 
@@ -35,6 +36,7 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
         
         self.peerfiles_list.InsertColumn(0, "File")
         self.peerfiles_list.InsertColumn(1, "Tag")
+        self.peerfiles_list.InsertColumn(2, "Size")
         self.bind_controls()
 
     def activate(self):
@@ -101,10 +103,15 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
             for path, name, tag, size in file_data:
                 index = self.peerfiles_list.InsertStringItem(sys.maxint, name)
                 self.peerfiles_list.SetStringItem(index, 1, tag)
+                self.peerfiles_list.SetStringItem(index, 2, formatbytes(size,
+                                                                        kiloname="Ko",
+                                                                        meganame="Mo",
+                                                                        bytename="o"))
                 self.data[index] = (path.split(os.sep), size)
         # show result
         self.peerfiles_list.SetColumnWidth(0, wx.LIST_AUTOSIZE)
         self.peerfiles_list.SetColumnWidth(1, wx.LIST_AUTOSIZE)
+        self.peerfiles_list.SetColumnWidth(2, wx.LIST_AUTOSIZE)
 
     def Show(self, files=None, do_show=True):
         """overrides Show, files is {repos: {names:tags}, }"""
