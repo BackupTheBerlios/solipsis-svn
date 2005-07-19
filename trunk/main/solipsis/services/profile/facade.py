@@ -127,6 +127,7 @@ class Facade(SimpleFacade):
         
     def get_file_container(self, name):
         """forward command to cache"""
+        name = name.encode(ENCODING)
         return self._desc.document.get_container(name)
 
     def set_data(self, (peer_id, document)):
@@ -146,56 +147,53 @@ class Facade(SimpleFacade):
         self.update_blogs()
     
     # FILE TAB
-    def add_file(self, path):
-        """sets new value for repositor"""
-        return self._try_change(path,
-                               "add_file",
-                               "update_files")
-    
-    def del_file(self, path):
-        """sets new value for repositor"""
-        return self._try_change(path,
-                               "del_file",
-                               "update_files")
-    
     def expand_dir(self, path):
         """update doc when dir expanded"""
+        path = path.encode(ENCODING)
         return self._try_change(path,
                                "expand_dir",
                                "update_files")
         
     def expand_children(self, path):
         """update doc when dir expanded"""
+        path = path.encode(ENCODING)
         return self._try_change(path,
                                "expand_children",
                                "update_files")
     
-    def share_dirs(self, (path, share)):
+    def share_dirs(self, (paths, share)):
         """forward command to cache"""
-        return self._try_change((path, share),
+        paths = [path.encode(ENCODING) for path in paths]
+        return self._try_change((paths, share),
                                "share_dirs",
                                "update_files")
 
     def share_files(self, (path, names, share)):
         """forward command to cache"""
+        path = path.encode(ENCODING)
+        names = [name.encode(ENCODING) for name in names]
         return self._try_change((path, names, share),
                                "share_files",
                                "update_files")
 
     def share_file(self, (path, share)):
         """forward command to cache"""
+        path = path.encode(ENCODING)
         return self._try_change((path, share),
                                "share_file",
                                "update_files")
 
     def tag_files(self, (path, names, tag)):
         """forward command to cache"""
+        path = path.encode(ENCODING)
+        names = [name.encode(ENCODING) for name in names]
         return self._try_change((path, names, tag),
                                "tag_files",
                                "update_files")
 
     def tag_file(self, (path, tag)):
         """forward command to cache"""
+        path = path.encode(ENCODING)
         return self._try_change((path, tag),
                                "tag_file",
                                "update_files")

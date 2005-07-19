@@ -21,10 +21,10 @@
 import os.path
 import solipsis
 
-TEST_DIR = os.path.sep.join([os.path.dirname(solipsis.__file__), u"services", u"profile", u"tests"])
-GENERATED_DIR = os.path.join(TEST_DIR, u"generated")
-DATA_DIR = os.path.join(TEST_DIR, u"data")
-PROFILE_DIRECTORY = os.path.sep.join([TEST_DIR, u"data", u"profiles"])
+TEST_DIR = os.path.sep.join([os.path.dirname(solipsis.__file__), "services", "profile", "tests"])
+GENERATED_DIR = os.path.join(TEST_DIR, "generated")
+DATA_DIR = os.path.join(TEST_DIR, "data")
+PROFILE_DIRECTORY = os.path.sep.join([TEST_DIR, "data", "profiles"])
 PROFILE_TEST = u"test"
 PROFILE_BRUCE = u"bruce"
 PROFILE_TATA = u"tata"

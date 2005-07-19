@@ -210,7 +210,7 @@ class FileSharingMixin(AbstractSharingData):
     def get_repositories(self):
         """return list of repos"""
         try:
-            return  [unicode(repo, self.encoding) for repo
+            return  [repo for repo
                      in  self.config.get(SECTION_PERSONAL, "repositories")\
                      .split(',')
                      if repo.strip() != '']
@@ -220,7 +220,7 @@ class FileSharingMixin(AbstractSharingData):
     def _set_repositories(self, repos_list):
         """update list of repos"""
         self.config.set(SECTION_PERSONAL, "repositories",
-                        ",".join(repos_list).encode(self.encoding))
+                        ",".join(repos_list))
         
     def add(self, value):
         """sets new value for files"""
@@ -306,15 +306,12 @@ class FileSharingMixin(AbstractSharingData):
         if not self.config.has_section(SECTION_FILE):
             self.config.add_section(SECTION_FILE)
         for option in self.config.options(SECTION_FILE):
-            if isinstance(option, str):
-                option = unicode(option, self.encoding)
             try:
                 option_description = self.config.get(SECTION_FILE, option)
-                if isinstance(option_description, str):
-                    option_description =  unicode(option_description,
-                                                  self.encoding)
                 option_share, option_tag = option_description.split(',')
                 option_share = bool(option_share)
+                if isinstance(option_tag, str):
+                    option_tag = unicode(option_tag, ENCODING)
             except (ValueError, ConfigParser.NoSectionError,
                     ConfigParser.NoOptionError):
                 print >> sys.stderr, "option %s not well formated"% option
@@ -342,15 +339,12 @@ class FileSharingMixin(AbstractSharingData):
         result = []
         for option in self.config.options(SECTION_FILE):
             if option.startswith(repo_path):
-                if isinstance(option, str):
-                    option = unicode(option, self.encoding)
                 try:
                     option_description = self.config.get(SECTION_FILE, option)
-                    if isinstance(option_description, str):
-                        option_description =  unicode(option_description,
-                                                      self.encoding)
                     option_share, option_tag = option_description.split(',')
                     option_share = bool(option_share)
+                    if isinstance(option_tag, str):
+                        option_tag = unicode(option_tag, ENCODING)
                 except (ValueError, ConfigParser.NoSectionError,
                         ConfigParser.NoOptionError):
                     option_share, option_tag = False, DEFAULT_TAG

@@ -226,17 +226,15 @@ class AbstractSharingData:
         
     def add_file(self, value):
         """sets new value for repository"""
-        if not isinstance(value, unicode):
-            raise TypeError("repository '%s' expected as unicode"% value)
+        if not isinstance(value, str):
+            raise TypeError("repository '%s' expected as str"% value)
         if not isdir(value):
-            raise AssertionError("repository %s does not exist"% value) 
-        if not isinstance(value, unicode):
-            raise TypeError("repository to add expected as unicode")       
+            raise AssertionError("repository %s does not exist"% value)       
         
     def del_file(self, value):
         """remove repository"""
-        if not isinstance(value, unicode):
-            raise TypeError("repository to remove expected as unicode")
+        if not isinstance(value, str):
+            raise TypeError("repository to remove expected as str")
         
     def get_files(self):
         """returns value of files"""
@@ -244,23 +242,23 @@ class AbstractSharingData:
         
     def add(self, value):
         """add directory into  repository"""
-        if not isinstance(value, unicode):
-            raise TypeError("dir to expand expected as unicode")
+        if not isinstance(value, str):
+            raise TypeError("dir to expand expected as str")
         
     def remove(self, value):
         """remove custom value"""
-        if not isinstance(value, unicode):
-            raise TypeError("dir to expand expected as unicode")
+        if not isinstance(value, str):
+            raise TypeError("dir to expand expected as str")
         
     def expand_dir(self, value):
         """update doc when dir expanded"""
-        if not isinstance(value, unicode):
-            raise TypeError("dir to expand expected as unicode")
+        if not isinstance(value, str):
+            raise TypeError("dir to expand expected as str")
         
     def expand_children(self, value):
         """update doc when dir expanded"""
-        if not isinstance(value, unicode):
-            raise TypeError("dir to expand expected as unicode")
+        if not isinstance(value, str):
+            raise TypeError("dir to expand expected as str")
         container = self.get_container(value)
         for dir_container in [cont for cont in container.values()
                               if isinstance(cont, DirContainer)]:
@@ -283,8 +281,8 @@ class AbstractSharingData:
         elif len(triplet) != 3:
             raise TypeError("argument of  expected as triplet"
                             " (dir_path, file_path, share)")
-        if not isinstance(triplet[0], unicode):
-            raise TypeError("path expected as unicode")
+        if not isinstance(triplet[0], str):
+            raise TypeError("path expected as str")
         if not isinstance(triplet[1], list) \
                and not isinstance(triplet[1], tuple):
             raise TypeError("names expected as list")
@@ -296,8 +294,8 @@ class AbstractSharingData:
         elif len(pair) != 2:
             raise TypeError("argument of  expected as couple"
                             " (file_path, share)")
-        if not isinstance(pair[0], unicode):
-            raise TypeError("path expected as unicode")
+        if not isinstance(pair[0], str):
+            raise TypeError("path expected as str")
         
     def tag_files(self, triplet):
         """sets new value for tagged files"""
@@ -305,8 +303,8 @@ class AbstractSharingData:
             raise TypeError("argument of tag_file expected as list or tuple")
         elif len(triplet) != 3:
             raise TypeError("argument of  expected as couple (file_path, tag)")
-        if not isinstance(triplet[0], unicode):
-            raise TypeError("path expected as unicode")
+        if not isinstance(triplet[0], str):
+            raise TypeError("path expected as str")
         if not isinstance(triplet[1], list) \
                and not isinstance(triplet[1], tuple):
             raise TypeError("name expected as unicode")
@@ -319,8 +317,8 @@ class AbstractSharingData:
             raise TypeError("argument of tag_file expected as list or tuple")
         elif len(pair) != 2:
             raise TypeError("argument of  expected as couple (file_path, tag)")
-        if not isinstance(pair[0], unicode):
-            raise TypeError("path expected as unicode")
+        if not isinstance(pair[0], str):
+            raise TypeError("path expected as str")
         if not isinstance(pair[1], unicode):
             raise TypeError("tag expected as unicode")
         

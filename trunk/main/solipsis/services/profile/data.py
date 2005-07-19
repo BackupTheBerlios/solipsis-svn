@@ -289,8 +289,7 @@ class ContainerMixin:
     """Factorize sharing tools on containers"""
     
     def __init__(self, path, share=False, tag=DEFAULT_TAG):
-        if not isinstance(path, unicode):
-            raise TypeError("path [%s] expected as unicode"% path)
+        assert isinstance(path, str), "path [%s] expected as string"% path
         self._tag = None
         self._shared = None
         self._data = None
@@ -341,11 +340,11 @@ class FileContainer(ContainerMixin):
 
     def __init__(self, path, share=False, tag=DEFAULT_TAG):
         ContainerMixin.__init__(self, path, share, tag)
-        assert_file(self.get_path().encode(ENCODING))
-        self.size = os.stat(self.get_path().encode(ENCODING))[stat.ST_SIZE]
+        assert_file(self.get_path())
+        self.size = os.stat(self.get_path())[stat.ST_SIZE]
         
     def __str__(self):
-        return "Fc:%s(?%s,'%s')"% (self.name.encode(ENCODING),
+        return "Fc:%s(?%s,'%s')"% (self.name,
                                    self._shared and "Y" or "-",
                                    self._tag.encode(ENCODING)  or "-")
     def __repr__(self):
@@ -358,12 +357,12 @@ class DirContainer(dict, ContainerMixin):
 
     def __init__(self, path, share=False, tag=DEFAULT_TAG):
         ContainerMixin.__init__(self, path, share, tag)
-        assert_dir(self.get_path().encode(ENCODING))
+        assert_dir(self.get_path())
         dict.__init__(self)
         
     def __str__(self):
         return "{Dc:%s(?%s,'%s',#%d) : %s}"\
-               %(self.name.encode(ENCODING),
+               %(self.name,
                  self._shared and "Y" or "-",
                  self._tag.encode(ENCODING)  or "-",
                  self.nb_shared(),
@@ -424,13 +423,12 @@ class DirContainer(dict, ContainerMixin):
     def _add(self, local_key, value=None):
         """add File/DirContainer"""
         path = os.path.join(self.get_path(), local_key)
-        if os.path.isdir(path.encode(ENCODING)):
+        if os.path.isdir(path):
             dict.__setitem__(self, local_key, value or DirContainer(path))
-        elif os.path.isfile(path.encode(ENCODING)):
+        elif os.path.isfile(path):
             dict.__setitem__(self, local_key, value or FileContainer(path))
         else:
-            raise AssertionError("%s not a valid file/dir" \
-                                 % path.encode(ENCODING))
+            raise AssertionError("%s not a valid file/dir" % path)
         return dict.__getitem__(self, local_key)
 
     def has_key(self, full_path):
@@ -475,26 +473,21 @@ class DirContainer(dict, ContainerMixin):
     def expand_dir(self, full_path=None):
         """put into cache new information when dir expanded in tree"""
         if full_path:
-            assert_dir(full_path.encode(ENCODING))
+            assert isinstance(full_path, str), "expand_dir expects a string as path"
+        if full_path:
+            assert_dir(full_path)
             container = self[full_path]
         else:
             container = self
         container_path = container.get_path()
-        # bug in list dir: not always returning unicode!! may return
-        # str if not ascii.
         for file_name in os.listdir(container_path):
-            try:
-                if isinstance(file_name, str):
-                    file_name = unicode(file_name, ENCODING)
-                path = os.path.join(container_path, file_name)
-                container.add(path)
-            except UnicodeDecodeError:
-                print "Unicode error on %s", file_name
+            path = os.path.join(container_path, file_name)
+            container.add(path)
 
     def share_content(self, full_path, share=True):
         """wrapps sharing methods matching 'full_path' with list or path"""
-        if isinstance(full_path, str) or isinstance(full_path, unicode):
-            assert_dir(full_path.encode(ENCODING))
+        if isinstance(full_path, str):
+            assert_dir(full_path)
             self[full_path]._share_dir(share)
         elif isinstance(full_path, list) or isinstance(full_path, tuple):
             self._share_dirs(full_path, share)
@@ -514,12 +507,12 @@ class DirContainer(dict, ContainerMixin):
 
     def share_container(self, full_path, share=True):
         """wrapps sharing methods matching 'full_path' with list or path"""
-        if isinstance(full_path, unicode):
+        if isinstance(full_path, str):
             self._share_file(full_path, share)
         elif isinstance(full_path, list) or isinstance(full_path, tuple):
             self._share_files(full_path, share)
         else:
-            raise TypeError("full_path '%s' expected as list or unicode"\
+            raise TypeError("full_path '%s' expected as list or string"\
                             % full_path)
         
     def _share_file(self, full_path, share=True):
@@ -533,12 +526,12 @@ class DirContainer(dict, ContainerMixin):
 
     def tag_container(self, full_path, tag=DEFAULT_TAG):
         """wrapps sharing methods matching 'full_path' with list or path"""
-        if isinstance(full_path, unicode):
+        if isinstance(full_path, str):
             self._tag_file(full_path, tag)
         elif isinstance(full_path, list) or isinstance(full_path, tuple):
             self._tag_files(full_path, tag)
         else:
-            raise TypeError("full_path '%s' expected as list or unicode"\
+            raise TypeError("full_path '%s' expected as list or string"\
                             % full_path)
 
     def _tag_files(self, full_paths, tag):

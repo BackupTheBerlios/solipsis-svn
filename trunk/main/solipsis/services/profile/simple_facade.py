@@ -20,7 +20,7 @@
 available. This facade will be used both by GUI and unittests."""
 
 from sys import stderr
-from solipsis.services.profile import PROFILE_DIR
+from solipsis.services.profile import ENCODING, PROFILE_DIR
 
 class SimpleFacade:
     """manages user's actions & connects document and view"""
@@ -166,12 +166,14 @@ class SimpleFacade:
     # FILE TAB
     def add_file(self, path):
         """sets new value for repositor"""
+        path = path.encode(ENCODING)
         return self._try_change(path,
                                "add_file",
                                "update_files")
 
     def del_file(self, path):
         """sets new value for repositor"""
+        path = path.encode(ENCODING)
         return self._try_change(path,
                                "del_file",
                                "update_files")

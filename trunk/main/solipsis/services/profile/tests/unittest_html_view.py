@@ -158,10 +158,10 @@ class HtmlTest(unittest.TestCase):
         
     # FILE TAB       
     def test_files(self):
-        self.document.add_file(abspath(u"."))
-        self.document.expand_dir(abspath(u"data"))
-        self.document.share_files((abspath(u"data"), ["routage"], True))
-        self.document.share_file((abspath(u"data/emptydir"), True))
+        self.document.add_file(abspath("."))
+        self.document.expand_dir(abspath("data"))
+        self.document.share_files((abspath("data"), ["routage"], True))
+        self.document.share_file((abspath("data/emptydir"), True))
         self.assert_template()
             
     # OTHERS TAB
