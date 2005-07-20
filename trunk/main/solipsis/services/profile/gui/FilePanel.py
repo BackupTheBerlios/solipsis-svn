@@ -256,7 +256,7 @@ class FilePanel(wx.Panel):
         else:
             str_shared = str(nb_shared)
         self.tree_list.SetItemText(child, u"%s"% str_shared, NB_SHARED_COL)
-        self.tree_list.SetItemText(child, container_path, FULL_PATH_COL)
+        self.tree_list.SetItemText(child, unicode(container_path, ENCODING), FULL_PATH_COL)
         return child
 
     def _get_selected_listitems(self):
