@@ -10,14 +10,22 @@ email = manu@ft.com
 
 [Files]
 /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/date.txt = ,tagos
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/subsubdir = ,none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data = ,none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/TOtO.txt = ,none
 /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/subsubdir/null = shared,empty
 /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1 = shared,none
 /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/subsubdir/dummy.txt = shared,empty
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/.path = ,none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/.svn = ,none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/date.doc = ,none
 /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/routage = shared,none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/.svn = ,none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/profiles = ,none
 /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/emptydir = shared,none
 
 [Others]
-bruce = bruce,Friend,bruce,Tue Jul 19 18:18:19 2005
+bruce = bruce,Friend,bruce,Mon Jul 25 11:08:12 2005
 
 [Custom]
 City = 
@@ -26,6 +34,5 @@ Country =
 Favourite Book = 
 homepage = manu.com
 Favourite Movie = 
-Sport = 
 Studies = 
 

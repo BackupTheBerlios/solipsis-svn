@@ -24,7 +24,7 @@ independant from views"""
 
 import os.path
 from solipsis.services.profile import QUESTION_MARK, \
-     PROFILE_DIR, DOWNLOAD_REPO, DEFAULT_INTERESTS
+     PROFILE_DIR
 from solipsis.services.profile.data import DirContainer
 from solipsis.services.profile.document import SaverMixin, \
      AbstractPersonalData, AbstractSharingData, AbstractContactsData
@@ -38,11 +38,8 @@ class CachePersonalMixin(AbstractPersonalData):
         self.lastname = u"Lastname"
         self.photo = QUESTION_MARK()
         self.email = u"email"
-        self.download_repo = unicode(DOWNLOAD_REPO)
         # dictionary of file. {att_name : att_value}
         self.custom_attributes = {}
-        for interest in DEFAULT_INTERESTS:
-            self.custom_attributes[interest] = u""
         AbstractPersonalData.__init__(self)
         
     # PERSONAL TAB
@@ -101,15 +98,6 @@ class CachePersonalMixin(AbstractPersonalData):
         """returns value of email"""
         return self.email
 
-    def set_download_repo(self, value):
-        """sets new value for download_repo"""
-        AbstractPersonalData.set_download_repo(self, value)
-        self.download_repo = value
-    
-    def get_download_repo(self):
-        """returns value of download_repo"""
-        return self.download_repo
-
     # CUSTOM TAB
     def has_custom_attribute(self, key):
         """return true if the key exists"""
@@ -147,13 +135,13 @@ class CacheSharingMixin(AbstractSharingData):
     def add_file(self, value):
         """create new DirContainer"""
         AbstractSharingData.add_file(self, value)
-        for existing_repo in self.files:
-            if value.startswith(existing_repo):
+        for repo in self.files:
+            if value.startswith(repo):
                 raise ValueError("'%s' part of existing repo %s"\
-                                 %(value, existing_repo))
-            if existing_repo.startswith(value):
+                                 %(value, repo))
+            if repo.startswith(value):
                 raise ValueError("'%s' conflicts with existing repo %s"\
-                                 %(value, existing_repo))
+                                 %(value, repo))
             # else: continue
         self.files[value] = DirContainer(value)
         
@@ -185,12 +173,10 @@ class CacheSharingMixin(AbstractSharingData):
         AbstractSharingData.expand_dir(self, value)
         self._get_sharing_container(value).expand_dir(value)
 
-    def share_dirs(self, pair):
+    def recursive_share(self, (path, share)):
         """forward command to cache"""
-        AbstractSharingData.share_dirs(self, pair)
-        paths, share = pair
-        for path in paths:
-            self._get_sharing_container(path).share_content(path, share)
+        AbstractSharingData.recursive_share(self, (path, share))
+        self.get_container(path).recursive_share(share)
 
     def share_files(self, triplet):
         """forward command to cache"""
@@ -225,19 +211,12 @@ class CacheSharingMixin(AbstractSharingData):
     def get_shared(self, repo_path):
         """returns [shared containers]"""
         return [container for container
-                in self.files[repo_path].flat().values()
+                in self.files[repo_path].flat()
                 if container._shared]
 
     def get_container(self, full_path):
         """returns File/DirContainer correspondind to full_path"""
         return self._get_sharing_container(full_path)[full_path]
-
-    def _get_sharing_container(self, value):
-        """return DirContainer which root is value"""
-        for root_path in self.files:
-            if value.startswith(root_path):
-                return self.files[root_path]
-        raise KeyError("%s not in %s"% (value, str(self.files.keys())))
 
 class CacheContactMixin(AbstractContactsData):
     """Implements API for all contact data in cache"""
@@ -289,3 +268,11 @@ class CacheDocument(CachePersonalMixin, CacheSharingMixin,
         CachePersonalMixin.import_document(self, other_document)
         CacheSharingMixin.import_document(self, other_document)
         CacheContactMixin.import_document(self, other_document)
+
+    def load(self):
+        """load default values if no file"""
+        if not SaverMixin.load(self):
+            CachePersonalMixin.load_defaults(self)
+            return False
+        else:
+            return True

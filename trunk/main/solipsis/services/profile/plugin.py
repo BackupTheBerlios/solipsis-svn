@@ -19,16 +19,14 @@
 # </copyright>
 """main class for plugin. Allow 'plug&Play' into navigator"""
 
-# TODO: create dynamic option object (for standalone & display)
-
-import socket
 import random
 import wx
 import sys
 
 from solipsis.util.wxutils import _
 from solipsis.services.plugin import ServicePlugin
-from solipsis.services.profile import set_solipsis_dir, always_display
+from solipsis.services.profile.prefs import get_prefs
+from solipsis.services.profile import set_solipsis_dir
 from solipsis.services.profile.facade import create_facade, get_facade, \
      create_filter_facade, get_filter_facade
 from solipsis.services.profile.network import NetworkManager
@@ -36,12 +34,9 @@ from solipsis.services.profile.view import EditorView, ViewerView, FilterView
 from solipsis.services.profile.gui.EditorFrame import EditorFrame
 from solipsis.services.profile.gui.ViewerFrame import ViewerFrame
 from solipsis.services.profile.gui.FilterFrame import FilterFrame
-from solipsis.services.profile.gui.DownloadDialog import DownloadDialog
-
       
 class Plugin(ServicePlugin):
     """This the working class for services plugins."""
-
     
     def Init(self, local_ip):
         """
@@ -87,7 +82,6 @@ class Plugin(ServicePlugin):
         set_solipsis_dir(self.service_api.GetDirectory())
         # init windows
         main_window = self.service_api.GetMainWindow()
-        # TODO: create dynamic option object (for standalone & display)
         options = {}
         options["standalone"] = False
         self.editor_frame = EditorFrame(options, main_window, -1, "",
@@ -163,7 +157,7 @@ class Plugin(ServicePlugin):
 
     def get_files(self, peer_id, file_descriptors):
         """request downwload of given files"""
-        if self.editor_frame and always_display():
+        if self.editor_frame and get_prefs().get("display_dl"):
             self.editor_frame.download_dlg.init()
             self.editor_frame.download_dlg.Show()
         deferred = self.network.get_files(peer_id, file_descriptors,
@@ -263,7 +257,7 @@ class Plugin(ServicePlugin):
             
 
     # Peer management
-    # FIXME: reactivate when efficient
+    # FIXME: check really need to call network method
     def NewPeer(self, peer, service):
         """delegate to network"""
         self.peer_services[peer.id_] = (peer, service)

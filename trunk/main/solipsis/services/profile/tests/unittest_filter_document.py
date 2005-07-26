@@ -73,7 +73,8 @@ class MatchTest(unittest.TestCase):
         # add filter for dummy.txt
         self.document.add_file((u'Any', FilterValue(value=u'.*\..*', activate=True)))
         match = PeerMatch(self.peer_desc, self.document)
-        self.assertEquals(match.files[u'Any'][0].get_match(), u'dummy.txt')
+        match_files = [file_container.match for file_container in match.files[u'Any']]
+        self.assertEquals(match_files, ['TOtO.txt', 'dummy.txt'])
 
 class FilterTest(unittest.TestCase):
     """test that all fields are correctly validated"""

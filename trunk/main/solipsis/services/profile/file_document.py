@@ -28,7 +28,7 @@ import time
 import tempfile
 import sys
 from solipsis.services.profile import ENCODING, QUESTION_MARK, \
-     PROFILE_DIR, DOWNLOAD_REPO
+     PROFILE_DIR
 from solipsis.services.profile.data import DEFAULT_TAG, \
      DirContainer, ContainerMixin, \
      PeerDescriptor, load_blogs
@@ -124,18 +124,6 @@ class FilePersonalMixin(AbstractPersonalData):
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
             return u"email"
 
-    def set_download_repo(self, value):
-        """sets new value for download_repo"""
-        AbstractPersonalData.set_download_repo(self, value)
-        self.config.set(SECTION_PERSONAL, "download_repo", value)
-        
-    def get_download_repo(self):
-        """returns value of download_repo"""
-        try:
-            return self.config.get(SECTION_PERSONAL, "download_repo")
-        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-            return DOWNLOAD_REPO
-
     # CUSTOM TAB
     def has_custom_attribute(self, key):
         """return true if the key exists"""
@@ -220,10 +208,10 @@ class FileSharingMixin(AbstractSharingData):
         self.config.set(SECTION_PERSONAL, "repositories",
                         ",".join(repos_list))
         
-    def add(self, value):
+    def add(self, path):
         """sets new value for files"""
-        AbstractSharingData.add(self, value)
-        # html only stores shared/tagged files
+        AbstractSharingData.add(self, path)
+        self._set_file(path)
         
     def remove(self, value):
         """remove custom value"""
@@ -231,18 +219,23 @@ class FileSharingMixin(AbstractSharingData):
         if self.config.has_option(SECTION_CUSTOM, value):
             self.config.remove_option(SECTION_CUSTOM, value)
         
-    def expand_dir(self, value):
+    def expand_dir(self, path):
         """put into cache new information when dir expanded in tree"""
-        AbstractSharingData.expand_dir(self, value)
-        # html doc does not expand anything
+        AbstractSharingData.expand_dir(self, path)
+        for file_name in os.listdir(path):
+            file_path = os.path.join(path, file_name)
+            self._set_file(file_path)
 
-    def share_dirs(self, pair):
+    def recursive_share(self, (path, share)):
         """forward command to cache"""
-        AbstractSharingData.share_dirs(self, pair)
-        paths, share = pair
-        for path in paths:
-            for file_name in os.listdir(path):
-                self._set_file(os.path.join(path, file_name), share=share)
+        AbstractSharingData.recursive_share(self, (path, share))
+        container = self.get_container(path)
+        self._set_file(path, share=share)
+        for sub_container in container.values():
+            if isinstance(sub_container, DirContainer):
+                self.recursive_share((sub_container.get_path(), share))
+            else:
+                self._set_file(sub_container.get_path(), share=share)
 
     def share_files(self, triplet):
         """forward command to cache"""
@@ -250,7 +243,7 @@ class FileSharingMixin(AbstractSharingData):
         dir_path, names, share = triplet
         for name in names:
             self._set_file(os.path.join(dir_path, name), share=share)
-
+ 
     def share_file(self, pair):
         """forward command to cache"""
         AbstractSharingData.share_file(self, pair)
@@ -276,14 +269,14 @@ class FileSharingMixin(AbstractSharingData):
         if not os.path.exists(path):
             raise KeyError("%s not a file"% path)
         # retreive existing values
-        old_share, old_tag = False, DEFAULT_TAG
+        old_share, old_tag = True, DEFAULT_TAG
         if self.config.has_option(SECTION_FILE, path):
             try:
                 old_share, old_tag = self.config.get(SECTION_FILE, path)\
                                      .split(',')
             except (ValueError, ConfigParser.NoSectionError,
                     ConfigParser.NoOptionError):
-                old_share, old_tag = False, DEFAULT_TAG
+                old_share, old_tag = True, DEFAULT_TAG
         # merge old values & new ones
         if tag is None:
             tag = old_tag
@@ -313,7 +306,7 @@ class FileSharingMixin(AbstractSharingData):
             except (ValueError, ConfigParser.NoSectionError,
                     ConfigParser.NoOptionError):
                 print >> sys.stderr, "option %s not well formated"% option
-                option_share, option_tag = False, DEFAULT_TAG
+                option_share, option_tag = True, DEFAULT_TAG
             checked_in = False
             for root_path in dict.keys(containers):
                 if option.startswith(root_path):
@@ -345,10 +338,12 @@ class FileSharingMixin(AbstractSharingData):
                         option_tag = unicode(option_tag, ENCODING)
                 except (ValueError, ConfigParser.NoSectionError,
                         ConfigParser.NoOptionError):
-                    option_share, option_tag = False, DEFAULT_TAG
+                    option_share, option_tag = True, DEFAULT_TAG
                 if option_share:
                     result.append(
-                        ContainerMixin(option, option_share, option_tag))
+                        ContainerMixin(option,
+                                       share=option_share,
+                                       tag=option_tag))
             else:
                 continue
         return result
@@ -528,4 +523,12 @@ class FileDocument(FilePersonalMixin, FileSharingMixin,
         FilePersonalMixin.import_document(self, other_document)
         FileSharingMixin.import_document(self, other_document)
         FileContactMixin.import_document(self, other_document)
+
+    def load(self):
+        """load default values if no file"""
+        if not FileSaverMixin.load(self):
+            FilePersonalMixin.load_defaults(self)
+            return False
+        else:
+            return True
     

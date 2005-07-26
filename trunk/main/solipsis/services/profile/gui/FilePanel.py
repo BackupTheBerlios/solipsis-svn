@@ -7,19 +7,15 @@ import wx, wx.gizmos
 import sys
 from os.path import abspath
 from solipsis.util.wxutils import _
+from solipsis.services.profile.pathutils import formatbytes
 from solipsis.services.profile.facade import get_facade
-from solipsis.services.profile.data import DirContainer, SHARING_ALL, DEFAULT_TAG
-from solipsis.services.profile import ADD_REPO, DEL_REPO, SHARE, UNSHARE, EDIT, PREVIEW, ENCODING
+from solipsis.services.profile.data import DirContainer, DEFAULT_TAG
+from solipsis.services.profile import ADD_REPO, DEL_REPO, ENCODING, \
+     SHARE, UNSHARE, EDIT, PREVIEW, \
+     NAME_COL, SIZE_COL, TAG_COL, SHARED_COL, \
+     NB_SHARED_COL, FULL_PATH_COL
 
 from FileDialog import FileDialog
-
-# tree list
-NB_SHARED_COL = 1
-FULL_PATH_COL = 2
-# dir list
-NAME_COL = 0
-IS_SHARED_COL = 1
-TAG_COL = 2
 
 # begin wxGlade: dependencies
 # end wxGlade
@@ -39,13 +35,11 @@ class FilePanel(wx.Panel):
         self.window_1_pane_2 = wx.Panel(self.window_1, -1)
         self.window_1_pane_1 = wx.Panel(self.window_1, -1)
         self.actions_sizer_staticbox = wx.StaticBox(self, -1, _("Actions"))
-        self.add_button = wx.BitmapButton(self, -1, wx.Bitmap(ADD_REPO(),wx.BITMAP_TYPE_ANY))
-        self.del_button = wx.BitmapButton(self, -1, wx.Bitmap(DEL_REPO(),wx.BITMAP_TYPE_ANY))
-        self.share_button = wx.BitmapButton(self, -1, wx.Bitmap(SHARE(),wx.BITMAP_TYPE_ANY))
-        self.unshare_button = wx.BitmapButton(self, -1, wx.Bitmap(UNSHARE(),wx.BITMAP_TYPE_ANY))
-        self.preview_button = wx.BitmapButton(self, -1, wx.Bitmap(PREVIEW(),wx.BITMAP_TYPE_ANY))
+        self.label_2 = wx.StaticText(self, -1, _("Tag:"))
         self.tag_value = wx.TextCtrl(self, -1, "")
         self.edit_button = wx.BitmapButton(self, -1, wx.Bitmap(EDIT(),wx.BITMAP_TYPE_ANY))
+        self.share_button = wx.BitmapButton(self, -1, wx.Bitmap(SHARE(),wx.BITMAP_TYPE_ANY))
+        self.unshare_button = wx.BitmapButton(self, -1, wx.Bitmap(UNSHARE(),wx.BITMAP_TYPE_ANY))
         self.tree_list = wx.gizmos.TreeListCtrl(self.window_1_pane_1, -1)
         self.dir_list = wx.ListCtrl(self.window_1_pane_2, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
 
@@ -53,6 +47,27 @@ class FilePanel(wx.Panel):
         self.__do_layout()
         # end wxGlade
 
+        # Popup menus
+        self.tree_menu = wx.Menu()
+        self.add_item = wx.MenuItem(self.tree_menu, wx.NewId(), _('Add directory'))
+        self.tree_menu.AppendItem(self.add_item)
+        self.del_item = wx.MenuItem(self.tree_menu, wx.NewId(), _('Remove directory'))
+        self.tree_menu.AppendItem(self.del_item)
+        self.tree_menu.AppendSeparator()
+        self.share_all_item = wx.MenuItem(self.tree_menu, wx.NewId(), _('Share recursively'))
+        self.tree_menu.AppendItem(self.share_all_item)
+        self.unshare_all_item = wx.MenuItem(self.tree_menu, wx.NewId(), _('Unshare recursively'))
+        self.tree_menu.AppendItem(self.unshare_all_item)
+        
+        self.list_menu = wx.Menu()
+        self.tag_item = wx.MenuItem(self.list_menu, wx.NewId(), _('Tag'))
+        self.list_menu.AppendItem(self.tag_item)
+        self.share_item = wx.MenuItem(self.list_menu, wx.NewId(), _('Share'))
+        self.list_menu.AppendItem(self.share_item)
+        self.unshare_item = wx.MenuItem(self.list_menu, wx.NewId(), _('Unshare'))
+        self.list_menu.AppendItem(self.unshare_item)
+
+        # images
         isz = (16, 16)
         tree_il = wx.ImageList(isz[0], isz[1])
         self.tree_fldridx     = tree_il.Add(wx.ArtProvider_GetBitmap(wx.ART_FOLDER,      wx.ART_OTHER, isz))
@@ -68,10 +83,12 @@ class FilePanel(wx.Panel):
         
         # build dir list view
         self.dir_list.InsertColumn(0, _("Name"))
-        self.dir_list.InsertColumn(IS_SHARED_COL, _("Shared"), wx.LIST_FORMAT_RIGHT)
+        self.dir_list.InsertColumn(SIZE_COL, _("Size"), wx.LIST_FORMAT_RIGHT)
+        self.dir_list.InsertColumn(SHARED_COL, _("Shared"), wx.LIST_FORMAT_RIGHT)
         self.dir_list.InsertColumn(TAG_COL, _("Tag"))
-        self.dir_list.SetColumnWidth(0, wx.LIST_AUTOSIZE_USEHEADER)
-        self.dir_list.SetColumnWidth(IS_SHARED_COL, wx.LIST_AUTOSIZE_USEHEADER)
+        self.dir_list.SetColumnWidth(NAME_COL, 150)
+        self.dir_list.SetColumnWidth(SIZE_COL, 60)
+        self.dir_list.SetColumnWidth(SHARED_COL, wx.LIST_AUTOSIZE_USEHEADER)
         self.dir_list.SetColumnWidth(TAG_COL, wx.LIST_AUTOSIZE_USEHEADER)
 
         # specific stuff
@@ -97,18 +114,26 @@ class FilePanel(wx.Panel):
     
     def bind_controls(self):
         """bind all controls with facade"""
-        self.add_button.Bind(wx.EVT_BUTTON, self.on_browse)
-        self.del_button.Bind(wx.EVT_BUTTON, self.on_remove)
-        self.share_button.Bind(wx.EVT_BUTTON, self.on_share)
-        self.unshare_button.Bind(wx.EVT_BUTTON, self.on_unshare)
-        self.edit_button.Bind(wx.EVT_BUTTON, self.on_tag)
-        self.preview_button.Bind(wx.EVT_BUTTON, self.on_preview)
-        
+        # selection
         self.dir_list.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_select_list)
         self.dir_list.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.on_popup_list)
+        
         self.tree_list.Bind(wx.EVT_TREE_SEL_CHANGING, self.on_select_tree)
         self.tree_list.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.on_popup_tree)
         self.tree_list.Bind(wx.EVT_TREE_ITEM_EXPANDED, self.on_expand)
+        # button
+        self.share_button.Bind(wx.EVT_BUTTON, self.on_share)
+        self.unshare_button.Bind(wx.EVT_BUTTON, self.on_unshare)
+        self.edit_button.Bind(wx.EVT_BUTTON, self.on_tag)
+        # popu menus
+        self.Bind(wx.EVT_MENU, self.on_browse, id=self.add_item.GetId())
+        self.Bind(wx.EVT_MENU, self.on_remove, id=self.del_item.GetId())
+        self.Bind(wx.EVT_MENU, self.on_share, id=self.share_all_item.GetId())
+        self.Bind(wx.EVT_MENU, self.on_unshare, id=self.unshare_all_item.GetId())
+        
+        self.Bind(wx.EVT_MENU, self.on_tag, id=self.tag_item.GetId())
+        self.Bind(wx.EVT_MENU, self.on_share, id=self.share_item.GetId())
+        self.Bind(wx.EVT_MENU, self.on_unshare, id=self.unshare_item.GetId())
         
     def on_browse(self, evt):
         """add shared directory to list"""
@@ -120,7 +145,7 @@ class FilePanel(wx.Panel):
             # path chosen
             path = dlg.GetPath()
             get_facade().add_file(path)
-            get_facade().expand_dir(path)
+            get_facade().recursive_share((path, True))
         dlg.Destroy()
         
     def on_remove(self, evt):
@@ -176,27 +201,26 @@ class FilePanel(wx.Panel):
         file_name = self.dir_list.GetItemText(self.dir_list.GetNextItem(-1, state=wx.LIST_STATE_SELECTED))
         full_path = abspath(os.path.join(dir_name, file_name))
         data = get_facade().get_file_container(full_path)
-        # update tag
-        self.tag_value.SetValue(data._tag)
 
     def on_select_tree(self, evt):
         """new shared directory selecetd"""
         self.current_state = self.tree_state
         file_name = self.tree_list.GetItemText(evt.GetItem(), FULL_PATH_COL)
-        if evt.GetItem() != self.root:
-            # update list
-            data = get_facade().get_file_container(abspath(file_name))
-            self._display_dir_content(data)
-            # update tag
-            self.tag_value.SetValue(data._tag)
+        if not file_name:
+            self.dir_list.DeleteAllItems()
+        else:
+            if evt.GetItem() != self.root:
+                data = get_facade().get_file_container(abspath(file_name))
+                self._display_dir_content(data)
 
     def on_popup_list(self, evt):
         item = evt.GetItem()
-        print item.GetText()
+        self.PopupMenu(self.list_menu)
         
     def on_popup_tree(self, evt):
         item = evt.GetItem()
-        print self.tree_list.GetItemText(item, FULL_PATH_COL)
+        self.tree_list.SelectItem(item)
+        self.PopupMenu(self.tree_menu)
 
     def _display_dir_content(self, dir_container):
         """update list view with content of directory"""
@@ -204,32 +228,31 @@ class FilePanel(wx.Panel):
         for name, container in dir_container.iteritems():
             if isinstance(container, DirContainer):
                 index = self.dir_list.InsertImageStringItem(sys.maxint, unicode(name, ENCODING), self.dir_fldridx)
-                self.dir_list.SetStringItem(index, IS_SHARED_COL, str(container._shared))
-                self.dir_list.SetStringItem(index, TAG_COL, container._tag)
+                self.dir_list.SetItemTextColour(index, wx.LIGHT_GREY)
             else:
                 index = self.dir_list.InsertImageStringItem(sys.maxint, unicode(name, ENCODING), self.dir_fileidx)
-                self.dir_list.SetStringItem(index, IS_SHARED_COL, str(container._shared))
+                self.dir_list.SetStringItem(index, SIZE_COL, formatbytes(container.size,
+                                                                        kiloname="Ko",
+                                                                        meganame="Mo",
+                                                                        bytename="o"))
+                self.dir_list.SetItemTextColour(index, container._shared and wx.BLUE or wx.BLACK)
+                self.dir_list.SetStringItem(index, SHARED_COL, str(container._shared))
                 self.dir_list.SetStringItem(index, TAG_COL, container._tag)
-        self.dir_list.SetColumnWidth(0, wx.LIST_AUTOSIZE)
         self.dir_list.SetColumnWidth(TAG_COL, wx.LIST_AUTOSIZE)
-        self.dir_list.SetColumnWidth(IS_SHARED_COL, wx.LIST_AUTOSIZE)
     
     def cb_update_tree(self, container):
         """synchronize tree list with sharing container"""
         # update tree
         self._add_container_in_tree(self.root, container)
         # update list
-        selected_item = None
         try:
             selected_item = self.tree_list.GetItemText(self.tree_list.GetSelection(), FULL_PATH_COL)
-        except:
-            # no selection
-            pass
-        if selected_item:
             data = get_facade().get_file_container(abspath(selected_item))
             self._display_dir_content(data)
-        # update file dialog
-        self.file_dlg.refresh()
+        except:
+            #no selection
+            pass
+        self.tree_list.Expand(self.root)
 
     def _add_container_in_tree(self, parent, container):
         """format item in tree view"""
@@ -251,10 +274,7 @@ class FilePanel(wx.Panel):
         else:
             child = container.get_data()
         nb_shared = container.nb_shared()
-        if nb_shared == SHARING_ALL:
-            str_shared = "All"
-        else:
-            str_shared = str(nb_shared)
+        str_shared = str(nb_shared)
         self.tree_list.SetItemText(child, u"%s"% str_shared, NB_SHARED_COL)
         self.tree_list.SetItemText(child, unicode(container_path, ENCODING), FULL_PATH_COL)
         return child
@@ -278,19 +298,13 @@ class FilePanel(wx.Panel):
     def __set_properties(self):
         """init widgets properties"""
         # begin wxGlade: FilePanel.__set_properties
-        self.add_button.SetToolTipString(_("Add repository"))
-        self.add_button.SetSize(self.add_button.GetBestSize())
-        self.del_button.SetToolTipString(_("Remove repository"))
-        self.del_button.SetSize(self.del_button.GetBestSize())
+        self.tag_value.SetToolTipString(_("Complementary information on file"))
+        self.edit_button.SetToolTipString(_("Tag"))
+        self.edit_button.SetSize(self.edit_button.GetBestSize())
         self.share_button.SetToolTipString(_("Share"))
         self.share_button.SetSize(self.share_button.GetBestSize())
         self.unshare_button.SetToolTipString(_("Unshare"))
         self.unshare_button.SetSize(self.unshare_button.GetBestSize())
-        self.preview_button.SetToolTipString(_("Preview your shared files"))
-        self.preview_button.SetSize(self.preview_button.GetBestSize())
-        self.tag_value.SetToolTipString(_("Complementary information on file"))
-        self.edit_button.SetToolTipString(_("Apply comment"))
-        self.edit_button.SetSize(self.edit_button.GetBestSize())
         # end wxGlade
 
     def __do_layout(self):
@@ -300,13 +314,11 @@ class FilePanel(wx.Panel):
         sizer_2 = wx.BoxSizer(wx.HORIZONTAL)
         sizer_1 = wx.BoxSizer(wx.HORIZONTAL)
         actions_sizer = wx.StaticBoxSizer(self.actions_sizer_staticbox, wx.HORIZONTAL)
-        actions_sizer.Add(self.add_button, 0, wx.EXPAND|wx.FIXED_MINSIZE, 0)
-        actions_sizer.Add(self.del_button, 0, wx.EXPAND|wx.FIXED_MINSIZE, 0)
+        actions_sizer.Add(self.label_2, 0, wx.ALIGN_CENTER_VERTICAL|wx.ADJUST_MINSIZE, 0)
+        actions_sizer.Add(self.tag_value, 1, wx.LEFT|wx.RIGHT|wx.EXPAND|wx.FIXED_MINSIZE, 5)
+        actions_sizer.Add(self.edit_button, 0, wx.EXPAND|wx.FIXED_MINSIZE, 0)
         actions_sizer.Add(self.share_button, 0, wx.EXPAND|wx.FIXED_MINSIZE, 0)
         actions_sizer.Add(self.unshare_button, 0, wx.EXPAND|wx.FIXED_MINSIZE, 0)
-        actions_sizer.Add(self.preview_button, 0, wx.ADJUST_MINSIZE, 0)
-        actions_sizer.Add(self.tag_value, 1, wx.LEFT|wx.EXPAND|wx.FIXED_MINSIZE, 3)
-        actions_sizer.Add(self.edit_button, 0, wx.EXPAND|wx.FIXED_MINSIZE, 0)
         file_sizer.Add(actions_sizer, 0, wx.ALL|wx.EXPAND, 3)
         sizer_1.Add(self.tree_list, 1, wx.EXPAND, 0)
         self.window_1_pane_1.SetAutoLayout(True)
@@ -318,13 +330,15 @@ class FilePanel(wx.Panel):
         self.window_1_pane_2.SetSizer(sizer_2)
         sizer_2.Fit(self.window_1_pane_2)
         sizer_2.SetSizeHints(self.window_1_pane_2)
-        self.window_1.SplitVertically(self.window_1_pane_1, self.window_1_pane_2, 200)
+        self.window_1.SplitVertically(self.window_1_pane_1, self.window_1_pane_2, 180)
         file_sizer.Add(self.window_1, 1, wx.EXPAND, 0)
         self.SetAutoLayout(True)
         self.SetSizer(file_sizer)
         file_sizer.Fit(self)
         file_sizer.SetSizeHints(self)
         # end wxGlade
+        # reset splitter since bug in wxGlade
+        self.window_1.SplitVertically(self.window_1_pane_1, self.window_1_pane_2, 180)
 
 # end of class FilePanel
 
@@ -383,24 +397,34 @@ class SelectedTreeState(FilePanelState):
         
     def on_share(self, evt):
         """share all files in directory"""
-        selections = [self.owner.tree_list.GetItemText(selected_item, FULL_PATH_COL)
-                      for selected_item in self.owner.tree_list.GetSelections()]
-        get_facade().share_dirs((selections, True))
+        for selection in self.get_selection():
+            get_facade().recursive_share((selection, True))
         self.owner.do_modified(True)
         
     def on_unshare(self, evt):
         """share all files in directory"""
-        selections = [self.owner.tree_list.GetItemText(selected_item, FULL_PATH_COL)
-                      for selected_item in self.owner.tree_list.GetSelections()]
-        get_facade().share_dirs((selections, False))
-        for selection in selections:
-            get_facade().share_file((selection, False))
+        for selection in self.get_selection():
+            get_facade().recursive_share((selection, False))
         self.owner.do_modified(True)
         
     def on_tag(self, evt):
         """tag selected files or directory"""
-        selections = [self.owner.tree_list.GetItemText(selected_item, FULL_PATH_COL)
-                      for selected_item in self.owner.tree_list.GetSelections()]
-        for selection in selections:
+        for selection in self.get_selection():
             get_facade().tag_file((selection, self.owner.tag_value.GetValue()))
         self.owner.do_modified(True)
+
+    def get_selection(self):
+        selections = []
+        # all repositories
+        if self.owner.root in self.owner.tree_list.GetSelections():
+            child, cookie = self.owner.tree_list.GetFirstChild(self.owner.root)
+            selections.append(self.owner.tree_list.GetItemText(child, FULL_PATH_COL))
+            next = self.owner.tree_list.GetNextSibling(child)
+            while next.IsOk():
+                selections.append(self.owner.tree_list.GetItemText(next, FULL_PATH_COL))
+                next = self.owner.tree_list.GetNextSibling(next)
+        # selected only
+        else:
+            selections = [self.owner.tree_list.GetItemText(selected_item, FULL_PATH_COL)
+                          for selected_item in self.owner.tree_list.GetSelections()]
+        return selections

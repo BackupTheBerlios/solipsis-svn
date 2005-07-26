@@ -63,7 +63,6 @@ class AbstractView:
         self.update_lastname()
         self.update_photo()
         self.update_email()
-        self.update_download_repo()
         # custom tab
         self.update_custom_attributes()
         # FILE TAB
@@ -90,10 +89,6 @@ class AbstractView:
 
     def update_email(self):
         """email"""
-        raise NotImplementedError
-
-    def update_download_repo(self):
-        """download_repo"""
         raise NotImplementedError
 
     # CUSTOM TAB
@@ -157,10 +152,6 @@ class PrintView(AbstractView):
     def update_email(self):
         """email"""
         self.println(self._desc.document.get_email())   
-
-    def update_download_repo(self):
-        """download_repo"""
-        self.println(self._desc.document.get_download_repo())
 
     # CUSTOM TAB
     def update_custom_attributes(self):
@@ -250,12 +241,6 @@ class HtmlView(AbstractView):
         if self.auto_refresh:
             self._update_view() 
 
-    def update_download_repo(self):
-        """download_repo"""
-        self.context.addGlobal("download_repo", self._desc.document.get_download_repo())
-        if self.auto_refresh:
-            self._update_view()
-
     def update_custom_attributes(self):
         """dict custom_attributes"""
         self.context.addGlobal("attributes",
@@ -273,8 +258,8 @@ class HtmlView(AbstractView):
     # FILE TAB : frame.file_tab
     def update_files(self):
         """file"""
-        # define wrapper to make available some functions to template
         class unicodeWrapper(unicode):
+            """wrapper which adds 'basemane'"""
             def __init__(self, *args):
                 unicode.__init__(self, *args)
                 self.basename = os.path.basename(self)
@@ -311,7 +296,8 @@ class EditorView(AbstractView):
     # PERSONAL TAB: frame.personal_tab
     def update_title(self):
         """title"""
-        self.frame.personal_tab.title_value.SetValue(self._desc.document.get_title())
+        self.frame.personal_tab.title_value.SetValue(
+            self._desc.document.get_title())
 
     def update_firstname(self):
         """firstname"""
@@ -333,15 +319,10 @@ class EditorView(AbstractView):
         self.frame.personal_tab.email_value.SetValue(
             self._desc.document.get_email())     
 
-    def update_download_repo(self):
-        """download_repo"""
-        self.frame.file_tab.file_dlg.set_download_repo(
-            self._desc.document.get_download_repo())
-
     def update_custom_attributes(self):
         """dict custom_attributes"""
         self.frame.personal_tab.custom_list.DeleteAllItems()
-        for key, value in self._desc.document.get_custom_attributes().iteritems():
+        for key, value in self._desc.document.get_custom_attributes().items():
             index = self.frame.personal_tab.custom_list.InsertStringItem(
                 sys.maxint, key)
             self.frame.personal_tab.custom_list.SetStringItem(index, 1, value)
@@ -358,6 +339,8 @@ class EditorView(AbstractView):
             self.frame.file_tab.dir_list.DeleteAllItems()
         for sharing_container in self._desc.document.get_files().values():
             self.frame.file_tab.cb_update_tree(sharing_container)
+        if self.frame.file_tab.file_dlg.IsShown():
+            self.frame.file_tab.file_dlg.refresh()
         
     # OTHERS TAB
     def update_peers(self):
@@ -395,11 +378,6 @@ class ViewerView(AbstractView):
     def update_email(self):
         """email"""
         pass
-
-    def update_download_repo(self):
-        """download_repo"""
-        self.frame.file_dlg.set_download_repo(
-            self._desc.document.get_download_repo())
 
     # CUSTOM TAB
     def update_custom_attributes(self):
@@ -482,16 +460,13 @@ class FilterView(AbstractView):
         tab.email_value.Enable(filter_email.activated)
         tab.email_value.SetValue(filter_email.description)
 
-    def update_download_repo(self):
-        """download_repo"""
-        pass
-
     # CUSTOM TAB
     def update_custom_attributes(self):
         """custom_attributes"""
         filters_list = self.frame.personal_filter_tab.p_filters_list
         filters_list.DeleteAllItems()
-        for key, filter_value in self._desc.document.get_custom_attributes().iteritems():
+        for key, filter_value \
+                in self._desc.document.get_custom_attributes().items():
             index = filters_list.InsertStringItem(sys.maxint, key)
             filters_list.SetStringItem(index, 1, filter_value.description)
         

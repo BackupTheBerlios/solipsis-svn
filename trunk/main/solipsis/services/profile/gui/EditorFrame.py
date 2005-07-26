@@ -8,7 +8,8 @@ from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxy
 from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile.data import PeerDescriptor
-from solipsis.services.profile import PROFILE_DIR, skip_disclaimer, always_display
+from solipsis.services.profile.prefs import get_prefs
+from solipsis.services.profile import PROFILE_DIR
 
 from solipsis.services.profile.gui.FileDialog import FileDialog
 from solipsis.services.profile.gui.ProfileDialog import ProfileDialog
@@ -48,9 +49,22 @@ class EditorFrame(wx.Frame):
         self.quit_item = wx.MenuItem(self.profile_item, wx.NewId(), _("&Close\tCtrl+W"), _("Close profile management"), wx.ITEM_NORMAL)
         self.profile_item.AppendItem(self.quit_item)
         self.profile_menu.Append(self.profile_item, _("Action"))
+        self.files_menu = wx.Menu()
+        self.add_item = wx.MenuItem(self.files_menu, wx.NewId(), _("&Add directory...\tCtrl+A"), "", wx.ITEM_NORMAL)
+        self.files_menu.AppendItem(self.add_item)
+        self.del_item = wx.MenuItem(self.files_menu, wx.NewId(), _("&Remove directory...\tCtrl+R"), "", wx.ITEM_NORMAL)
+        self.files_menu.AppendItem(self.del_item)
+        self.files_menu.AppendSeparator()
+        self.share_item = wx.MenuItem(self.files_menu, wx.NewId(), _("Share"), "", wx.ITEM_NORMAL)
+        self.files_menu.AppendItem(self.share_item)
+        self.unshare_item = wx.MenuItem(self.files_menu, wx.NewId(), _("Unshare"), "", wx.ITEM_NORMAL)
+        self.files_menu.AppendItem(self.unshare_item)
+        self.profile_menu.Append(self.files_menu, _("Files"))
         self.help_menu = wx.Menu()
-        self.preview_item = wx.MenuItem(self.help_menu, wx.NewId(), _("Preview...\tCtrl+P"), "", wx.ITEM_NORMAL)
+        self.preview_item = wx.MenuItem(self.help_menu, wx.NewId(), _("&Profile...\tCtrl+P"), _("Preview your profile"), wx.ITEM_NORMAL)
         self.help_menu.AppendItem(self.preview_item)
+        self.shared_item = wx.MenuItem(self.help_menu, wx.NewId(), _("S&hared Files...\tCtrl+H"), _("Preview your shared files"), wx.ITEM_NORMAL)
+        self.help_menu.AppendItem(self.shared_item)
         self.help_menu.AppendSeparator()
         self.about_item = wx.MenuItem(self.help_menu, wx.NewId(), _("About...\tCtrl+?"), "", wx.ITEM_NORMAL)
         self.help_menu.AppendItem(self.about_item)
@@ -69,11 +83,11 @@ class EditorFrame(wx.Frame):
             #put here special initialisation for standalone editor
             pass
         self.profile_dlg = ProfileDialog(parent, -1, plugin=self.plugin)
-        self.download_dlg = UIProxy(DownloadDialog(always_display(), parent, -1))
+        self.download_dlg = UIProxy(DownloadDialog(get_prefs().get("display_dl"), parent, -1))
         # events
         self.bind_controls()
         # disclaimer
-        if not skip_disclaimer():
+        if get_prefs().get("disclaimer"):
             self.on_about(None)
 
     def on_change_facade(self):
@@ -93,9 +107,15 @@ class EditorFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_save, id=self.save_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_close, id=self.quit_item.GetId())
         self.Bind(wx.EVT_CLOSE, self.on_close)
+        # Files
+        self.Bind(wx.EVT_MENU, self.file_tab.on_browse, id=self.add_item.GetId())
+        self.Bind(wx.EVT_MENU, self.file_tab.on_remove, id=self.del_item.GetId())
+        self.Bind(wx.EVT_MENU, self.file_tab.on_share, id=self.share_item.GetId())
+        self.Bind(wx.EVT_MENU, self.file_tab.on_unshare, id=self.unshare_item.GetId())
         # about
-        self.Bind(wx.EVT_MENU, self.on_about,id=self.about_item.GetId())
         self.Bind(wx.EVT_MENU, self.on_display_profile, id=self.preview_item.GetId())
+        self.Bind(wx.EVT_MENU, self.file_tab.on_preview, id=self.shared_item.GetId())
+        self.Bind(wx.EVT_MENU, self.on_about,id=self.about_item.GetId())
         if self.options["standalone"]:
             #put here special initialisation for standalone editor
             pass
@@ -136,23 +156,23 @@ class EditorFrame(wx.Frame):
                 wx.YES_NO | wx.ICON_INFORMATION)
             if dlg.ShowModal() == wx.ID_YES:
                 self.on_save(evt)
+        # save size
+        new_size = self.GetSize()
+        get_prefs().set("profile_width", new_size.GetWidth())
+        get_prefs().set("profile_height", new_size.GetHeight())
         # close dialog
         if self.options["standalone"]:
-            self._close()
+            self.profile_dlg.Destroy()
+            self.Destroy()
+            self.options['App'].ExitMainLoop()
         else:
             self.Hide()
 
-    def _close(self):
-        """termainate application"""
-        self.profile_dlg.Destroy()
-        self.Destroy()
-        sys.exit()
-        
     def on_about(self, evt):
         """display about"""
         # not modal because would freeze the wx thread while twisted
         # one goes on and initialize profile
-        about_dlg = AboutDialog(not skip_disclaimer(), self, -1)
+        about_dlg = AboutDialog(get_prefs().get("disclaimer"), self, -1)
         about_dlg.Show()
 
     def on_display_profile(self, evt):
@@ -179,7 +199,10 @@ class EditorFrame(wx.Frame):
         for i in range(len(profile_statusbar_fields)):
             self.profile_statusbar.SetStatusText(profile_statusbar_fields[i], i)
         # end wxGlade
-        
+        # set previous size
+        width = get_prefs().get("profile_width")
+        height = get_prefs().get("profile_height")
+        self.SetSize((width, height))
         self.do_modified(False)
         self.activate_item.Check()
         # should be passed through constructor but wxglade does not allow it

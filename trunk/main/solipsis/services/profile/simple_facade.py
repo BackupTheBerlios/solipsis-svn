@@ -144,13 +144,6 @@ class SimpleFacade:
                                "set_email",
                                "update_email")
 
-    def change_download_repo(self, path):
-        """sets new value for description"""
-        path = path.encode(ENCODING)
-        return self._try_change(path,
-                               "set_download_repo",
-                               "update_download_repo")
-
     # CUSTOM TAB
     def add_custom_attributes(self, (key, value)):
         """sets new value for custom_attributes"""

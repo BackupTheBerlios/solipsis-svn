@@ -1,4 +1,4 @@
-# pylint: disable-msg=W0223
+# pylint: disable-msg=W0223,R0922
 #
 # <copyright>
 # <copyright>
@@ -30,8 +30,7 @@ import ConfigParser
 from os.path import isfile, isdir
 from solipsis.services.profile import PROFILE_DIR, PROFILE_EXT, DEFAULT_INTERESTS
 from solipsis.services.profile.data import  Blogs, retro_compatibility, \
-     DirContainer, FileContainer, ContainerMixin, \
-     SharedFiles, PeerDescriptor
+     DirContainer, SharedFiles, PeerDescriptor
 
 SECTION_PERSONAL = "Personal"
 SECTION_CUSTOM = "Custom"
@@ -94,10 +93,7 @@ class AbstractPersonalData:
     """define API for all pesonal data"""
 
     def __init__(self):
-        # load default values
-        for custom_interest in DEFAULT_INTERESTS:
-            if not self.has_custom_attribute(custom_interest):
-                self.add_custom_attributes((custom_interest, u""))
+        pass
         
     def import_document(self, other_document):
         """copy data from another document into self"""
@@ -108,13 +104,18 @@ class AbstractPersonalData:
             self.set_lastname(other_document.get_lastname())
             self.set_photo(other_document.get_photo())
             self.set_email(other_document.get_email())
-            self.set_download_repo(other_document.get_download_repo())
             # custom data
             attributes = other_document.get_custom_attributes()
             for key, val in attributes.iteritems():
                 self.add_custom_attributes((key, val))
         except TypeError, error:
             print error, "Using default values for personal data"
+
+    def load_defaults(self):
+        """set sample of default custom attributes"""
+        for custom_interest in DEFAULT_INTERESTS:
+            if not self.has_custom_attribute(custom_interest):
+                self.add_custom_attributes((custom_interest, u""))
             
     # PERSONAL TAB    
     def set_title(self, value):
@@ -169,14 +170,6 @@ class AbstractPersonalData:
         """returns value of email"""
         raise NotImplementedError
         
-    def set_download_repo(self, value):
-        """sets new value for download_repo"""
-        if not isinstance(value, str):
-            raise TypeError("download_repo '%s' expected as str"% value)
-    def get_download_repo(self):
-        """returns value of download_repo"""
-        raise NotImplementedError
-        
     # CUSTOM TAB
     def has_custom_attribute(self, key):
         """return true if the key exists"""
@@ -210,10 +203,12 @@ class AbstractSharingData:
             self.reset_files()
             for repo, sharing_cont in other_document.get_files().iteritems():
                 self.add_file(repo)
-                for full_path, container in sharing_cont.flat().iteritems():
+                for container in sharing_cont.flat():
                     try:
-                        self.share_file((full_path, container._shared))
-                        self.tag_file((full_path, container._tag))
+                        self.share_file((container.get_path(),
+                                         container._shared))
+                        self.tag_file((container.get_path(),
+                                       container._tag))
                     except KeyError, err:
                         print "Error on file name:", err
         except TypeError, error:
@@ -263,17 +258,12 @@ class AbstractSharingData:
         for dir_container in [cont for cont in container.values()
                               if isinstance(cont, DirContainer)]:
             self.expand_dir(dir_container.get_path())
-
-    def share_dirs(self, pair):
+            
+    def recursive_share(self, (path, share)):
         """forward command to cache"""
-        if not isinstance(pair, list) and not isinstance(pair, tuple):
-            raise TypeError("argument ofshare_dir expected as list or tuple")
-        elif len(pair) != 2:
-            raise TypeError("argument o fshare_dir expected as"
-                            " couple (path, share)")
-        if not isinstance(pair[0], list) and not isinstance(pair[0], tuple):
-            raise TypeError("names expected as list or tuple")
-
+        if not isinstance(path, str):
+            raise TypeError("path expected as str")
+        
     def share_files(self, triplet):
         """forward command to cache"""
         if not isinstance(triplet, list) and not isinstance(triplet, tuple):
@@ -330,20 +320,14 @@ class AbstractSharingData:
         """return {repo: shared files}"""
         shared = SharedFiles()
         for repository in self.get_repositories():
-            shared_files = [file_cont for file_cont
-                            in self.get_shared(repository)
-                            if (isinstance(file_cont, ContainerMixin)
-                                and not isinstance(file_cont, DirContainer))]
-            shared_dirs = [dir_container for dir_container
-                           in self.get_shared(repository)
-                           if isinstance(dir_container, DirContainer)]
-            for shared_dir in shared_dirs:
-                shared_dir.expand_dir()
-                shared_files += [file_cont for file_cont
-                                 in shared_dir.values()
-                                 if isinstance(file_cont, FileContainer)
-                                 and not file_cont in shared_files]
-            shared[repository] = shared_files
+            # copy containers wich are shared. Copy does not copy
+            # callbacks, which allows pickle to work on higher levels
+            copied_container = self.get_container(repository).copy(
+                validator=lambda container: (isinstance(container, DirContainer)
+                                             or container._shared))
+            shared[repository] = [f_container
+                                  for f_container in copied_container.flat()
+                                  if not isinstance(f_container, DirContainer)]
         return shared
         
     def get_shared(self, repo_path):
@@ -353,6 +337,14 @@ class AbstractSharingData:
     def get_container(self, full_path):
         """returns File/DirContainer correspondind to full_path"""
         raise NotImplementedError
+
+    def _get_sharing_container(self, value):
+        """return DirContainer which root is value"""
+        files = self.get_files()
+        for root_path in files:
+            if value.startswith(root_path):
+                return files[root_path]
+        raise KeyError("%s not in %s"% (value, str(files.keys())))
             
 class AbstractContactsData:
     """define API for all contacts' data"""
@@ -546,3 +538,11 @@ class AbstractDocument(AbstractPersonalData, AbstractSharingData,
         AbstractPersonalData.import_document(self, other_document)
         AbstractSharingData.import_document(self, other_document)
         AbstractContactsData.import_document(self, other_document)
+
+    def load(self):
+        """load default values if no file"""
+        if not SaverMixin.load(self):
+            AbstractPersonalData.load_defaults(self)
+            return False
+        else:
+            return True

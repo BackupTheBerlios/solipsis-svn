@@ -14,6 +14,7 @@ class EditorApp(wx.App):
     """Top-level class of GUI: application"""
     def __init__(self, options, *args):
         self.options = options
+        self.options['App'] = self
         wx.App.__init__(self, *args)
         
     def OnInit(self):

@@ -6,7 +6,7 @@ import sys
 
 from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxyReceiver
-from solipsis.services.profile import skip_disclaimer
+from solipsis.services.profile.prefs import get_prefs
 from solipsis.services.profile.facade import get_filter_facade
 from solipsis.services.profile.gui.MatchPanel import MatchPanel
 from solipsis.services.profile.gui.AboutDialog import AboutDialog
@@ -28,7 +28,7 @@ class MatchFrame(wx.Frame, UIProxyReceiver):
         self.match_frame_menubar = wx.MenuBar()
         self.SetMenuBar(self.match_frame_menubar)
         self.action_menu = wx.Menu()
-        self.getfile_item = wx.MenuItem(self.action_menu, wx.NewId(), _("&Get files\\Ctrl+G"), "", wx.ITEM_NORMAL)
+        self.getfile_item = wx.MenuItem(self.action_menu, wx.NewId(), _("&Get files\tCtrl+G"), "", wx.ITEM_NORMAL)
         self.action_menu.AppendItem(self.getfile_item)
         self.closematch_item = wx.MenuItem(self.action_menu, wx.NewId(), _("&Close\tCtrl+W"), "", wx.ITEM_NORMAL)
         self.action_menu.AppendItem(self.closematch_item)
@@ -87,13 +87,18 @@ class MatchFrame(wx.Frame, UIProxyReceiver):
         
     def on_close(self, evt=None):
         """hide  application"""
+        # save size
+        new_size = self.GetSize()
+        get_prefs().set("match_width", new_size.GetWidth())
+        get_prefs().set("match_height", new_size.GetHeight())
+        # do not destroy window
         self.Hide()
         
     def on_about(self, evt):
         """display about"""
         # not modal because would freeze the wx thread while twisted
         # one goes on and initialize profile
-        about_dlg = AboutDialog(not skip_disclaimer(), self, -1)
+        about_dlg = AboutDialog(get_prefs().get("disclaimer"), self, -1)
         about_dlg.Show()
 
     def set_page(self):
@@ -113,6 +118,9 @@ class MatchFrame(wx.Frame, UIProxyReceiver):
         self.SetTitle(_("Matches"))
         self.SetSize((460, 600))
         # end wxGlade
+        width = get_prefs().get("match_width")
+        height = get_prefs().get("match_height")
+        self.SetSize((width, height))
 
     def __do_layout(self):
         # begin wxGlade: MatchFrame.__do_layout

@@ -5,6 +5,7 @@ independant from views"""
 import unittest
 from ConfigParser import ConfigParser
 from os.path import abspath
+from pprint import pprint
 
 from solipsis.services.profile.document import CustomConfigParser, AbstractDocument
 from solipsis.services.profile.file_document import FileDocument
@@ -84,13 +85,6 @@ class DocumentTest(unittest.TestCase):
             self.assertRaises(TypeError, document.set_email, [u"manu@ft", ])
             document.set_email(u"manu@ft.com")
         
-    def test_download_repo(self):
-        """download_repo as unicode"""
-        self.assertRaises(NotImplementedError, self.abstract_doc.get_download_repo)
-        for document in self.documents:
-            self.assertRaises(TypeError, document.set_download_repo, u"anything")
-            self.assertRaises(TypeError, document.set_download_repo, ["anything", ])
-        
     # CUSTOM TAB
     def test_custom_attributes(self):
         """custom_attributes as pair of key/unicode-value"""
@@ -124,16 +118,13 @@ class DocumentTest(unittest.TestCase):
             document.add(abspath("data"))
             document.remove(abspath("data"))
         
-    def test_share_dir(self):
+    def test_recursive_share(self):
         """share dir giving unicode name"""
         for document in self.documents:
             document.add((abspath("data")))
-            self.assertRaises(TypeError, document.share_dirs, "data, True")
-            self.assertRaises(TypeError, document.share_dirs, ("data", ))
-            self.assertRaises(TypeError, document.share_dirs, ("data", True))
-            self.assertRaises(TypeError, document.share_dirs, (abspath("data"), True))
-            document.share_dirs(([abspath("data")], True))
-            document.share_dirs([[abspath("data")], True])
+            self.assertRaises(KeyError, document.recursive_share, ("data", True))
+            self.assertRaises(TypeError, document.recursive_share, (abspath(u"data"), True))
+            document.recursive_share((abspath("data"), True))
         
     def test_share_files(self):
         """share files giving root & unicode names"""
@@ -179,19 +170,18 @@ class DocumentTest(unittest.TestCase):
             document.expand_dir((abspath("data")))
 
     def test_get_container(self):
-        """retreive correct contaier"""
         for document in self.documents:
             document.tag_files((abspath("data/profiles"),
                                ["bruce.prf", ".svn"], u"first"))
             document.share_files((abspath("data/profiles"),
-                                  ["bruce.prf", "demi.prf"], True))
+                                  ["bruce.prf", "demi.prf"], False))
             # check sharing state
             self.assertEquals(document.get_container(
-                abspath("data/profiles/bruce.prf"))._shared, True)
+                abspath("data/profiles/bruce.prf"))._shared, False)
             self.assertEquals(document.get_container(
-                abspath("data/profiles/demi.prf"))._shared, True)
+                abspath("data/profiles/demi.prf"))._shared, False)
             self.assertEquals(document.get_container(
-                abspath("data/profiles/.svn"))._shared, False)
+                abspath("data/profiles/.svn"))._shared, True)
             # check tag
             self.assertEquals(document.get_container(
                 abspath("data/profiles/bruce.prf"))._tag, u"first")
@@ -203,49 +193,58 @@ class DocumentTest(unittest.TestCase):
     def test_get_shared_files(self):
         document = CacheDocument(PROFILE_TEST, PROFILE_DIRECTORY)
         document.add_file(REPO)
-        document.add((abspath("data")))
-        document.share_file((abspath("data"), True))
-        # following line overridden by previous one
-        document.share_file((abspath("data/.path"), True))
-        document.share_files((abspath("data/profiles"),
-                              ["bruce.prf", "demi.prf"],
-                              True))
-        document.share_files((REPO + "/data/subdir1",
-                              ["date.doc"],
+        document.expand_dir(abspath("data"))
+        document.expand_dir(abspath("data/subdir1"))
+        document.share_files((abspath("data"),
+                              [REPO + '/data/.path',
+                               REPO + '/data/.svn',
+                               REPO + '/data/date.txt',
+                               REPO + '/data/emptydir',
+                               REPO + '/data/profiles',
+                               REPO + '/data/subdir1/.svn',
+                               REPO + '/data/subdir1/subsubdir'],
+                              False))
+        document.share_files((abspath("data"),
+                              [REPO + '/data',
+                               REPO + "/data/.path",
+                               REPO + "/data/date.txt",
+                               REPO + "/data/routage",
+                               REPO + '/data/subdir1',
+                               REPO + "/data/subdir1/TOtO.txt",
+                               REPO + "/data/subdir1/date.doc"],
                               True))
         shared_files = [file_container.get_path() for file_container
                         in document.get_shared_files()[REPO]]
         shared_files.sort()
         self.assertEquals(shared_files, [REPO + "/data/.path",
                                          REPO + "/data/date.txt",
-                                         REPO + "/data/profiles/bruce.prf",
-                                         REPO + "/data/profiles/demi.prf",
                                          REPO + "/data/routage",
+                                         REPO + "/data/subdir1/TOtO.txt",
                                          REPO + "/data/subdir1/date.doc"])
-
+        
     def test_multiple_repos(self):
         """coherency when several repos in use"""
         document = CacheDocument(PROFILE_TEST, PROFILE_DIRECTORY)
         # create 2 repos
         document.add_file(REPO + "/data/profiles")
         document.tag_files((REPO + "/data/profiles", ["bruce.prf", ".svn"], u"first"))
-        document.share_files((REPO + "/data/profiles", ["bruce.prf", "demi.prf"], True))
+        document.share_files((REPO + "/data/profiles", ["bruce.prf", "demi.prf"], False))
         document.add_file(REPO + "/data/subdir1")
         document.tag_files((REPO + "/data/subdir1", ["date.doc", ".svn"], u"second"))
-        document.share_files((REPO + "/data/subdir1", ["date.doc", "subsubdir"], True))
+        document.share_files((REPO + "/data/subdir1", ["date.doc", "subsubdir"], False))
         # check sharing state
         self.assertEquals(document.get_container(
-            abspath("data/profiles/bruce.prf"))._shared, True)
+            abspath("data/profiles/bruce.prf"))._shared, False)
         self.assertEquals(document.get_container(
-            abspath("data/profiles/demi.prf"))._shared, True)
+            abspath("data/profiles/demi.prf"))._shared, False)
         self.assertEquals(document.get_container(
-            abspath("data/profiles/.svn"))._shared, False)
+            abspath("data/profiles/.svn"))._shared, True)
         self.assertEquals(document.get_container(
-            abspath("data/subdir1/date.doc"))._shared, True)
+            abspath("data/subdir1/date.doc"))._shared, False)
         self.assertEquals(document.get_container(
-            abspath("data/subdir1/subsubdir"))._shared, True)
+            abspath("data/subdir1/subsubdir"))._shared, False)
         self.assertEquals(document.get_container(
-            abspath("data/subdir1/.svn"))._shared, False)
+            abspath("data/subdir1/.svn"))._shared, True)
         # check tag
         self.assertRaises(ValueError, document.add_file, REPO + "/data/subdir1/subsubdir")
         self.assertRaises(ValueError, document.add_file, REPO + "/data")

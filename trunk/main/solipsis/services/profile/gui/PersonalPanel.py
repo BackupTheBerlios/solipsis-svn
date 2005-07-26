@@ -40,7 +40,7 @@ class PersonalPanel(wx.Panel):
         self.custom_value = wx.TextCtrl(self, -1, _("Harry Potter"))
         self.add_custom_button = wx.BitmapButton(self, -1, wx.Bitmap(ADD_CUSTOM(),wx.BITMAP_TYPE_ANY))
         self.del_custom_button = wx.BitmapButton(self, -1, wx.Bitmap(DEL_CUSTOM(),wx.BITMAP_TYPE_ANY))
-        self.custom_list = wx.ListCtrl(self, -1, style=wx.LC_REPORT|wx.LC_SINGLE_SEL|wx.LC_SORT_ASCENDING|wx.NO_BORDER)
+        self.custom_list = wx.ListCtrl(self, -1, style=wx.LC_REPORT|wx.LC_SORT_ASCENDING|wx.NO_BORDER)
 
         self.__set_properties()
         self.__do_layout()
@@ -130,11 +130,19 @@ class PersonalPanel(wx.Panel):
 
     def on_del(self, evt):
         """a custom attribute has been modified"""
-        # update data
-        index = self.custom_list.FindItem(0, self.key_value.GetValue())
-        if index != -1 and self.custom_list.DeleteItem(index):
-            # update cache
-            get_facade().del_custom_attributes(self.key_value.GetValue())
+        index = -1
+        selected = []
+        for counter in range(self.custom_list.GetSelectedItemCount()):
+            index = self.custom_list.GetNextItem(index, state=wx.LIST_STATE_SELECTED)
+            selected.append(index)
+        # reverse deletion
+        selected.sort()
+        selected.reverse()
+        for index in selected:
+            item_text = self.custom_list.GetItemText(index)
+            if self.custom_list.DeleteItem(index):
+                # update cache
+                get_facade().del_custom_attributes(item_text)
             self.do_modified(True)
 
     def on_change_facade(self):

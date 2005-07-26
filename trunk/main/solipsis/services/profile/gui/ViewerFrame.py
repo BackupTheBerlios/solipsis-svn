@@ -6,8 +6,8 @@ import sys
 
 from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxy
-from solipsis.services.profile import PROFILE_DIR, PROFILE_FILE, \
-     skip_disclaimer
+from solipsis.services.profile import PROFILE_DIR, PROFILE_FILE
+from solipsis.services.profile.prefs import get_prefs
 from solipsis.services.profile.file_document import FileDocument
 from solipsis.services.profile.view import HtmlView
 from solipsis.services.profile.data import PeerDescriptor, load_blogs
@@ -152,10 +152,10 @@ class ViewerFrame(wx.Frame):
             wildcard="Solipsis file (*.prf)|*.prf",
             style=wx.OPEN)
         if dlg.ShowModal() == wx.ID_OK:
-            path = dlg.GetPath()[:-4]
-            loader = FileDocument(path)
+            directory, pseudo = os.path.split(dlg.GetPath()[:-4])
+            loader = FileDocument(pseudo, directory)
             loader.load()
-            blogs = load_blogs(path)
+            blogs = load_blogs(pseudo, directory)
             pseudo = loader.pseudo
             get_facade().fill_data((pseudo, loader))
             get_facade().get_peer(pseudo).set_blog(blogs)
@@ -231,7 +231,7 @@ class ViewerFrame(wx.Frame):
         """display about"""
         # not modal because would freeze the wx thread while twisted
         # one goes on and initialize profile
-        about_dlg = AboutDialog(not skip_disclaimer(), self, -1)
+        about_dlg = AboutDialog(get_prefs().get("disclaimer"), self, -1)
         about_dlg.Show()
 
     def display_profile(self, peer_desc):

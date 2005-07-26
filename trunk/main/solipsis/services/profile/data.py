@@ -28,7 +28,6 @@ from solipsis.services.profile import ENCODING, PROFILE_DIR, \
      BLOG_EXT, BULB_ON_IMG, BULB_OFF_IMG, VERSION
 
 DEFAULT_TAG = u"none"
-SHARING_ALL = -1
 
 def assert_file(path):
     """raise ValueError if not a file"""
@@ -71,6 +70,7 @@ class PeerDescriptor:
         return "%s (%s)"% (self.pseudo, self.state)
 
     def get_id(self):
+        """return id associated with peer (id of node)"""
         return self.node_id
 
     def copy(self):
@@ -84,7 +84,7 @@ class PeerDescriptor:
     def load(self):
         """load both document & blog"""
         self.document.load()
-        self.set_blog(load_blogs(self.pseudo))
+        self.set_blog(load_blogs(self.pseudo, self.document._dir))
 
     def save(self):
         """save both document & blog"""
@@ -288,17 +288,29 @@ class SharedFiles(dict):
 class ContainerMixin:
     """Factorize sharing tools on containers"""
     
-    def __init__(self, path, share=False, tag=DEFAULT_TAG):
+    def __init__(self, path, cb_share=None, share=True, tag=DEFAULT_TAG):
         assert isinstance(path, str), "path [%s] expected as string"% path
-        self._tag = None
-        self._shared = None
-        self._data = None
-        self.tag(tag)
-        self.share(share)
         # init path
         path =  ContainerMixin._validate(self, path)
         self._paths = path.split(os.sep)
         self.name = self._paths[-1]
+        # init other members
+        self._tag = None
+        self.tag(tag)
+        self._data = None
+        # sharing process
+        self.on_share = cb_share
+        self._shared = None
+        self.share(share)
+
+    def copy(self, validator=None):
+        """deep copy of container, without callbacks"""
+        if (not validator) or validator(self):
+            return self.__class__(self.get_path(),
+                                  share=self._shared,
+                                  tag=self._tag)
+        else:
+            return None
 
     def tag(self, tag):
         """set tag"""
@@ -329,17 +341,11 @@ class ContainerMixin:
             path = path[:-1]
         return path
 
-    def import_data(self, container):
-        """copy data from container"""
-        self.tag(container._tag)
-        self.shared(container._shared)
-        self._data = container._data
-        
 class FileContainer(ContainerMixin):
     """Structure to store files info in cache"""
 
-    def __init__(self, path, share=False, tag=DEFAULT_TAG):
-        ContainerMixin.__init__(self, path, share, tag)
+    def __init__(self, path, cb_share=None, share=True, tag=DEFAULT_TAG):
+        ContainerMixin.__init__(self, path, cb_share, share, tag)
         assert_file(self.get_path())
         self.size = os.stat(self.get_path())[stat.ST_SIZE]
         
@@ -349,16 +355,24 @@ class FileContainer(ContainerMixin):
                                    self._tag.encode(ENCODING)  or "-")
     def __repr__(self):
         return str(self)
+    
+    def share(self, share=True):
+        """set sharing status"""
+        if share != self._shared:
+            if self.on_share:
+                self.on_share(share)            
+            ContainerMixin.share(self, share)
 
 class DirContainer(dict, ContainerMixin):
     """Structure to store data in cache:
     
     [item, name, #shared, [data to display on right side]"""
 
-    def __init__(self, path, share=False, tag=DEFAULT_TAG):
-        ContainerMixin.__init__(self, path, share, tag)
+    def __init__(self, path, cb_share=None, share=True, tag=DEFAULT_TAG):
+        ContainerMixin.__init__(self, path, cb_share, share, tag)
         assert_dir(self.get_path())
         dict.__init__(self)
+        self._nb_shared = 0
         
     def __str__(self):
         return "{Dc:%s(?%s,'%s',#%d) : %s}"\
@@ -370,6 +384,16 @@ class DirContainer(dict, ContainerMixin):
     
     def __repr__(self):
         return str(self)
+
+    def copy(self, validator=None):
+        """deep copy of container, without callbacks"""
+        copied_c = ContainerMixin.copy(self, validator)
+        if not copied_c is None:
+            for child in self.values():
+                copied_child = child.copy(validator)
+                if not copied_child is None:
+                    dict.__setitem__(copied_c, copied_child.name, copied_child)
+        return copied_c
 
     def _format_path(self, path):
         """assert path exists and is a file"""
@@ -424,9 +448,11 @@ class DirContainer(dict, ContainerMixin):
         """add File/DirContainer"""
         path = os.path.join(self.get_path(), local_key)
         if os.path.isdir(path):
-            dict.__setitem__(self, local_key, value or DirContainer(path))
+            dict.__setitem__(self, local_key,
+                             value or DirContainer(path, self.add_shared))
         elif os.path.isfile(path):
-            dict.__setitem__(self, local_key, value or FileContainer(path))
+            dict.__setitem__(self, local_key,
+                             value or FileContainer(path, self.add_shared))
         else:
             raise AssertionError("%s not a valid file/dir" % path)
         return dict.__getitem__(self, local_key)
@@ -459,10 +485,11 @@ class DirContainer(dict, ContainerMixin):
 
     def flat(self):
         """returns {path: container}"""
-        result = {}
-        all_keys = self.keys()
-        for key in all_keys:
-            result[key] = self[key]
+        result = []
+        result += self.values()
+        for container in result[:]:
+            if isinstance(container, DirContainer):
+                result += container.flat()
         return result
             
     def add(self, full_path):
@@ -473,8 +500,7 @@ class DirContainer(dict, ContainerMixin):
     def expand_dir(self, full_path=None):
         """put into cache new information when dir expanded in tree"""
         if full_path:
-            assert isinstance(full_path, str), "expand_dir expects a string as path"
-        if full_path:
+            assert isinstance(full_path, str), "expand_dir expects a string"
             assert_dir(full_path)
             container = self[full_path]
         else:
@@ -484,72 +510,52 @@ class DirContainer(dict, ContainerMixin):
             path = os.path.join(container_path, file_name)
             container.add(path)
 
-    def share_content(self, full_path, share=True):
-        """wrapps sharing methods matching 'full_path' with list or path"""
-        if isinstance(full_path, str):
-            assert_dir(full_path)
-            self[full_path]._share_dir(share)
-        elif isinstance(full_path, list) or isinstance(full_path, tuple):
-            self._share_dirs(full_path, share)
-        else:
-            raise TypeError("full_path '%s' expected as list or string"\
-                            % full_path)
-        
-    def _share_dirs(self, full_paths, share=True):
-        """forward command to cache"""
-        for full_path in full_paths:
-            self[full_path]._share_dir(share)
-
-    def _share_dir(self, share=True):
-        """(un)share all files of directory; item by item"""
+    def share(self, share=True):
+        """set sharing status"""
+        ContainerMixin.share(self, share)
         for container in self.values():
-            container.share(share)
+            if isinstance(container, FileContainer):
+                container.share(share)
 
+    def recursive_share(self, share):
+        """set sharing status of content recursively"""
+        ContainerMixin.share(self, share)
+        self.expand_dir()
+        for container in self.values():
+            if isinstance(container, DirContainer):
+                container.expand_dir()
+                container.recursive_share(share)
+            else:
+                container.share(share)
+        
     def share_container(self, full_path, share=True):
         """wrapps sharing methods matching 'full_path' with list or path"""
         if isinstance(full_path, str):
-            self._share_file(full_path, share)
-        elif isinstance(full_path, list) or isinstance(full_path, tuple):
-            self._share_files(full_path, share)
-        else:
-            raise TypeError("full_path '%s' expected as list or string"\
-                            % full_path)
-        
-    def _share_file(self, full_path, share=True):
-        """share given files of dir"""
-        self[full_path].share(share)
-        
-    def _share_files(self, full_paths, share=True):
-        """share given files of dir"""
-        for full_path in full_paths:
             self[full_path].share(share)
-
-    def tag_container(self, full_path, tag=DEFAULT_TAG):
-        """wrapps sharing methods matching 'full_path' with list or path"""
-        if isinstance(full_path, str):
-            self._tag_file(full_path, tag)
         elif isinstance(full_path, list) or isinstance(full_path, tuple):
-            self._tag_files(full_path, tag)
+            for path in full_path:
+                self[path].share(share)
         else:
             raise TypeError("full_path '%s' expected as list or string"\
                             % full_path)
 
-    def _tag_files(self, full_paths, tag):
-        """modify tag of shared file. Share file if not"""
-        for full_path in full_paths:
-            self[full_path].tag(tag)
-
-    def _tag_file(self, full_path, tag):
-        """modify tag of shared file. Share file if not"""
-        self[full_path].tag(tag)
+    def add_shared(self, addition=True):
+        """update number of shared element"""
+        self._nb_shared += addition and 1 or -1
+        if self.on_share:
+            self.on_share(addition)
 
     def nb_shared(self):
         """return number of shared element"""
-        if self._shared:
-            return SHARING_ALL
+        return self._nb_shared
+        
+    def tag_container(self, full_path, tag=DEFAULT_TAG):
+        """wrapps sharing methods matching 'full_path' with list or path"""
+        if isinstance(full_path, str):
+            self[full_path].tag(tag)
+        elif isinstance(full_path, list) or isinstance(full_path, tuple):
+            for path in full_path:
+                self[path].tag(tag)
         else:
-            result = 0
-            for container in self.values():
-                if container._shared:
-                    result += 1
-            return result
+            raise TypeError("full_path '%s' expected as list or string"\
+                            % full_path)

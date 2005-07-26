@@ -1,13 +1,12 @@
 #iso-8859-1
 
 [Personal]
+photo = /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/profile_male.gif
 firstname = Bruce
 title = Mr
-lastname = Willis
-download_repo = /home/emb/.solipsis/download
 repositories = 
 pseudo = bruce
-photo = /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/profile_male.gif
+lastname = Willis
 email = bruce.willis@stars.com
 
 [Files]

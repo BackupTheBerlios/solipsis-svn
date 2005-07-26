@@ -5,7 +5,8 @@ import wx
 import sys
 from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxy
-from solipsis.services.profile import PROFILE_DIR, REGEX_HTML, skip_disclaimer
+from solipsis.services.profile import PROFILE_DIR, REGEX_HTML
+from solipsis.services.profile.prefs import get_prefs
 from solipsis.services.profile.facade import get_filter_facade, get_facade
 from solipsis.services.profile.file_document import FileDocument
 from solipsis.services.profile.gui.AboutDialog import AboutDialog
@@ -125,6 +126,10 @@ class FilterFrame(wx.Frame):
                 wx.YES_NO | wx.ICON_INFORMATION)
             if dlg.ShowModal() == wx.ID_YES:
                 self.on_save(evt)
+        # save size
+        new_size = self.GetSize()
+        get_prefs().set("filter_width", new_size.GetWidth())
+        get_prefs().set("filter_height", new_size.GetHeight())
         # close dialog
         if self.options["standalone"]:
             self._close()
@@ -146,7 +151,7 @@ class FilterFrame(wx.Frame):
         """display about"""
         # not modal because would freeze the wx thread while twisted
         # one goes on and initialize profile
-        about_dlg = AboutDialog(not skip_disclaimer(), self, -1)
+        about_dlg = AboutDialog(get_prefs().get("disclaimer"), self, -1)
         about_dlg.Show()
 
     def do_modified(self, modified):
@@ -167,7 +172,9 @@ class FilterFrame(wx.Frame):
         for i in range(len(filter_statusbar_fields)):
             self.filter_statusbar.SetStatusText(filter_statusbar_fields[i], i)
         # end wxGlade
-        
+        width = get_prefs().get("filter_width")
+        height = get_prefs().get("filter_height")
+        self.SetSize((width, height))
         self.do_modified(False)
         self.activate_item.Check()
         # should be passed through constructor but wxglade does not allow it

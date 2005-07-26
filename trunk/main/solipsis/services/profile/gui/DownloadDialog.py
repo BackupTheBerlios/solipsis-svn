@@ -5,7 +5,8 @@ import wx
 
 from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxyReceiver
-from solipsis.services.profile import set_always_display, DISPLAY_IMG, ENCODING
+from solipsis.services.profile.prefs import get_prefs
+from solipsis.services.profile import DISPLAY_IMG, ENCODING
 
 # begin wxGlade: dependencies
 # end wxGlade
@@ -66,7 +67,7 @@ class DownloadDialog(wx.Dialog, UIProxyReceiver):
 
     def on_check_display(self, evt):
         """set whether disclaimer will be displayed at startup or not"""
-        set_always_display(self.always_display_check.IsChecked())
+        get_prefs().set("display_dl", self.always_display_check.IsChecked())
 
     def on_close(self, evt):
         self.Close()

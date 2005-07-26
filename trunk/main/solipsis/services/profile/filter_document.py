@@ -1,3 +1,6 @@
+# pylint: disable-msg=W0201
+# -> Attribute '%s' defined outside __init__
+#
 # <copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
 # Copyright (C) 2002-2005 France Telecom R&D
@@ -23,7 +26,7 @@ independant from views"""
 import re
 import os.path
 from solipsis.services.profile import PROFILE_DIR, FILTER_EXT, \
-     DEFAULT_INTERESTS, ENCODING
+     ENCODING
 from solipsis.services.profile.document import AbstractPersonalData, \
      CustomConfigParser, SECTION_PERSONAL, SECTION_CUSTOM, SECTION_FILE
 from solipsis.services.profile.file_document import FileSaverMixin
@@ -69,19 +72,23 @@ class FilterValue:
         return FilterResult(self, data)
 
 class FilterResult:
+    """Structure to receive a positive result from a match"""
 
     def __init__(self, filter_value, match):
         self.filter_value = filter_value
         self.match = match
 
     def get_name(self):
+        """return name of fhe filter (ie: personal detrails, custom
+        attributes..."""
         return self.filter_value._name
-        self.match = match
 
     def get_description(self):
+        """return regex"""
         return self.filter_value.description
 
     def get_match(self):
+        """return string which matched"""
         return self.match
 
 class PeerMatch:
@@ -104,6 +111,7 @@ class PeerMatch:
         self.files = {}
 
     def match(self, filter_doc=None):
+        """find matches for all details, attributes and files of given doc"""
         if filter_doc is None:
             from solipsis.services.profile.facade import get_filter_facade
             filter_doc = get_filter_facade().get_document()
@@ -111,8 +119,10 @@ class PeerMatch:
             # personal data
             peer_doc = self.peer_desc.document
             self.title = filter_doc.title.does_match(peer_doc.get_title())
-            self.firstname = filter_doc.firstname.does_match(peer_doc.get_firstname())
-            self.lastname = filter_doc.lastname.does_match(peer_doc.get_lastname())
+            self.firstname = filter_doc.firstname.does_match(
+                peer_doc.get_firstname())
+            self.lastname = filter_doc.lastname.does_match(
+                peer_doc.get_lastname())
             self.photo = filter_doc.photo.does_match(peer_doc.get_photo())
             self.email = filter_doc.email.does_match(peer_doc.get_email())
             # custom attributes
@@ -137,6 +147,7 @@ class PeerMatch:
         return self.peer_desc.node_id
 
     def has_match(self):
+        """return True if any field has raised a match"""
         return self.title or self.firstname or self.lastname \
                or self.photo or self.email \
                or self.customs or self.files
@@ -162,8 +173,6 @@ class FilterPersonalMixin(AbstractPersonalData):
         self.email = FilterValue("email")
         # dictionary of file. {att_name : att_value}
         self.custom_attributes = {}
-        for interest in DEFAULT_INTERESTS:
-            self.custom_attributes[interest] = FilterValue(interest)
         AbstractPersonalData.__init__(self)
 
     def _set(self, member, filter_value):
@@ -229,14 +238,6 @@ class FilterPersonalMixin(AbstractPersonalData):
     def get_email(self):
         """returns value of email"""
         return self.email
-
-    #FIXME: remove from document and put it in options
-    def set_download_repo(self, value):
-        """sets new value for download_repo"""
-        pass
-    def get_download_repo(self):
-        """returns value of download_repo"""
-        return FilterValue()
     
     # CUSTOM TAB
     def has_custom_attribute(self, key):

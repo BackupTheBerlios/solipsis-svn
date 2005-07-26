@@ -50,6 +50,7 @@ def get_filter_facade():
     return FilterFacade.filter_facade
 
 class FilterFacade(SimpleFacade):
+    """facade associating a FilterDocument and a FilterView"""
 
     filter_facade = None
 
@@ -162,11 +163,11 @@ class Facade(SimpleFacade):
                                "expand_children",
                                "update_files")
     
-    def share_dirs(self, (paths, share)):
+    def recursive_share(self, (path, share)):
         """forward command to cache"""
-        paths = [path.encode(ENCODING) for path in paths]
-        return self._try_change((paths, share),
-                               "share_dirs",
+        path = path.encode(ENCODING)
+        return self._try_change((path, share),
+                               "recursive_share",
                                "update_files")
 
     def share_files(self, (path, names, share)):

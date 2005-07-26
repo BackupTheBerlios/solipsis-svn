@@ -30,6 +30,8 @@ DISCLAIMER = "All data in profiles are shared within Solipsis communauty"
 PROFILE_DIR = os.sep.join([os.path.expanduser("~"), u".solipsis", u"profiles"])
 DOWNLOAD_REPO = os.sep.join([os.path.expanduser("~"), ".solipsis", "download"])
 
+PREFS_FILE = os.path.join(PROFILE_DIR, ".preferences")
+
 global solipsis_dir
 
 def set_solipsis_dir(new_dir):
@@ -76,6 +78,15 @@ DEFAULT_INTERESTS = [_("City"), _("Country"),
                      _("Favourite Book"), _("Favourite Movie"),
                      ]
 
+# GUI
+NB_SHARED_COL = 1
+FULL_PATH_COL = 2
+NAME_COL = 0
+SIZE_COL = 1
+SHARED_COL = 2
+TAG_COL = 3
+
+# NETWORK
 KNOWN_PORT = 1160
 FREE_PORTS = range(23000, 23999)
 
@@ -85,41 +96,3 @@ if not os.path.isdir(PROFILE_DIR):
 
 if not os.path.exists(DOWNLOAD_REPO):
     os.mkdir(DOWNLOAD_REPO)
-
-def skip_disclaimer():
-    """returns true if About Dialog must be displayed at launch of
-    profile"""
-    return os.path.exists(os.path.join(PROFILE_DIR, DISCLAIMER_FILE))
-
-def set_display_at_startup(display):
-    """enable/disable display of About Dialog at launch of profile"""
-    if display:
-        if skip_disclaimer():
-            os.remove(os.path.join(PROFILE_DIR, DISCLAIMER_FILE))
-        # else: already configure not to skip
-    else:
-        if skip_disclaimer():
-            # already configure to skip
-            pass
-        else:
-            disclaimer = open(os.path.join(PROFILE_DIR, DISCLAIMER_FILE), "w")
-            disclaimer.close()
-
-def always_display():
-    """returns true if About Dialog must be displayed at launch of
-    profile"""
-    return not os.path.exists(os.path.join(PROFILE_DIR, DISPLAY_FILE))
-
-def set_always_display(display):
-    """enable/disable display of About Dialog at launch of profile"""
-    if display:
-        if always_display():
-            # already configure to skip
-            pass
-        else:
-            os.remove(os.path.join(PROFILE_DIR, DISPLAY_FILE))
-    else:
-        if always_display():
-            displayer = open(os.path.join(PROFILE_DIR, DISPLAY_FILE), "w")
-            displayer.close()
-        # else: already configure not to skip
