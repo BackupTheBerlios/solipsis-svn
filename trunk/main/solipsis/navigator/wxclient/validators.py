@@ -18,92 +18,47 @@
 # </copyright>
 
 import re
+import solipsis.navigator.validators as validator
 
 from solipsis.util.wxutils import Validator, _
 
-
-class _RegexpValidator(Validator):
-    """
-    Intermediate class for regexp-based validators.
-    """
-    value_type = str
+class _RegexpValidator(validator._RegexpValidator, Validator):
 
     def __init__(self, *args, **kargs):
         Validator.__init__(self, *args, **kargs)
+        validator._RegexpValidator.__init__(self)
 
-    def _ReprToData(self, _repr):
-        return self.value_type(_repr).strip()
-
-    def _DataToRepr(self, _data):
-        return unicode(_data)
-
-    def _Validate(self, value):
-        value = value.strip()
-        return len(value) > 0 and self.regexp.match(value)
-
-
-class PortValidator(Validator):
+class PortValidator(validator.PortValidator, Validator):
     """
     Validator for port numbers (1 .. 65535).
     """
     def __init__(self, *args, **kargs):
         Validator.__init__(self, *args, **kargs)
-        self.message = _("Port number must be between 1 and 65535")
+        validator.PortValidator.__init__(self)
 
-    def _ReprToData(self, _repr):
-        return int(_repr)
-
-    def _DataToRepr(self, _data):
-        return str(_data)
-
-    def _Validate(self, value):
-        try:
-            port = int(value)
-            return port > 0 and port < 65336
-        except ValueError:
-            return False
-
-
-class HostnameValidator(_RegexpValidator):
+class HostnameValidator(validator.HostnameValidator, _RegexpValidator):
     """
     Validator for hostnames.
     """
-    regexp = re.compile(r'^[-_\w\.\:]+$')
-
     def __init__(self, *args, **kargs):
-        super(HostnameValidator, self).__init__(*args, **kargs)
-        self.message = _("Please enter a valid hostname or address")
+        Validator.__init__(self, *args, **kargs)
+        validator.HostnameValidator.__init__(self)
 
-
-class NicknameValidator(_RegexpValidator):
+class NicknameValidator(validator.NicknameValidator, _RegexpValidator):
     """
     Validator for nicknames.
     """
-    regexp = re.compile(r'^.+$')
-    value_type = unicode
-
     def __init__(self, *args, **kargs):
-        super(NicknameValidator, self).__init__(*args, **kargs)
-        self.message = _("Please enter a valid nickname")
+        Validator.__init__(self, *args, **kargs)
+        validator.NicknameValidator.__init__(self)
 
-
-class BooleanValidator(Validator):
+class BooleanValidator(validator.BooleanValidator, Validator):
     """
     Validator for booleans (radio buttons, etc.).
     """
     def __init__(self, *args, **kargs):
         Validator.__init__(self, *args, **kargs)
-
-    def _ReprToData(self, _repr):
-        return _repr
-
-    def _DataToRepr(self, _data):
-        return _data
-
-    def _Validate(self, value):
-        assert isinstance(value, bool)
-        return True
-
+        validator.BooleanValidator.__init__(self)
 
 class CoordValidator(Validator):
     """
@@ -111,17 +66,3 @@ class CoordValidator(Validator):
     """
     def __init__(self, *args, **kargs):
         Validator.__init__(self, *args, **kargs)
-        self.message = _("Coordinate must be between 0.0 and 1.0")
-
-    def _ReprToData(self, _repr):
-        return float(_repr)
-
-    def _DataToRepr(self, _data):
-        return str(_data)
-
-    def _Validate(self, value):
-        try:
-            coord = float(value)
-            return coord >= 0.0 and coord <= 1.0
-        except ValueError:
-            return False

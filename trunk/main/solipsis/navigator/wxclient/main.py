@@ -20,25 +20,22 @@
 import sys
 import os
 import socket
-from optparse import OptionParser
 
-# Solipsis Packages
-from solipsis.util.parameter import Parameters
-from app import NavigatorApp
+from solipsis.navigator.main import USAGE, OPTIONS, build_params
+from solipsis.navigator.wxclient.app import NavigatorApp
+
+USAGE += "[--url <url>]"
+OPTIONS.append(
+    {"shortcut": "",
+     "command": "--url",
+     "dest": "url_jump",
+     "action": "store",
+     "default": "",
+     "help": "URL to jump to"})
 
 def main():
-    config_file = "conf/solipsis.conf"
-    usage = "usage: %prog [-f <config file>] [--url <url>]"
-    parser = OptionParser(usage)
-    parser.add_option("-f", "--file", dest="config_file", default=config_file,
-                        help="configuration file")
-    parser.add_option("", "--url", dest="url_jump", default="",
-                        help="URL to jump to")
-    parser.add_option("-M", "--memdebug", dest="memdebug", action="store_true", default=False,
-                        help="dump memory occupation statistics")
-    params = Parameters(parser, config_file=config_file)
-
-    # If an URL has been specified, try to connect to an already running navigator
+    params = build_params()
+    # If an URL has been specified, try to connect to a running navigator
     if params.url_jump:
         filename = os.path.join('state', 'url_jump.port')
         try:
@@ -58,7 +55,8 @@ def main():
                 s.close()
                 sys.exit(0)
 
-    application = NavigatorApp(redirect=False, params=params)
+    application = NavigatorApp(redirect=False, 
+                               params=params)
     application.MainLoop()
     sys.exit(0)
 

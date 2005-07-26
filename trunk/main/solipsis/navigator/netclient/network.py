@@ -17,18 +17,14 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
 
-import threading
 from pprint import pprint
 from cStringIO import StringIO
 
-from solipsis.util.uiproxy import TwistedProxy
-from solipsis.util.remote import RemoteConnector
-from solipsis.navigator.netclient import get_log_stream
-
 from twisted.internet import protocol, reactor, defer
 from twisted.protocols import basic
-
-from validators import AddressValidator
+from solipsis.navigator.validators import AddressValidator
+from solipsis.navigator.network import BaseNetworkLoop
+from solipsis.util.uiproxy import TwistedProxy
 
 COMMANDS = {"check": ["chech status of connection", ""],
             "mem": ["dump a snapshot of memory (debugging tool)", ""],
@@ -47,63 +43,24 @@ COMMANDS = {"check": ["chech status of connection", ""],
             "hover": ["emumate hover on peer", "0,0"],
             "help": ["display help [on cmd]", "all"]}
 
-class NetworkLoop(object):
-# class NetworkLoop(threading.Thread):
+class NetworkLoop(BaseNetworkLoop):
     """
     NetworkLoop is an event loop running in its own thread.
     It manages socket-based communication with the Solipsis node
     and event-based communication with the User Interface (UI).
     """
-    def __init__(self, reactor, ui_service):
+    def __init__(self, reactor, ui):
         """
         Builds a network loop from a Twisted reactor and a Wx event handler.
         """
-        super(NetworkLoop, self).__init__()
-        self.repeat_hello = True
-        self.repeat_count = 0
-        self.ui = TwistedProxy(ui_service, reactor)
-        self.reactor = reactor
-
-        self.angle = 0.0
-        self.remote_connector = RemoteConnector(self.reactor, self.ui)
-
-    def run(self):
-        """
-        Run the reactor loop.
-        """
-        self.reactor.run(installSignalHandlers=0)
-
+        BaseNetworkLoop.__init__(self, reactor, TwistedProxy(ui, reactor))
+ 
     def start(self, *args):
         pass
 
     def setDaemon(self, *args):
         pass
 
-    #
-    # Actions from the UI thread
-    #
-    def ConnectToNode(self, config_data, *args, **kargs):
-        proxy_host = None
-        proxy_port = None
-        if config_data.connection_type == "local":
-            host = "localhost"
-            port = config_data.local_control_port
-        else:
-            host = config_data.host
-            port = config_data.port
-            if config_data.proxy_mode != "none" and config_data.proxy_host:
-                proxy_host = config_data.proxy_host
-                proxy_port = config_data.proxy_port
-        self.remote_connector.Connect(host, port, proxy_host, proxy_port, *args, **kargs)
-
-    def DisconnectFromNode(self, *args, **kargs):
-        self.remote_connector.Disconnect(*args, **kargs)
-
-    def KillNode(self, *args, **kargs):
-        self.remote_connector.Kill(*args, **kargs)
-
-    def ResetNode(self, *args, **kargs):
-        self.remote_connector.Reset(*args, **kargs)
 
 class SolipsisUiProtocol(basic.LineReceiver):
 

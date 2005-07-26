@@ -16,16 +16,3 @@
 # License along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
-
-import sys
-
-LOG_STREAM = None
-
-def get_log_stream():
-    if not LOG_STREAM:
-        return sys.stdout
-    else:
-        return LOG_STREAM
-
-def set_log_stream(stream):
-    LOG_STREAM = stream

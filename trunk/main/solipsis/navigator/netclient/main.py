@@ -17,28 +17,14 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
 
-import sys
-from optparse import OptionParser
+from solipsis.navigator.main import build_params
+from solipsis.navigator.netclient.app import NavigatorApp
 
-# Solipsis Packages
-from solipsis.util.parameter import Parameters
-from app import NavigatorApp
-
-def build_params():
-    config_file = "conf/solipsis.conf"
-    usage = "usage: %prog [-f <config file>]"
-    parser = OptionParser(usage)
-    parser.add_option("-f", "--file", dest="config_file", default=config_file,
-                        help="configuration file")
-    parser.add_option("-M", "--memdebug", dest="memdebug", action="store_true", default=False,
-                        help="dump memory occupation statistics")
-    params = Parameters(parser, config_file=config_file)
-    return params
-    
 def main():
-    application = NavigatorApp(params=build_params(), log_file="session.log")
+    application = NavigatorApp(params=build_params(), 
+                               log_file="session.log")
     application.startListening()
     application.run()
-
+    
 if __name__ == "__main__":
     main()

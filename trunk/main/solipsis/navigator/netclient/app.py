@@ -36,13 +36,10 @@ from solipsis.util.memdebug import MemSizer
 from solipsis.services.collector import ServiceCollector
 from solipsis.util.parameter import Parameters
 from solipsis.util.launch import Launcher
-from solipsis.navigator.netclient import get_log_stream, set_log_stream
 from solipsis.node.discovery.stun import DiscoverAddress
+from solipsis.navigator.world import BaseWorld
 
-from validators import *
 from viewport import Viewport
-from world import World
-from statusbar import StatusBar
 from network import NetworkLoop, SolipsisUiFactory
 from config import ConfigData
 
@@ -62,8 +59,6 @@ class NavigatorApp(UIProxyReceiver):
         self.local_ip = socket.gethostbyname(socket.gethostname())
         self.port = kargs.get("port", 1079)
         log_file = kargs.get("log_file", None)
-        if log_file:
-            set_log_stream(open(log_file, "w"))
         self.listener = None
         if self.params.memdebug:
             self.memsizer = MemSizer()
@@ -75,8 +70,6 @@ class NavigatorApp(UIProxyReceiver):
     def startListening(self):
         if not self.listener:
             self.listener = self.reactor.listenTCP(self.port, SolipsisUiFactory(self))
-        else:
-            print >> get_log_stream(),  "already listening"
 
     def stopListening(self):
         if self.listener:
@@ -84,7 +77,6 @@ class NavigatorApp(UIProxyReceiver):
             self.listener = None
             return defered
         else:
-            print >> get_log_stream(),  "not listening"
             return None
 
     def InitIpAddress(self):
@@ -123,10 +115,6 @@ class NavigatorApp(UIProxyReceiver):
 
     def InitResources(self):
         self.viewport = Viewport()
-        self.statusbar = StatusBar(_("Not connected"))
-
-    def InitValidators(self):
-        raise NotImplementedError
 
     def InitNetwork(self):
         """
@@ -163,13 +151,12 @@ class NavigatorApp(UIProxyReceiver):
             self.config_data.Load(f)
         except (IOError, EOFError):
             if os.path.exists(self.config_file):
-                print >> get_log_stream(),  "Config file '%s' broken, erasing"
-                os.remove(self.config_file)
+               os.remove(self.config_file)
         # creating components
         if self.memsizer:
             self._MemDebug()
         self.InitResources()
-        self.world = World(self.viewport)
+        self.world = BaseWorld(self.viewport)
         # Other tasks 
         self.InitTwisted()
         self.InitNetwork()
@@ -200,7 +187,7 @@ class NavigatorApp(UIProxyReceiver):
         """
         Displays a dialog warning that a function is not implemented.
         """
-        print >> get_log_stream(),  _("This function is not yet implemented.\nSorry! Please come back later...")
+        print _("This function is not yet implemented.\nSorry! Please come back later...")
 
     def _CheckNodeProxy(self, display_error=False):
         """
@@ -211,7 +198,7 @@ class NavigatorApp(UIProxyReceiver):
             return True
         else:
             if display_error:
-                print >> get_log_stream(),  _("This action cannot be performed, because you are not connected to a node.")
+                print _("This action cannot be performed, because you are not connected to a node.")
             return False
     
     def _MemDebug(self):
@@ -238,7 +225,6 @@ class NavigatorApp(UIProxyReceiver):
         self._SetWaiting(True)
         self.viewport.Reset()
         self.network.ConnectToNode(self.config_data, deferred)
-        self.statusbar.SetText(_("Connecting"))
         self.services.RemoveAllPeers()
         self.services.SetNode(self.config_data.GetNode())
         return "connecting to %s:%d"% (self.config_data.host, self.config_data.port)
@@ -248,11 +234,6 @@ class NavigatorApp(UIProxyReceiver):
     
     def _SetWaiting(self, waiting):
         pass
-#         if waiting:
-#             print >> get_log_stream(),  "Waiting ..."
-#         else:
-#             print >> get_log_stream(),  "Wait ended."
-
 
     #===-----------------------------------------------------------------===#
     # Event handlers for the main window
@@ -263,10 +244,6 @@ class NavigatorApp(UIProxyReceiver):
         Called on "about" event (menu -> Help -> About).
         """
         return _("Solipsis Navigator") + " " + self.version + "\n\n" + _("Licensed under the GNU LGPL") + "\n(c) France Telecom R&D"
-
-    def _OpenBookmarksDialog(self, evt):
-        """Not necessary in cmdClient"""
-        raise NotImplementedError
 
     def _CreateNode(self, evt):
         """
@@ -306,7 +283,6 @@ class NavigatorApp(UIProxyReceiver):
             self.network.DisconnectFromNode()
             self.node_proxy = None
             self.viewport.Disable()
-            self.statusbar.SetText(_("Not connected"))
             self.services.RemoveAllPeers()
             return _("Not connected")
         else:
@@ -375,7 +351,7 @@ class NavigatorApp(UIProxyReceiver):
             self.config_data.Save(f)
             f.close()
         except IOError, e:
-            print >> get_log_stream(),  str(e)
+            print str(e)
         # Kill the node if necessary
         if self.config_data.node_autokill and self._CheckNodeProxy(False):
             self.network.KillNode()
@@ -468,10 +444,6 @@ class NavigatorApp(UIProxyReceiver):
         if self._CheckNodeProxy(False):
             x, y = evt
             changed, id_ = self.viewport.Hover((x, y))
-            if changed and id_:
-                self.statusbar.SetTemp(self.world.GetPeer(id_).pseudo)
-            elif changed and not id_:
-                self.statusbar.Reset()
         else:
             return "not connected"
 
@@ -532,15 +504,12 @@ class NavigatorApp(UIProxyReceiver):
         if status == 'READY':
             self._SetWaiting(False)
             self.viewport.Enable()
-            self.statusbar.SetText(_("Connected"))
         elif status == 'BUSY':
             self._SetWaiting(True)
             self.viewport.Enable()
-            self.statusbar.SetText(_("Searching peers"))
         elif status == 'UNAVAILABLE':
             self._SetWaiting(False)
             self.viewport.Disable()
-            self.statusbar.SetText(_("Not connected"))
 
     def NodeConnectionSucceeded(self, node_proxy):
         """
@@ -549,8 +518,6 @@ class NavigatorApp(UIProxyReceiver):
         # We must call the node proxy from the Twisted thread!
         self._SetWaiting(False)
         self.node_proxy = TwistedProxy(node_proxy, self.reactor)
-        self.statusbar.SetText(_("Connected"))
-#         print >> get_log_stream(),  "NodeConnectionSucceeded", node_proxy
 
     def NodeConnectionFailed(self, error):
         """
@@ -558,9 +525,7 @@ class NavigatorApp(UIProxyReceiver):
         """
         self._SetWaiting(False)
         self.node_proxy = None
-        self.statusbar.SetText(_("Not connected"))
-        print >> get_log_stream(),  _("Connection to the node has failed. \nPlease the check the node is running, then retry.")
-
+ 
     def NodeKillSucceeded(self):
         """
         We managed to kill the (remote/local) node.
@@ -569,11 +534,9 @@ class NavigatorApp(UIProxyReceiver):
             self.node_proxy = None
             self._SetWaiting(False)
             self.viewport.Disable()
-            self.statusbar.SetText(_("Not connected"))
         else:
             # If not alive, then we are in the quit phase
             self._Quit2()
-#         print >> get_log_stream(),  "NodeKillSucceeded"
 
     def NodeKillFailed(self):
         """
@@ -583,17 +546,15 @@ class NavigatorApp(UIProxyReceiver):
             self.node_proxy = None
             self._SetWaiting(False)
             self.viewport.Disable()
-            print >> get_log_stream(),  _("You cannot kill this node.")
         else:
             # If not alive, then we are in the quit phase
             self._Quit2()
-        print >> get_log_stream(),  "NodeKillFailed"
-
+ 
     #===-----------------------------------------------------------------===#
     # Actions from the services
     #
     def SetServiceMenu(self, service_id, title, menu):
-        print >> get_log_stream(),  "SetServiceMenu:", title, service_id
+        print "SetServiceMenu:", title, service_id
 
     def SendServiceData(self, peer_id, service_id, data):
         if self._CheckNodeProxy(False):

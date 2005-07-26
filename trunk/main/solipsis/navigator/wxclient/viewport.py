@@ -18,12 +18,13 @@
 # </copyright>
 
 import wx
+import images
 import time
 import math
 import bisect
 
 from solipsis.util.timer import *
-import images
+from solipsis.navigator.viewport import BaseViewport
 
 def _optimize(obj):
     try:
@@ -33,7 +34,6 @@ def _optimize(obj):
     else:
         psyco.bind(obj)
 
-
 class DrawableItem(object):
     def __init__(self, id_, drawable, index, rel_pos, z_order):
         self.id_ = id_
@@ -42,18 +42,14 @@ class DrawableItem(object):
         self.rel_pos = rel_pos
         self.z_order = z_order
 
-
-class Viewport(object):
+class Viewport(BaseViewport):
     """
     This class is a viewport that displays
     drawable objects in a wx.Window.
     """
 
-    overview_ratio = 1.15
-    glide_duration = 0.8
-    destination_radius = 20.0
-
     def __init__(self, window, world_size = 2**128):
+        BaseViewport.__init__(self, world_size)
         self.window = window
         self.draw_buffer = None
         self.background = None
@@ -62,8 +58,6 @@ class Viewport(object):
         self.need_further_redraw = True
         self.redraw_pending = False
         self.last_redraw_duration = 0.01
-        self.world_size = world_size
-        self.normalize = (lambda x, lim=float(self.world_size) / 2.0: (x + lim) % (lim + lim) - lim)
         self.images = images.ImageRepository() # for 2D background
 
         self.fps_timer = AutoTimer()
@@ -77,7 +71,6 @@ class Viewport(object):
         self._SetAngle(0.0)
 
         self.dim_dc = None
-        self.disabled = True
         self.auto_rotate = False
 
         self.Reset()
@@ -435,18 +428,6 @@ class Viewport(object):
         Returns True if the viewport is empty.
         """
         return len(self.obj_list) == 0
-
-    def Disable(self):
-        """
-        Disable the viewport, i.e. stop all animations.
-        """
-        self.disabled = True
-
-    def Enable(self):
-        """
-        Enable the viewport (animations, etc.).
-        """
-        self.disabled = False
     
     def AutoRotate(self, flag):
         """

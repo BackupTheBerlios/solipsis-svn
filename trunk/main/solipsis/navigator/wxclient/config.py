@@ -1,3 +1,4 @@
+# pylint: disable-msg=C0103
 # <copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
 # Copyright (C) 2002-2005 France Telecom R&D
@@ -17,81 +18,36 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
 
-import cPickle as pickle
-import random
-import copy
 import wx
-from wx.xrc import XRCCTRL, XRCID
+import copy
 
-from solipsis.util.entity import Entity, Service
-from solipsis.util.address import Address
-from solipsis.util.wxutils import _ 
-from solipsis.util.utils import ManagedData
-
-from bookmarks import BookmarkList
+from solipsis.navigator.wxclient.bookmarks import BookmarkList
+from solipsis.navigator.config import BaseConfigData
 
 
-class ConfigData(ManagedData):
+
+class ConfigData(BaseConfigData):
     """
     This class holds all configuration values that are settable from
     the user interface.
     """
 
-    # These are the configuration variables that can be changed on a per-identity basis
-    identity_vars = [ 'pseudo', 'host', 'port', 'connection_type', 'solipsis_port',
-        'bookmarks', 'service_config',
-        #~ 'proxymode_auto', 'proxymode_manual', 'proxymode_none', 'proxy_host', 'proxy_port',
-    ]
+    # These are the configuration variables that can be changed on a
+    # per-identity basis
+    identity_vars = BaseConfigData.identity_vars \
+                    + ['bookmarks']
 
     def __init__(self, params=None):
-        ManagedData.__init__(self)
-        # Initialize all values
-
-        # 1. Basic connection data
-        self.pseudo = params and params.pseudo or u""
-        self.host = "localhost"
-        self.port = 8550
-        self.connection_type = 'local'
-        self.solipsis_port = 6010
-        self.local_control_port_min = params and params.local_control_port_min or 8501
-        self.local_control_port_max = params and params.local_control_port_max or 8599
-        self.local_control_port = 0
-
-        # 2. HTTP proxy configuration (for XMLRPC)
-        self.proxymode_auto = True
-        self.proxymode_manual = False
-        self.proxymode_none = False
-        self.proxy_mode = ""
-        self.proxy_pac_url = ""
-        self.proxy_host = ""
-        self.proxy_port = 0
-        
-        # 3. Other preferences
-        self.node_autokill = True
-        self.multiple_identities = False
-
-        # 4. Service-specific configuration data
-        self.services = []
-        self.service_config = {}
-
+        BaseConfigData.__init__(self, params)
         # 5. User-defined bookmarks
         self.bookmarks = BookmarkList()
-        
+
         # 99. Identities
         self.identities = []
         self.current_identity = -1
         # Store current identity as default one
         self.CreateIdentity()
         self.StoreCurrentIdentity()
-
-        # Callables for config change notification
-        self._event_sinks = []
-
-    def AskNotify(self, callback):
-        """
-        Ask to be notified when the configuration is changed.
-        """
-        self._event_sinks.append(callback)
 
     def CreateIdentity(self):
         """
@@ -155,16 +111,16 @@ class ConfigData(ManagedData):
         ordered according to their index number.
         You should not try to modify these values, or unexpected things can happen.
         """
-        l = []
+        configs = []
         for identity in self.identities:
-            d = {}
+            config = {}
             for var in self.identity_vars:
                 try:
-                    d[var] = identity[var]
+                    config[var] = identity[var]
                 except KeyError:
-                    d[var] = getattr(self, var)
-            l.append(d)
-        return l
+                    config[var] = getattr(self, var)
+            configs.append(config)
+        return configs
     
     def GetCurrentIdentity(self):
         """
@@ -178,80 +134,29 @@ class ConfigData(ManagedData):
         (e.g. HTTP proxy auto-configuration URL).
         """
         self.StoreCurrentIdentity()
-        self.proxy_mode = self.proxymode_auto and "auto" or (
-            self.proxymode_manual and "manual" or "none")
-        if self.connection_type == "local":
-            # Choose random control port for the local node we wish to launch
-            self.local_control_port = random.randrange(
-                self.local_control_port_min,
-                self.local_control_port_max + 1)
-        else:
-            # If necessary, autodetect proxy address
-            if self.proxy_mode == "auto":
-                from solipsis.util.httpproxy import discover_http_proxy
-                proxy_host, proxy_port = discover_http_proxy()
-                self.proxy_host = proxy_host or ""
-                self.proxy_port = proxy_port or 0
-
-    def SetServices(self, services):
-        """
-        Set service list.
-        """
-        self.services = list(services)
-    
-    def SetServiceConfig(self, service_id, data):
-        """
-        Store service-specific configuration data.
-        """
-        self.service_config[service_id] = data
-    
-    def GetServiceConfig(self, service_id):
-        """
-        Retrieve service-specific configuration data.
-        """
-        try:
-            return self.service_config[service_id]
-        except KeyError:
-            return None
-    
-    def Load(self, infile):
+        BaseConfigData.Compute(self)
+        
+    def _Load(self, infile):
         """
         Restore configuration from a readable file object.
         """
-        d = pickle.load(infile)
-        self.UpdateDict(d)
+        BaseConfigData._Load(self, infile)
         self.StoreCurrentIdentity()
-        self._Notify()
 
     def Save(self, outfile):
         """
         Store configuration in a writable file object.
         """
         self.StoreCurrentIdentity()
-        d = self.GetDict()
-        # Python < 2.4 compatibility: documentation for the cPickle module is partly wrong
-        #~ pickle.dump(d, outfile, protocol=-1)
-        pickle.dump(d, outfile, -1)
+        BaseConfigData.Save(self, outfile)
 
     def GetNode(self):
         """
         Get the object representing the node (i.e. ourselves).
         """
-        node = Entity()
-        node.pseudo = self.pseudo
-        lang_code = wx.Locale.GetLanguageInfo(wx.Locale.GetSystemLanguage()).CanonicalName
+        node = BaseConfigData.GetNode(self)
+        lang_code = wx.Locale.GetLanguageInfo(
+            wx.Locale.GetSystemLanguage()).CanonicalName
         if lang_code:
             node.languages = [ str(lang_code.split('_')[0]) ]
-        # Dummy value to avoid None-marshaling
-        node.address = Address()
-        # Test data
-        for s in self.services:
-            node.AddService(s)
         return node
-
-    def _Notify(self):
-        """
-        Notify all event sinks that the config has been updated.
-        """
-        for sink in self._event_sinks:
-            sink()

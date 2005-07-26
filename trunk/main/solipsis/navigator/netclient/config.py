@@ -17,122 +17,18 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
 
-import cPickle as pickle
-
-from solipsis.util.entity import Entity, Service
-from solipsis.util.address import Address
-from solipsis.util.utils import ManagedData
+from solipsis.navigator.config import BaseConfigData
 
 
-class ConfigData(ManagedData):
+class ConfigData(BaseConfigData):
     """
     This class holds all configuration values that are settable from
     the user interface.
     """
-    def __init__(self, host=None, port=None, pseudo=None):
-        ManagedData.__init__(self)
-        # Initialize all values
-        self.pseudo = pseudo or u"Guest"
-        self.host = host or "localhost"
-        self.port = port or 8550
-        self.always_try_without_proxy = True
-        self.proxymode_auto = True
-        self.proxymode_manual = False
-        self.proxymode_none = False
-        self.proxy_mode = ""
-        self.proxy_pac_url = ""
-        self.proxy_host = ""
-        self.proxy_port = 0
-        self.proxy_autodetect_done = False
-        self.node_autokill = True
-        self.services = []
-        self.solipsis_port = 6010
-        self.service_config = {}
 
-    def Compute(self):
-        """
-        Compute some "hidden" configuration values 
-        (like HTTP proxy URL)
-        """
-        self.proxy_mode = self.proxymode_auto and "auto" or (
-            self.proxymode_manual and "manual" or "none")
-        if self.proxy_mode == "auto":
-            from solipsis.util.httpproxy import discover_http_proxy
-            proxy_host, proxy_port = discover_http_proxy()
-            self.proxy_host = proxy_host or ""
-            self.proxy_port = proxy_port or 0
+    # These are the configuration variables that can be changed on a
+    # per-identity basis
+    identity_vars = BaseConfigData.identity_vars
 
-    def SetServices(self, services):
-        """
-        Set service list.
-        """
-        self.services = list(services)
-    
-    def SetServiceConfig(self, service_id, data):
-        """
-        Store service-specific configuration data.
-        """
-        self.service_config[service_id] = data
-    
-    def GetServiceConfig(self, service_id):
-        """
-        Retrieve service-specific configuration data.
-        """
-        try:
-            return self.service_config[service_id]
-        except KeyError:
-            return None
-    
-    def Load(self, infile):
-        """
-        Restore configuration from a readable file object.
-        """
-        d = pickle.load(infile)
-        self.UpdateDict(d)
-    
-    def Save(self, outfile):
-        """
-        Store configuration in a writable file object.
-        """
-        d = self.GetDict()
-        # Python < 2.4 compatibility: documentation for the cPickle module is partly wrong
-        #~ pickle.dump(d, outfile, protocol=-1)
-        pickle.dump(d, outfile, -1)
-
-    def GetNode(self):
-        """
-        Get the object representing the node (i.e. ourselves).
-        """
-        node = Entity()
-        node.pseudo = self.pseudo
-        # Dummy value to avoid None-marshaling
-        node.address = Address()
-        # Test data
-        for s in self.services:
-            node.AddService(s)
-        return node
-
-
-class ConfigUI(object):
-
-    def __init__(self, config_data, prefs_dialog):
-        raise NotImplementedError
-
-    def _AutoProxy(self, evt):
-        raise NotImplementedError
-
-    def _ManualProxy(self, evt):
-        raise NotImplementedError
-
-    def _NoProxy(self, evt):
-        raise NotImplementedError
-
-    def _EnableManualProxy(self):
-        raise NotImplementedError
-
-    def _DisableManualProxy(self):
-        raise NotImplementedError
-
-    # Event handlers for the preferences dialog
-    def _ClosePrefs(self, evt):
-        raise NotImplementedError
+    def __init__(self, params=None):
+        BaseConfigData.__init__(self, params)

@@ -17,16 +17,14 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
 
-import threading
 import random
 
-from solipsis.util.uiproxy import UIProxy
-from solipsis.util.remote import RemoteConnector
-
 from urllistener import URLListenFactory
+from solipsis.util.uiproxy import UIProxy
+from solipsis.navigator.network import BaseNetworkLoop
 
 
-class NetworkLoop(threading.Thread):
+class NetworkLoop(BaseNetworkLoop):
     """
     NetworkLoop is an event loop running in its own thread.
     It manages socket-based communication with the Solipsis node
@@ -36,12 +34,8 @@ class NetworkLoop(threading.Thread):
         """
         Builds a network loop from a Twisted reactor and a Wx event handler.
         """
-        super(NetworkLoop, self).__init__()
-        self.ui = UIProxy(ui)
-        self.reactor = reactor
-
+        BaseNetworkLoop.__init__(self, reactor, UIProxy(ui))
         self.angle = 0.0
-        self.remote_connector = RemoteConnector(self.reactor, self.ui)
 
     def StartURLListener(self, url_port_min, url_port_max=0):
         if url_port_max:
@@ -56,32 +50,3 @@ class NetworkLoop(threading.Thread):
             print "Cannot listen to jump URLs: %s" % str(e)
         else:
             self.ui._UpdateURLPort(url_port)
-
-    def run(self):
-        """
-        Run the reactor loop.
-        """
-        self.reactor.run(installSignalHandlers=0)
-
-    #
-    # Actions from the UI thread
-    #
-    def ConnectToNode(self, config_data, *args, **kargs):
-        proxy_host = None
-        proxy_port = None
-        if config_data.connection_type == "local":
-            host = "localhost"
-            port = config_data.local_control_port
-        else:
-            host = config_data.host
-            port = config_data.port
-            if config_data.proxy_mode != "none" and config_data.proxy_host:
-                proxy_host = config_data.proxy_host
-                proxy_port = config_data.proxy_port
-        self.remote_connector.Connect(host, port, proxy_host, proxy_port, *args, **kargs)
-
-    def DisconnectFromNode(self, *args, **kargs):
-        self.remote_connector.Disconnect(*args, **kargs)
-
-    def KillNode(self, *args, **kargs):
-        self.remote_connector.Kill(*args, **kargs)
