@@ -24,15 +24,6 @@ import socket
 from solipsis.navigator.main import USAGE, OPTIONS, build_params
 from solipsis.navigator.wxclient.app import NavigatorApp
 
-USAGE += "[--url <url>]"
-OPTIONS.append(
-    {"shortcut": "",
-     "command": "--url",
-     "dest": "url_jump",
-     "action": "store",
-     "default": "",
-     "help": "URL to jump to"})
-
 def main():
     params = build_params()
     # If an URL has been specified, try to connect to a running navigator

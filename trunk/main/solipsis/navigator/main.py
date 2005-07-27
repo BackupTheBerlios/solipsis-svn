@@ -23,7 +23,7 @@ from optparse import OptionParser
 from solipsis.util.parameter import Parameters
 
 DEFAULT_FILE = "conf/solipsis.conf"
-USAGE = "usage: %prog [-f <config file>]"
+USAGE = "usage: %prog [-f <config file>] [--url <url>]"
 OPTIONS = [
     {"shortcut": "-f", 
      "command": "--file", 
@@ -37,6 +37,12 @@ OPTIONS = [
      "action": "store_true",
      "default": False,
      "help": "dump memory occupation statistics"},
+    {"shortcut": "",
+     "command": "--url",
+     "dest": "url_jump",
+     "action": "store",
+     "default": "",
+     "help": "URL to jump to"},
     ]
 
 def build_params():
