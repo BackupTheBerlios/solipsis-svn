@@ -15,7 +15,8 @@ from twisted.internet import error
 from twisted.protocols import basic
 from StringIO import StringIO
 
-from solipsis.services.profile import FREE_PORTS, UNIVERSAL_SEP
+from solipsis.util.network import parse_address, get_free_port, release_port
+from solipsis.services.profile import UNIVERSAL_SEP
 from solipsis.services.profile.prefs import get_prefs
 from solipsis.services.profile.document import read_document
 from solipsis.services.profile.facade import get_facade, get_filter_facade
@@ -49,25 +50,6 @@ SERVICES_MESSAGES = [MESSAGE_HELLO, MESSAGE_PROFILE,
                      MESSAGE_BLOG, MESSAGE_SHARED, MESSAGE_FILES,
                      MESSAGE_ERROR]
 
-# TODO: common method with avatar.plugin._ParserAddress... how about putting it
-# into global service? How generic is it?
-def parse_address(address):
-    """Parse network address as supplied by a peer.
-    Returns a (host, port) tuple."""
-    try:
-        items = address.split(':')
-        if len(items) != 2:
-            raise ValueError("address %s expected as host:port"% address)
-        host = str(items[0]).strip()
-        port = int(items[1])
-        if not host:
-            raise ValueError("no host in %s"% address)
-        if port < 1 or port > 65535:
-            raise ValueError("port %d should be in [1, 65535]"% port)
-        return host, port
-    except ValueError:
-        raise ValueError("address %s not valid"% address)
-
 def parse_message(message):
     """extract command, address and data from message.
 
@@ -90,23 +72,6 @@ def parse_message(message):
     else:
         result.append(None)
     return result
-
-def get_free_port():
-    """return available port on localhost"""
-    free_port = FREE_PORTS.pop()
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)        
-    try:
-        # connect to the given host:port
-        sock.bind(("127.0.0.1", free_port))
-    except socket.error:
-        free_port = get_free_port()
-    else:
-        sock.close()
-    return free_port
-
-def release_port(port):
-    """call when server stops listening"""
-    FREE_PORTS.append(port)
 
 class NetworkManager:
     """high level class managing clients and servers for each peer"""

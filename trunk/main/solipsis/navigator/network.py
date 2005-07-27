@@ -1,3 +1,6 @@
+# pylint: disable-msg=C0103,W0142
+# Invalid name // Used * or ** magic
+#
 # <copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
 # Copyright (C) 2002-2005 France Telecom R&D
@@ -16,11 +19,12 @@
 # License along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
+"""Base class for node management. Responsible for connection"""
 
 import threading
+import random
 
-from twisted.internet import protocol, reactor, defer
-from twisted.protocols import basic
+from solipsis.navigator.urllistener import URLListenFactory
 from solipsis.util.remote import RemoteConnector
 
 class BaseNetworkLoop(threading.Thread):
@@ -50,6 +54,8 @@ class BaseNetworkLoop(threading.Thread):
     # Actions from the UI thread
     #
     def ConnectToNode(self, config_data, *args, **kargs):
+        """Establish connection. A deferred may be passed in args and
+        will be called when connected"""
         proxy_host = None
         proxy_port = None
         if config_data.connection_type == "local":
@@ -61,14 +67,36 @@ class BaseNetworkLoop(threading.Thread):
             if config_data.proxy_mode != "none" and config_data.proxy_host:
                 proxy_host = config_data.proxy_host
                 proxy_port = config_data.proxy_port
-        self.remote_connector.Connect(host, port, proxy_host, proxy_port, *args, **kargs)
+        self.remote_connector.Connect(host, port, proxy_host, proxy_port,
+                                      *args, **kargs)
 
     def DisconnectFromNode(self, *args, **kargs):
+        """forward to remote collector. See solipsis.util.remote"""
         self.remote_connector.Disconnect(*args, **kargs)
 
     def KillNode(self, *args, **kargs):
+        """forward to remote collector. See solipsis.util.remote"""
         self.remote_connector.Kill(*args, **kargs)
 
     def ResetNode(self, *args, **kargs):
+        """forward to remote collector. See solipsis.util.remote"""
         self.remote_connector.Reset(*args, **kargs)
 
+    #
+    # URL Listener
+    #
+
+    def StartURLListener(self, url_port_min, url_port_max=0):
+        """listen for incomming commands 'Jump to URL'"""
+        if url_port_max:
+            url_port = random.randrange(url_port_min, url_port_max + 1)
+        else:
+            url_port = url_port_min
+        try:
+            self.reactor.listenTCP(url_port,
+                factory=URLListenFactory(self.ui),
+                interface="127.0.0.1")
+        except Exception, err:
+            print "Cannot listen to jump URLs: %s" % str(err)
+        else:
+            self.ui._UpdateURLPort(url_port)

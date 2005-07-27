@@ -1,3 +1,5 @@
+# pylint: disable-msg=W0142
+# Used * or **
 # <copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
 # Copyright (C) 2002-2005 France Telecom R&D
@@ -17,10 +19,9 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
 
-import re
 import solipsis.navigator.validators as validator
 
-from solipsis.util.wxutils import Validator, _
+from solipsis.util.wxutils import Validator
 
 class _RegexpValidator(validator._RegexpValidator, Validator):
 
@@ -60,9 +61,10 @@ class BooleanValidator(validator.BooleanValidator, Validator):
         Validator.__init__(self, *args, **kargs)
         validator.BooleanValidator.__init__(self)
 
-class CoordValidator(Validator):
+class CoordValidator(validator.CoordValidator, Validator):
     """
     Validator for Solipsis coordinates (0.0 ... 1.0).
     """
     def __init__(self, *args, **kargs):
         Validator.__init__(self, *args, **kargs)
+        validator.CoordValidator.__init__(self)

@@ -75,13 +75,6 @@ class BaseConfigData(ManagedData):
         # Callables for config change notification
         self._event_sinks = []
 
-    def AskNotify(self, callback):
-        """
-        Ask to be notified when the configuration is changed.
-        """
-        self._event_sinks.append(callback)
-
-
     def Compute(self):
         """
         Compute some "hidden" or temporary configuration values 
@@ -166,3 +159,9 @@ class BaseConfigData(ManagedData):
         """
         for sink in self._event_sinks:
             sink()
+
+    def AskNotify(self, callback):
+        """
+        Ask to be notified when the configuration is changed.
+        """
+        self._event_sinks.append(callback)

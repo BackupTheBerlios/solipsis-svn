@@ -88,7 +88,6 @@ TAG_COL = 3
 
 # NETWORK
 KNOWN_PORT = 1160
-FREE_PORTS = range(23000, 23999)
 
 if not os.path.isdir(PROFILE_DIR):
     print "creating conf directory %s"% PROFILE_DIR

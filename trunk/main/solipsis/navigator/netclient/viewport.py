@@ -32,6 +32,9 @@ class Viewport(BaseViewport):
     def Reset(self):
         pass
  
+    def Draw(self, onPaint = False):
+        pass
+
     def AddObject(self, name, obj, position):
         pass
 

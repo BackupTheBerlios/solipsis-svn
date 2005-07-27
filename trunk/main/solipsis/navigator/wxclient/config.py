@@ -49,6 +49,45 @@ class ConfigData(BaseConfigData):
         self.CreateIdentity()
         self.StoreCurrentIdentity()
 
+
+    # OVERRIDEN METHODS
+    # -----------------
+    def Compute(self):
+        """
+        Compute some "hidden" or temporary configuration values 
+        (e.g. HTTP proxy auto-configuration URL).
+        """
+        self.StoreCurrentIdentity()
+        BaseConfigData.Compute(self)
+        
+    def _Load(self, infile):
+        """
+        Restore configuration from a readable file object.
+        """
+        BaseConfigData._Load(self, infile)
+        self.StoreCurrentIdentity()
+
+    def Save(self, outfile):
+        """
+        Store configuration in a writable file object.
+        """
+        self.StoreCurrentIdentity()
+        BaseConfigData.Save(self, outfile)
+
+    def GetNode(self):
+        """
+        Get the object representing the node (i.e. ourselves).
+        """
+        node = BaseConfigData.GetNode(self)
+        lang_code = wx.Locale.GetLanguageInfo(
+            wx.Locale.GetSystemLanguage()).CanonicalName
+        if lang_code:
+            node.languages = [ str(lang_code.split('_')[0]) ]
+        return node
+
+
+    # SPECIFIC METHODS
+    # ----------------
     def CreateIdentity(self):
         """
         Creates a new identity and returns its index number.
@@ -127,36 +166,3 @@ class ConfigData(BaseConfigData):
         Returns the index of the current identity.
         """
         return self.current_identity
-
-    def Compute(self):
-        """
-        Compute some "hidden" or temporary configuration values 
-        (e.g. HTTP proxy auto-configuration URL).
-        """
-        self.StoreCurrentIdentity()
-        BaseConfigData.Compute(self)
-        
-    def _Load(self, infile):
-        """
-        Restore configuration from a readable file object.
-        """
-        BaseConfigData._Load(self, infile)
-        self.StoreCurrentIdentity()
-
-    def Save(self, outfile):
-        """
-        Store configuration in a writable file object.
-        """
-        self.StoreCurrentIdentity()
-        BaseConfigData.Save(self, outfile)
-
-    def GetNode(self):
-        """
-        Get the object representing the node (i.e. ourselves).
-        """
-        node = BaseConfigData.GetNode(self)
-        lang_code = wx.Locale.GetLanguageInfo(
-            wx.Locale.GetSystemLanguage()).CanonicalName
-        if lang_code:
-            node.languages = [ str(lang_code.split('_')[0]) ]
-        return node

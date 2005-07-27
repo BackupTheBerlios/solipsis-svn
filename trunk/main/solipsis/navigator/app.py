@@ -1,4 +1,6 @@
-# <copyright>
+# pylint: disable-msg=C0103,C0101,W0142,W0613
+# name not valid // oo short name // use * or ** // Unused argument
+#<copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
 # Copyright (C) 2002-2005 France Telecom R&D
 # 
@@ -16,97 +18,75 @@
 # License along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
+"""Base class for application: common initialisation and management functions"""
 
 import os
 import gc
-import bisect
 import gettext
-import threading
-import sys
 import socket
 _ = gettext.gettext
-from pprint import pprint
-from cStringIO import StringIO
 
-from solipsis.util.entity import ServiceData
+from solipsis.util.urls import SolipsisURL
 from solipsis.util.address import Address
+from solipsis.util.network import get_free_port
+from solipsis.util.entity import ServiceData
 from solipsis.util.position import Position
 from solipsis.util.uiproxy import TwistedProxy, UIProxyReceiver
 from solipsis.util.memdebug import MemSizer
-from solipsis.services.collector import ServiceCollector
-from solipsis.util.parameter import Parameters
 from solipsis.util.launch import Launcher
-from solipsis.navigator.netclient import get_log_stream, set_log_stream
-from solipsis.node.discovery.stun import DiscoverAddress
 
-from validators import *
-from viewport import Viewport
-from world import World
-from statusbar import StatusBar
-from network import NetworkLoop, SolipsisUiFactory
-from config import ConfigData
-
-USE_SERVICE = ['profile']
-
-class NavigatorApp(UIProxyReceiver):
+class BaseNavigatorApp(UIProxyReceiver):
+    """
+    Main application class
+    """
     version = "0.1.1"
     config_file = os.sep.join(["state", "config.bin"])
+    world_size = 2**128
 
-    def __init__(self, params=None, *args, **kargs):
+    def __init__(self, params, *args, **kargs):
         """available kargs: port"""
         self.params = params
         self.alive = True
-        self.config_data = ConfigData()
         self.node_proxy = None
-        # default value will be overridden by stun result
-        self.local_ip = socket.gethostbyname(socket.gethostname())
-        self.port = kargs.get("port", 1079)
-        log_file = kargs.get("log_file", None)
-        if log_file:
-            set_log_stream(open(log_file, "w"))
-        self.listener = None
+        self.url_jump = self.params.url_jump or None
+        self.connection_trials = 0
         if self.params.memdebug:
             self.memsizer = MemSizer()
+            #~ gc.set_debug(gc.DEBUG_LEAK)
         else:
             self.memsizer = None
+        # members that should be definied in specific classes
+        self.config_data = None	 #__init__
+        self.network_loop = None #InitNetwork
+        self.services = None	 #InitServices
+        self.world = None	 #InitResources
+        self.viewport = None	 #InitResources
+        # default value will be overridden by stun result
+        self.local_ip = socket.gethostbyname(socket.gethostname())
+        self.local_port = get_free_port()
         UIProxyReceiver.__init__(self)
-        self.OnInit()
 
-    def startListening(self):
-        if not self.listener:
-            self.listener = self.reactor.listenTCP(self.port, SolipsisUiFactory(self))
-        else:
-            print >> get_log_stream(),  "already listening"
-
-    def stopListening(self):
-        if self.listener:
-            defered = self.listener.stopListening()
-            self.listener = None
-            return defered
-        else:
-            print >> get_log_stream(),  "not listening"
-            return None
+    def OnInit(self):
+        """
+        Main initialization handler.
+        """
+        self._LoadConfig()
+        self.InitResources()
+        # creating components
+        if self.memsizer:
+            self._MemDebug()
 
     def InitIpAddress(self):
         """
         Get local address from Stun
         """
-        def _succeed(address):
-            # Discovery succeeded
-            self.local_ip, port = address
-            print "discovery found address %s:%d" % (self.local_ip, port)
-            self.InitServices()
-            
-        def _fail(failure):
-            # Discovery failed => try next discovery method
-            print "discovery failed:", failure.getErrorMessage()
-            print 'using getHostByName:', self.local_ip
-            self.InitServices()
-            
-        d = DiscoverAddress(self.params.port, self.reactor, self.params)
-        d.addCallback(_succeed)
-        d.addErrback(_fail)
-        return d
+        raise NotImplementedError
+
+    def InitResources(self):
+        """
+        Load UI layout from XML file(s).
+        """
+        raise NotImplementedError
 
     def InitTwisted(self):
         """
@@ -118,91 +98,82 @@ class NavigatorApp(UIProxyReceiver):
         threadable.init(1)
         self.reactor = reactor
 
-    def InitWx(self):
-        raise NotImplementedError
-
-    def InitResources(self):
-        self.viewport = Viewport()
-        self.statusbar = StatusBar(_("Not connected"))
-
-    def InitValidators(self):
-        raise NotImplementedError
-
     def InitNetwork(self):
         """
         Launch network event loop.
         """
-        loop = NetworkLoop(self.reactor, self)
-        loop.setDaemon(True)
-        loop.start()
-        self.network_loop = loop
-        self.network = TwistedProxy(loop, self.reactor)
+        assert self.network_loop, "network_loop must be initialised first"
+        self.network_loop.setDaemon(True)
+        self.network_loop.start()
+        self.network = TwistedProxy(self.network_loop, self.reactor)
         # get local ip
-        deferred = self.InitIpAddress()
+        self.InitIpAddress()
 
     def InitServices(self):
         """
         Initialize all services.
         """
-        self.services = ServiceCollector(self.params, self.local_ip, self.reactor, self)
-        for service in USE_SERVICE:
-            service_path = self.services._ServiceDirectory(service)
-            service_id, plugin =self.services.LoadService(service_path, service)
-            self.services.InitService(service_id, plugin)
+        assert self.config_data, "config must be initialised first"
+        assert self.services, "services must be initialised first"
+        self.services.ReadServices()
         self.services.SetNode(self.config_data.GetNode())
         self.services.EnableServices()
         self.config_data.SetServices(self.services.GetServices())
 
-    def OnInit(self):
-        """
-        Main initialization handler.
-        """
-        # Load last saved config
-        try:
-            f = file(self.config_file, "rb")
-            self.config_data.Load(f)
-        except (IOError, EOFError):
-            if os.path.exists(self.config_file):
-                print >> get_log_stream(),  "Config file '%s' broken, erasing"
-                os.remove(self.config_file)
-        # creating components
-        if self.memsizer:
-            self._MemDebug()
-        self.InitResources()
-        self.world = World(self.viewport)
-        # Other tasks 
-        self.InitTwisted()
-        self.InitNetwork()
-        self.InitServices()
-
-    def run(self):
-        self.reactor.run()        
-
     def Redraw(self):
-        pass
-
-    def AskRedraw(self):
-        pass
-
-    def OnIdle(self, event):
-        raise NotImplementedError
-    
-    def OnPaint(self, event):
-        raise NotImplementedError
-
-    def OnResize(self, event):
-        raise NotImplementedError
+        """
+        Redraw the world view.
+        """
+        assert self.viewport, "viewport must be initialised first"
+        self.viewport.Draw(onPaint=False)
 
     #
     # Helpers
     #
+    def future_call(self, delay, function):
+        """call function after delay (milli sec)"""
+        raise NotImplementedError
+
+    def display_message(self, title, msg):
+        """Display message to user, using for instance a dialog"""
+        raise NotImplementedError
+
+    def display_error(self, title, msg):
+        """Report error to user"""
+        raise NotImplementedError
+
+    def display_status(self, msg):
+        """report a status"""
+        raise NotImplementedError
+
+    def _DestroyProgress(self):
+        """
+        Destroy progress dialog if necessary.
+        """
+        raise NotImplementedError
+    
+    def _SetWaiting(self, waiting):
+        """
+        Set "waiting" state of the interface.
+        """
+        raise NotImplementedError
+
     def _NotImplemented(self, evt=None):
         """
         Displays a dialog warning that a function is not implemented.
         """
-        print >> get_log_stream(),  _("This function is not yet implemented.\nSorry! Please come back later...")
+        self.display_message(_("Not implemented"),
+                             _("""This function is not yet implemented.
+Sorry! Please come back later..."""))
+    
+    def _UpdateURLPort(self, url_port):
+        """change URL Listener port"""
+        filename = os.path.join('state', 'url_jump.port')
+        f = file(filename, 'wb')
+        f.write(str(url_port))
+        f.close()
 
-    def _CheckNodeProxy(self, display_error=False):
+    def _CheckNodeProxy(self, display_error=True):
         """
         Checks if we are connected to a node, if not, displays a message box.
         Returns True if we are connected, False otherwise.
@@ -211,174 +182,207 @@ class NavigatorApp(UIProxyReceiver):
             return True
         else:
             if display_error:
-                print >> get_log_stream(),  _("This action cannot be performed, because you are not connected to a node.")
+                self.display_message(_("Not connected"),
+                                     _("This action cannot be performed,"
+                                       "because you are not connected."))
             return False
     
     def _MemDebug(self):
-        if self.memsizer:
-            stream = StringIO()
-            gc.collect()
-            self.memsizer.sizeall()
-            print >> stream, "\n... memdump ...\n"
-            items = self.memsizer.get_deltas()
-            print >> stream, "\n".join(items)
-            t = threading.Timer(10, self._MemDebug)
-            t.start()
-            print >> stream, "\n\n"
-            return stream.getvalue()
+        """debug display of garbage collector"""
+        gc.collect()
+        self.memsizer.sizeall()
+        print "\n... memdump ...\n"
+        items = self.memsizer.get_deltas()
+        print "\n".join(items)
+        self.future_call(1000.0 * 10, self._MemDebug)
+        
+    def _JumpNearAddress(self, address):
+        """move node near given address"""
+        if self._CheckNodeProxy():
+            self.node_proxy.JumpNear(address.ToStruct())
+
+    def _JumpNearURL(self, url_string):
+        """change node position according to given url"""
+        print "Received:", url_string
+        if self._CheckNodeProxy(False):
+            try:
+                url = SolipsisURL.FromString(url_string)
+            except ValueError, e:
+                print str(e)
+            else:
+                self._JumpNearAddress(url.GetAddress())
+            self.url_jump = None
         else:
-            return "navigator not launched in debug mode"
-    
+            self.url_jump = url_string
+
     def _TryConnect(self, deferred=None):
         """
         Tries to connect to the configured node.
         """
+        assert self.config_data, "config must be initialised first"
+        assert self.services, "services must be initialised first"
+        assert self.world, "world must be initialised first"
+        assert self.viewport, "viewport must be initialised first"
         if self._CheckNodeProxy(False):
             self.network.DisconnectFromNode()
         self._SetWaiting(True)
+        self.world.Reset()
         self.viewport.Reset()
         self.network.ConnectToNode(self.config_data, deferred)
-        self.statusbar.SetText(_("Connecting"))
+        self.display_status("connecting to %s:%d"\
+                            % (self.config_data.host, self.config_data.port))
         self.services.RemoveAllPeers()
         self.services.SetNode(self.config_data.GetNode())
-        return "connecting to %s:%d"% (self.config_data.host, self.config_data.port)
-    
-    def _DestroyProgress(self):
-        raise NotImplementedError
-    
-    def _SetWaiting(self, waiting):
-        pass
-#         if waiting:
-#             print >> get_log_stream(),  "Waiting ..."
-#         else:
-#             print >> get_log_stream(),  "Wait ended."
 
-
-    #===-----------------------------------------------------------------===#
-    # Event handlers for the main window
-    # (in alphabetical order)
-    #
-    def _About(self, evt):
-        """
-        Called on "about" event (menu -> Help -> About).
-        """
-        return _("Solipsis Navigator") + " " + self.version + "\n\n" + _("Licensed under the GNU LGPL") + "\n(c) France Telecom R&D"
-
-    def _CreateNode(self, evt):
-        """
-        Called on "create node" event (menu -> File -> New node).
-        """
-        stream = StringIO()
-        print >> stream, "creating node for", self.config_data.pseudo
-        l = Launcher(port=self.config_data.solipsis_port)
+    def _LaunchNode(self, deferred=None):
+        """Create new node and connect"""
+        assert self.config_data, "config must be initialised first"
+        assert self.viewport, "viewport must be initialised first"
+        self.config_data.Compute()
+        l = Launcher(port=self.config_data.solipsis_port,
+            control_port=self.config_data.local_control_port)
         # First try to spawn the node
         if not l.Launch():
             self.viewport.Disable()
-            print >> stream, _("Node creation failed. \nPlease check you have sufficient rights.")
-            return stream.getvalue()
+            msg = _("""Node creation failed.
+Please check you have sufficient rights.""")
+            self.display_message(_("Kill refused"), msg)
+            return
         # Then connect using its XMLRPC daemon
-        self.config_data.host = 'localhost'
-        self.config_data.port = 8550
-        self.config_data.proxymode_auto = False
-        self.config_data.proxymode_manual = False
-        self.config_data.proxymode_none = True
-        self.config_data.Compute()
         # Hack so that the node has the time to launch
         self.connection_trials = 5
-        print >> stream, self._TryConnect()
-        return stream.getvalue()
+        self._TryConnect(deferred)
 
-    def _OpenConnect(self, evt, deferred=None):
-        self.config_data.Compute()
-        self.connection_trials = 0
-        return self._TryConnect(deferred)
-        
-    def _Disconnect(self, evt):
+    def _MoveNode(self, (x, y), jump=False, jump_near=False):
         """
-        Called on "disconnect" event (menu -> File -> Disconnect).
+        Move the node and update our world view.
         """
-        self._SetWaiting(False)
-        if self._CheckNodeProxy():
-            self.network.DisconnectFromNode()
-            self.node_proxy = None
-            self.viewport.Disable()
-            self.statusbar.SetText(_("Not connected"))
-            self.services.RemoveAllPeers()
-            return _("Not connected")
+        assert self.world, "world must be initialised first"
+        self.world.UpdateNodePosition(Position((x, y, 0)),
+                                      jump=jump or jump_near)
+        if jump_near:
+            self.node_proxy.JumpNearPosition(str(long(x)), str(long(y)), str(0))
         else:
-            return "not connected"
+            self.node_proxy.Move(str(long(x)), str(long(y)), str(0))
 
-    def _DisplayNodeAddress(self, evt):
-        """
-        Called on "node address" event (menu -> Actions -> Jump Near).
-        """
-        if self._CheckNodeProxy():
-            return self.world.GetNode().address.ToString()
-        else:
-            return "not connected"
 
-    def _JumpNear(self, evt):
+    def _LoadConfig(self):
+        """helper to load config from file"""
+        assert self.config_data, "config must be initialised first"
+        # Load last saved config
+        try:
+            f = file(self.config_file, "rb")
+            self.config_data.Load(f)
+            f.close()
+        except (IOError, EOFError):
+            if os.path.exists(self.config_file):
+                print "Config file '%s' broken, erasing"
+                os.remove(self.config_file)
+                
+    def _SaveConfig(self):
         """
-        Called on "jump near" event (menu -> Actions -> Node address).
+        Save current configuration to the user's config file.
         """
-        if self._CheckNodeProxy():
-            try:
-                address = Address.FromString(evt)
-            except ValueError, e:
-                return str(e)
-            else:
-                self.node_proxy.JumpNear(address.ToStruct())
-                return address.ToString()
-        else:
-            return "not connected"
-
-    def _Kill(self, evt):
-        """
-        Called on "kill" event (menu -> File -> Kill).
-        """
-        if self._CheckNodeProxy():
-            self.network.KillNode()
-            self.services.RemoveAllPeers()
-            return "node killed"
-        else:
-            return "not connected"
-
-    def _Reset(self, evt):
-        """reset node (clear pending connections)"""
-        if self._CheckNodeProxy():
-            self.network.ResetNode()
-            return "node reset"
-        else:
-            return "not connected"
-
-    def _Preferences(self, evt):
-        """
-        Called on "preferences" event (menu -> File -> Preferences).
-        """
-        stream = StringIO()
-        self.config_data.Compute()
-        pprint(self.config_data.__dict__["_dict"], stream)
-        return stream.getvalue()
-
-    def _Quit(self, evt):
-        """
-        Called on quit event (menu -> File -> Quit, window close box).
-        """
-        self.alive = False
-        # Save current configuration
+        assert self.config_data, "config must be initialised first"
         try:
             f = file(self.config_file, "wb")
             self.config_data.Save(f)
             f.close()
         except IOError, e:
-            print >> get_log_stream(),  str(e)
+            print "Failed to saved config:", str(e)
+
+    #===-----------------------------------------------------------------===#
+    # Event handlers for the main window
+    # (in alphabetical order)
+    #
+
+    def _OnAbout(self, evt):
+        """
+        Called on "about" event (menu -> Help -> About).
+        """
+        msg = _("Solipsis Navigator") + " " \
+              + self.version + "\n\n" \
+              + _("Licensed under the GNU LGPL") + "\n(c) France Telecom R&D"
+        self.display_message(_("About..."), msg)
+
+    def _OnConnect(self, evt=None):
+        """
+        Called on "connect" event (menu -> File -> Connect).
+        """
+        assert self.config_data, "config_data must be defined first"
+        if self.config_data.connection_type == 'local':
+            # Local connection mode: create a dedicated Solipsis node
+            self._LaunchNode()
+        else:
+            # Remote connection mode: connect to an existing node
+            self.connection_trials = 0
+            self._TryConnect()
+
+    def _OnDisconnect(self, evt):
+        """
+        Called on "disconnect" event (menu -> File -> Disconnect).
+        """
+        self._DestroyProgress()
+        self._SetWaiting(False)
+        if self._CheckNodeProxy():
+            assert self.services, "services must be initialised first"
+            assert self.viewport, "viewport must be initialised first"
+            self.network.DisconnectFromNode()
+            self.node_proxy = None
+            self.viewport.Disable()
+            self.Redraw()
+            self.display_status(_("Not connected"))
+            self.services.RemoveAllPeers()
+
+    def _OnDisplayAddress(self, evt=None):
+        """
+        returns address of the node.
+        """
+        self.display_message("Address", self.world.GetNode().address.ToString())
+
+    def _OnJumpNear(self, evt):
+        """
+        move node address to address evt (like slp://192.33.178.29:5010/).
+        """
+        assert isinstance(evt, str) or isinstance(evt, unicode), \
+               "adress must be formatted as slp://192.33.178.29:5010/"
+        try:
+            address = Address.FromString(evt)
+        except ValueError:
+            self._JumpNearURL(evt)
+        else:
+            self._JumpNearAddress(address)
+
+    def _OnJumpPos(self, evt):
+        """
+        change position according to evt, formated as (x,y).
+        """
+        assert len(evt) == 2, "_OnJumpPos must be called with tuple (x, y)"
+        x, y = evt
+        self._MoveNode((x * self.world_size, y * self.world_size),
+                       jump_near=True)
+
+    def _OnKill(self, evt):
+        """
+        Called on "kill" event (menu -> File -> Kill).
+        """
+        if self._CheckNodeProxy():
+            assert self.services, "services must be initialised first"
+            self.network.KillNode()
+            self.services.RemoveAllPeers()
+
+    def _OnQuit(self, evt):
+        """
+        Called on quit event (menu -> File -> Quit, window close box).
+        """
+        self.alive = False
+        self._SaveConfig()
         # Kill the node if necessary
         if self.config_data.node_autokill and self._CheckNodeProxy(False):
             self.network.KillNode()
             self._SetWaiting(True)
             # Timeout in case the Kill request takes too much time to finish
-            t = threading.Timer(1, self._Quit2)
-            t.start()
+            self.future_call(1000, self._Quit2)
         else:
             self._Quit2()
     
@@ -386,6 +390,7 @@ class NavigatorApp(UIProxyReceiver):
         """
         The end of the quit procedure ;-)
         """
+        assert self.services, "services must be initialised first"
         # Disable event proxying: as of now, all UI -> network
         # and network -> UI events will be discarded
         self.DisableProxy()
@@ -395,82 +400,6 @@ class NavigatorApp(UIProxyReceiver):
         # Now we are sure that no more events are pending, kill everything
         self.reactor.stop()
 
-    def _ToggleAutoRotate(self, evt):
-        raise NotImplementedError
-
-
-    #===-----------------------------------------------------------------===#
-    # Event handlers for the about dialog
-    #
-    def _CloseAbout(self, evt):
-        raise NotImplementedError
-
-
-    #===-----------------------------------------------------------------===#
-    # Event handlers for the connect dialog
-    #
-    def _CloseConnect(self, evt):
-        raise NotImplementedError
-
-    def _ConnectOk(self, evt):
-        raise NotImplementedError
-
-
-    #===-----------------------------------------------------------------===#
-    # Event handlers for the world viewport
-    #
-    def _KeyPressViewport(self, evt):
-        raise NotImplementedError
-
-    def _LeftClickViewport(self, evt):
-        """
-        Called on left click event.
-        """
-        if self._CheckNodeProxy(False):
-            x, y = evt
-            self.world.UpdateNodePosition(Position((x, y, 0)))
-            self.node_proxy.Move(str(long(x)), str(long(y)), str(0))
-            return "moved to %s,%s"% (str(x/2**128), str(y/2**128))
-        else:
-            return "not connected"
-
-    def _RightClickViewport(self, evt):
-        """
-        Called on right click event.
-        """
-        stream = StringIO()
-        # We display a contextual menu
-        if self._CheckNodeProxy(False):
-            # MenuItem #1: bookmark peer
-            peer = self.world.GetHoveredPeer(evt)
-            if peer is not None:
-                print >> stream, _('Bookmark peer "%s"') % peer.pseudo
-                # Following MenuItems are filled by service plugins
-                l = self.services.GetPointToPointActions(peer.id_)
-                if len(l) > 0:
-                    for item in l:
-                        print >> stream, item
-                    print  >> stream,'---'
-            print >> stream, _("Disconnect")
-        else:
-            print >> stream, _("Connect to node")
-        print >> stream, _("About Solipsis")
-        return stream.getvalue()
-
-    def _HoverViewport(self, evt):
-        """
-        Called on mouse movement in the viewport.
-        """
-        if self._CheckNodeProxy(False):
-            x, y = evt
-            changed, id_ = self.viewport.Hover((x, y))
-            if changed and id_:
-                self.statusbar.SetTemp(self.world.GetPeer(id_).pseudo)
-            elif changed and not id_:
-                self.statusbar.Reset()
-        else:
-            return "not connected"
-
 
     #===-----------------------------------------------------------------===#
     # Actions from the network thread(s)
@@ -479,6 +408,8 @@ class NavigatorApp(UIProxyReceiver):
         """
         Add an object to the viewport.
         """
+        assert self.services, "services must be initialised first"
+        assert self.world, "world must be initialised first"
         self.world.AddPeer(*args, **kargs)
         self.services.AddPeer(*args, **kargs)
 
@@ -486,6 +417,8 @@ class NavigatorApp(UIProxyReceiver):
         """
         Remove an object from the viewport.
         """
+        assert self.services, "services must be initialised first"
+        assert self.world, "world must be initialised first"
         self.world.RemovePeer(*args, **kargs)
         self.services.RemovePeer(*args, **kargs)
 
@@ -493,6 +426,8 @@ class NavigatorApp(UIProxyReceiver):
         """
         Update an object.
         """
+        assert self.services, "services must be initialised first"
+        assert self.world, "world must be initialised first"
         self.world.UpdatePeer(*args, **kargs)
         self.services.UpdatePeer(*args, **kargs)
 
@@ -500,6 +435,8 @@ class NavigatorApp(UIProxyReceiver):
         """
         Update node information.
         """
+        assert self.services, "services must be initialised first"
+        assert self.world, "world must be initialised first"
         self.services.SetNode(*args, **kargs)
         self.world.UpdateNode(*args, **kargs)
     
@@ -507,91 +444,105 @@ class NavigatorApp(UIProxyReceiver):
         """
         Update node position.
         """
+        assert self.world, "world must be initialised first"
         self.world.UpdateNodePosition(*args, **kargs)
     
     def ProcessServiceData(self, *args, **kargs):
         """
         Process service-specific data.
         """
+        assert self.services, "services must be initialised first"
         self.services.ProcessServiceData(*args, **kargs)
 
     def ResetWorld(self, *args, **kargs):
         """
         Reset the world and the viewport.
         """
+        assert self.world, "world must be initialised first"
         self.world.Reset(*args, **kargs)
 
     def SetStatus(self, status):
         """
         Change connection status.
         """
+        assert self.viewport, "viewport must be initialised first"
         if status == 'READY':
             self._SetWaiting(False)
             self.viewport.Enable()
-            self.statusbar.SetText(_("Connected"))
+            self.Redraw()
+            self.display_status(_("Connected"))
         elif status == 'BUSY':
             self._SetWaiting(True)
             self.viewport.Enable()
-            self.statusbar.SetText(_("Searching peers"))
+            self.Redraw()
+            self.display_status(_("Searching peers"))
         elif status == 'UNAVAILABLE':
             self._SetWaiting(False)
             self.viewport.Disable()
-            self.statusbar.SetText(_("Not connected"))
+            self.Redraw()
+            self.display_status(_("Not connected"))
+        if self.url_jump:
+            self._JumpNearURL(self.url_jump)
 
     def NodeConnectionSucceeded(self, node_proxy):
         """
         We managed to connect to the node.
         """
-        # We must call the node proxy from the Twisted thread!
+        assert self.config_data, "config must be initialised first"
+        self._DestroyProgress()
         self._SetWaiting(False)
+        # We must call the node proxy from the Twisted thread!
         self.node_proxy = TwistedProxy(node_proxy, self.reactor)
-        self.statusbar.SetText(_("Connected"))
-#         print >> get_log_stream(),  "NodeConnectionSucceeded", node_proxy
+        self.node_proxy.SetNodeInfo(self.config_data.GetNode().ToStruct())
+        self.display_status(_("Connected"))
 
     def NodeConnectionFailed(self, error):
         """
         Failed connecting to the node.
         """
+        self._DestroyProgress()
         self._SetWaiting(False)
         self.node_proxy = None
-        self.statusbar.SetText(_("Not connected"))
-        print >> get_log_stream(),  _("Connection to the node has failed. \nPlease the check the node is running, then retry.")
+        self.display_status(_("Not connected"))
+        msg = _("""Connection to the node has failed.
+Please the check the node is running, then retry.""")
+        self.display_error(_("Connection error"), msg)
 
     def NodeKillSucceeded(self):
         """
         We managed to kill the (remote/local) node.
         """
         if self.alive:
+            assert self.viewport, "viewport must be initialised first"
             self.node_proxy = None
             self._SetWaiting(False)
             self.viewport.Disable()
-            self.statusbar.SetText(_("Not connected"))
+            self.Redraw()
+            self.display_status(_("Not connected"))
         else:
             # If not alive, then we are in the quit phase
             self._Quit2()
-#         print >> get_log_stream(),  "NodeKillSucceeded"
 
     def NodeKillFailed(self):
         """
         The node refused to kill itself.
         """
         if self.alive:
+            assert self.viewport, "viewport must be initialised first"
             self.node_proxy = None
             self._SetWaiting(False)
             self.viewport.Disable()
-            print >> get_log_stream(),  _("You cannot kill this node.")
+            msg = _("You cannot kill this node.")
+            self.display_error(_("Kill refused"), msg)
         else:
             # If not alive, then we are in the quit phase
             self._Quit2()
-        print >> get_log_stream(),  "NodeKillFailed"
-
+ 
     #===-----------------------------------------------------------------===#
     # Actions from the services
     #
-    def SetServiceMenu(self, service_id, title, menu):
-        print >> get_log_stream(),  "SetServiceMenu:", title, service_id
-
     def SendServiceData(self, peer_id, service_id, data):
+        """use UDP link between nodes to send data"""
         if self._CheckNodeProxy(False):
             d = ServiceData(peer_id, service_id, data)
             self.node_proxy.SendServiceData(d.ToStruct())

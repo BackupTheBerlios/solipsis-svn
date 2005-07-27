@@ -41,6 +41,10 @@ class BaseViewport(object):
     def Reset(self):
         raise NotImplementedError
 
+    def Draw(self, onPaint = False):
+        """refresh the viewport"""
+        raise NotImplementedError
+
     def AddObject(self, name, obj, position):
         raise NotImplementedError
 
