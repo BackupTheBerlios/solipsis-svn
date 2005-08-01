@@ -74,6 +74,10 @@ def main():
                         help="X start value")
     parser.add_option("-y", type="long", dest="pos_y",
                         help="Y start value")
+
+    # (Ignored) stub option inherited from navigator
+    parser.add_option("", "--runnode", action="store_true", help="(internal use)")
+
     params = Parameters(parser, config_file=config_file)
 
     if (params.daemon):
@@ -125,3 +129,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

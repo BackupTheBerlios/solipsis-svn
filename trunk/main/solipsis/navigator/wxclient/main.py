@@ -21,10 +21,14 @@ import sys
 import os
 import socket
 
-from solipsis.navigator.main import USAGE, OPTIONS, build_params
+from solipsis.navigator.main import build_params, detect_stub
 from solipsis.navigator.wxclient.app import NavigatorApp
 
 def main():
+    if detect_stub():
+        from solipsis.node import main as node_main
+        node_main.main()
+        sys.exit(0)
     params = build_params()
     # If an URL has been specified, try to connect to a running navigator
     if params.url_jump:

@@ -11,14 +11,16 @@ it in a compressed archive:
 """
 
 import os
+import sys
 import glob
+import re
 
 from distutils.core import setup
 import py2app
 #import bdist_mpkg
 
-name = "Solipsis"
-version = "0.9"
+application_name = "Solipsis"
+version = "0.9.2svn"
 description = "Solipsis, a peer-to-peer system for a massively multi-participant virtual world"
 author = "France Telecom R&D"
 author_email = "solipsis-tech@lists.berlios.de"
@@ -28,11 +30,37 @@ license = "COPYRIGHT"
 packages = []
 includes = ['solipsis.node.main']
 resources = []
-data_files = [('.', ['twistednode.py'])]
+#data_files = [('.', ['twistednode.py'])]
+data_files = []
+
+#
+# Create dynamic setup info
+#
+template = "dyn/py2app.tmpl.py"
+dynfile = template.replace('.tmpl.py', '.py')
+print "generating %s" % dynfile
+
+var_replace = {}
+var_replace['executable'] = '../MacOS/' + application_name
+
+f = file(template, 'r')
+s = f.read()
+f.close()
+for k, v in var_replace.items():
+     s, n = re.subn(r'[^\r\n]+#\s*<%s>([\r\n])' % k, "%s = %s\n\\1" % (k, repr(v)), s)
+     if n == 0:
+         print "Couldn't find var '%s' in template '%s'. Bailing out." % (k, template)
+         sys.exit(1)
+
+f = file(dynfile, 'w')
+f.write(s)
+f.close()
 
 #
 # Find all packages and modules
 #
+print "enumerating modules"
+
 service_dir = 'solipsis/services'
 # 1. Dynamically-loaded service plugins
 for filename in os.listdir(service_dir):
@@ -41,6 +69,7 @@ for filename in os.listdir(service_dir):
         package = path.replace('/', '.')
         packages.append(package)
         includes.append(package + '.plugin')
+
 extension_dirs = ['solipsis/node/discovery', 'solipsis/node/controller']
 # 2. Dynamically-loaded behaviour extensions
 for dir in extension_dirs:
@@ -56,9 +85,10 @@ for dir in extension_dirs:
 #
 # Find all resource files and dirs
 #
+print "enumerating resources"
+
 # Please note: base directories of service plugins will be automatically
 # included as long as they contain some localization data (.mo files)
-resource_dirs = set()
 extensions = [
     'xrc',
     'mo',
@@ -80,17 +110,9 @@ for dirpath, dirnames, filenames in os.walk('.'):
         else:
             continue
         path = os.path.join(dirpath, filename)
-        resources.append(path)
         files.append(path)
         found = True
-    # We must not forget to include directories or everything will end up 
-    # in the same place
-    if found and dirpath != '.':
-        resource_dirs.add(dirpath)
     data_files.append((dirpath, files))
-resources = list(resource_dirs) + resources
-resources = list(resource_dirs)
-#print "resources =", resources
 #print "data_files =", data_files
 
 # Note that you must replace hypens '-' with underscores '_'
@@ -105,8 +127,6 @@ py2app_options = {
     # as it will contain only Mac OS X specific stuff.
     'argv_emulation': True,
     'includes': includes,
-#    'packages': packages,
-#    'resources': resources,
 
     # This is a shortcut that will place MyApplication.icns
     # in the Contents/Resources folder of the application bundle,
@@ -116,7 +136,7 @@ py2app_options = {
 
 setup(
     # Metadata
-    name=name,
+    name=application_name,
     version=version,
     description=description,
     author=author,

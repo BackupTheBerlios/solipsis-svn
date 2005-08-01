@@ -19,31 +19,47 @@
 """base entry point with common options (does not include URL
 loader. Options may be added with new entries in OPTIONS"""
 
+import sys
 from optparse import OptionParser
+
 from solipsis.util.parameter import Parameters
 
 DEFAULT_FILE = "conf/solipsis.conf"
 USAGE = "usage: %prog [-f <config file>] [--url <url>]"
 OPTIONS = [
-    {"shortcut": "-f", 
-     "command": "--file", 
-     "dest": "config_file",
-     "action": "store",
-     "default": DEFAULT_FILE,
-     "help": "configuration file"},
-    {"shortcut": "-M", 
-     "command": "--memdebug",
-     "dest": "memdebug",
-     "action": "store_true",
-     "default": False,
-     "help": "dump memory occupation statistics"},
-    {"shortcut": "",
-     "command": "--url",
-     "dest": "url_jump",
-     "action": "store",
-     "default": "",
-     "help": "URL to jump to"},
-    ]
+    {
+        "shortcut": "-f", 
+        "command": "--file", 
+        "dest": "config_file",
+        "action": "store",
+        "default": DEFAULT_FILE,
+        "help": "configuration file"
+    },
+    {
+        "shortcut": "-M", 
+        "command": "--memdebug",
+        "dest": "memdebug",
+        "action": "store_true",
+        "default": False,
+        "help": "dump memory occupation statistics"
+    },
+    {
+        "shortcut": "",
+        "command": "--url",
+        "dest": "url_jump",
+        "action": "store",
+        "default": "",
+        "help": "URL to jump to"
+    },
+]
+
+def detect_stub():
+    """
+    Detects whether a stub to the node was really asked.
+    """
+    if len(sys.argv) < 2:
+        return False
+    return sys.argv[1] == '--runnode'
 
 def build_params():
     """construct and returns config, base on optparse"""

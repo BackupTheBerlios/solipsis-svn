@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # <copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
 # Copyright (C) 2002-2005 France Telecom R&D
@@ -18,18 +16,3 @@
 # License along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
-
-import os
-import os.path
-import sys
-
-if __name__ == '__main__':
-    # Adjust path
-    current_file = sys.argv[0]
-    current_path = os.path.normcase(os.path.dirname(os.path.abspath(current_file)))
-    os.chdir(current_path)
-    if not current_path in sys.path:
-        sys.path.insert(0, current_path)
-    # Launch
-    from solipsis.node import main
-    main.main()

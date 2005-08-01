@@ -40,23 +40,42 @@ class Launcher(object):
             self.custom_args = list(custom_args)
         else:
             self.custom_args = []
+    
+    def py2app_args(self):
+        # For py2app-bundled applications, we use a stub through the py2app
+        # executable (directly launching scripts leads to library missing errors)
+        try:
+            import dyn.py2app
+        except ImportError:
+            return None
+        else:
+            return [dyn.py2app.executable, '--runnode']
+
+    def python_args(self):
         # Find the proper executable in the current dir
         for f in self.launcher_alternatives:
             if os.path.isfile(f):
-                self.launcher_name = f
+                prog_name = f
                 break
         else:
-            raise BadInstall("could not find any of ('%s') in the main directory"
-                % "', '".join(self.launcher_alternatives))
-    
-    def Launch(self):
-        prog_name = os.path.normcase('.' + os.sep + self.launcher_name)
-        # If the program is a Python script, we try to keep the same executable
-        # as currently (useful on MacOS X with py2app)
+            return None
+        prog_path = os.path.normcase('.' + os.sep + prog_name)
+        # We try to keep the same Python interpreter as currently
         if os.path.exists(sys.executable) and re.match(r'.*\.py[cow]?$', prog_name, re.IGNORECASE):
-            args = [sys.executable, prog_name]
+            return [sys.executable, prog_path]
         else:
-            args = [prog_name]
+            return [prog_path]
+
+    def Launch(self):
+        # First handle the py2app special case
+        methods = [self.py2app_args, self.python_args]
+        for m in methods:
+            args = m()
+            if args:
+                break
+        else:
+            raise BadInstall("No launching method adequate. Could not find any of ('%s') in the main directory"
+                % "', '".join(self.launcher_alternatives))
         args +=  ['-q', '-d']
         if self.port:
             args += ['-p', str(self.port)]
