@@ -1,4 +1,5 @@
 
+
 Q: How do I run solipsis?
 A: You just need to run navigator.py or navigator.exe and to create a new node (File - New Node (Ctrl+N)). The navigator will automatically connects on it.
 
