@@ -32,6 +32,8 @@ from solipsis.services.profile.filter_document import FilterDocument
 def create_facade(pseudo, directory=PROFILE_DIR):
     """implements pattern singleton on Facade. User may specify
     document end/or view to initialize facade with at creation"""
+    if isinstance(pseudo, unicode):
+        pseudo = pseudo.encode(ENCODING)
     Facade.s_facade = Facade(pseudo, directory)
     return Facade.s_facade
 
@@ -42,6 +44,8 @@ def get_facade():
 
 def create_filter_facade(pseudo, directory=PROFILE_DIR):
     """implements pattern singleton on FilterFacade"""
+    if isinstance(pseudo, unicode):
+        pseudo = pseudo.encode(ENCODING)
     FilterFacade.filter_facade = FilterFacade(pseudo, directory)
     return FilterFacade.filter_facade
 

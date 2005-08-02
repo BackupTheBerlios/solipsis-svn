@@ -25,6 +25,7 @@ import sys
 
 from solipsis.util.wxutils import _
 from solipsis.services.plugin import ServicePlugin
+from solipsis.services.profile import ENCODING
 from solipsis.services.profile.prefs import get_prefs
 from solipsis.services.profile import set_solipsis_dir
 from solipsis.services.profile.facade import create_facade, get_facade, \
@@ -286,7 +287,7 @@ class Plugin(ServicePlugin):
         """need to update node_id"""
         # ChangedNode is call more than one time on change. Thus, be
         # careful not to do the job every time
-        if get_facade() is None or get_facade().get_pseudo() != node.pseudo:
+        if get_facade() is None or get_facade().get_pseudo() != node.pseudo.encode(ENCODING):
             facade = create_facade(node.pseudo)
             facade.load()
             if self.editor_frame:

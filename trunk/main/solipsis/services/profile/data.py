@@ -151,7 +151,7 @@ def retro_compatibility(blogs):
         # v 0.2.0: path derived from _id & _dir. owner becomes pseudo
         blogs.pseudo = blogs._id
         return blogs.copy()
-    elif blogs.version == "0.2.1":
+    elif blogs.version in ["0.2.1", "0.2.2"]:
         # v 0.2.1: path derived from pseudo & dir. _id removed
         return blogs
     else:

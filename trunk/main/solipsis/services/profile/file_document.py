@@ -41,7 +41,8 @@ class FilePersonalMixin(AbstractPersonalData):
 
     def __init__(self, pseudo):
         self.config.add_section(SECTION_PERSONAL)
-        self.config.set(SECTION_PERSONAL, "pseudo", pseudo)
+        self.config.set(SECTION_PERSONAL, "pseudo",
+                        pseudo.encode(self.encoding))
         self.config.add_section(SECTION_CUSTOM)
         AbstractPersonalData.__init__(self)
         

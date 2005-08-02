@@ -27,6 +27,7 @@ DATA_DIR = os.path.join(TEST_DIR, "data")
 PROFILE_DIRECTORY = os.path.sep.join([TEST_DIR, "data", "profiles"])
 PROFILE_TEST = u"test"
 PROFILE_BRUCE = u"bruce"
+PROFILE_UNICODE = u"zoé"
 PROFILE_TATA = u"tata"
 PROFILE_DEMI = u"demi"
 PROFILE_010 = u"demi_010"
