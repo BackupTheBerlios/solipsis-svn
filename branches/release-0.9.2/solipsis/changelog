@@ -1,0 +1,53 @@
+Solipsis 0.9.2, build 660
+  * Changes in Profile (v 0.2.2)
+  ==============================
+  + add filtering/pop-up system
+
+    Allow you to display a popup dialog when meeting a peer which matches
+    your criteria.
+
+    The filters are edited within a dedicated window and launched via 
+    'menu' > 'profile' > 'Filter Profiles...' or 
+    'right click on your avatar' > 'Filter Profiles...'
+
+    Filter syntax is the one of the regular expressions.
+
+  + added stun discovery for local ip
+  + improved ergonomy
+  + fixed unicode problems
+
+solipsis (0.9.1) 
+
+  * Changes in Profile (v 0.2.1)
+  ==============================
+
+	+ Reviewed ergonomy of GUI: 
+	---------------------------
+	
+	Merge of the Personal and Custom tabs which result in a clearer
+	and more concise set of data
+
+	The Contact tab has been removed for now but will reappear soon in
+	one form or another
+	
+	The menu has been clarified (purified) too.
+
+	+ Reviewed saving & loading system: 
+	-----------------------------------
+	
+	Profiles are now loaded according to the identity used when
+	connecting to solipsis. This identity defines the pseudo of the
+	profile and the name of the file where to save data.
+
+	A popup prompts the user to save its modification if any.
+
+	+ Bug fixes
+	-----------
+
+	Ip addresses were not set up correctly which resulted in problems
+	of file transfer.
+
+	Paths from windows read on Linux were not rightly interpreted,
+	wich also resulted on impossibility of file transfer.
+
+ -- emb <emb@logilab.fr>  01/06/2005

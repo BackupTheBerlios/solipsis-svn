@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resource>
+  <object class="wxFrame" name="main_window">
+    <title>Navigator</title>
+    <centered>1</centered>
+    <object class="wxPanel" name="viewport_panel">
+      <style>wxCLIP_CHILDREN</style>
+    </object>
+  </object>
+  <object class="wxMenuBar" name="main_menubar">
+    <object class="wxMenu" name="file_menu">
+      <label>&amp;Node</label>
+      <object class="wxMenuItem" name="menu_connect">
+        
+        
+        
+        
+        
+        
+        
+        <label>&amp;Connect to Solipsis</label>
+        
+        
+        
+        
+        
+        
+        
+        <bitmap stock_id="wxART_FILE_OPEN"></bitmap>
+        
+        
+        
+        
+        
+        
+        
+        <accel>Ctrl-N</accel>
+      </object>
+      <object class="wxMenuItem" name="menu_disconnect">
+        
+        
+        
+        
+        
+        
+        
+        <label>&amp;Disconnect</label>
+        
+        
+        
+        
+        
+      </object>
+      <object class="wxMenuItem" name="menu_kill">
+        
+        
+        
+        
+        
+        
+        
+        <label>&amp;Kill node</label>
+        
+        
+        
+        
+        
+      </object>
+      <object class="separator"/>
+      <object class="wxMenuItem" name="menu_quit">
+        
+        
+        
+        
+        
+        
+        
+        <label>Quit</label>
+      
+        
+        
+        
+        
+        
+        
+        <bitmap stock_id="wxART_QUIT"></bitmap>
+      
+        
+        
+        <accel>Ctrl+Q</accel>
+      </object>
+    </object>
+    <object class="wxMenu" name="edit_menu">
+      <label>&amp;Actions</label>
+      <object class="wxMenuItem" name="menu_nodeaddr">
+        
+        
+        
+        
+        
+        
+        
+        <label>My address</label>
+        
+        
+        
+        
+        
+        
+        
+        <bitmap stock_id="wxART_COPY"></bitmap>
+        
+      
+        
+        
+        
+        
+        
+        
+        <accel>Ctrl+C</accel>
+        
+        
+        
+        
+        
+        
+        <help>Paste your address so that your friend can jump near you</help>
+      </object>
+      <object class="wxMenuItem" name="menu_jumpnear">
+        
+        
+        
+        
+        
+        
+        
+        <label>&amp;Jump near...</label>
+        
+        
+        
+        
+        
+        
+        
+        <bitmap stock_id="wxART_GO_FORWARD"></bitmap>
+        
+        
+        
+        
+        
+        
+        
+        <accel>Ctrl+G</accel>
+      
+        
+        
+        
+        
+        
+        
+        <help>Jump near another node</help>
+      </object>
+      <object class="wxMenuItem" name="menu_jumppos">
+        
+        
+        
+        
+        
+        
+        
+        <label>Jump to position</label>
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+      
+        
+        
+        
+        
+        
+        
+        <help>Jump to a numeric position in the world</help>
+      </object>
+      <object class="separator"/>
+      <object class="wxMenuItem" name="menu_preferences">
+        
+        
+        
+        
+        
+        
+        
+        <label>Preferences</label>
+      </object>
+    </object>
+    <object class="wxMenu" name="view_menu">
+      <label>&amp;View</label>
+      <object class="wxMenuItem" name="menu_autorotate">
+        
+        
+        
+        
+        
+        
+        
+        <label>Automatic Rotation</label>
+        
+        
+        
+        
+        
+        
+        
+        <help>Choose whether display orientation changes when moving</help>
+        
+        
+        
+        
+        
+        
+        <checkable>1</checkable>
+      </object>
+    </object>
+    <object class="wxMenu" name="bookmarks_menu">
+      <label>&amp;Bookmarks</label>
+      <object class="wxMenuItem" name="menu_edit_bookmarks">
+        
+        
+        
+        
+        <label>Edit bookmarks</label>
+        
+        
+        
+        
+        <accel>Ctrl+B</accel>
+      </object>
+      <object class="separator"/>
+    </object>
+    <object class="wxMenu" name="help_menu">
+      <label>&amp;Help</label>
+      <object class="wxMenuItem" name="menu_about">
+        
+        
+        
+        
+        
+        
+        
+        <label>About</label>
+      
+        
+        
+        
+        
+        
+        
+        <bitmap stock_id="wxART_TIP"></bitmap>
+      </object>
+    </object>
+  </object>
+</resource>
