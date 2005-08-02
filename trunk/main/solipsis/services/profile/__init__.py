@@ -24,7 +24,7 @@ import gettext
 _ = gettext.gettext
 
 ENCODING = "iso-8859-1"
-VERSION = "0.2.1"
+VERSION = "0.2.2"
 DISCLAIMER = "All data in profiles are shared within Solipsis communauty"
 
 PROFILE_DIR = os.sep.join([os.path.expanduser("~"), u".solipsis", u"profiles"])
