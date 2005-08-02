@@ -188,7 +188,7 @@ class HtmlView(AbstractView):
         self.template = simpleTAL.compileHTMLTemplate(template_file,
                                                       inputEncoding=ENCODING)
         template_file.close()
-        self.context.addGlobal("pseudo", desc.pseudo)
+        self.context.addGlobal("pseudo", unicode(desc.pseudo, ENCODING))
         # init view
         AbstractView.__init__(self, desc, do_import, name)
         self._update_view()
