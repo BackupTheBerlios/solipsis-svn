@@ -44,6 +44,11 @@ def _import(name):
 
 
 class NodeLauncher(object):
+    """
+    This class prepares and launches a node according to the parameters
+    specified by the user.
+    """
+
     def __init__(self, reactor, params):
         self.reactor = reactor
         self.params = params
@@ -137,6 +142,11 @@ class NodeLauncher(object):
 
 
 class Bootstrap(object):
+    """
+    This class handles the launching of the node or pool of nodes
+    according to parameters given by the user.
+    """
+
     def __init__(self, reactor, params):
         """
         Initialize the bootstrap object and all necessary objects.

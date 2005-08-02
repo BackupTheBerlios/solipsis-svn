@@ -75,6 +75,10 @@ def main():
     parser.add_option("-y", type="long", dest="pos_y",
                         help="Y start value")
 
+    # Persistance
+    parser.add_option("", "--id", dest="node_id", default="",
+                        help="use specific node id")
+
     # (Ignored) stub option inherited from navigator
     parser.add_option("", "--runnode", action="store_true", help="(internal use)")
 

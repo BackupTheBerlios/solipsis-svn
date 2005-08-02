@@ -67,59 +67,20 @@ class Node(Entity):
         u'otoch',               # Yucatec
         u'ikhaya',              # Zulu
     ]
-
-    random_pseudos = [
-        u'aardvark',
-        u'cat',
-        u'dog',
-        u'elephant',
-        u'rabbit',
-        u'tasmanian devil',
-        
-        u'armchair',
-        u'bathroom',
-        u'bedroom',
-        u'dining-room',
-        u'flowerpot',
-        u'kitchen',
-        u'shower',
-        u'sofa',
-        u'washing-machine',
-
-        u'Izwal',
-        u'Buggol',
-        u'Croolis-Ulv',
-        u'Croolis-Var',
-        u'Torka',
-        u'Trauma',
-        u'Migrax',
-        u'the Ark',
-        
-        u'another shrubbery',
-        u'argument clinic',
-        u'bakery',
-        u'castle Anthrax',
-        u'cheese shop',
-        u'family homestead',
-        u'garage',
-        u'gorge of eternal peril',
-        u'hell\'s grannies',
-        u'junk food shop',
-        u'little fluffy clouds',
-        u'police station',
-        u'shrubbery',
-        u'wine shop',
-    ]
-    
+   
     world_size = 2**128
 
     def __init__(self, reactor, params):
         self.reactor = reactor
         self.params = params
 
-        id_ = self.CreateId()
+        if params.node_id:
+            id_= str(params.node_id)
+        else:
+            id_ = self.CreateId()
         position = Position((params.pos_x, params.pos_y, 0))
         address = Address(params.host, params.port)
+        print "Creating node '%s'" % id_
 
         # Call parent class constructor
         Entity.__init__(self, id_=id_, position=position, pseudo=params.pseudo, address=address)
@@ -136,8 +97,8 @@ class Node(Entity):
         #~ self.AddService(Service('share', 'out'))
 
     def CreateId(self):
-        # TODO: reasonable/persistent ID generation and attribution ?
-        id_ = "%d_%d_%s" % (self.params.port, Node.count, CreateSecureId())
+        base_id = CreateSecureId(self.params.pseudo)
+        id_ = "%d_%d_%s" % (self.params.port, Node.count, base_id)
         Node.count += 1
         return id_
 

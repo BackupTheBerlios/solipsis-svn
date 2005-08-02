@@ -27,9 +27,11 @@ except NameError:
     from sets import Set as set
 
 
-def CreateSecureId():
+def CreateSecureId(seed=''):
     """
-    Creates a new connection ID.
+    Creates a new random ID.
+    The ID is returned as a hex string.
+    (you can optionally specify a seed to improve randomness)
     """
     nbytes = 20
     try:
@@ -41,6 +43,9 @@ def CreateSecureId():
     for i in xrange(nbytes):
         s += chr(r & 0xFF)
         r >>= 8
+    if isinstance(seed, unicode):
+        seed = seed.encode('utf-8')
+    s += seed
     return sha.new(s).hexdigest()
 
 class ManagedData(object):
