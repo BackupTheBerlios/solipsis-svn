@@ -51,7 +51,7 @@ for k, v in var_replace.items():
     if n == 0:
         print "Couldn't find var '%s' in template '%s'. Bailing out." % (k, template)
         sys.exit(1)
-    
+
 f = file(dynfile, 'w')
 f.write(s)
 f.close()
@@ -117,7 +117,7 @@ for dirpath, dirnames, filenames in os.walk('.'):
 
 # Note that you must replace hypens '-' with underscores '_'
 # when converting option names from the command line to a script.
-# For example, the --argv-emulation option is passed as 
+# For example, the --argv-emulation option is passed as
 # argv_emulation in an options dict.
 py2app_options = {
     # Map "open document" events to sys.argv.

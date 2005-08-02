@@ -33,14 +33,15 @@ class Launcher(object):
     # This is a list of possible file names for the node launcher
     launcher_alternatives = ['twistednode.py', 'twistednode.exe']
 
-    def __init__(self, port=None, control_port=None, custom_args=None):
+    def __init__(self, node_id=None, port=None, control_port=None, custom_args=None):
+        self.node_id = node_id
         self.port = port
         self.control_port = control_port
         if custom_args is not None:
             self.custom_args = list(custom_args)
         else:
             self.custom_args = []
-    
+
     def py2app_args(self):
         # For py2app-bundled applications, we use a stub through the py2app
         # executable (directly launching scripts leads to library missing errors)
@@ -77,6 +78,8 @@ class Launcher(object):
             raise BadInstall("No launching method adequate. Could not find any of ('%s') in the main directory"
                 % "', '".join(self.launcher_alternatives))
         args +=  ['-q', '-d']
+        if self.node_id:
+            args += ['--id', self.node_id]
         if self.port:
             args += ['-p', str(self.port)]
         if self.control_port:

@@ -61,8 +61,8 @@ class NodeLauncher(object):
         self.host = self.params.host or "127.0.0.1"
         self.port = self.params.port + pool_num
         node = Node(self.reactor, self.params)
-        node.position = Position((random.random() * 2**128, random.random() * 2**128, 0))
-        node.SetRandomPseudo()
+#         node.SetRandomPosition()
+#         node.SetRandomPseudo()
         self.logger = logging.getLogger("peer.port_%d" % self.port)
         self.logger.setLevel(logging.DEBUG)
         self.state_machine = StateMachine(self.reactor, self.params, node, self.logger)

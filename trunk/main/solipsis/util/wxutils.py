@@ -34,8 +34,8 @@ def InitLocale():
     global _locale
 #     print "Getting locale:",
     _locale = wx.GetLocale()
-#     if _locale is None:
-#         print "Failed to get locale!"
+    if _locale is None:
+        print "Failed to get locale!"
 #     else:
 #         print _locale.GetName()
 

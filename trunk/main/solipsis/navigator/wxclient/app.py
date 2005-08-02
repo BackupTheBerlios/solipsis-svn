@@ -215,9 +215,9 @@ class NavigatorApp(BaseNavigatorApp, wx.App, XRCLoader):
         self.locale = wx.Locale()
         if not self.locale.Init2() \
                and wx.Platform not in ('__WXMSW__', '__WXMAC__'):
-            print """Error: failed to initialize wx.Locale!
-If you are under Linux or Un*x, check the LC_MESSAGES
-or LANG environment variable is properly set."""
+            print "Error: failed to initialize wx.Locale! " \
+                "If you are under Linux or Un*x, check the LC_MESSAGES " \
+                "or LANG environment variable is properly set."
             sys.exit(1)
         try:
             translation_dir = self.params.translation_dir
@@ -364,7 +364,7 @@ For reminder, here is your address:
                 style=wx.OK|wx.CENTRE|wx.ICON_INFORMATION
                 )
             dialog.ShowModal()
-            
+
     def _OnEditBookmarks(self, evt):
         """
         Called on "edit bookmarks" event (menu -> Bookmarks -> Edit bookmarks).
@@ -392,7 +392,7 @@ For reminder, here is your address:
                 message=_("Please enter the address to jump to"),
                 caption=_("Jump near an entity"),
                 defaultValue='slp://192.33.178.29:5010/'
-                )
+            )
             if dialog.ShowModal() == wx.ID_OK:
                 v = dialog.GetValue()
                 BaseNavigatorApp._OnJumpNear(self, v)

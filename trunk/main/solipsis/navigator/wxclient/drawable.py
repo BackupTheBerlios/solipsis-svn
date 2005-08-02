@@ -21,7 +21,7 @@ from itertools import izip
 import wx
 
 import images
-
+from solipsis.util.utils import safe_str, safe_unicode
 
 class ImagePainter(object):
     """
@@ -53,7 +53,6 @@ class TextPainter(object):
             real_pos.append((x, y))
             boxes.append((x, y, x + w, y + h))
             dc.DrawText(text.text, x, y)
-        #~ dc.DrawTextList([t.text for t in texts], real_pos)
         return boxes
 
 class Image(object):
@@ -76,5 +75,5 @@ class Text(object):
     def __init__(self, text, font=None):
         self.font = font or wx.SWISS_FONT
         #~ print repr(text), type(text) #, '=>', repr(self.text)
-        self.text = text#.encode('utf-8')
+        self.text = safe_unicode(text)
         self.size = None

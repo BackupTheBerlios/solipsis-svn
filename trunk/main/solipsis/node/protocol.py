@@ -26,7 +26,7 @@ import re
 import new
 import logging
 
-from solipsis.util.utils import set
+from solipsis.util.utils import set, safe_str, safe_unicode
 from solipsis.util.exception import *
 from solipsis.util.position import Position
 from solipsis.util.address import Address
@@ -189,7 +189,7 @@ _from_string = {
     ARG_HOLD_TIME:          int,
     ARG_ID:                 intern,
     ARG_POSITION:           (lambda s: Position.FromString(s)),
-    ARG_PSEUDO:             (lambda s: unicode(s.decode(CHARSET))),
+    ARG_PSEUDO:             (lambda s: safe_unicode(s, CHARSET)),
     ARG_SEND_DETECTS:       (lambda s: s == 'now'),
     ARG_SERVICE_ID:         str,
     ARG_SERVICE_ADDRESS:    (lambda a: str(a)),
@@ -206,7 +206,7 @@ _to_string = {
     ARG_HOLD_TIME:          str,
     ARG_ID:                 str,
     ARG_POSITION:           (lambda p: p.ToString()),
-    ARG_PSEUDO:             (lambda u: u.encode(CHARSET)),
+    ARG_PSEUDO:             (lambda u: safe_str(u, CHARSET)),
     ARG_SEND_DETECTS:       (lambda x: x and "now" or "later"),
     ARG_SERVICE_ID:         str,
     ARG_SERVICE_ADDRESS:    (lambda a: a is not None and str(a) or ""),
@@ -305,11 +305,7 @@ class Parser(object):
         for k, v in args.iteritems():
             arg_id = ATTRIBUTE_NAMES.get_reverse(k)
             if arg_id == ARG_PAYLOAD:
-                if isinstance(v, unicode):
-                    # Dirty since we don't decode when receiving the message
-                    payload = v.encode(CHARSET)
-                else:
-                    payload = v
+                payload = safe_str(v, CHARSET)
             else:
                 lines.append('%s: %s' % (PROTOCOL_STRINGS[arg_id], ARGS_TO_STRING[arg_id](v)))
         # 3. End of message (double CR-LF)
@@ -395,13 +391,16 @@ class Parser(object):
                     del missing_args[ARG_PAYLOAD]
                 else:
                     self.logger.debug("Optional payload in message '%s'" % request)
+                # Note: we don't try to convert the payload to unicode when
+                # receiving, because it could really be a binary string.
+                # This makes the message handling slightly asymetric.
                 args[ARG_PAYLOAD] = payload
 
         # Check that all required fields have been encountered
         if missing_args:
             raise EventParsingError("Missing arguments (%s) in message '%s'"
                     % (",".join([PROTOCOL_STRINGS[arg] for arg in missing_args]), request))
-        
+
         # Everything's ok
         if not parse_only:
             message = Message()

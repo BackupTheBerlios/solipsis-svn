@@ -19,7 +19,7 @@
 
 import logging
 
-from solipsis.util.utils import set
+from solipsis.util.utils import set, safe_str, safe_unicode
 from solipsis.util.position import Position
 from solipsis.util.address import Address
 from solipsis.util.marshal import Marshallable
@@ -54,7 +54,7 @@ class ServiceData(Marshallable):
         'data':
             (u"", lambda s: s),
     }
-    
+
     def __init__(self, peer_id="", service_id="", data=u""):
         self.peer_id = peer_id
         self.service_id = service_id
@@ -71,7 +71,7 @@ class Entity(Marshallable):
         'id_':
             ("", str),
         'pseudo':
-            (u"", unicode),
+            (u"", safe_unicode),
         'address':
             ("", lambda a: Address.FromStruct(a)),
         'awareness_radius':
@@ -110,7 +110,7 @@ class Entity(Marshallable):
         self.id_ = id_
 
         # Metadata
-        self.pseudo = pseudo
+        self.pseudo = safe_unicode(pseudo)
         self.services = {}
         self.languages = []
         self.services_enabled = True
@@ -172,7 +172,7 @@ class Entity(Marshallable):
         Update metadata from a pseudo, a list of languages and a list of services.
         """
         if pseudo is not None:
-            self.pseudo = pseudo
+            self.pseudo = safe_unicode(pseudo)
         if languages is not None:
             self.languages = languages
         if services is not None:

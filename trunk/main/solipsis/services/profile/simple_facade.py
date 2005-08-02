@@ -108,7 +108,10 @@ class SimpleFacade:
         try:
             self._desc.load()
         except ValueError, err:
-            print err, "Using blank one"
+            print "Using blank one"
+            # BUG: UnicodeEncodeError
+#             print err, "Using blank one"
+            pass
         # update
         for view in self.views.values():
             view.import_desc(self._desc)

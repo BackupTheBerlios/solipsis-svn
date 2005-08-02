@@ -22,7 +22,7 @@ import random
 from solipsis.util.position import Position
 from solipsis.util.address import Address
 from solipsis.util.exception import *
-from solipsis.util.utils import CreateSecureId
+from solipsis.util.utils import CreateSecureId, safe_str, safe_unicode
 from solipsis.util.entity import Entity, Service
 
 
@@ -51,7 +51,6 @@ class Node(Entity):
         u'b\xfasta\xf0ur',      # Icelandic
         u'Rumah',               # Indonesian
         u'casa',                # Italian
-        #~ u'\u5bb6',              # Japanese
         u'\u30db\u30fc\u30e0',  # Japanese
         u'\uac00\uc815',        # Korean
         u'atrium',              # Latin
@@ -67,27 +66,32 @@ class Node(Entity):
         u'otoch',               # Yucatec
         u'ikhaya',              # Zulu
     ]
-   
+
     world_size = 2**128
 
     def __init__(self, reactor, params):
+        Entity.__init__(self)
+
         self.reactor = reactor
         self.params = params
 
+        # Initial property values
+        self.address = Address(params.host, params.port)
         if params.node_id:
-            id_= str(params.node_id)
+            self.id_= safe_str(params.node_id)
         else:
-            id_ = self.CreateId()
-        position = Position((params.pos_x, params.pos_y, 0))
-        address = Address(params.host, params.port)
-        print "Creating node '%s'" % id_
+            self.id_ = self.CreateId(params)
+        if params.pos_x or params.pos_y:
+            self.position = Position((params.pos_x, params.pos_y, 0))
+        else:
+            self.position = self.RandomPosition()
+        if params.pseudo:
+            self.pseudo = safe_unicode(params.pseudo)
+        else:
+            self.pseudo = self.RandomPseudo()
+        print "Creating node '%s'" % self.id_
 
         # Call parent class constructor
-        Entity.__init__(self, id_=id_, position=position, pseudo=params.pseudo, address=address)
-
-        # Random pseudos for unnamed nodes
-        if not self.pseudo:
-            self.SetRandomPseudo()
 
         # Dummy test data
         self.languages = ['fr', 'en']
@@ -96,22 +100,30 @@ class Node(Entity):
         #~ self.AddService(Service('browse', 'in'))
         #~ self.AddService(Service('share', 'out'))
 
-    def CreateId(self):
-        base_id = CreateSecureId(self.params.pseudo)
-        id_ = "%d_%d_%s" % (self.params.port, Node.count, base_id)
+    def CreateId(self, params):
+        """
+        Create a random ID based on parameters.
+        """
+        base_id = CreateSecureId(params.pseudo)
+        id_ = "%d_%d_%s" % (params.port, Node.count, base_id)
         Node.count += 1
         return id_
 
-    def SetRandomPseudo(self):
+    def RandomPseudo(self):
+        """
+        Returns a random pseudo according to other node properties
+        (e.g. position).
+        """
         x, y = self.position.GetXY()
-        #~ self.pseudo = unicode(random.choice(self.random_pseudos))
-        #~ a = random.randrange(ord('A'), ord('Z') + 1)
-        #~ b = random.randrange(0, 10)
         a = x * (10.0 / self.world_size)
         b = y * (10.0 / self.world_size)
-        #~ print a, b
-        #~ c = random.choice(['ga', 'bu', 'zo', 'meu'])
         c = random.choice(self.home_translations)
-        self.pseudo = '%s%s-%s' % (chr(int(a) + ord('a')), str(int(b) + 1), c)
-        #~ d = random.randrange(1, 100)
-        #~ self.pseudo = '%s%s-%s' % (chr(a), str(b), c)
+        pseudo = '%s%s-%s' % (chr(int(a) + ord('a')), str(int(b) + 1), c)
+        return safe_unicode(pseudo)
+
+    def RandomPosition(self):
+        """
+        Returns a random position in the world.
+        """
+        return Position((random.random() * self.world_size, random.random() * self.world_size, 0))
+
