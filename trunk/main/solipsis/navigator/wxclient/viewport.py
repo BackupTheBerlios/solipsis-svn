@@ -271,13 +271,17 @@ class Viewport(BaseViewport):
         d[painter][id_] = item
         self._ObjectsGeometryChanged()
         return id_
-    
+
     def RemoveDrawable(self, obj_name, id_):
         """
         Removes a single drawable.
         """
         # Fetch drawable item
-        index = self.obj_dict[obj_name]
+        try:
+            index = self.obj_dict[obj_name]
+        except KeyError:
+            print "cannot modify unknown object '%s' in viewport" % obj_name
+            return
         item = self.obj_drawables[index][id_]
         self._RemoveDrawableItem(item)
         del self.obj_drawables[index][id_]
