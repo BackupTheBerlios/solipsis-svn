@@ -28,7 +28,7 @@ import re
 import os.path
 import ConfigParser
 from os.path import isfile, isdir
-from solipsis.services.profile import PROFILE_DIR, PROFILE_EXT, DEFAULT_INTERESTS
+from solipsis.services.profile import PROFILE_DIR, PROFILE_EXT, DEFAULT_INTERESTS, ENCODING
 from solipsis.services.profile.data import  Blogs, retro_compatibility, \
      DirContainer, SharedFiles, PeerDescriptor
 
@@ -47,11 +47,12 @@ def read_document(stream):
     config.readfp(stream)
     stream.close()
     try:
-        pseudo = unicode(config.get(SECTION_PERSONAL, "pseudo", "Anonymous"),
-                         encoding)
+        pseudo = unicode(config.get(SECTION_PERSONAL,
+                                    "pseudo", "Anonymous"),
+                         ENCODING)
     except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
         print "Could not retreive pseudo"
-        pseudo = "Anonymous"
+        pseudo = u"Anonymous"
     doc = FileDocument(pseudo)
     doc.encoding = encoding
     doc.config = config
@@ -59,6 +60,7 @@ def read_document(stream):
 
 def load_document(pseudo, directory=PROFILE_DIR):
     """build FileDocumentn from file"""
+    assert isinstance(pseudo, unicode), "pseudo must be a unicode"
     from solipsis.services.profile.file_document import FileDocument
     doc = FileDocument(pseudo, directory)
     if not doc.load():
@@ -528,6 +530,7 @@ class AbstractDocument(AbstractPersonalData, AbstractSharingData,
     """data container on file"""
 
     def __init__(self, pseudo, directory=PROFILE_DIR):
+        assert isinstance(pseudo, unicode), "pseudo must be a unicode"
         AbstractPersonalData.__init__(self)
         AbstractSharingData.__init__(self)
         AbstractContactsData.__init__(self)

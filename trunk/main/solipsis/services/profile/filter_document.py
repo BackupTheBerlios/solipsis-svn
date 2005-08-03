@@ -366,8 +366,9 @@ class FilterDocument(FilterPersonalMixin, FilterSharingMixin,
     """Describes all data needed in profile in a file"""
 
     def __init__(self, pseudo, directory=PROFILE_DIR):
+        assert isinstance(pseudo, unicode), "pseudo must be a unicode"
         self.encoding = ENCODING
-        self.config = CustomConfigParser(ENCODING)
+        self.config = CustomConfigParser(self.encoding)
         self.filtered_pseudo = FilterValue("filtered_pseudo")
         FilterPersonalMixin.__init__(self)
         FilterSharingMixin.__init__(self)

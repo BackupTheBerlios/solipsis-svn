@@ -26,6 +26,7 @@ class SimpleFacade:
     """manages user's actions & connects document and view"""
     
     def __init__(self, pseudo, directory=PROFILE_DIR):
+        assert isinstance(pseudo, unicode), "pseudo must be a unicode"
         self._desc = None
         self.pseudo = pseudo
         self._activated = True

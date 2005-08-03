@@ -185,7 +185,7 @@ class FileTest(unittest.TestCase):
         
         
     def test_default(self):
-        document = FileDocument("dummy", PROFILE_DIRECTORY)
+        document = FileDocument(u"dummy", PROFILE_DIRECTORY)
         self.assertEquals(u"", document.get_title())
         self.assertEquals(u"Name", document.get_firstname())
         self.assertEquals(u"Lastname", document.get_lastname())

@@ -54,6 +54,7 @@ class PeerDescriptor:
     
     def __init__(self, pseudo, document=None, blog=None,
                  state=ANONYMOUS, connected=False):
+        assert isinstance(pseudo, unicode), "pseudo must be a unicode"
         # status
         self.pseudo = pseudo
         self.state = state
@@ -163,6 +164,7 @@ class Blogs:
 
 
     def __init__(self, pseudo, directory=PROFILE_DIR):
+        assert isinstance(pseudo, unicode), "pseudo must be a unicode"
         self.pseudo = pseudo 
         self._dir = directory
         self.blogs = []

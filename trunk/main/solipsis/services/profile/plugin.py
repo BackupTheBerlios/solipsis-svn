@@ -287,7 +287,7 @@ class Plugin(ServicePlugin):
         """need to update node_id"""
         # ChangedNode is call more than one time on change. Thus, be
         # careful not to do the job every time
-        if get_facade() is None or get_facade().get_pseudo() != node.pseudo.encode(ENCODING):
+        if get_facade() is None or get_facade().get_pseudo() != node.pseudo:
             facade = create_facade(node.pseudo)
             facade.load()
             if self.editor_frame:

@@ -20,10 +20,11 @@
 and exchange it with other peers"""
 
 import os, os.path
-import gettext 
+import gettext
+import locale
 _ = gettext.gettext
 
-ENCODING = "iso-8859-1"
+ENCODING = locale.getpreferredencoding()
 VERSION = "0.2.2"
 DISCLAIMER = "All data in profiles are shared within Solipsis communauty"
 
