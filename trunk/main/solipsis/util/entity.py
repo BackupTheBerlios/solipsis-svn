@@ -39,7 +39,10 @@ class Service(Marshallable):
 
     def __init__(self, id_="", type='bidir', address=""):
         assert type in ('in', 'out', 'bidir'), "Wrong service type"
-        self.id_ = id_
+        # Make sure the ID is of type str and not unicode
+        # (marshalling dicts with unicode keys fails with xmlrpclib
+        # in Python <2.4)
+        self.id_ = safe_str(id_)
         self.type = type
         self.address = address
         self.known = True
@@ -127,7 +130,7 @@ class Entity(Marshallable):
         """
         if service_id in self.services:
             del(self.services[service_id])
-    
+
     def DisableServices(self):
         """
         Disable all services.
@@ -189,7 +192,7 @@ class Entity(Marshallable):
             service = self.services[service_id]
             service.address = address
             service.known = True
-    
+
     def UpdateServices(self, new_services):
         """
         Update the entity's services with the new service list.
@@ -197,7 +200,7 @@ class Entity(Marshallable):
         self.services.clear()
         for service in new_services:
             self.services[service.id_] = service
-    
+
     def MatchServices(self, entity):
         """
         Match the entity's services with another entity's services.
