@@ -1,100 +1,51 @@
-"""test basic commands of net navigator"""
+import unittest
 
-import os
-import sys
-from twisted.trial import unittest
-from solipsis.navigator.netclient.tests.NetTestCase import NetTestCase
+from solipsis.navigator.netclient.network import Commands, SolipsisUiFactory
+from twisted.internet import defer
 
-class CommandTest(NetTestCase, unittest.TestCase):
-    """Test good completion of basic commands"""
-    
-    def test_about(self):
-        """command about"""
-        self.check_next("about", """Solipsis Navigator 0.1.1
+class Dummy:
 
-Licensed under the GNU LGPL
-(c) France Telecom R&D""")
+    def do_no(self, deferred):
+        return "none"
 
-    def test_not_valid(self):
-        """command not valid"""
-        self.check_next("", "do_ not a valid command")
-        self.check_next("dummy", "do_dummy not a valid command")
+    def do_one(self, deferred, arg):
+        return "one: %s"% arg
 
-    def test_check_connection(self):
-        """command check"""
-        self.check_next("check", "False")
-        self.write("connect")
-        self.write("bots.netofpeers.net:8555")
-        self.wait_for("Connected")
-        self.check_next("check", "True")
+    def do_two(self, deferred, first, second=None):
+        return "two: %s, %s"% (first, second)
 
-    def test_disconnect(self):
-        """command disconnect"""
-        self.check_next("disconnect", "not connected")
-        self.write("connect")
-        self.write("bots.netofpeers.net:8555")
-        self.wait_for("Connected")
-        self.check_next("disconnect", "Not connected")
+class CommandTest(unittest.TestCase):
 
-    def test_display(self):
-        """command display"""
-        self.check_next("display", "not connected")
-        self.write("connect")
-        self.write("bots.netofpeers.net:8555")
-        self.wait_for("Connected")
-        self.check_next("display", "192.33.178.29:6005")
+    def setUp(self):
+        self.worker = Dummy()
+        self.deferred = defer.Deferred()
+        self.no_cmd = Commands("no", "No argument",
+                               converter=lambda : None)
+        self.one_cmd = Commands("one", "One argument", "default")
+        self.two_cmd = Commands("two", "Two arguments", "localhost", 80,
+                                converter=lambda s: (s.split(":")[0], int(s.split(":")[1])))
 
-    def test_go(self):
-        """command go"""
-        self.write("go")
-        self.check_next("", "2 parameters instead of 2, using default\nnot connected\n")
-        self.write("connect")
-        self.write("bots.netofpeers.net:8555")
-        self.wait_for("Connected")
-        self.write("go")
-        self.check_next("", "2 parameters instead of 2, using default\nmoved to 0.0,0.0\n")
-        self.write("go")
-        self.check_next("0.25,0.43", "moved to 0.25,0.43\n")
+    def test_convert(self):
+        self.assertEquals(self.no_cmd.convert(), None)
+        self.assertEquals(self.one_cmd.convert(2), ("2",))
+        self.assertEquals(self.two_cmd.convert("127.0.0.1:8080"), ("127.0.0.1", 8080))
 
-    def test_help(self):
-        """command help"""
-        self.check_next("help", "[all]")
-        self.check_next("", """{'about': ['display general information', ''],
- 'check': ['chech status of connection', ''],
- 'connect': ['connect to specified node', 'bots.netofpeers.net:8551'],
- 'create': ['create Node', 'Guest'],
- 'disconnect': ['discoonnect from current node', ''],
- 'display': ['display current address', ''],
- 'go': ['go to position', '0,0'],
- 'help': ['display help [on cmd]', 'all'],
- 'hover': ['emumate hover on peer', '0,0'],
- 'jump': ['jump to node', '192.33.178.29:5010'],
- 'kill': ['kill node', ''],
- 'mem': ['dump a snapshot of memory (debugging tool)', ''],
- 'menu': ['display peer menu', ''],
- 'pref': ['change preferences', ''],
- 'quit': ['close navigator', '']}\n""")
-
-    def test_jump(self):
-        """command jump"""
-        self.check_next("jump", "[192.33.178.29:5010]")
-        self.check_next("", "not connected")
-        self.write("connect")
-        self.write("bots.netofpeers.net:8555")
-        self.wait_for("Connected")
-        self.check_next("jump", "192.33.178.29:5010")
+    def test_call_no(self):
+        self.assertEquals(self.no_cmd.call(self.worker, self.deferred), "none")
+        self.assertRaises(TypeError, self.no_cmd.call, self.worker, self.deferred, "anything")
         
-# LAUNCHER
-# ========
-def main(test_case=None):
-    sys.path.insert(0, os.getcwd())
-    if test_case:
-        os.system("trial %s.%s"% (__file__.split('.')[0], test_case))
-    else:
-        os.system("trial %s"% __file__)
-    
-if __name__ == '__main__':
-    if len(sys.argv)>1:
-        main(sys.argv[1])
-    else:
-        main()
+    def test_call_one(self):
+        self.assertEquals(self.one_cmd.call(self.worker, self.deferred), "one: default")
+        self.assertEquals(self.one_cmd.call(self.worker, self.deferred, "both"), "one: both")
+        self.assertRaises(TypeError, self.one_cmd.call, self.worker, self.deferred, "anything", "left_over")
+
+    def test_call_two(self):
+        self.assertEquals(self.two_cmd.call(self.worker, self.deferred), "two: localhost, 80")
+        self.assertEquals(self.two_cmd.call(self.worker, self.deferred, "youpi"), "two: youpi, None")
+        self.assertEquals(self.two_cmd.call(self.worker, self.deferred, "youpi", 4), "two: youpi, 4")
+        converted = self.two_cmd.convert("address:23")
+        self.assertEquals(self.two_cmd.call(self.worker, self.deferred, *converted), "two: address, 23")
+        self.assertEquals(self.two_cmd.call(self.worker, self.deferred, "saturne:25", convert=True), "two: saturne, 25")
+        
+if __name__ == "__main__":
+    unittest.main()

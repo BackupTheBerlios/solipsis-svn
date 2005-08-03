@@ -110,7 +110,7 @@ class Plugin(ServicePlugin):
         # ask for saving (ca not simply call Close() on editor frame
         # method because of multithreading and the frame is destroyed
         # before the user actually answer to the popup
-        if self.editor_frame.modified:
+        if self.editor_frame and self.editor_frame.modified:
             self.editor_frame.do_modified(False)
             dlg = wx.MessageDialog(
                 self.editor_frame,
@@ -119,7 +119,7 @@ class Plugin(ServicePlugin):
                 wx.YES_NO | wx.ICON_INFORMATION)
             if dlg.ShowModal() == wx.ID_YES:
                 get_facade().save()
-        if self.filter_frame.modified:
+        if self.filter_frame and self.filter_frame.modified:
             self.filter_frame.do_modified(False)
             dlg = wx.MessageDialog(
                 self.editor_frame,

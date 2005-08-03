@@ -48,6 +48,7 @@ class Parameters(object):
         'address_discovery': ('discovery_methods', lambda s: [t.strip() for t in s.split(',')], []),
         'controllers': ('controllers', lambda s: [t.strip() for t in s.split(',')], []),
         'send_statistics': ('send_stats', int, 0),
+        'services': ('services', lambda s: [t.strip() for t in s.split(',')], []),
     }
 
     navigator_section = {
@@ -57,6 +58,7 @@ class Parameters(object):
         'url_port_max': ('url_port_max', int, 0),
         'local_control_port_min': ('local_control_port_min', int, 0),
         'local_control_port_max': ('local_control_port_max', int, 0),
+        'local_port': ('local_port', int, 23500),
     }
 
     services_section = {
@@ -73,13 +75,12 @@ class Parameters(object):
         self._config_parser = None
         self._logger = None
         self._defaults = defaults
-        (self._options, self._args) = self._option_parser.parse_args()
-        if len(self._args) > 0:
-            option_parser.error("too many arguments")
-        try:
-            self._config_file = self._options.config_file
-        except AttributeError:
-            pass
+        self._options, self._args = self._option_parser.parse_args()
+        if not self._config_file:
+            try:
+                self._config_file = self._options.config_file
+            except AttributeError:
+                pass
         if self._config_file:
             self.Load()
 

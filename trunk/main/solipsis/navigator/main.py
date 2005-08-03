@@ -61,7 +61,7 @@ def detect_stub():
         return False
     return sys.argv[1] == '--runnode'
 
-def build_params():
+def build_params(config_file=DEFAULT_FILE):
     """construct and returns config, base on optparse"""
     parser = OptionParser(USAGE)
     for option in OPTIONS:
@@ -71,4 +71,4 @@ def build_params():
                           action=option["action"], 
                           default=option["default"],
                           help=option["help"])
-    return Parameters(parser, config_file=DEFAULT_FILE)
+    return Parameters(parser, config_file=config_file)

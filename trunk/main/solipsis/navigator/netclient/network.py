@@ -26,78 +26,103 @@ from solipsis.navigator.validators import AddressValidator
 from solipsis.navigator.network import BaseNetworkLoop
 from solipsis.util.uiproxy import TwistedProxy
 
-COMMANDS = {"check": ["chech status of connection", ""],
-            "mem": ["dump a snapshot of memory (debugging tool)", ""],
-            "about": ["display general information", ""],
-            "create": ["create Node", "Guest"],
-            "connect": ["connect to specified node", "bots.netofpeers.net:8551"],
-            "disconnect": ["discoonnect from current node", ""],
-            "kill": ["kill node", ""],
-            "reset": ["reset node", ""],
-            "jump": ["jump to node", "192.33.178.29:5010"],
-            "pref": ["change preferences", ""],
-            "quit": ["close navigator", ""],
-            "display": ["display current address", ""],
-            "go": ["go to position", "0,0"],
-            "menu": ["display peer menu", ""],
-            "hover": ["emumate hover on peer", "0,0"],
-            "help": ["display help [on cmd]", "all"]}
-
 class NetworkLoop(BaseNetworkLoop):
     """
-    NetworkLoop is an event loop running in its own thread.
-    It manages socket-based communication with the Solipsis node
-    and event-based communication with the User Interface (UI).
+    NetworkLoop should be an event loop running in its own
+    thread. However, in this version of the navigator, it shares the
+    thread of the reactor.
     """
     def __init__(self, reactor, ui):
-        """
-        Builds a network loop from a Twisted reactor and a Wx event handler.
-        """
         BaseNetworkLoop.__init__(self, reactor, TwistedProxy(ui, reactor))
- 
-    def start(self, *args):
-        pass
 
-    def setDaemon(self, *args):
-        pass
+class Commands:
 
+    def __init__(self, name, help, *args, **kwargs):
+        """kwargs contains 'converter' which is the function used on conversion"""
+        self.name = name
+        self.help = help
+        if 'converter' in kwargs:
+            self.converter = kwargs['converter']
+        else:
+            self.converter = lambda s: (str(s),)
+        self.args = args
+
+    def convert(self, *args):
+        """formats input thanks to converter"""
+        return self.converter(*args)
+    
+    def call(self, factory, deferred, *args, **kwargs):
+        """check given args and use default ones accordingly, or none
+        at all. Call corresponding function inb factory and returns
+        its result.
+
+        *args are forwarded to function called on factory
+        **kwargs contains 'convert'"""
+        # convert if asked
+        if 'convert' in kwargs and kwargs['convert'] is True:
+            args = self.convert(*args)
+        # get function
+        function = getattr(factory, "do_" + self.name)
+        # call function
+        if len(args) > 0:
+            return function(deferred, *args)
+        else:
+            if self.args is None:
+                return function(deferred)
+            else:
+                return function(deferred, *self.args)
+
+######
+#
+# WRAPPER for Navigator
+#
+######
+
+COMMANDS = {"about":   Commands("about", "display general information"),
+            "launch": Commands("launch", "connect to local node"),
+            "connect": Commands("connect", "connect to specified node",
+                                "bots.netofpeers.net", 8551,
+                                converter=lambda s: (s.split(":")[0], int(s.split(":")[1]))),
+            "disconnect": Commands("disconnect", "disconnect from current node"),
+            "display": Commands("display", "display current address"),
+            "jump":    Commands("jump", "jump to node",
+                                "192.33.178.29:5010"),
+            "go":      Commands("go", "go to position", 0, 0,
+                                converter=lambda s: (int(s.split(",")[0]), int(s.split(",")[1]))),
+            "kill":    Commands("kill", "kill node"),
+            "quit":    Commands("quit", "close navigator"),
+            "menu":    Commands("menu", "display peer menu"),
+            "help":    Commands("help", "display help [on cmd]",
+                                converter=lambda s: s.split(" "))}
 
 class SolipsisUiProtocol(basic.LineReceiver):
-
-    def __init__(self):
-        self.cmd = None
 
     def connectionMade(self):
         self.factory.transport = self.transport
         
     def lineReceived(self, line):
         cmd_passed = line.strip().lower()
+        # quit command
         if cmd_passed in ["q", "exit"]:
             self.transport.loseConnection()
             return
-        if not self.cmd:
-            # define function to be called
-            try:
-                cmd = "do_" + cmd_passed
-                self.cmd = getattr(self.factory, cmd)
-            except AttributeError:
-                self.transport.write("%s not a valid command\r\n"% cmd)
-                return
-            if COMMANDS[cmd_passed][1]:
-                # display default param 
-                self.transport.write("[%s]\r\n"% COMMANDS[cmd_passed][1])
+        # split command & arguments
+        try:
+            cmd_passed, args = cmd_passed.split(" ", 1)
+        except ValueError:
+            args = None
+        # call
+        try:
+            command = COMMANDS[cmd_passed]
+            deferred = defer.Deferred()
+            deferred.addCallback(self.sendLine)
+            if args:
+                args = command.convert(args)
+                command.call(self.factory, deferred, *args)
             else:
-                # call function if none needed
-                out_msg = self.cmd("")
-                if out_msg:
-                    self.transport.write(out_msg+"\r\n")
-                self.cmd = None
-        else:
-            # call function with param
-            out_msg = self.cmd(line)
-            if out_msg:
-                self.transport.write(out_msg+"\r\n")
-            self.cmd = None
+                command.call(self.factory, deferred)
+        except (KeyError, AttributeError), err:
+            self.sendLine("%s:%s not a valid command (%s)"% (err.__class__, line, err))
 
 class SolipsisUiFactory(protocol.ServerFactory):
 
@@ -107,96 +132,49 @@ class SolipsisUiFactory(protocol.ServerFactory):
         self.app = application
         self.address_val = AddressValidator()
 
-    # UI events
-    def do_check(self, arg):
-        return str(self.app._CheckNodeProxy())
-    
-    def do_mem(self, arg):
-        return self.app._MemDebug()
-
     # UI events in menu
-    def do_about(self, arg):
-        return self.app._About(arg)
+    def do_about(self, deferred):
+        self.app._OnAbout(deferred)
 
-    def do_create(self, arg):
-        return self.app._CreateNode(arg)
+    def do_launch(self, deferred):
+        self.app._OnConnect(deferred)
 
-    def do_connect(self, arg):
+    def do_connect(self, deferred, host, port):
         stream = StringIO()
-        args = self.address_val._Validate(arg)
-        if not args:
-            args = self.address_val._Validate(COMMANDS['connect'][1])
-            print >> stream,  "no valid address. Default used..."
-        host, port = args.groups()
         self.app.config_data.host = host
-        self.app.config_data.port = int(port)
-        deferred = defer.Deferred()
-        deferred.addCallback(
-            lambda res : self.transport.write("Connected\r\n"))
-        print >> stream,  self.app._OpenConnect(arg, deferred)
-        return stream.getvalue()
+        self.app.config_data.port = port
+        self.app._OnConnect(deferred)
         
-    def do_disconnect(self, arg):
-        return self.app._Disconnect(arg)
+    def do_disconnect(self, deferred):
+        self.app._OnDisconnect(deferred)
 
-    def do_kill(self, arg):
-        return self.app._Kill(arg)
+    def do_display(self, deferred):
+        self.app._OnDisplayAddress(deferred)
 
-    def do_reset(self, arg):
-        return self.app._Reset(arg)
-
-    def do_jump(self, arg):
-        if not self.address_val._Validate(arg):
-            arg = COMMANDS['jump'][1]
-        return self.app._JumpNear(arg)
-
-    def do_pref(self, arg):
-        return self.app._Preferences(arg)
-
-    def do_quit(self, arg):
-        return self.app._Quit(arg)
-
-    def do_display(self, arg):
-        return self.app._DisplayNodeAddress(arg)
-
-    # UI events in viewport
-    def do_go(self, arg):
+    def do_jump(self, deferred, adress):
+        self.app._OnJumpNear(deferred, adress)
+    
+    def do_go(self, deferred, x, y):
         stream = StringIO()
-        # parsing
-        position = arg.split(',')
-        if len(position) != 2:
-            position = COMMANDS['go'][1].split(',')
-            print >> stream, "%d parameters instead of 2, using default"% len(position)
-        # convert
-        try:
-            position = [float(coord)*2**128 for coord in position]
-        except ValueError:
-            position = [float(coord)*2**128 for coord in COMMANDS['go'][1].split(',')]
-            print >> stream, "parameters expected as x,y. using default"
-        print >> stream,  self.app._LeftClickViewport(position)
-        return stream.getvalue()
+        self.app._OnJumpPos(deferred, (x, y))
 
-    def do_menu(self, arg):
-        return self.app._RightClickViewport(arg)
+    def do_kill(self, deferred):
+        self.app._OnKill(deferred)
 
-    def do_hover(self, arg):
-        # arg must be like 'x,y'
-        try:
-            position = [float(coord)*2**128 for coord in arg.split(',')]
-            if len(position) == 2:
-                return self.app._HoverViewport(position)
-            else:
-                return "enter position as 'x,y'"
-        except ValueError:
-            return "enter position as 'x,y'"
+    def do_quit(self, deferred):
+        self.app._OnQuit(deferred)
 
-    def do_help(self, arg):
+    def do_menu(self, deferred, arg):
+        return "Not implemented yet"
+
+    def do_help(self, deferred, *args):
         str_stream = StringIO()
-        if arg in ["", "all"]:
-            pprint(COMMANDS, str_stream)
-        elif arg in COMMANDS:
-            print >> str_stream, COMMANDS[arg][0]
+        if args:
+            for item in args:
+                if item in COMMANDS:
+                    print >> str_stream, item, ":", COMMANDS[item].help
+                else:
+                    print >> str_stream, item, "not available"
         else:
-            print >> str_stream, "available commands are:"
-            pprint(COMMANDS, str_stream)
+            print >> str_stream, "available commands are:", COMMANDS.keys()
         return str_stream.getvalue()

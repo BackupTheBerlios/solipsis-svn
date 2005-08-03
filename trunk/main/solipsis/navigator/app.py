@@ -28,7 +28,6 @@ _ = gettext.gettext
 
 from solipsis.util.urls import SolipsisURL
 from solipsis.util.address import Address
-from solipsis.util.network import get_free_port
 from solipsis.util.entity import ServiceData
 from solipsis.util.position import Position
 from solipsis.util.uiproxy import TwistedProxy, UIProxyReceiver
@@ -63,7 +62,7 @@ class BaseNavigatorApp(UIProxyReceiver):
         self.viewport = None	 #InitResources
         # default value will be overridden by stun result
         self.local_ip = socket.gethostbyname(socket.gethostname())
-        self.local_port = get_free_port()
+        self.local_port = params.local_port
         UIProxyReceiver.__init__(self)
 
     def OnInit(self):
@@ -296,7 +295,7 @@ Please check you have sufficient rights.""")
     # (in alphabetical order)
     #
 
-    def _OnAbout(self, evt):
+    def _OnAbout(self, evt=None):
         """
         Called on "about" event (menu -> Help -> About).
         """
@@ -318,7 +317,7 @@ Please check you have sufficient rights.""")
             self.connection_trials = 0
             self._TryConnect()
 
-    def _OnDisconnect(self, evt):
+    def _OnDisconnect(self, evt=None):
         """
         Called on "disconnect" event (menu -> File -> Disconnect).
         """
@@ -357,12 +356,13 @@ Please check you have sufficient rights.""")
         """
         change position according to evt, formated as (x,y).
         """
-        assert len(evt) == 2, "_OnJumpPos must be called with tuple (x, y)"
-        x, y = evt
-        self._MoveNode((x * self.world_size, y * self.world_size),
-                       jump_near=True)
+        if self._CheckNodeProxy():
+            assert len(evt) == 2, "_OnJumpPos must be called with tuple (x, y)"
+            x, y = evt
+            self._MoveNode((x * self.world_size, y * self.world_size),
+                           jump_near=True)
 
-    def _OnKill(self, evt):
+    def _OnKill(self, evt=None):
         """
         Called on "kill" event (menu -> File -> Kill).
         """
@@ -371,7 +371,7 @@ Please check you have sufficient rights.""")
             self.network.KillNode()
             self.services.RemoveAllPeers()
 
-    def _OnQuit(self, evt):
+    def _OnQuit(self, evt=None):
         """
         Called on quit event (menu -> File -> Quit, window close box).
         """

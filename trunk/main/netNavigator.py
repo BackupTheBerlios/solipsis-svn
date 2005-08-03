@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import os,sys
-from solipsis.navigator.netclient.main import main
+from solipsis.navigator.netclient.main import run
 
 # add current directory to the python search path
 # it is needed in case solipsis is not installed in the standard python
@@ -13,4 +13,4 @@ else:
     os.environ['PYTHONPATH'] = currentDir
 
 if __name__ == '__main__':
-    main()
+    run()

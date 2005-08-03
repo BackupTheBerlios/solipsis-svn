@@ -37,10 +37,10 @@ from solipsis.navigator.netclient.config import ConfigData
 class NavigatorApp(BaseNavigatorApp):
     """specific class to launch a simple non-graphic navigator"""
 
-    def __init__(self, params=None, *args, **kargs):
+    def __init__(self, params, *args, **kargs):
         """available kargs: port"""
         BaseNavigatorApp.__init__(self, params, *args, **kargs)
-        self.config_data = ConfigData
+        self.config_data = ConfigData(self.params)
         self.listener = None
         self.OnInit()
         
@@ -49,9 +49,6 @@ class NavigatorApp(BaseNavigatorApp):
         Main initialization handler.
         """
         BaseNavigatorApp.OnInit(self)
-        self.InitResources()
-        self.world = BaseWorld(self.viewport)
-        # Other tasks 
         self.InitTwisted()
         self.InitNetwork()
 
@@ -84,6 +81,9 @@ class NavigatorApp(BaseNavigatorApp):
         Launch network event loop.
         """
         self.network_loop = NetworkLoop(self.reactor, self)
+        self.listener = self.reactor.listenTCP(self.local_port,
+                                               SolipsisUiFactory(self))
+        print "listening on port", self.local_port
         BaseNavigatorApp.InitNetwork(self)
 
     def InitServices(self):
@@ -104,13 +104,6 @@ class NavigatorApp(BaseNavigatorApp):
                 self.config_data.SetServices(self.services.GetServices())
         else:
             BaseNavigatorApp.InitServices(self)
-
-
-    def startListening(self):
-        """wait for connection from manager"""
-        if not self.listener:
-            self.listener = self.reactor.listenTCP(self.local_port,
-                                                   SolipsisUiFactory(self))
 
     def stopListening(self):
         """close connection from manager and stop accepting"""

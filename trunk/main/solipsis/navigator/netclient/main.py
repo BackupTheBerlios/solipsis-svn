@@ -17,14 +17,17 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
 
+import os, os.path
+
 from solipsis.navigator.main import build_params
 from solipsis.navigator.netclient.app import NavigatorApp
 
-def main():
-    application = NavigatorApp(params=build_params(), 
-                               log_file="session.log")
-    application.startListening()
-    application.run()
+def run(conf_file=None):
+    application = NavigatorApp(params=build_params(conf_file))
+    return application
     
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) > 1:
+        run(sys.argv[1])
+    else:
+        run()
