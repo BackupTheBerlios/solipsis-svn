@@ -48,6 +48,10 @@ class Viewport(BaseViewport):
     drawable objects in a wx.Window.
     """
 
+    overview_ratio = 1.15
+    glide_duration = 0.8
+    destination_radius = 20.0
+
     def __init__(self, window, world_size = 2**128):
         BaseViewport.__init__(self, world_size)
         self.window = window

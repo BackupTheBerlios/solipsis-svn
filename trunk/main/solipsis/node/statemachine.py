@@ -66,7 +66,7 @@ class StateMachine(object):
     minimum_hold_time = 30
     local_hold_time = 1200
     remote_hold_time = 30
-    
+
     # Various delays
     hello_dampening = 3.0
     meta_change_delay = 0.5
@@ -122,7 +122,6 @@ class StateMachine(object):
         # Max number of connections (total)
         self.max_connections = int(self.expected_neighbours * self.peer_neighbour_ratio)
 
-        self.caller = DelayedCaller(self.reactor)
         self.peer_sender = None
         # Dispatch tables
         self.peer_dispatch_cache = {}
@@ -133,9 +132,9 @@ class StateMachine(object):
         self.sent_messages = {}
 
         # Delayed calls
-        self.peer_timeouts = {}
-        self.peer_updates = {}
-        
+        self.caller = DelayedCaller(self.reactor)
+        self.state_caller = DelayedCaller(self.reactor)
+
         self.Reset()
 
     def Reset(self):
@@ -156,14 +155,14 @@ class StateMachine(object):
         self.jump_near_position = None
 
         # Delayed calls
-        for delayed in self.peer_timeouts.values():
-            delayed.Reset()
-        self.peer_timeouts = {}
-        for delayed in self.peer_updates.values():
-            delayed.Reset()
-        self.peer_updates = {}
+        self.dc_peer_heartbeat = {}
+        self.dc_peer_timeout = {}
+        self.dc_locating_timeout = None
+        self.meta_notify_ids = set()
+        self.dc_meta_notify = None
         self.caller.Reset()
-        
+        self.state_caller.Reset()
+
         # For each address, this is the timestamp of the last HELLO attempt
         self.last_hellos = {}
 
@@ -214,7 +213,7 @@ class StateMachine(object):
             self.peer_dispatch_cache[_class] = d
         if _class != old_state.__class__:
             # Discard old timers
-            self.caller.Reset()
+            self.state_caller.Reset()
             # Call state initialization function
             try:
                 func = self.state_dispatch[_class]
@@ -252,8 +251,8 @@ class StateMachine(object):
             except AttributeError:
                 pass
             else:
-                if id_ in self.peer_timeouts:
-                    self.peer_timeouts[id_].RescheduleCall('msg_receive_timeout')
+                if id_ in self.dc_peer_timeout:
+                    self.dc_peer_timeout[id_].Reschedule()
 
     def DumpStats(self):
         requests = self.sent_messages.keys()
@@ -279,7 +278,7 @@ class StateMachine(object):
             self.SetState(states.NotConnected())
             self.TryConnect()
 
-        self.caller.CallLaterWithId('locating_timeout', self.locating_timeout, _restart)
+        self.dc_locating_timeout = self.state_caller.CallLater(self.locating_timeout, _restart)
 
     def state_Scanning(self):
         self._Verbose("scanning")
@@ -294,8 +293,8 @@ class StateMachine(object):
             for p in self.future_topology.EnumeratePeers():
                 self._SendToPeer(p, message)
 
-        self.caller.CallPeriodically(self.scanning_period, _retry)
-        self.caller.CallLater(self.scanning_period * self.scanning_trials, _restart)
+        self.state_caller.CallPeriodically(self.scanning_period, _retry)
+        self.state_caller.CallLater(self.scanning_period * self.scanning_trials, _restart)
 
     def state_EarlyConnecting(self):
         self._Verbose("early connecting")
@@ -311,8 +310,8 @@ class StateMachine(object):
             else:
                 self._Verbose("(still connecting)")
 
-        self.caller.CallPeriodically(self.early_connecting_period, _check_gc)
-        self.caller.CallPeriodically(self.early_connecting_period * self.early_connecting_trials, _restart)
+        self.state_caller.CallPeriodically(self.early_connecting_period, _check_gc)
+        self.state_caller.CallPeriodically(self.early_connecting_period * self.early_connecting_trials, _restart)
 
     def state_Connecting(self):
         self._Verbose("connecting")
@@ -335,9 +334,9 @@ class StateMachine(object):
                 if p not in peers:
                     self._SayHello(p.address)
 
-        self.caller.CallPeriodically(1.0, _check)
-        self.caller.CallPeriodically(self.connecting_period, _retry)
-        self.caller.CallLater(self.connecting_period * self.connecting_trials, _restart)
+        self.state_caller.CallPeriodically(1.0, _check)
+        self.state_caller.CallPeriodically(self.connecting_period, _retry)
+        self.state_caller.CallLater(self.connecting_period * self.connecting_trials, _restart)
 
     def state_Idle(self):
         self._Verbose("idle")
@@ -347,9 +346,9 @@ class StateMachine(object):
             if not self.topology.HasGlobalConnectivity():
                 self.SetState(states.LostGlobalConnectivity())
 
-        self.caller.CallPeriodically(self.gc_check_period, _check_gc)
+        self.state_caller.CallPeriodically(self.gc_check_period, _check_gc)
         self._CheckNumberOfPeers()
-        self.caller.CallPeriodically(self.population_check_period, self._CheckNumberOfPeers)
+        self.state_caller.CallPeriodically(self.population_check_period, self._CheckNumberOfPeers)
 
     def state_LostGlobalConnectivity(self):
         self._Verbose("lost global connectivity")
@@ -375,8 +374,8 @@ class StateMachine(object):
                 self._SendToPeer(pair[1], message2)
 
         _check_gc()
-        self.caller.CallPeriodically(self.gc_check_period, _check_gc)
-        self.caller.CallLater(self.gc_check_period * self.gc_trials, _restart)
+        self.state_caller.CallPeriodically(self.gc_check_period, _check_gc)
+        self.state_caller.CallLater(self.gc_check_period * self.gc_trials, _restart)
 
 
     #
@@ -521,7 +520,7 @@ class StateMachine(object):
         if self.InState(states.Scanning):
             self.SetState(states.Locating())
         # Endly, reinitialize timeout
-        self.caller.RescheduleCall('locating_timeout')
+        self.dc_locating_timeout.Reschedule()
 
     def peer_BEST(self, args):
         """
@@ -855,7 +854,7 @@ class StateMachine(object):
         message = self._PeerMessage('JUMPNEAR')
         self._SendToAddress(address, message)
         self.jump_near_address = address
-    
+
     def SendServiceData(self, id_, service_id, data):
         """
         Send service-specific data to a peer.
@@ -866,17 +865,17 @@ class StateMachine(object):
             message.args.service_id = service_id
             message.args.payload = data
             self._SendToPeer(peer, message)
-    
+
     def DisableServices(self):
         self.node.DisableServices()
         for peer in self.GetAllPeers():
             self._SendMeta(peer)
-    
+
     def EnableServices(self):
         self.node.EnableServices()
         for peer in self.GetAllPeers():
             self._SendMeta(peer)
-    
+
     #
     # Private methods: add / remove peers
     #
@@ -898,13 +897,10 @@ class StateMachine(object):
         self.event_sender.event_NewPeer(peer)
 
         # Setup heartbeat handling callbacks
-        caller = DelayedCaller(self.reactor)
-        # Heuristic (a la BGP)
+        # Keepalive heuristic (a la BGP)
         keepalive = peer.hold_time / 3.0
-        caller.CallPeriodicallyWithId('msg_receive_timeout', peer.hold_time, msg_receive_timeout)
-        caller.CallPeriodicallyWithId('msg_send_timeout', keepalive, msg_send_timeout)
-        self.peer_timeouts[peer.id_] = caller
-        self.peer_updates[peer.id_] = DelayedCaller(self.reactor)
+        self.dc_peer_heartbeat[peer.id_] = self.caller.CallPeriodically(keepalive, msg_send_timeout)
+        self.dc_peer_timeout[peer.id_] = self.caller.CallPeriodically(peer.hold_time / 2.0, msg_receive_timeout)
 
         self._CheckNumberOfPeers(check_ar=False)
 
@@ -912,10 +908,14 @@ class StateMachine(object):
         """
         Remove a peer and send the necessary notification messages.
         """
-        self.peer_timeouts[id_].Reset()
-        self.peer_updates[id_].Reset()
-        del self.peer_timeouts[id_]
-        del self.peer_updates[id_]
+        self.dc_peer_heartbeat[id_].Cancel()
+        self.dc_peer_timeout[id_].Cancel()
+        del self.dc_peer_heartbeat[id_]
+        del self.dc_peer_timeout[id_]
+        try:
+            self.meta_notify_ids.remove(id_)
+        except KeyError:
+            pass
         self.topology.RemovePeer(id_)
         # Notify remote control
         self.event_sender.event_LostPeer(id_)
@@ -961,13 +961,9 @@ class StateMachine(object):
         new_peers = self.future_topology.PeersSet()
         old_peers = self.topology.PeersSet()
 
-        #~ for p in self.future_topology.EnumeratePeers():
-            #~ if p not in old_peers:
-                #~ self._SayHello(p.address)
-
         # Close connections with peers that do not belong to the new topology
         self._CloseCurrentConnections(keep_peers=new_peers)
-        
+
         # Notify remaining peers that our position has changed
         self._SendUpdates()
 
@@ -1133,11 +1129,13 @@ class StateMachine(object):
         Notify peer metadata changes to the remote control.
         """
         def _notify():
-            if self.topology.HasPeer(peer_id):
-                peer = self.topology.GetPeer(peer_id)
+            self.dc_meta_notify = None
+            for id_ in self.meta_notify_ids:
+                peer = self.topology.GetPeer(id_)
                 self.event_sender.event_ChangedPeer(peer)
-        self.peer_updates[peer_id].Reset()
-        self.peer_updates[peer_id].CallLater(self.meta_change_delay, _notify)
+        self.meta_notify_ids.add(peer_id)
+        if not self.dc_meta_notify:
+            self.dc_meta_notify = self.caller.CallLater(self.meta_change_delay, _notify)
 
     def _UpdatePeerMeta(self, peer, args):
         """
@@ -1320,8 +1318,8 @@ class StateMachine(object):
         except AttributeError:
             pass
         else:
-            if id_ in self.peer_timeouts:
-                self.peer_timeouts[id_].RescheduleCall('msg_send_timeout')
+            if id_ in self.dc_peer_heartbeat:
+                self.dc_peer_heartbeat[id_].Reschedule()
 
     #
     # Various stuff

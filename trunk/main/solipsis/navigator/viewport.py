@@ -22,16 +22,12 @@ by world.py"""
 
 class BaseViewport(object):
 
-    overview_ratio = 1.15
-    glide_duration = 0.8
-    destination_radius = 20.0
-
     def __init__(self, world_size=2**128, disable=True):
         self.world_size = world_size
         self.normalize = (lambda x, lim=float(self.world_size) / 2.0: \
                           (x + lim) % (lim + lim) - lim)
         self.disabled = disable
- 
+
     def Disable(self):
         self.disabled = True
 

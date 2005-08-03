@@ -18,6 +18,29 @@
 # </copyright>
 
 
+class DelayedCall(object):
+    """
+    To create a delayed call, please use a DelayedCaller instance,
+    do not instantiate this class directly.
+    """
+    def __init__(self, caller, id_):
+        self.caller = caller
+        self.id_ = id_
+
+    def Reschedule(self):
+        """
+        Reschedules the delayed call, i.e. restarts its countdown from
+        the initial value.
+        """
+        self.caller.RescheduleCall(self.id_)
+
+    def Cancel(self):
+        """
+        Cancel the delayed call.
+        (do not call more than once)
+        """
+        self.caller.CancelCall(self.id_)
+
 class DelayedCaller(object):
     """
     This is a delayed caller. It is able to register, reschedule and
@@ -53,28 +76,18 @@ class DelayedCaller(object):
     def CallLater(self, _delay, _function, *args, **kargs):
         """
         Call a function later.
-        Returns an id used for operations on this call.
+        Returns a DelayedCall object.
         """
-        return self._CallLater(None, _delay, _function, *args, **kargs)
-
-    def CallLaterWithId(self, _id, _delay, _function, *args, **kargs):
-        """
-        Same as CallLater, but with a chosen id.
-        """
-        self._CallLater(_id, _delay, _function, *args, **kargs)
+        id_ = self._CallLater(_delay, _function, *args, **kargs)
+        return DelayedCall(self, id_)
 
     def CallPeriodically(self, _period, _function, *args, **kargs):
         """
         Call a function once in a while.
-        Returns an id used for operations on this call.
+        Returns a DelayedCall object.
         """
-        return self._CallPeriodically(None, _period, _function, *args, **kargs)
-
-    def CallPeriodicallyWithId(self, _id, _period, _function, *args, **kargs):
-        """
-        Same as CallPeriodically, but with a chosen id.
-        """
-        self._CallPeriodically(_id, _period, _function, *args, **kargs)
+        id_ = self._CallPeriodically(_period, _function, *args, **kargs)
+        return DelayedCall(self, id_)
 
     def CancelCall(self, id_):
         """
@@ -106,9 +119,8 @@ class DelayedCaller(object):
         self.count += 1
         return "_%d" % self.count
 
-    def _CallLater(self, _id, _delay, _function, *args, **kargs):
-        if _id is None:
-            _id = self._NewId()
+    def _CallLater(self, _delay, _function, *args, **kargs):
+        _id = self._NewId()
 
         # This class defines a callable that will remove itself
         # from the list of delayed calls
@@ -129,9 +141,8 @@ class DelayedCaller(object):
         fun.delays = self.delays
         return _id
 
-    def _CallPeriodically(self, _id, _period, _function, *args, **kargs):
-        if _id is None:
-            _id = self._NewId()
+    def _CallPeriodically(self, _period, _function, *args, **kargs):
+        _id = self._NewId()
 
         # This class defines a callable that will reschedule itself
         # each time it is called

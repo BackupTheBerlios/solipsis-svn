@@ -92,7 +92,9 @@ class ServiceCollector(object):
             if not os.path.isdir(path):
                 continue
             try:
-                service_id, plugin = self.LoadService(path, f)
+                # Force plugin name to str rather than unicode
+                name = str(f)
+                service_id, plugin = self.LoadService(path, name)
             except Exception, e:
                 print "Failed to load plugin '%s', ignoring." % path
                 traceback.print_exc()

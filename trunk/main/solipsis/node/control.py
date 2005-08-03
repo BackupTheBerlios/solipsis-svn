@@ -33,8 +33,13 @@ from delayedcaller import DelayedCaller
 
 class Connection(object):
     def __init__(self, reactor):
+        # Local DelayedCaller so that all delayed calls
+        # can be cancelled at the same time
         self.caller = DelayedCaller(reactor)
+        # Notifications waiting to be sent to the client
         self.notifs = []
+        # Delayed call for connection timeout
+        self.dc_timeout = None
 
     def Reset(self):
         self.caller.Reset()
@@ -227,11 +232,14 @@ class RemoteControl(object):
         Creates a connection to a controller.
         """
         connect_id = self._NewConnectId()
-        self.connections[connect_id] = Connection(self.reactor)
+        c = Connection(self.reactor)
         def _timeout():
             print "RemoteControl: connection timeout", connect_id
             self._CloseConnection(connect_id)
-        self.caller.CallLaterWithId('timeout_' + connect_id, self.connection_timeout, _timeout)
+        # We do not use the connection's DelayedCaller since it
+        # can be reset at various times
+        c.dc_timeout = self.caller.CallLater(self.connection_timeout, _timeout)
+        self.connections[connect_id] = c
         self.state_machine.EnableServices()
         return connect_id
 
@@ -239,10 +247,11 @@ class RemoteControl(object):
         """
         Closes the connection to a controller.
         """
-        self.caller.CancelCall('timeout_' + connect_id)
         if connect_id in self.pending_notifs:
             self._SendNotifs(connect_id, force=True)
-        self.connections[connect_id].Reset()
+        c = self.connections[connect_id]
+        c.dc_timeout.Cancel()
+        c.Reset()
         del self.connections[connect_id]
         if not len(self.connections):
             self.state_machine.DisableServices()
@@ -250,10 +259,13 @@ class RemoteControl(object):
     def _CheckConnectId(self, connect_id):
         """
         Checks whether the connect_id is a valid one.
+        Raises an error if not.
         """
-        if connect_id not in self.connections:
+        try:
+            c = self.connections[connect_id]
+        except KeyError:
             raise UnauthorizedRequest()
-        self.caller.RescheduleCall('timeout_' + connect_id)
+        c.dc_timeout.Reschedule()
 
     def _NewConnectId(self):
         """
