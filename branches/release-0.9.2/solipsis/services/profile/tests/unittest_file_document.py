@@ -15,7 +15,7 @@ from solipsis.services.profile.file_document import FileDocument
 from solipsis.services.profile.cache_document import CacheDocument
 from solipsis.services.profile.data import DirContainer, Blogs
 from solipsis.services.profile import ENCODING, PROFILE_DIR
-from solipsis.services.profile.tests import REPO, \
+from solipsis.services.profile.tests import REPO, PROFILE_UNICODE, \
      PROFILE_DIRECTORY, PROFILE_TEST, PROFILE_BRUCE, PROFILE_TATA
 
 
@@ -77,7 +77,7 @@ class FileTest(unittest.TestCase):
         try:
             bruce_blog = load_blogs(PROFILE_BRUCE, PROFILE_DIRECTORY)
         except ValueError:
-            bruce_blog = Blogs(PROFILE_BRUCE, PROFILE_DIRECTORY, pseudo=PROFILE_BRUCE)
+            bruce_blog = Blogs(PROFILE_BRUCE, PROFILE_DIRECTORY)
             bruce_blog.add_blog("Hi Buddy", PROFILE_BRUCE)
             bruce_blog.save()
         # write data
@@ -112,6 +112,39 @@ class FileTest(unittest.TestCase):
         # check content
         self.assertEquals(self.document.get_files()[REPO][abspath("data")]._shared, False)
         self._assertContent(self.document)
+
+    def test_unicode(self):
+        # blog
+        unicode_blog = Blogs(PROFILE_UNICODE, PROFILE_DIRECTORY)
+        unicode_blog.add_blog(u"Enchanté", PROFILE_UNICODE)
+        unicode_blog.save()
+        # doc
+        unicode_doc = FileDocument(PROFILE_UNICODE, PROFILE_DIRECTORY)
+        # write data
+        unicode_doc.set_title(u"Mr")
+        unicode_doc.set_firstname(u"Zoé")
+        unicode_doc.set_lastname(u"Bréton")
+        unicode_doc.set_photo(QUESTION_MARK())
+        unicode_doc.set_email(u"manu@ft.com")
+        unicode_doc.load_defaults()
+        unicode_doc.add_custom_attributes((u"été", u"chôô"))
+        unicode_doc.remove_custom_attributes(u'Sport')
+        # save
+        unicode_doc.save()
+        # check content
+        blog = load_blogs(PROFILE_UNICODE, PROFILE_DIRECTORY)
+        self.assertEquals(blog.blogs[0].text, u"Enchanté")
+        doc = FileDocument(PROFILE_UNICODE, PROFILE_DIRECTORY)
+        doc.load()
+        self.assertEquals(u"Mr", doc.get_title())
+        self.assertEquals(u"Zoé", doc.get_firstname())
+        self.assertEquals(u"Bréton", doc.get_lastname())
+        self.assertEquals(QUESTION_MARK(), doc.get_photo())
+        self.assertEquals(u"manu@ft.com", doc.get_email())
+        self.assertEquals({'City': u'', 'été': u'chôô', 'Country': u'',
+                           'Favourite Book': u'',
+                           'Favourite Movie': u'', 'Studies': u''},
+                          doc.get_custom_attributes())
 
     def test_load(self):
         self.document.load()
@@ -152,7 +185,7 @@ class FileTest(unittest.TestCase):
         
         
     def test_default(self):
-        document = FileDocument("dummy", PROFILE_DIRECTORY)
+        document = FileDocument(u"dummy", PROFILE_DIRECTORY)
         self.assertEquals(u"", document.get_title())
         self.assertEquals(u"Name", document.get_firstname())
         self.assertEquals(u"Lastname", document.get_lastname())

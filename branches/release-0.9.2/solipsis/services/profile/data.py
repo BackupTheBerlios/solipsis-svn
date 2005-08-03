@@ -54,6 +54,7 @@ class PeerDescriptor:
     
     def __init__(self, pseudo, document=None, blog=None,
                  state=ANONYMOUS, connected=False):
+        assert isinstance(pseudo, unicode), "pseudo must be a unicode"
         # status
         self.pseudo = pseudo
         self.state = state
@@ -151,7 +152,7 @@ def retro_compatibility(blogs):
         # v 0.2.0: path derived from _id & _dir. owner becomes pseudo
         blogs.pseudo = blogs._id
         return blogs.copy()
-    elif blogs.version == "0.2.1":
+    elif blogs.version in ["0.2.1", "0.2.2"]:
         # v 0.2.1: path derived from pseudo & dir. _id removed
         return blogs
     else:
@@ -163,6 +164,7 @@ class Blogs:
 
 
     def __init__(self, pseudo, directory=PROFILE_DIR):
+        assert isinstance(pseudo, unicode), "pseudo must be a unicode"
         self.pseudo = pseudo 
         self._dir = directory
         self.blogs = []

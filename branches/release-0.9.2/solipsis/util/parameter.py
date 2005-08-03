@@ -20,9 +20,16 @@
 import os, os.path
 import sys
 import random
+import locale
 from ConfigParser import ConfigParser
 import logging, logging.config
 
+from solipsis.util.utils import safe_str, safe_unicode
+
+# The parameters come from an external source (config file or
+# command-line options), so we have to take into account the
+# system-wide charset (not always utf-8).
+CHARSET = locale.getpreferredencoding()
 
 class Parameters(object):
     """
@@ -88,17 +95,11 @@ class Parameters(object):
         Load the given config options from the given section.
         """
         p = self._config_parser
-        getters = {
-            int: p.getint,
-            float: p.getfloat,
-            bool: p.getboolean,
-        }
         for k, (var, cons, default) in fields.items():
             # For each requested field, get the corresponding value
             # from the config file or use the default value
             if p.has_option(section_name, k):
-                getter = getters.get(k, p.get)
-                v = cons(getter(section_name, k))
+                v = cons(safe_unicode(p.get(section_name, k), CHARSET))
             else:
                 v = default
             setattr(self, var, v)
@@ -106,6 +107,8 @@ class Parameters(object):
             # For each command-line option that is not None or empty,
             # override the config file value
             if v or not hasattr(self, var):
+                if isinstance(v, str):
+                    v = safe_unicode(v, CHARSET)
                 setattr(self, var, v)
 
     def Load(self):

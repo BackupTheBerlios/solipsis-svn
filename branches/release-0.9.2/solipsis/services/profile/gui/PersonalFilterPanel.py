@@ -89,7 +89,7 @@ class PersonalFilterPanel(wx.Panel):
             get_filter_facade().add_custom_attributes((self.p_key_value.GetValue(), filter_value))
             self.do_modified(True)
         except Exception:
-            print "Regular expression not valid. See Info > Help for more information"
+            self._regex_not_valid("attribute", self.p_filter_value.GetValue())
 
     def on_del(self, evt):
         """a custom attribute has been modified"""
@@ -107,7 +107,7 @@ class PersonalFilterPanel(wx.Panel):
             if get_filter_facade().change_title(filter_value) != False:
                 self.do_modified(True)
         except Exception:
-            print "Regular expression not valid. See Info > Help for more information"
+            self._regex_not_valid("title", self.title_value.GetValue())
         evt.Skip()
 
     def on_check_firstname(self, evt):
@@ -118,7 +118,7 @@ class PersonalFilterPanel(wx.Panel):
             if get_filter_facade().change_firstname(filter_value) != False:
                 self.do_modified(True)
         except Exception:
-            print "Regular expression not valid. See Info > Help for more information"
+            self._regex_not_valid("firstname", self.firstname_value.GetValue())
         evt.Skip()
 
     def on_check_lastname(self, evt):
@@ -129,7 +129,7 @@ class PersonalFilterPanel(wx.Panel):
             if get_filter_facade().change_lastname(filter_value) != False:
                 self.do_modified(True)
         except Exception:
-            print "Regular expression not valid. See Info > Help for more information"
+            self._regex_not_valid("lastname", self.lastname_value.GetValue())
         evt.Skip()
 
     def on_check_pseudo(self, evt):
@@ -140,7 +140,7 @@ class PersonalFilterPanel(wx.Panel):
             if get_filter_facade().change_pseudo(filter_value) != False:
                 self.do_modified(True)
         except Exception, err:
-            print "Regular expression not valid. See Info > Help for more information"
+            self._regex_not_valid("pseudo", self.pseudo_value.GetValue())
         evt.Skip()
 
     def on_check_email(self, evt):
@@ -151,8 +151,16 @@ class PersonalFilterPanel(wx.Panel):
             if get_filter_facade().change_email(filter_value) != False:
                 self.do_modified(True)
         except Exception:
-            print "Regular expression not valid. See Info > Help for more information"
+            self._regex_not_valid("email", self.email_value.GetValue())
         evt.Skip()
+
+    def _regex_not_valid(self, attribute, expression):
+        dlg = wx.MessageDialog(self, """Regular expression '%s' not valid.
+See Info > Help for more information"""% expression,
+                               "Error on %s"% attribute,
+                               wx.OK | wx.ICON_ERROR)
+        dlg.ShowModal()
+        dlg.Destroy()
 
     def __set_properties(self):
         # begin wxGlade: PersonalFilterPanel.__set_properties

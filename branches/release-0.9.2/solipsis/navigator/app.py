@@ -165,7 +165,7 @@ class BaseNavigatorApp(UIProxyReceiver):
         self.display_message(_("Not implemented"),
                              _("""This function is not yet implemented.
 Sorry! Please come back later..."""))
-    
+
     def _UpdateURLPort(self, url_port):
         """change URL Listener port"""
         filename = os.path.join('state', 'url_jump.port')
@@ -183,10 +183,10 @@ Sorry! Please come back later..."""))
         else:
             if display_error:
                 self.display_message(_("Not connected"),
-                                     _("This action cannot be performed,"
+                                     _("This action cannot be performed, "
                                        "because you are not connected."))
             return False
-    
+
     def _MemDebug(self):
         """debug display of garbage collector"""
         gc.collect()
@@ -195,7 +195,7 @@ Sorry! Please come back later..."""))
         items = self.memsizer.get_deltas()
         print "\n".join(items)
         self.future_call(1000.0 * 10, self._MemDebug)
-        
+
     def _JumpNearAddress(self, address):
         """move node near given address"""
         if self._CheckNodeProxy():
@@ -239,7 +239,8 @@ Sorry! Please come back later..."""))
         assert self.config_data, "config must be initialised first"
         assert self.viewport, "viewport must be initialised first"
         self.config_data.Compute()
-        l = Launcher(port=self.config_data.solipsis_port,
+        l = Launcher(node_id=self.config_data.node_id,
+            port=self.config_data.solipsis_port,
             control_port=self.config_data.local_control_port)
         # First try to spawn the node
         if not l.Launch():
@@ -265,7 +266,6 @@ Please check you have sufficient rights.""")
         else:
             self.node_proxy.Move(str(long(x)), str(long(y)), str(0))
 
-
     def _LoadConfig(self):
         """helper to load config from file"""
         assert self.config_data, "config must be initialised first"
@@ -278,7 +278,7 @@ Please check you have sufficient rights.""")
             if os.path.exists(self.config_file):
                 print "Config file '%s' broken, erasing"
                 os.remove(self.config_file)
-                
+
     def _SaveConfig(self):
         """
         Save current configuration to the user's config file.
@@ -385,7 +385,7 @@ Please check you have sufficient rights.""")
             self.future_call(1000, self._Quit2)
         else:
             self._Quit2()
-    
+
     def _Quit2(self):
         """
         The end of the quit procedure ;-)

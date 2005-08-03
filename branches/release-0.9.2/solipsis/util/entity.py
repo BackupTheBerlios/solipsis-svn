@@ -19,7 +19,7 @@
 
 import logging
 
-from solipsis.util.utils import set
+from solipsis.util.utils import set, safe_str, safe_unicode
 from solipsis.util.position import Position
 from solipsis.util.address import Address
 from solipsis.util.marshal import Marshallable
@@ -39,7 +39,10 @@ class Service(Marshallable):
 
     def __init__(self, id_="", type='bidir', address=""):
         assert type in ('in', 'out', 'bidir'), "Wrong service type"
-        self.id_ = id_
+        # Make sure the ID is of type str and not unicode
+        # (marshalling dicts with unicode keys fails with xmlrpclib
+        # in Python <2.4)
+        self.id_ = safe_str(id_)
         self.type = type
         self.address = address
         self.known = True
@@ -54,7 +57,7 @@ class ServiceData(Marshallable):
         'data':
             (u"", lambda s: s),
     }
-    
+
     def __init__(self, peer_id="", service_id="", data=u""):
         self.peer_id = peer_id
         self.service_id = service_id
@@ -71,7 +74,7 @@ class Entity(Marshallable):
         'id_':
             ("", str),
         'pseudo':
-            (u"", unicode),
+            (u"", safe_unicode),
         'address':
             ("", lambda a: Address.FromStruct(a)),
         'awareness_radius':
@@ -110,7 +113,7 @@ class Entity(Marshallable):
         self.id_ = id_
 
         # Metadata
-        self.pseudo = pseudo
+        self.pseudo = safe_unicode(pseudo)
         self.services = {}
         self.languages = []
         self.services_enabled = True
@@ -127,7 +130,7 @@ class Entity(Marshallable):
         """
         if service_id in self.services:
             del(self.services[service_id])
-    
+
     def DisableServices(self):
         """
         Disable all services.
@@ -172,7 +175,7 @@ class Entity(Marshallable):
         Update metadata from a pseudo, a list of languages and a list of services.
         """
         if pseudo is not None:
-            self.pseudo = pseudo
+            self.pseudo = safe_unicode(pseudo)
         if languages is not None:
             self.languages = languages
         if services is not None:
@@ -189,7 +192,7 @@ class Entity(Marshallable):
             service = self.services[service_id]
             service.address = address
             service.known = True
-    
+
     def UpdateServices(self, new_services):
         """
         Update the entity's services with the new service list.
@@ -197,7 +200,7 @@ class Entity(Marshallable):
         self.services.clear()
         for service in new_services:
             self.services[service.id_] = service
-    
+
     def MatchServices(self, entity):
         """
         Match the entity's services with another entity's services.

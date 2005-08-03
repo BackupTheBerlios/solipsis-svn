@@ -104,7 +104,7 @@ class BlogDialog(wx.Dialog, UIProxyReceiver):
             self.peer_desc = peer_desc
             pseudo = peer_desc.pseudo
         else:
-            pseudo = "Anonymous"
+            pseudo = u"Anonymous"
         wx.Dialog.SetTitle(self, "%s's %s"% (pseudo, _("Blog")))
 
         

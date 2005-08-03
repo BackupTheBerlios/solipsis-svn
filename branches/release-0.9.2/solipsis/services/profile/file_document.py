@@ -41,7 +41,8 @@ class FilePersonalMixin(AbstractPersonalData):
 
     def __init__(self, pseudo):
         self.config.add_section(SECTION_PERSONAL)
-        self.config.set(SECTION_PERSONAL, "pseudo", pseudo)
+        self.config.set(SECTION_PERSONAL, "pseudo",
+                        pseudo.encode(self.encoding))
         self.config.add_section(SECTION_CUSTOM)
         AbstractPersonalData.__init__(self)
         
@@ -335,7 +336,7 @@ class FileSharingMixin(AbstractSharingData):
                     option_share, option_tag = option_description.split(',')
                     option_share = bool(option_share)
                     if isinstance(option_tag, str):
-                        option_tag = unicode(option_tag, ENCODING)
+                        option_tag = unicode(option_tag, self.encoding)
                 except (ValueError, ConfigParser.NoSectionError,
                         ConfigParser.NoOptionError):
                     option_share, option_tag = True, DEFAULT_TAG
@@ -387,7 +388,7 @@ class FileContactMixin(AbstractContactsData):
         # extract name of files saved on HD
         if peer_desc.document:
             peer_desc.document.save()
-        description = ",".join([peer_desc.pseudo,
+        description = ",".join([peer_desc.pseudo.encode(self.encoding),
                                 peer_desc.state,
                                 peer_id,
                                 time.asctime()])
@@ -407,6 +408,8 @@ class FileContactMixin(AbstractContactsData):
         try:
             infos = self.config.get(SECTION_OTHERS, peer_id).split(",")
             pseudo, state, p_id, creation_date = infos
+            if not isinstance(pseudo, unicode):
+                pseudo = unicode(pseudo, self.encoding)
             if p_id != peer_id:
                 print "file corrupted: %s (%s) != %s" \
                       % (p_id, creation_date, peer_id)
@@ -511,6 +514,7 @@ class FileDocument(FilePersonalMixin, FileSharingMixin,
     """Describes all data needed in profile in a file"""
 
     def __init__(self, pseudo, directory=PROFILE_DIR):
+        assert isinstance(pseudo, unicode), "pseudo must be a unicode"
         self.encoding = ENCODING
         self.config = CustomConfigParser(ENCODING)
         FilePersonalMixin.__init__(self, pseudo)

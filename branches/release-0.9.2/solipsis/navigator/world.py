@@ -21,6 +21,8 @@
 includes callbacks to viewport (see viewport.py). DOES NOT INCLUDE
 AVATARS."""
 
+from solipsis.util.utils import safe_str, safe_unicode
+
 class Item(object):
     """
     An item points to a peer and contains information about how to draw it.
@@ -28,7 +30,7 @@ class Item(object):
     def __init__(self, peer):
         self.peer = peer
         self.Reset()
-        
+
     def Reset(self):
         """Drawable ids in viewport"""
         self.label_id = None
@@ -40,7 +42,7 @@ class BaseWorld:
     It receives events from the remote connector and communicates
     with the viewport to display the world on screen.
     """
-    
+
     def __init__(self, viewport):
         """
         Constructor.
@@ -146,7 +148,7 @@ class BaseWorld:
             x, y, z = new_pos
             self.viewport.MoveObject(id_, position=(x, y))
         return (item, old)
-            
+
     def GetNode(self):
         """
         Returns the node.
@@ -166,7 +168,7 @@ class BaseWorld:
             return self.items[peer_id].peer
         else:
             return None
-    
+
     def GetAllPeers(self):
         """
         Returns a list of all peers.
@@ -181,13 +183,14 @@ class BaseWorld:
         # TODO: properly handle the case when the hovered peer
         # has been removed from the viewport.
         if peer is not None:
-            return peer.pseudo.encode(self.charset)
-        return ""
+            return safe_str(peer.pseudo, charset=self.charset)
+        else:
+            return ""
 
     #
     # Private methods
     #
-    
+
     def _InitNode(self, node):
         """
         Initialize the node and add it to the viewport.

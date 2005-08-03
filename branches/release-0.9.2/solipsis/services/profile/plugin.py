@@ -25,6 +25,7 @@ import sys
 
 from solipsis.util.wxutils import _
 from solipsis.services.plugin import ServicePlugin
+from solipsis.services.profile import ENCODING
 from solipsis.services.profile.prefs import get_prefs
 from solipsis.services.profile import set_solipsis_dir
 from solipsis.services.profile.facade import create_facade, get_facade, \

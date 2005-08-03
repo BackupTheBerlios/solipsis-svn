@@ -26,6 +26,7 @@ class SimpleFacade:
     """manages user's actions & connects document and view"""
     
     def __init__(self, pseudo, directory=PROFILE_DIR):
+        assert isinstance(pseudo, unicode), "pseudo must be a unicode"
         self._desc = None
         self.pseudo = pseudo
         self._activated = True
@@ -108,7 +109,10 @@ class SimpleFacade:
         try:
             self._desc.load()
         except ValueError, err:
-            print err, "Using blank one"
+            print "Using blank one"
+            # BUG: UnicodeEncodeError
+#             print err, "Using blank one"
+            pass
         # update
         for view in self.views.values():
             view.import_desc(self._desc)

@@ -66,7 +66,12 @@ class FileFilterPanel(wx.Panel):
             get_filter_facade().add_file((self.f_key_value.GetValue(), filter_value))
             self.do_modified(True)
         except Exception:
-            print "Regular expression not valid. See Info > Help for more information"
+            dlg = wx.MessageDialog(self, """Regular expression '%s' not valid.
+See Info > Help for more information"""% self.f_filter_value.GetValue(),
+                               "Error on %s"% self.f_key_value.GetValue(),
+                               wx.OK | wx.ICON_ERROR)
+            dlg.ShowModal()
+            dlg.Destroy()
 
     def on_del(self, evt):
         """a custom attribute has been modified"""

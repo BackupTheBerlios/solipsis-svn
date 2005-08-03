@@ -21,10 +21,9 @@
 import wx
 import copy
 
+from solipsis.util.utils import ManagedData, CreateSecureId
 from solipsis.navigator.wxclient.bookmarks import BookmarkList
 from solipsis.navigator.config import BaseConfigData
-
-
 
 class ConfigData(BaseConfigData):
     """
@@ -39,8 +38,15 @@ class ConfigData(BaseConfigData):
 
     def __init__(self, params=None):
         BaseConfigData.__init__(self, params)
-        # 5. User-defined bookmarks
+
+        # 1. User-defined bookmarks
         self.bookmarks = BookmarkList()
+
+        # Override languages
+        lang_code = wx.Locale.GetLanguageInfo(
+            wx.Locale.GetSystemLanguage()).CanonicalName
+        if lang_code:
+            self.languages = [str(lang_code.split('_')[0])]
 
         # 99. Identities
         self.identities = []
@@ -59,7 +65,7 @@ class ConfigData(BaseConfigData):
         """
         self.StoreCurrentIdentity()
         BaseConfigData.Compute(self)
-        
+
     def _Load(self, infile):
         """
         Restore configuration from a readable file object.
@@ -79,10 +85,6 @@ class ConfigData(BaseConfigData):
         Get the object representing the node (i.e. ourselves).
         """
         node = BaseConfigData.GetNode(self)
-        lang_code = wx.Locale.GetLanguageInfo(
-            wx.Locale.GetSystemLanguage()).CanonicalName
-        if lang_code:
-            node.languages = [ str(lang_code.split('_')[0]) ]
         return node
 
 
@@ -95,10 +97,12 @@ class ConfigData(BaseConfigData):
         identity = {}
         for var in self.identity_vars:
             identity[var] = copy.deepcopy(getattr(self, var))
+        # We generate a new node ID for each identity
+        self.node_id = identity['node_id'] = CreateSecureId()
         self.identities.append(identity)
         self.current_identity = len(self.identities) - 1
         return self.current_identity
-    
+
     def StoreCurrentIdentity(self):
         """
         Stores current config values in current identity.
@@ -106,7 +110,10 @@ class ConfigData(BaseConfigData):
         identity = self.identities[self.current_identity]
         for var in self.identity_vars:
             identity[var] = copy.deepcopy(getattr(self, var))
-    
+        # If the identity does not already have a node ID, create one
+        if not identity['node_id']:
+            identity['node_id'] = CreateSecureId()
+
     def LoadIdentity(self, index):
         """
         Loads another identity into current config values.
@@ -160,7 +167,7 @@ class ConfigData(BaseConfigData):
                     config[var] = getattr(self, var)
             configs.append(config)
         return configs
-    
+
     def GetCurrentIdentity(self):
         """
         Returns the index of the current identity.

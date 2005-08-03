@@ -258,6 +258,7 @@ class CacheDocument(CachePersonalMixin, CacheSharingMixin,
     """Describes all data needed in profile in a file"""
 
     def __init__(self, pseudo, directory=PROFILE_DIR):
+        assert isinstance(pseudo, unicode), "pseudo must be a unicode"
         CachePersonalMixin.__init__(self)
         CacheSharingMixin.__init__(self)
         CacheContactMixin.__init__(self)
