@@ -39,7 +39,7 @@ class _StunClient(stun.StunDiscoveryProtocol):
         return self.d
 
     def _Failed(self):
-        self.d.errback(Exception("no response"))
+        self.d.errback(Exception("no response from servers %s" % self.servers))
 
     def Timeout(self):
         self._finished = True

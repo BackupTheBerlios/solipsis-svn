@@ -1,6 +1,11 @@
 Solipsis, a peer-to-peer serverless virtual world.
 Copyright (C) 2002-2005 France Telecom R&D
 
+Some code in this software comes from other projects.
+Check the files in the "solipsis/lib" directory and its
+subdirectories for more information.
+
+
 This software is free software; you can redistribute it and/or
 modify it under the terms of the GNU Lesser General Public
 License as published by the Free Software Foundation; either
