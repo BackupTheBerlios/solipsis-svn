@@ -73,7 +73,7 @@ class StunProtocol(DatagramProtocol, object):
         super(StunProtocol, self).__init__(*args, **kwargs)
 
     def datagramReceived(self, dgram, address):
-        print "stun: ", dgram
+#         print "stun: ", dgram
         mt, pktlen, tid = struct.unpack('!hh16s', dgram[:20])
         # Check tid is one we sent and haven't had a reply to yet
         if self._pending.has_key(tid):
