@@ -19,64 +19,53 @@
 
 import twisted.internet.defer as defer
 
-import solipsis.lib.stun as stun
+import solipsis.lib.shtoom.stun as stun
 
 stun_section = {
     'servers': ('stun_servers', str, ""),
 }
 stun_timeout = 2.0
 
+class _StunClient(stun.StunDiscoveryProtocol):
+    def __init__(self, reactor, *args, **kargs):
+        stun.StunDiscoveryProtocol.__init__(self, *args, **kargs)
+        self.reactor = reactor
 
-class _StunDiscovery(stun.StunProtocol):
-    def __init__(self, *args, **kargs):
-        super(_StunDiscovery, self).__init__(*args, **kargs)
+    def Run(self, port):
+        self.d = defer.Deferred()
+#         self.timeout = self.reactor.callLater(stun_timeout, self.Timeout)
+        self.listening = self.reactor.listenUDP(port, self)
+        self.reactor.callLater(0, self.startDiscovery)
+        return self.d
 
-    def Start(self, port, reactor, deferred):
-        """
-        Start listening for STUN replies.
-        """
-        self.deferred = deferred
-        self.listening = reactor.listenUDP(port, self)
-        for host, port in self.servers:
-            def _resolved(host, port):
-                self.sendRequest((host, port))
-            def _unresolved(failure):
-                print failure.getErrorMessage()
-            d = reactor.resolve(host)
-            d.addCallback(_resolved, port)
-            d.addErrback(_unresolved)
+    def _Failed(self):
+        self.d.errback(Exception("no response"))
 
-    def Stop(self):
-        """
-        Stop listening.
-        """
+    def Timeout(self):
+        self._finished = True
         self.listening.stopListening()
+        self._Failed()
 
-    def gotMappedAddress(self, addr, port):
-        """
-        Called back when STUN discovered our public address.
-        """
-        if not self.deferred.called:
-            self.deferred.callback((addr, int(port)))
+    def finishedStun(self):
+#         self.timeout.cancel()
+#         print "You're behind a %r"%(self.natType)
+        self.listening.stopListening()
+        if self.externalAddress is not None:
+            self.d.callback(self.externalAddress)
+        else:
+            self._Failed()
 
 def DiscoverAddress(port, reactor, params):
-    print "Using STUN to get public IP (port:%d)"% port
+    print "Using STUN to get public IP (port: %d)" % port
     d = defer.Deferred()
     params.LoadSection('stun', stun_section)
-    servers = params.stun_servers or '127.0.0.1'
-    serv_list = [(s.strip(), 3478) for s in servers.split(',')]
-    discovery = _StunDiscovery(servers=serv_list)
-    # Define timeout callback
-    def _timeout():
-        discovery.Stop()
-        d.errback(Exception("timed out (%s) with servers %s" % (stun_timeout, servers)))
-    timeout = reactor.callLater(stun_timeout, _timeout)
-    # Define intermediary succeed callback
-    def _succeed(value):
-        discovery.Stop()
-        timeout.cancel()
-        return value
-    d.addCallback(_succeed)
+    servers = params.stun_servers.strip()
+    if servers:
+        serv_list = [(s.strip(), 3478) for s in servers.split(',')]
+        discovery = _StunClient(reactor, servers=serv_list)
+    else:
+        discovery = _StunClient(reactor)
+
     # Start listening
-    discovery.Start(port, reactor, d)
-    return d
+    return discovery.Run(port)
+
