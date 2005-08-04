@@ -47,6 +47,7 @@ class BaseNavigatorApp(UIProxyReceiver):
         self.params = params
         self.alive = True
         self.node_proxy = None
+        self.testing = self.params.testing or False
         self.url_jump = self.params.url_jump or None
         self.connection_trials = 0
         if self.params.memdebug:
@@ -302,7 +303,7 @@ Please check you have sufficient rights.""")
         msg = _("Solipsis Navigator") + " " \
               + self.version + "\n\n" \
               + _("Licensed under the GNU LGPL") + "\n(c) France Telecom R&D"
-        self.display_message(_("About..."), msg)
+        return self.display_message(_("About..."), msg)
 
     def _OnConnect(self, evt=None):
         """
@@ -397,8 +398,11 @@ Please check you have sufficient rights.""")
         self.network.DisableProxy()
         # Finish running services
         self.services.Finish()
-        # Now we are sure that no more events are pending, kill everything
-        self.reactor.stop()
+        # Now we are sure that no more events are pending, kill
+        # everything.When testing, reactor is managed by
+        # twisted.trial.unittest framework
+        if not self.testing:
+            self.reactor.stop()
 
 
     #===-----------------------------------------------------------------===#

@@ -41,6 +41,8 @@ class NavigatorApp(BaseNavigatorApp):
         """available kargs: port"""
         BaseNavigatorApp.__init__(self, params, *args, **kargs)
         self.config_data = ConfigData(self.params)
+        self.initialised = False
+        self.factory = None
         self.listener = None
         self.OnInit()
         
@@ -80,9 +82,10 @@ class NavigatorApp(BaseNavigatorApp):
         """
         Launch network event loop.
         """
-        self.network_loop = NetworkLoop(self.reactor, self)
+        self.network_loop = NetworkLoop(self.reactor, self, self.testing)
+        self.factory = SolipsisUiFactory(self)
         self.listener = self.reactor.listenTCP(self.local_port,
-                                               SolipsisUiFactory(self))
+                                               self.factory)
         print "listening on port", self.local_port
         BaseNavigatorApp.InitNetwork(self)
 
@@ -104,6 +107,10 @@ class NavigatorApp(BaseNavigatorApp):
                 self.config_data.SetServices(self.services.GetServices())
         else:
             BaseNavigatorApp.InitServices(self)
+        # flag end of initialisation
+        self.initialised = True
+        for deferred in self.factory.initialised:
+            deferred.callback(True)
 
     def stopListening(self):
         """close connection from manager and stop accepting"""
@@ -113,7 +120,7 @@ class NavigatorApp(BaseNavigatorApp):
             return defered
         else:
             return None
-
+        
     #
     # Helpers
     #
@@ -123,7 +130,7 @@ class NavigatorApp(BaseNavigatorApp):
 
     def display_message(self, title, msg):
         """Display message to user, using for instance a dialog"""
-        print title, ":", msg
+        return "%s: %s"% (title, msg)
 
     def display_error(self, title, msg):
         """Report error to user"""
@@ -144,7 +151,5 @@ class NavigatorApp(BaseNavigatorApp):
         Set "waiting" state of the interface.
         """
         pass
-
-
         
 

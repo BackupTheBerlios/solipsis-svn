@@ -32,8 +32,8 @@ class NetworkLoop(BaseNetworkLoop):
     thread. However, in this version of the navigator, it shares the
     thread of the reactor.
     """
-    def __init__(self, reactor, ui):
-        BaseNetworkLoop.__init__(self, reactor, TwistedProxy(ui, reactor))
+    def __init__(self, reactor, ui, testing=False):
+        BaseNetworkLoop.__init__(self, reactor, TwistedProxy(ui, reactor), testing)
 
 class Commands:
 
@@ -99,6 +99,11 @@ class SolipsisUiProtocol(basic.LineReceiver):
 
     def connectionMade(self):
         self.factory.transport = self.transport
+        if self.factory.app.initialised:
+            self.sendLine("Ready")
+        else:
+            self.factory.initialised.append(
+                defer.Deferred().addCallback(lambda b: self.sendLine("Ready")))
         
     def lineReceived(self, line):
         cmd_passed = line.strip().lower()
@@ -118,9 +123,11 @@ class SolipsisUiProtocol(basic.LineReceiver):
             deferred.addCallback(self.sendLine)
             if args:
                 args = command.convert(args)
-                command.call(self.factory, deferred, *args)
+                msg = command.call(self.factory, deferred, *args)
             else:
-                command.call(self.factory, deferred)
+                msg = command.call(self.factory, deferred)
+            if not msg is None:
+                deferred.callback(msg)
         except (KeyError, AttributeError), err:
             self.sendLine("%s:%s not a valid command (%s)"% (err.__class__, line, err))
 
@@ -131,10 +138,11 @@ class SolipsisUiFactory(protocol.ServerFactory):
     def __init__(self, application):
         self.app = application
         self.address_val = AddressValidator()
+        self.initialised = []
 
     # UI events in menu
     def do_about(self, deferred):
-        self.app._OnAbout(deferred)
+        return self.app._OnAbout(deferred)
 
     def do_launch(self, deferred):
         self.app._OnConnect(deferred)

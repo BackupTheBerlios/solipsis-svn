@@ -24,6 +24,7 @@
 import threading
 import random
 
+from twisted.internet import defer
 from solipsis.navigator.urllistener import URLListenFactory
 from solipsis.util.remote import RemoteConnector
 
@@ -33,7 +34,7 @@ class BaseNetworkLoop(threading.Thread):
     It manages socket-based communication with the Solipsis node
     and event-based communication with the User Interface (UI).
     """
-    def __init__(self, reactor, ui):
+    def __init__(self, reactor, ui, testing=False):
         """
         Builds a network loop from a Twisted reactor and a Wx event handler.
         """
@@ -42,13 +43,16 @@ class BaseNetworkLoop(threading.Thread):
         self.repeat_count = 0
         self.reactor = reactor
         self.ui = ui
+        self.testing = testing
         self.remote_connector = RemoteConnector(self.reactor, self.ui)
 
     def run(self):
         """
-        Run the reactor loop.
+        Run the reactor loop if not testing. When testing, reactor is
+        managed by twisted.trial.unittest framework
         """
-        self.reactor.run(installSignalHandlers=0)
+        if not self.testing:
+            self.reactor.run(installSignalHandlers=0)
 
     #
     # Actions from the UI thread

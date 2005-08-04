@@ -29,8 +29,9 @@ class ConfigData(BaseConfigData):
     # These are the configuration variables that can be changed on a
     # per-identity basis
     identity_vars = BaseConfigData.identity_vars \
-                    + ["services"]
+                    + ["services", "testing"]
 
     def __init__(self, params=None):
         BaseConfigData.__init__(self, params)
         self.used_services = params and params.services or []
+        self.testing = params and params.testing or False

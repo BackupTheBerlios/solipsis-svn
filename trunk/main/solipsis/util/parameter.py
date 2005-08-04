@@ -59,6 +59,7 @@ class Parameters(object):
         'local_control_port_min': ('local_control_port_min', int, 0),
         'local_control_port_max': ('local_control_port_max', int, 0),
         'local_port': ('local_port', int, 23500),
+        'testing': ('testing', bool, False),
     }
 
     services_section = {
