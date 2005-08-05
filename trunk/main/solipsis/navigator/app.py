@@ -3,17 +3,17 @@
 #<copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
 # Copyright (C) 2002-2005 France Telecom R&D
-# 
+#
 # This software is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
 # version 2.1 of the License, or (at your option) any later version.
-# 
+#
 # This software is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -22,9 +22,15 @@
 
 import os
 import gc
-import gettext
 import socket
-_ = gettext.gettext
+# This hack suggests something is wrong with the code factoring
+try:
+    import wx
+except ImportError:
+    import gettext
+    _ = gettext.gettext
+else:
+    from solipsis.util.wxutils import _
 
 from solipsis.util.urls import SolipsisURL
 from solipsis.util.address import Address
@@ -38,7 +44,7 @@ class BaseNavigatorApp(UIProxyReceiver):
     """
     Main application class
     """
-    version = "0.9.2svn"
+    version = "0.9.3svn"
     config_file = os.sep.join(["state", "config.bin"])
     world_size = 2**128
 
@@ -138,6 +144,10 @@ class BaseNavigatorApp(UIProxyReceiver):
         """Display message to user, using for instance a dialog"""
         raise NotImplementedError
 
+    def display_warning(self, title, msg):
+        """Display message to user, using for instance a dialog"""
+        raise NotImplementedError
+
     def display_error(self, title, msg):
         """Report error to user"""
         raise NotImplementedError
@@ -151,7 +161,7 @@ class BaseNavigatorApp(UIProxyReceiver):
         Destroy progress dialog if necessary.
         """
         raise NotImplementedError
-    
+
     def _SetWaiting(self, waiting):
         """
         Set "waiting" state of the interface.
@@ -163,11 +173,13 @@ class BaseNavigatorApp(UIProxyReceiver):
         Displays a dialog warning that a function is not implemented.
         """
         self.display_message(_("Not implemented"),
-                             _("""This function is not yet implemented.
-Sorry! Please come back later..."""))
+                             _("This function is not yet implemented.\n "
+                                "Sorry! Please come back later..."))
 
     def _UpdateURLPort(self, url_port):
-        """change URL Listener port"""
+        """
+        Change URL Listener port.
+        """
         filename = os.path.join('state', 'url_jump.port')
         f = file(filename, 'wb')
         f.write(str(url_port))
@@ -183,7 +195,7 @@ Sorry! Please come back later..."""))
         else:
             if display_error:
                 self.display_message(_("Not connected"),
-                                     _("This action cannot be performed, "
+                                     _("This action cannot be performed, \n"
                                        "because you are not connected."))
             return False
 
@@ -197,12 +209,23 @@ Sorry! Please come back later..."""))
         self.future_call(1000.0 * 10, self._MemDebug)
 
     def _JumpNearAddress(self, address):
-        """move node near given address"""
+        """
+        Jump near the peer with the given address.
+        """
         if self._CheckNodeProxy():
             self.node_proxy.JumpNear(address.ToStruct())
 
+    def _JumpNearPeer(self, peer):
+        """
+        Jump near a peer and check its ID is ok.
+        """
+        if self._CheckNodeProxy():
+            self.node_proxy.JumpNearPeer(peer.address.ToStruct(), peer.id_)
+
     def _JumpNearURL(self, url_string):
-        """change node position according to given url"""
+        """
+        Jump near the peer or position described by the given URL.
+        """
         print "Received:", url_string
         if self._CheckNodeProxy(False):
             try:
@@ -235,7 +258,9 @@ Sorry! Please come back later..."""))
         self.services.SetNode(self.config_data.GetNode())
 
     def _LaunchNode(self, deferred=None):
-        """Create new node and connect"""
+        """
+        Create a new local node and connect to the world.
+        """
         assert self.config_data, "config must be initialised first"
         assert self.viewport, "viewport must be initialised first"
         self.config_data.Compute()
@@ -245,13 +270,13 @@ Sorry! Please come back later..."""))
         # First try to spawn the node
         if not l.Launch():
             self.viewport.Disable()
-            msg = _("""Node creation failed.
-Please check you have sufficient rights.""")
+            msg = _("Node creation failed. \n"
+                    "Please check you have sufficient rights.")
             self.display_message(_("Kill refused"), msg)
             return
         # Then connect using its XMLRPC daemon
         # Hack so that the node has the time to launch
-        self.connection_trials = 5
+        self.connection_trials = 6
         self._TryConnect(deferred)
 
     def _MoveNode(self, (x, y), jump=False, jump_near=False):
@@ -267,7 +292,9 @@ Please check you have sufficient rights.""")
             self.node_proxy.Move(str(long(x)), str(long(y)), str(0))
 
     def _LoadConfig(self):
-        """helper to load config from file"""
+        """
+        Load configuration from the user's config file.
+        """
         assert self.config_data, "config must be initialised first"
         # Load last saved config
         try:
@@ -310,6 +337,7 @@ Please check you have sufficient rights.""")
         Called on "connect" event (menu -> File -> Connect).
         """
         assert self.config_data, "config_data must be defined first"
+        self._SaveConfig()
         if self.config_data.connection_type == 'local':
             # Local connection mode: create a dedicated Solipsis node
             self._LaunchNode()
@@ -368,9 +396,9 @@ Please check you have sufficient rights.""")
         Called on "kill" event (menu -> File -> Kill).
         """
         if self._CheckNodeProxy():
-            assert self.services, "services must be initialised first"
             self.network.KillNode()
-            self.services.RemoveAllPeers()
+            if self.services:
+                self.services.RemoveAllPeers()
 
     def _OnQuit(self, evt=None):
         """
@@ -391,13 +419,13 @@ Please check you have sufficient rights.""")
         """
         The end of the quit procedure ;-)
         """
-        assert self.services, "services must be initialised first"
         # Disable event proxying: as of now, all UI -> network
         # and network -> UI events will be discarded
         self.DisableProxy()
         self.network.DisableProxy()
         # Finish running services
-        self.services.Finish()
+        if self.services:
+            self.services.Finish()
         # Now we are sure that no more events are pending, kill
         # everything.When testing, reactor is managed by
         # twisted.trial.unittest framework
@@ -435,6 +463,20 @@ Please check you have sufficient rights.""")
         self.world.UpdatePeer(*args, **kargs)
         self.services.UpdatePeer(*args, **kargs)
 
+    def WarnChangedId(self, old_peer_id, peer):
+        """
+        Warn the user that a peer's is not the same as expected.
+        """
+        title = _("For information...")
+        # TODO: wait for the node's pseudo before displaying the warning
+#         msg = _("The peer \"%s\" seems to have changed identity. \n"
+#                 "It may mean that someone else is running a node \n"
+#                 "at the same address.") % peer.pseudo
+        msg = _("The peer you asked for seems to have changed identity. \n"
+                "It may mean that someone else is running a node \n"
+                "at the same address.")
+        self.display_warning(title, msg)
+
     def UpdateNode(self, *args, **kargs):
         """
         Update node information.
@@ -443,14 +485,14 @@ Please check you have sufficient rights.""")
         assert self.world, "world must be initialised first"
         self.services.SetNode(*args, **kargs)
         self.world.UpdateNode(*args, **kargs)
-    
+
     def UpdateNodePosition(self, *args, **kargs):
         """
         Update node position.
         """
         assert self.world, "world must be initialised first"
         self.world.UpdateNodePosition(*args, **kargs)
-    
+
     def ProcessServiceData(self, *args, **kargs):
         """
         Process service-specific data.
@@ -508,8 +550,8 @@ Please check you have sufficient rights.""")
         self._SetWaiting(False)
         self.node_proxy = None
         self.display_status(_("Not connected"))
-        msg = _("""Connection to the node has failed.
-Please the check the node is running, then retry.""")
+        msg = _("Connection to the node has failed. \n"
+            "Please the check the node is running, then retry.")
         self.display_error(_("Connection error"), msg)
 
     def NodeKillSucceeded(self):
@@ -541,7 +583,7 @@ Please the check the node is running, then retry.""")
         else:
             # If not alive, then we are in the quit phase
             self._Quit2()
- 
+
     #===-----------------------------------------------------------------===#
     # Actions from the services
     #

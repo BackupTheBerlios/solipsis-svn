@@ -3,17 +3,17 @@
 # <copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
 # Copyright (C) 2002-2005 France Telecom R&D
-# 
+#
 # This software is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
 # version 2.1 of the License, or (at your option) any later version.
-# 
+#
 # This software is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -216,13 +216,13 @@ class NavigatorApp(BaseNavigatorApp, wx.App, XRCLoader):
         if not self.locale.Init2() \
                and wx.Platform not in ('__WXMSW__', '__WXMAC__'):
             print "Error: failed to initialize wx.Locale! " \
-                "If you are under Linux or Un*x, check the LC_MESSAGES " \
+                "Please check the LC_MESSAGES " \
                 "or LANG environment variable is properly set."
             sys.exit(1)
         try:
             translation_dir = self.params.translation_dir
         except AttributeError:
-            print "No translation dir specified"
+            print "No translation dir specified in configuration file."
             pass
         else:
             self.locale.AddCatalogLookupPathPrefix(translation_dir)
@@ -235,11 +235,11 @@ class NavigatorApp(BaseNavigatorApp, wx.App, XRCLoader):
         Setup validators for various form controls.
         Validators have two purposes :
         1. Validate proper data is entered in forms
-        2. Transfer validated data to their storage location 
+        2. Transfer validated data to their storage location
            (an instance variable of a ManagedData subclass instance).
         """
         validators = [
-            # [ Containing window, control name, validator class, 
+            # [ Containing window, control name, validator class,
             #   data object, data attribute ]
             #~ [ self.prefs_dialog, "proxymode_auto", BooleanValidator,
             #~   c, "proxymode_auto" ],
@@ -279,20 +279,26 @@ class NavigatorApp(BaseNavigatorApp, wx.App, XRCLoader):
 
     def display_message(self, title, msg):
         """Way of communicta with user"""
-        dialog = wx.MessageDialog(None, msg, caption=title, 
+        dialog = wx.MessageDialog(None, msg, caption=title,
                                   style=wx.OK | wx.ICON_EXCLAMATION)
+        dialog.ShowModal()
+
+    def display_warning(self, title, msg):
+        """Way of communicta with user"""
+        dialog = wx.MessageDialog(None, msg, caption=title,
+                                  style=wx.OK | wx.ICON_WARNING)
         dialog.ShowModal()
 
     def display_error(self, title, msg):
         """Way of communicta with user"""
-        dialog = wx.MessageDialog(None, msg, caption=title, 
+        dialog = wx.MessageDialog(None, msg, caption=title,
                                   style=wx.OK | wx.ICON_ERROR)
         dialog.ShowModal()
 
     def display_status(self, msg):
         """report a status"""
         self.statusbar.SetText(msg)
-    
+
     def _DestroyProgress(self):
         """
         Destroy progress dialog if necessary.
@@ -300,7 +306,7 @@ class NavigatorApp(BaseNavigatorApp, wx.App, XRCLoader):
         if self.progress_dialog is not None:
             self.progress_dialog.Destroy()
             self.progress_dialog = None
-    
+
     def _SetWaiting(self, waiting):
         """
         Set "waiting" state of the interface.
@@ -310,7 +316,7 @@ class NavigatorApp(BaseNavigatorApp, wx.App, XRCLoader):
         else:
             cursor = wx.StockCursor(wx.CURSOR_DEFAULT)
         self.viewport_panel.SetCursor(cursor)
-    
+
     def _OpenConnectDialog(self):
         """get parameters of connection & connect"""
         connect_dialog = ConnectDialog(config_data=self.config_data,
@@ -319,7 +325,7 @@ class NavigatorApp(BaseNavigatorApp, wx.App, XRCLoader):
             return
         self.config_data.Compute()
         BaseNavigatorApp._OnConnect(self)
-    
+
     def _HandleMouseMovement(self, evt):
         """
         Handle the mouse position part of a mouse event.
@@ -351,13 +357,11 @@ class NavigatorApp(BaseNavigatorApp, wx.App, XRCLoader):
             clipboard.Open()
             clipboard.SetData(wx.TextDataObject(address_str))
             clipboard.Close()
-            msg = _("""Your address has been copied to the clipboard.
-If you paste it and send it to your friends,
-they will be able to jump near you in the Solipsis world.
-
-For reminder, here is your address:
-""")
-            msg +=  address_str
+            msg = _("Your address has been copied to the clipboard. \n"
+                "If you paste it and send it to your friends, \n"
+                "they will be able to jump near you in the Solipsis world.")
+            msg += "\n" + _("For reminder, here is your address:") + " "
+            msg += address_str
             dialog = wx.MessageDialog(self.main_window,
                 message=msg,
                 caption=_("Your Solipsis address"),
@@ -370,6 +374,7 @@ For reminder, here is your address:
         Called on "edit bookmarks" event (menu -> Bookmarks -> Edit bookmarks).
         """
         self.bookmarks_dialog.Show()
+        self._SaveConfig()
 
     def OnIdle(self, event):
         """
@@ -425,7 +430,7 @@ For reminder, here is your address:
                                          parent=self.main_window)
         prefs_dialog.ShowModal()
         self._SaveConfig()
-    
+
     def _Quit2(self):
         """
         The end of the quit procedure ;-)

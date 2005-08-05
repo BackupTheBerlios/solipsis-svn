@@ -1,17 +1,17 @@
 # <copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
 # Copyright (C) 2002-2005 France Telecom R&D
-# 
+#
 # This software is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
 # version 2.1 of the License, or (at your option) any later version.
-# 
+#
 # This software is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -153,6 +153,7 @@ class StateMachine(object):
         # Address of peer whom we asked a JUMPNEAR
         self.jump_near_address = None
         self.jump_near_position = None
+        self.jump_near_expected_id = None
 
         # Delayed calls
         self.dc_peer_heartbeat = {}
@@ -743,8 +744,16 @@ class StateMachine(object):
                 % (str(args.id_), args.address.ToString()))
             return
         peer = self._Peer(args)
+        # If the client asked for it, we check the peer has the expected id
+        if self.jump_near_expected_id:
+            if peer.id_ != self.jump_near_expected_id:
+                self.event_sender.event_ChangedId(self.jump_near_expected_id, peer)
+#                 print "WARNING: expected jump near id '%s', got '%s'" % (self.jump_near_expected_id, peer.id_)
+#             else:
+#                 print "OK: jump near id '%s'" % peer.id_
         self.jump_near_address = None
         self.jump_near_position = None
+        self.jump_near_expected_id = None
 
         # Really jump near the target peer
         self.future_topology = Topology()
@@ -819,6 +828,7 @@ class StateMachine(object):
         position = Position((x, y, z))
         old_position = self.node.position
         self.jump_near_position = jump_near and position or None
+        self.jump_near_expected_id = None
 
         # Hackish: we first change the position to check the global connectivity,
         # then possibly set it back to its former value
@@ -847,10 +857,11 @@ class StateMachine(object):
         caller = DelayedCaller(self.reactor)
         caller.CallLater(self.move_duration, _finish)
 
-    def JumpNear(self, address):
+    def JumpNear(self, address, peer_id=None):
         """
         Try to jump near an existing entity.
         """
+        self.jump_near_expected_id = peer_id or None
         message = self._PeerMessage('JUMPNEAR')
         self._SendToAddress(address, message)
         self.jump_near_address = address
@@ -1142,7 +1153,7 @@ class StateMachine(object):
         Update a peer's metadata from the incoming message's arguments.
         """
         peer.UpdateMeta(pseudo=args.pseudo,
-            languages=args.accept_languages, 
+            languages=args.accept_languages,
             services=args.accept_services)
         # Notify remote control
         self._NotifyPeerMeta(peer.id_)

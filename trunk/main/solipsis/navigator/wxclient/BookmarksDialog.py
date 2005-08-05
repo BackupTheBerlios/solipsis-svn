@@ -39,7 +39,7 @@ class BookmarksDialog(wx.Frame):
         kwds["style"] = wx.DEFAULT_FRAME_STYLE
         wx.Frame.__init__(self, *args, **kwds)
         self.panel_1 = wx.Panel(self, -1)
-        
+
         # Tool Bar
         self.toolbar = wx.ToolBar(self, -1, style=wx.TB_HORIZONTAL|wx.TB_TEXT|wx.TB_HORZ_LAYOUT|wx.TB_HORZ_TEXT)
         self.SetToolBar(self.toolbar)
@@ -129,7 +129,7 @@ class BookmarksDialog(wx.Frame):
 
     def OnClose(self, event): # wxGlade: BookmarksDialog.<event_handler>
         self.Hide()
-    
+
     def OnShow(self, event):
         self.selected_items.clear()
         self.UpdateUI()
@@ -153,8 +153,8 @@ class BookmarksDialog(wx.Frame):
         self.menu_items = []
         peers = self.bookmarks.GetAllPeers()
         for peer in peers:
-            def _clicked(evt, address=peer.address):
-                self.app._JumpNearAddress(address)
+            def _clicked(evt, peer=peer):
+                self.app._JumpNearPeer(peer)
             item_id = wx.NewId()
             menu_item = self.menu.Append(item_id, peer.pseudo)
             wx.EVT_MENU(self.app.main_window, item_id, _clicked)
