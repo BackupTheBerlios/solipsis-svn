@@ -270,8 +270,8 @@ class Topology(object):
         cx, cy = self.origin
         angle = random.uniform(0.0, 2.0 * math.pi)
         dist = random.uniform(0.0, distance)
-        x = cx + dist * math.cos(angle)
-        y = cy + dist * math.sin(angle)
+        x = self.normalize(cx + dist * math.cos(angle))
+        y = self.normalize(cy + dist * math.sin(angle))
         return x, y
 
     #
