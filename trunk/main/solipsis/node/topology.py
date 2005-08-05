@@ -48,6 +48,7 @@ class Topology(object):
         else:
             self.half_world_size = self.world_size / 2.0
         self.normalize = (lambda x, lim=self.half_world_size: (x + lim) % (lim + lim) - lim)
+        self.unnormalize = (lambda x, lim=self.world_size: x % lim)
         self.max_angle = math.pi
         self.origin = None
 
@@ -270,8 +271,8 @@ class Topology(object):
         cx, cy = self.origin
         angle = random.uniform(0.0, 2.0 * math.pi)
         dist = random.uniform(0.0, distance)
-        x = self.normalize(cx + dist * math.cos(angle))
-        y = self.normalize(cy + dist * math.sin(angle))
+        x = self.unnormalize(cx + dist * math.cos(angle))
+        y = self.unnormalize(cy + dist * math.sin(angle))
         return x, y
 
     #
