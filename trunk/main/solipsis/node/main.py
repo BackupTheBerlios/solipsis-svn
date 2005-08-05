@@ -112,7 +112,7 @@ def main():
                 os._exit(0)
 
     # Create node and enter main loop
-    try:        
+    try:
         global profile_run
         profile_run = lambda: run_loop(params)
         if (params.profile):

@@ -21,11 +21,32 @@ import socket
 
 import twisted.internet.defer as defer
 
+import solipsis.lib.shtoom.nat as nat
+
+local_timeout = 0.5
+
+# def DiscoverAddress(port, reactor, params):
+#     try:
+#         host = socket.gethostbyname(socket.gethostname())
+#     except Exception, e:
+#         return defer.fail(e)
+#     else:
+#         return defer.succeed((host, port))
 
 def DiscoverAddress(port, reactor, params):
-    try:
-        host = socket.gethostbyname(socket.gethostname())
-    except Exception, e:
-        return defer.fail(e)
-    else:
-        return defer.succeed((host, port))
+    d = defer.Deferred()
+    d_ip = nat.getLocalIPAddress()
+    def _timeout():
+        if not d.called:
+            d.errback(Exception("timed out"))
+    def _got_local_ip(ip):
+        if not d.called:
+            if ip:
+                d.callback((ip, port))
+            else:
+                d.errback(Exception("no address found"))
+
+    d_ip.addCallback(_got_local_ip).addErrback(d.errback)
+    reactor.callLater(local_timeout, _timeout)
+    return d
+
