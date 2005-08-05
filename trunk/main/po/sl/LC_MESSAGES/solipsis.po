@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Solipsis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-06-17 17:07+0200\n"
+"POT-Creation-Date: 2005-08-05 14:24+0200\n"
 "PO-Revision-Date: 2005-05-19 14:24+0100\n"
 "Last-Translator: Antoine Pitrou <solipsis@pitrou.net>\n"
 "Language-Team: Solipsis translators <antoine@pitrou.net>\n"
@@ -18,7 +18,7 @@ msgstr ""
 msgid "&Actions"
 msgstr "&Akcija"
 
-#: solipsis/navigator/wxclient/app.py:219
+#: solipsis/navigator/wxclient/app.py:84
 msgid "&Bookmarks"
 msgstr "&Zaznamki"
 
@@ -58,12 +58,11 @@ msgstr ""
 msgid "About"
 msgstr "O Programu"
 
-#: solipsis/navigator/wxclient/app.py:709
-#: solipsis/navigator/netclient/app.py:434
+#: solipsis/navigator/wxclient/app.py:537
 msgid "About Solipsis"
 msgstr "O Programu Solipsis"
 
-#: solipsis/navigator/wxclient/app.py:488
+#: solipsis/navigator/app.py:329
 msgid "About..."
 msgstr "O Programu..."
 
@@ -87,8 +86,7 @@ msgstr "Avtomatièno zaznaj proxy"
 msgid "Bookmark a node"
 msgstr "Zaznamkaj node"
 
-#: solipsis/navigator/wxclient/app.py:692
-#: solipsis/navigator/netclient/app.py:424
+#: solipsis/navigator/wxclient/app.py:519
 #, python-format
 msgid "Bookmark peer \"%s\""
 msgstr "Zaznamkaj peer\"%s\""
@@ -115,8 +113,7 @@ msgstr "Izberi."
 msgid "Connect to Solipsis"
 msgstr "Poveži z Solipsis"
 
-#: solipsis/navigator/wxclient/app.py:708
-#: solipsis/navigator/netclient/app.py:433
+#: solipsis/navigator/wxclient/app.py:536
 msgid "Connect to node"
 msgstr "Poveži z node-om"
 
@@ -126,19 +123,11 @@ msgid ""
 "(possibly on a remote computer):"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:779
-#: solipsis/navigator/wxclient/app.py:802
-#: solipsis/navigator/netclient/app.py:508
-#: solipsis/navigator/netclient/app.py:525
+#: solipsis/navigator/app.py:501 solipsis/navigator/app.py:525
 msgid "Connected"
 msgstr "Povezan"
 
-#: solipsis/navigator/wxclient/app.py:411
-#: solipsis/navigator/netclient/app.py:214
-msgid "Connecting"
-msgstr "Povezujem..."
-
-#: solipsis/navigator/wxclient/app.py:814
+#: solipsis/navigator/wxclient/app.py:563
 msgid "Connecting to the node..."
 msgstr "Povezujem z node-om..."
 
@@ -147,16 +136,15 @@ msgstr "Povezujem z node-om..."
 msgid "Connection"
 msgstr "Povezujem..."
 
-#: solipsis/navigator/wxclient/app.py:829
+#: solipsis/navigator/app.py:537
 msgid "Connection error"
 msgstr "Napaka med povezavo"
 
-#: solipsis/navigator/wxclient/app.py:813
+#: solipsis/navigator/wxclient/app.py:562
 msgid "Connection progress"
 msgstr "Potek povezave"
 
-#: solipsis/navigator/wxclient/app.py:828
-#: solipsis/navigator/netclient/app.py:535
+#: solipsis/navigator/app.py:535
 msgid ""
 "Connection to the node has failed. \n"
 "Please the check the node is running, then retry."
@@ -171,25 +159,19 @@ msgstr ""
 msgid "Connection type"
 msgstr "Napaka med povezavo"
 
-#: solipsis/navigator/wxclient/validators.py:114
-#, fuzzy
-msgid "Coordinate must be between 0.0 and 1.0"
-msgstr "Številka port-a mora biti med 1 in 65535"
-
-#: solipsis/navigator/wxclient/app.py:706
-#: solipsis/navigator/netclient/app.py:431
+#: solipsis/navigator/wxclient/app.py:534
 msgid "Disconnect"
 msgstr "Prekini"
 
 msgid "Edit bookmarks"
 msgstr "Uredi zaznamke"
 
-#: solipsis/navigator/wxclient/ConnectionTypeDialog.py:109
+#: solipsis/navigator/wxclient/ConnectionTypeDialog.py:113
 #: solipsis/util/wxutils.py:161
 msgid "Error"
 msgstr "Napaka"
 
-#: solipsis/navigator/wxclient/app.py:528
+#: solipsis/navigator/wxclient/app.py:357
 msgid "For reminder, here is your address:"
 msgstr "Da se spomnete, imate tukaj naslov:"
 
@@ -220,7 +202,7 @@ msgstr ""
 "namesto da bi ga poganjali na lastnem raèunalniku, \n"
 "boste morda morali spremeniti nastvaitve HTTP Porxy-ja."
 
-#: solipsis/navigator/wxclient/app.py:543
+#: solipsis/navigator/wxclient/app.py:392
 msgid "Jump near an entity"
 msgstr "Skoèi v blizino osebka"
 
@@ -241,8 +223,7 @@ msgstr ""
 msgid "Kill node when exiting"
 msgstr "Ustavi node ko zapustiš program"
 
-#: solipsis/navigator/wxclient/app.py:423
-#: solipsis/navigator/wxclient/app.py:855
+#: solipsis/navigator/app.py:271 solipsis/navigator/app.py:564
 msgid "Kill refused"
 msgstr "Ustavitev zavrnjena"
 
@@ -252,8 +233,7 @@ msgid ""
 "on this computer."
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:487
-#: solipsis/navigator/netclient/app.py:238
+#: solipsis/navigator/app.py:328
 msgid "Licensed under the GNU LGPL"
 msgstr "Patentiran pod GNU LGPL"
 
@@ -283,8 +263,7 @@ msgstr ""
 msgid "No proxy"
 msgstr "Nimam Proxy-a"
 
-#: solipsis/navigator/wxclient/app.py:422
-#: solipsis/navigator/netclient/app.py:254
+#: solipsis/navigator/app.py:269
 msgid ""
 "Node creation failed. \n"
 "Please check you have sufficient rights."
@@ -292,22 +271,13 @@ msgstr ""
 "Ustvaritev node-a je bila neuspešna. \n"
 "Prosim poglejte èe imate dovol velike pravice."
 
-#: solipsis/navigator/wxclient/app.py:139
-#: solipsis/navigator/wxclient/app.py:351
-#: solipsis/navigator/wxclient/app.py:514
-#: solipsis/navigator/wxclient/app.py:789
-#: solipsis/navigator/wxclient/app.py:827
-#: solipsis/navigator/wxclient/app.py:841
-#: solipsis/navigator/netclient/app.py:101
-#: solipsis/navigator/netclient/app.py:282
-#: solipsis/navigator/netclient/app.py:284
-#: solipsis/navigator/netclient/app.py:516
-#: solipsis/navigator/netclient/app.py:534
-#: solipsis/navigator/netclient/app.py:545
+#: solipsis/navigator/wxclient/app.py:171 solipsis/navigator/app.py:193
+#: solipsis/navigator/app.py:358 solipsis/navigator/app.py:511
+#: solipsis/navigator/app.py:534 solipsis/navigator/app.py:549
 msgid "Not connected"
 msgstr "Ne povezan"
 
-#: solipsis/navigator/wxclient/app.py:339
+#: solipsis/navigator/app.py:171
 msgid "Not implemented"
 msgstr "Še neuporabljeno"
 
@@ -318,15 +288,7 @@ msgstr "Prilepi svoj naslov, da lahko tvoj prijatelj skoèi v tvojo bljižino"
 msgid "Please choose the peer to add to your bookmarks list."
 msgstr "Prosimo, izberite peer, ki bi ga radi dodali v svoj spisek zaznamkov."
 
-#: solipsis/navigator/wxclient/validators.py:75
-msgid "Please enter a valid hostname or address"
-msgstr "Prosimo, vnesite veljavno ime strežnika ali njegov naslov"
-
-#: solipsis/navigator/wxclient/validators.py:87
-msgid "Please enter a valid nickname"
-msgstr "Prosimo, vnesite veljaven psevdonim"
-
-#: solipsis/navigator/wxclient/app.py:542
+#: solipsis/navigator/wxclient/app.py:391
 msgid "Please enter the address to jump to"
 msgstr "Prosimo vpišite naslov kamor želite skoèiti"
 
@@ -338,10 +300,6 @@ msgstr "Prosimo vpišite naslov kamor želite skoèiti"
 #: solipsis/util/wxutils.py:132
 msgid "Please fill this form correctly"
 msgstr "Prosimo da pravilno izpolnite ta obrazec "
-
-#: solipsis/navigator/wxclient/validators.py:51
-msgid "Port number must be between 1 and 65535"
-msgstr "Številka port-a mora biti med 1 in 65535"
 
 #: solipsis/navigator/wxclient/ConnectionTypeDialog.py:24
 #, fuzzy
@@ -381,43 +339,34 @@ msgstr "Odstrani"
 msgid "Remove selected bookmark"
 msgstr "Odstrani oznaèeni zaznamek"
 
-#: solipsis/navigator/wxclient/app.py:784
-#: solipsis/navigator/netclient/app.py:512
+#: solipsis/navigator/app.py:506
 msgid "Searching peers"
 msgstr "Išèem peer-e"
 
-#: solipsis/navigator/wxclient/app.py:487
-#: solipsis/navigator/netclient/app.py:238
+#: solipsis/navigator/app.py:326
 msgid "Solipsis Navigator"
 msgstr "Solipsis Navigator"
 
-#: solipsis/navigator/wxclient/ConnectionTypeDialog.py:108
+#: solipsis/navigator/wxclient/ConnectionTypeDialog.py:112
 msgid ""
 "Some parameters have wrong values.\n"
 "Please enter proper values."
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:350
-msgid ""
-"This action cannot be performed, \n"
-"because you are not connected to a node."
-msgstr ""
-"Te akcije ni bilo mogoèe izvesti,\n"
-"ker niste povezani z node-om."
-
-#: solipsis/navigator/netclient/app.py:187
+#: solipsis/navigator/app.py:194
 #, fuzzy
 msgid ""
-"This action cannot be performed, because you are not connected to a node."
+"This action cannot be performed, \n"
+"because you are not connected."
 msgstr ""
 "Te akcije ni bilo mogoèe izvesti,\n"
 "ker niste povezani z node-om."
 
-#: solipsis/navigator/wxclient/app.py:338
-#: solipsis/navigator/netclient/app.py:176
+#: solipsis/navigator/app.py:172
+#, fuzzy
 msgid ""
 "This function is not yet implemented.\n"
-"Sorry! Please come back later..."
+" Sorry! Please come back later..."
 msgstr ""
 "Ta funkcija še ni na voljo\n"
 "Prosimo, vrnite se kasneje..."
@@ -448,16 +397,15 @@ msgstr ""
 msgid "Y: "
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:854
-#: solipsis/navigator/netclient/app.py:559
+#: solipsis/navigator/app.py:563
 msgid "You cannot kill this node."
 msgstr "Ne morete ustaviti tega node-a."
 
-#: solipsis/navigator/wxclient/app.py:531
+#: solipsis/navigator/wxclient/app.py:361
 msgid "Your Solipsis address"
 msgstr "Tvoj Solipsis naslov"
 
-#: solipsis/navigator/wxclient/app.py:527
+#: solipsis/navigator/wxclient/app.py:354
 msgid ""
 "Your address has been copied to the clipboard. \n"
 "If you paste it and send it to your friends, \n"
@@ -496,6 +444,13 @@ msgstr "&Ustavi node"
 #~ msgid "&Ok"
 #~ msgstr "&Potrdi"
 
+#~ msgid "Connecting"
+#~ msgstr "Povezujem..."
+
+#, fuzzy
+#~ msgid "Coordinate must be between 0.0 and 1.0"
+#~ msgstr "Številka port-a mora biti med 1 in 65535"
+
 #~ msgid "Disconnect from node"
 #~ msgstr "Prekini povezavo z node"
 
@@ -510,6 +465,15 @@ msgstr "&Ustavi node"
 
 #~ msgid "Please choose your nickname"
 #~ msgstr "Prosimo izberite svoj psevdonim"
+
+#~ msgid "Please enter a valid hostname or address"
+#~ msgstr "Prosimo, vnesite veljavno ime strežnika ali njegov naslov"
+
+#~ msgid "Please enter a valid nickname"
+#~ msgstr "Prosimo, vnesite veljaven psevdonim"
+
+#~ msgid "Port number must be between 1 and 65535"
+#~ msgstr "Številka port-a mora biti med 1 in 65535"
 
 #~ msgid ""
 #~ "Solipsis Navigator 0.1\n"
@@ -532,3 +496,10 @@ msgstr "&Ustavi node"
 #~ "\n"
 #~ "Distribué sous licence GNU LGPL.\n"
 #~ "(c) France Telecom R&&D"
+
+#, fuzzy
+#~ msgid ""
+#~ "This action cannot be performed, because you are not connected to a node."
+#~ msgstr ""
+#~ "Te akcije ni bilo mogoèe izvesti,\n"
+#~ "ker niste povezani z node-om."

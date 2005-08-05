@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-05-11 15:04+0200\n"
+"POT-Creation-Date: 2005-08-05 14:23+0200\n"
 "PO-Revision-Date: 2005-05-22 12:45+0900\n"
 "Last-Translator: Makoto IGUCHI <info@igucci.org>\n"
 "Language-Team: \n"
@@ -11,7 +11,7 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: plugin.py:93
+#: plugin.py:91
 msgid "&Configure"
 msgstr "設定(&C)"
 
@@ -19,7 +19,7 @@ msgstr "設定(&C)"
 msgid "All files"
 msgstr "すべてのファイル"
 
-#: plugin.py:103
+#: plugin.py:101
 msgid "Avatar"
 msgstr "アバタ"
 
@@ -27,7 +27,7 @@ msgstr "アバタ"
 msgid "Avatar updated"
 msgstr "アバタ更新"
 
-#: plugin.py:53
+#: plugin.py:51
 msgid "Avatars"
 msgstr "アバタ"
 
@@ -39,7 +39,7 @@ msgstr "アバタを選択してください"
 msgid "Error"
 msgstr "エラー"
 
-#: plugin.py:56
+#: plugin.py:54
 msgid "Exchange avatars to customize your appearance"
 msgstr "見た目のカスタマイズのためにアバタを交換"
 
@@ -51,11 +51,11 @@ msgstr "イメージ"
 msgid "Please choose another file."
 msgstr "他のファイルを選択してください。"
 
-#: plugin.py:100
+#: plugin.py:98
 msgid "Shrink avatars"
 msgstr "アバタを小さくする"
 
-#: plugin.py:96
+#: plugin.py:94
 msgid "Stretch avatars"
 msgstr "アバタを大きくする"
 
@@ -75,4 +75,3 @@ msgstr ""
 #: gui.py:95
 msgid "Your avatar has been updated."
 msgstr "アバタが更新されました。"
-

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Solipsis chat plugin 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-05-19 14:23+0200\n"
+"POT-Creation-Date: 2005-08-05 14:23+0200\n"
 "PO-Revision-Date: 2005-02-04 17:25+0100\n"
 "Last-Translator: Antoine Pitrou <solipsis@pitrou.net>\n"
 "Language-Team: French\n"
@@ -22,11 +22,11 @@ msgstr ""
 msgid "&Send"
 msgstr "&Envoyer"
 
-#: plugin.py:41 plugin.py:76
+#: plugin.py:42 plugin.py:77
 msgid "Chat"
 msgstr "Discussions"
 
-#: plugin.py:37
+#: plugin.py:38
 msgid "Chat with all peers"
 msgstr "Discuter avec les voisins"
 
@@ -34,7 +34,7 @@ msgstr "Discuter avec les voisins"
 msgid "Nickname"
 msgstr "Pseudonyme"
 
-#: plugin.py:44
+#: plugin.py:45
 msgid "Talk with the people that are currently around you"
 msgstr ""
 
