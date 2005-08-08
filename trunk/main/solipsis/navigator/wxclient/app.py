@@ -31,6 +31,7 @@ from solipsis.util.wxutils import _
 from solipsis.util.wxutils import *        # '*' doesn't import '_'
 from solipsis.util.urlhandlers import SetSolipsisURLHandlers
 from solipsis.util.network import release_port
+from solipsis.util.urls import SolipsisURL
 
 from solipsis.services.wxcollector import WxServiceCollector
 from solipsis.node.discovery.stun import DiscoverAddress
@@ -352,7 +353,7 @@ class NavigatorApp(BaseNavigatorApp, wx.App, XRCLoader):
         Called on "node address" event (menu -> Actions -> Jump Near).
         """
         if self._CheckNodeProxy():
-            address_str = self.world.GetNode().address.ToString()
+            address_str = self.world.GetNode().address.GetURL().ToString()
             clipboard = wx.TheClipboard
             clipboard.Open()
             clipboard.SetData(wx.TextDataObject(address_str))
