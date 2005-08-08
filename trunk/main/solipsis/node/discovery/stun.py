@@ -1,17 +1,17 @@
 # <copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
 # Copyright (C) 2002-2005 France Telecom R&D
-# 
+#
 # This software is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
 # version 2.1 of the License, or (at your option) any later version.
-# 
+#
 # This software is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -27,6 +27,23 @@ stun_section = {
 stun_timeout = 2.0
 
 class _StunClient(stun.StunDiscoveryProtocol):
+    stun_answers = {
+        stun.NatTypeUDPBlocked:
+            "UDP is blocked by your firewall.",
+        stun.NatTypeNone:
+            "you are directly connected.",
+        stun.NatTypeSymUDP:
+            "your firewall allows outbound UDP sessions.",
+        stun.NatTypeFullCone:
+            "you are behind a full-cone NAT.",
+        stun.NatTypeSymmetric:
+            "you are behind a symmetric NAT.",
+        stun.NatTypeRestrictedCone:
+            "you are behind an address-restricted full-cone NAT.",
+        stun.NatTypePortRestricted:
+            "you are behind a port/address-restricted full-cone NAT.",
+    }
+
     def __init__(self, reactor, *args, **kargs):
         stun.StunDiscoveryProtocol.__init__(self, *args, **kargs)
         self.reactor = reactor
@@ -48,9 +65,9 @@ class _StunClient(stun.StunDiscoveryProtocol):
 
     def finishedStun(self):
 #         self.timeout.cancel()
-#         print "You're behind a %r"%(self.natType)
         self.listening.stopListening()
         if self.externalAddress is not None:
+            print "STUN answer: %s" % self.stun_answers[self.natType]
             self.d.callback(self.externalAddress)
         else:
             self._Failed()
