@@ -17,7 +17,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
 
-import threading
 from pprint import pprint
 from cStringIO import StringIO
 
@@ -35,14 +34,6 @@ class NetworkLoop(BaseNetworkLoop):
     """
     def __init__(self, reactor, ui, testing=False):
         BaseNetworkLoop.__init__(self, reactor, TwistedProxy(ui, reactor), testing)
-        self.termination = threading.Event()
-
-    def run(self):
-        if not self.testing:
-            try:
-                BaseNetworkLoop.run(self)
-            finally:
-                self.termination.set()
 
 class Commands:
 
@@ -60,16 +51,12 @@ class Commands:
         """formats input thanks to converter"""
         return self.converter(*args)
 
-    def call(self, factory, deferred, *args, **kwargs):
+    def call(self, factory, deferred, *args):
         """check given args and use default ones accordingly, or none
         at all. Call corresponding function inb factory and returns
         its result.
 
-        *args are forwarded to function called on factory
-        **kwargs contains 'convert'"""
-        # convert if asked
-        if 'convert' in kwargs and kwargs['convert'] is True:
-            args = self.convert(*args)
+        *args are forwarded to function called on factory"""
         # get function
         function = getattr(factory, "do_" + self.name)
         # call function
@@ -96,7 +83,8 @@ COMMANDS = {"about":   Commands("about", "display general information"),
             "display": Commands("display", "display current address"),
             "jump":    Commands("jump", "jump to node",
                                 "192.33.178.29:5010"),
-            "go":      Commands("go", "go to position", 0, 0,
+            "go":      Commands("go", "go to position",
+                                0, 0,
                                 converter=lambda s: (int(s.split(",")[0]), int(s.split(",")[1]))),
             "kill":    Commands("kill", "kill node"),
             "quit":    Commands("quit", "close navigator"),
@@ -181,7 +169,7 @@ class SolipsisUiFactory(protocol.ServerFactory):
     def do_quit(self, deferred):
         self.app._OnQuit(deferred)
 
-    def do_menu(self, deferred, arg):
+    def do_menu(self, deferred):
         return "Not implemented yet"
 
     def do_help(self, deferred, *args):

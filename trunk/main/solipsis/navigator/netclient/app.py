@@ -68,7 +68,7 @@ class NavigatorApp(BaseNavigatorApp):
             print "discovery failed:", failure.getErrorMessage()
             print 'using getHostByName:', self.local_ip
             self.InitServices()
-        deferred = DiscoverAddress(self.params.port, self.reactor, self.params)
+        deferred = DiscoverAddress(self.local_port, self.reactor, self.params)
         deferred.addCallback(_succeed)
         deferred.addErrback(_fail)
         return deferred

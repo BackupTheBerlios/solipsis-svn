@@ -12,50 +12,67 @@ from twisted.protocols.basic import LineReceiver
 class CommandTest(unittest.TestCase):
     """Test good completion of basic commands"""
 
-    def __init__(self):
-        import solipsis
-        # app needs logging dir
-        os.mkdir("log")
-        os.mkdir("state")
-        # get conf file
-        solipsis_path = os.path.abspath(os.path.dirname(solipsis.__file__))
-        self.conf_file = os.path.normpath(os.sep.join([solipsis_path, "..", "conf", "solipsis.conf"]))
-
     def setUp(self):
         from twisted.internet import reactor
-        from solipsis.navigator.main import build_params
-        from solipsis.navigator.netclient.app import NavigatorApp
-        # launch application
+        # launch 'telnet'
         self.factory = ReconnectingFactory()
-        params = build_params(self.conf_file)
-        params.testing = True
-        navigator = NavigatorApp(params=params)
-        reactor.connectTCP("localhost",
-                           navigator.local_port,
+        self.connector = reactor.connectTCP("localhost",
+                           LOCAL_PORT,
                            self.factory)
         # wait for connection to app establisehd
         self.factory.deferred = defer.Deferred()
         self.factory.deferred.addCallback(self.assertEquals, "Ready")
         return self.factory.deferred
-    setUp.timeout = 4
+    setUp.timeout = 6
 
     def tearDown(self):
-        # close application
-        self.factory.sendLine("quit")
+        self.factory.stopTrying()
+        self.factory.stopFactory()
+        self.connector.disconnect()
+
+    def assertResponse(self, cmd, response):
+        self.factory.deferred = defer.Deferred()
+        self.factory.deferred.addCallback(self.assertEquals, response)
+        self.factory.sendLine(cmd)
 
     def test_about(self):
-        """command about"""
-        self.factory.deferred = defer.Deferred()
-        self.factory.deferred.addCallback(self.assertEquals, """About...: Solipsis Navigator 0.9.2svn
+        self.assertResponse("about", """About...: Solipsis Navigator 0.9.3svn
 
 Licensed under the GNU LGPL
 (c) France Telecom R&D""")
-        self.factory.sendLine("about")
+        return self.factory.deferred
+    test_about.timeout = 2
+
+    def test_help(self):
+        self.assertResponse("help", "available commands are: ['quit', 'about', 'disconnect', 'help', 'launch', 'menu', 'jump', 'kill', 'connect', 'go', 'display']\n")
+        return self.factory.deferred
+    test_about.timeout = 2
+
+    def test_menu(self):
+        self.assertResponse("menu", "Not implemented yet")
         return self.factory.deferred
     test_about.timeout = 2
 
 # Network classes
 # ===============
+LOCAL_PORT = 23500
+
+def launch_navigator(local_port=LOCAL_PORT):
+    import solipsis
+    from solipsis.navigator.main import build_params
+    from solipsis.navigator.netclient.app import NavigatorApp
+    # app needs logging dir and state too
+    os.mkdir("log")
+    os.mkdir("state")
+    # get conf file
+    solipsis_path = os.path.abspath(os.path.dirname(solipsis.__file__))
+    conf_file = os.path.normpath(os.sep.join([solipsis_path, "..", "conf", "solipsis.conf"]))
+    # launch application
+    params = build_params(conf_file)
+    params.testing = True
+    params.local_port = local_port
+    navigator = NavigatorApp(params=params)
+    
 class SimpleProtocol(LineReceiver):
 
     def connectionMade(self):

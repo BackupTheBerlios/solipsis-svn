@@ -45,7 +45,9 @@ class CommandTest(unittest.TestCase):
         self.assertEquals(self.two_cmd.call(self.worker, self.deferred, "youpi", 4), "two: youpi, 4")
         converted = self.two_cmd.convert("address:23")
         self.assertEquals(self.two_cmd.call(self.worker, self.deferred, *converted), "two: address, 23")
-        self.assertEquals(self.two_cmd.call(self.worker, self.deferred, "saturne:25", convert=True), "two: saturne, 25")
-        
-if __name__ == "__main__":
+
+def main():
     unittest.main()
+
+if __name__ == "__main__":
+    main()
