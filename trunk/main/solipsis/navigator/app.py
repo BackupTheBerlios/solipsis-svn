@@ -109,11 +109,10 @@ class BaseNavigatorApp(UIProxyReceiver):
         Launch network event loop.
         """
         assert self.network_loop, "network_loop must be initialised first"
-        self.network_loop.setDaemon(True)
-        self.network_loop.start()
         self.network = TwistedProxy(self.network_loop, self.reactor)
         # get local ip
         self.InitIpAddress()
+        self.network_loop.start()
 
     def InitServices(self):
         """

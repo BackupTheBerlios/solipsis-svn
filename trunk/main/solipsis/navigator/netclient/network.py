@@ -1,26 +1,27 @@
 # <copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
 # Copyright (C) 2002-2005 France Telecom R&D
-# 
+#
 # This software is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
 # version 2.1 of the License, or (at your option) any later version.
-# 
+#
 # This software is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
 
+import threading
 from pprint import pprint
 from cStringIO import StringIO
 
-from twisted.internet import protocol, reactor, defer
+from twisted.internet import protocol, defer
 from twisted.protocols import basic
 from solipsis.navigator.validators import AddressValidator
 from solipsis.navigator.network import BaseNetworkLoop
@@ -34,6 +35,14 @@ class NetworkLoop(BaseNetworkLoop):
     """
     def __init__(self, reactor, ui, testing=False):
         BaseNetworkLoop.__init__(self, reactor, TwistedProxy(ui, reactor), testing)
+        self.termination = threading.Event()
+
+    def run(self):
+        if not self.testing:
+            try:
+                BaseNetworkLoop.run(self)
+            finally:
+                self.termination.set()
 
 class Commands:
 
@@ -50,7 +59,7 @@ class Commands:
     def convert(self, *args):
         """formats input thanks to converter"""
         return self.converter(*args)
-    
+
     def call(self, factory, deferred, *args, **kwargs):
         """check given args and use default ones accordingly, or none
         at all. Call corresponding function inb factory and returns
@@ -104,7 +113,7 @@ class SolipsisUiProtocol(basic.LineReceiver):
         else:
             self.factory.initialised.append(
                 defer.Deferred().addCallback(lambda b: self.sendLine("Ready")))
-        
+
     def lineReceived(self, line):
         cmd_passed = line.strip().lower()
         # quit command
@@ -152,7 +161,7 @@ class SolipsisUiFactory(protocol.ServerFactory):
         self.app.config_data.host = host
         self.app.config_data.port = port
         self.app._OnConnect(deferred)
-        
+
     def do_disconnect(self, deferred):
         self.app._OnDisconnect(deferred)
 
@@ -161,7 +170,7 @@ class SolipsisUiFactory(protocol.ServerFactory):
 
     def do_jump(self, deferred, adress):
         self.app._OnJumpNear(deferred, adress)
-    
+
     def do_go(self, deferred, x, y):
         stream = StringIO()
         self.app._OnJumpPos(deferred, (x, y))
