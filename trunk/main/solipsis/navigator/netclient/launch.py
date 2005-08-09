@@ -19,56 +19,24 @@
 
 import os
 import os.path
+import solipsis
 
-from solipsis.util.exception import BadInstall
+from solipsis.navigator.main import build_params
+from solipsis.navigator.netclient.app import NavigatorApp
+from solipsis.navigator.netclient.tests import LOCAL_PORT
 
-
-class Launcher(object):
-    """
-    This class spawns a local node instance that will connect to other nodes.
-    """
-
-    # This is a list of possible file names for the node launcher
-    launcher_alternatives = ['twistednode.py', 'twistednode.exe']
-
-    def __init__(self, port, custom_args=None):
-        self.port = port
-        if custom_args is not None:
-            self.custom_args = list(custom_args)
-        else:
-            self.custom_args = []
-        # Find the proper executable in the current dir
-        for f in self.launcher_alternatives:
-            if os.path.isfile(f):
-                self.launcher_name = f
-                break
-        else:
-            raise BadInstall("could not find any of ('%s') in the main directory"
-                % "', '".join(self.launcher_alternatives))
-    
-    def Launch(self):
-        prog_name = os.path.normcase('.' + os.sep + self.launcher_name)
-        args = [prog_name]
-        args +=  ['-q', '-d', '-p', str(self.port)]
-        #~ args +=  ['-d', '-p', str(self.port)]
-        args += self.custom_args
-        cmdline = " ".join(args)
-        print "Executing '%s'..." % cmdline
-
-        # Here we use subprocess for portability, but in case it doesn't exist
-        # (Python < 2.4) we fall back on os.spawnv - which does not allow direct
-        # execution of .py files under Windows.
-        try:
-            import subprocess
-        except ImportError:
-            print "(using os.spawnv)"
-            return os.spawnv(os.P_NOWAIT, prog_name, args) > 0
-        else:
-            print "(using subprocess.Popen)"
-            try:
-                subprocess.Popen(cmdline, shell=True)
-            except (OSError, ValueError), e:
-                print str(e)
-                return False
-            else:
-                return True
+if __name__ == "__main__":
+    # app needs logging dir and state too
+    if not os.path.exists("log"):
+        os.mkdir("log")
+    if not os.path.exists("state"):
+        os.mkdir("state")
+    # get conf file
+    solipsis_path = os.path.abspath(os.path.dirname(solipsis.__file__))
+    conf_file = os.path.normpath(os.sep.join([solipsis_path, "..",
+                                              "conf", "solipsis.conf"]))
+    # launch application
+    params = build_params(conf_file)
+    params.testing = True
+    params.local_port = LOCAL_PORT
+    navigator = NavigatorApp(params=params)

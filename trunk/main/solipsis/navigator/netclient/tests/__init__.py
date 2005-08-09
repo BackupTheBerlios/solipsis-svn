@@ -17,13 +17,4 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
 
-import sys
-
-from twisted.internet import reactor
-
-PORT = 1081
-
-def waiting():
-    reactor.iterate(0.2)
-#     sys.stdout.write("w")
-#     sys.stdout.flush()
+LOCAL_PORT = 23500

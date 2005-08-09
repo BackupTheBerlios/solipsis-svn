@@ -1,6 +1,7 @@
 """test basic commands of net navigator"""
 
 import sys, os
+import os.path
 import threading
 import twisted.scripts.trial as trial
     
@@ -8,6 +9,8 @@ from twisted.trial import unittest, util
 from twisted.internet import base, defer
 from twisted.internet.protocol import ReconnectingClientFactory
 from twisted.protocols.basic import LineReceiver
+
+from solipsis.navigator.netclient.tests import LOCAL_PORT
 
 class CommandTest(unittest.TestCase):
     """Test good completion of basic commands"""
@@ -55,24 +58,6 @@ Licensed under the GNU LGPL
 
 # Network classes
 # ===============
-LOCAL_PORT = 23500
-
-def launch_navigator(local_port=LOCAL_PORT):
-    import solipsis
-    from solipsis.navigator.main import build_params
-    from solipsis.navigator.netclient.app import NavigatorApp
-    # app needs logging dir and state too
-    os.mkdir("log")
-    os.mkdir("state")
-    # get conf file
-    solipsis_path = os.path.abspath(os.path.dirname(solipsis.__file__))
-    conf_file = os.path.normpath(os.sep.join([solipsis_path, "..", "conf", "solipsis.conf"]))
-    # launch application
-    params = build_params(conf_file)
-    params.testing = True
-    params.local_port = local_port
-    navigator = NavigatorApp(params=params)
-    
 class SimpleProtocol(LineReceiver):
 
     def connectionMade(self):
@@ -110,4 +95,5 @@ def main():
     trial.run()
     
 if __name__ == '__main__':
+    os.system("python launch.py")
     main()
