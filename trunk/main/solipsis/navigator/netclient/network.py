@@ -154,7 +154,7 @@ class SolipsisUiFactory(protocol.ServerFactory):
         self.app._OnDisconnect(deferred)
 
     def do_display(self, deferred):
-        self.app._OnDisplayAddress(deferred)
+        return self.app._OnDisplayAddress(deferred)
 
     def do_jump(self, deferred, adress):
         self.app._OnJumpNear(deferred, adress)

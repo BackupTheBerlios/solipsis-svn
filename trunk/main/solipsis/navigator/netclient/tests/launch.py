@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # <copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
 # Copyright (C) 2002-2005 France Telecom R&D
@@ -17,15 +19,26 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
 
-import os
+import os, sys
 import os.path
 import solipsis
+import optparse
 
 from solipsis.navigator.main import build_params
 from solipsis.navigator.netclient.app import NavigatorApp
 from solipsis.navigator.netclient.tests import LOCAL_PORT
 
-if __name__ == "__main__":
+def run():
+    # get options
+    parser = optparse.OptionParser()
+    parser.add_option("-t", "--testing",
+                      action="store_true", dest="testing", default=False,
+                      help="execute within trial testing framework")
+    parser.add_option("-p", "--port",
+                      action="store", dest="port", default=LOCAL_PORT,
+                      help="port which navigator listens to")
+    options, args = parser.parse_args()
+    sys.argv = []
     # app needs logging dir and state too
     if not os.path.exists("log"):
         os.mkdir("log")
@@ -37,6 +50,9 @@ if __name__ == "__main__":
                                               "conf", "solipsis.conf"]))
     # launch application
     params = build_params(conf_file)
-    params.testing = True
-    params.local_port = LOCAL_PORT
+    params.testing = options.testing
+    params.local_port = int(options.port)
     navigator = NavigatorApp(params=params)
+
+if __name__ == "__main__":
+    run()

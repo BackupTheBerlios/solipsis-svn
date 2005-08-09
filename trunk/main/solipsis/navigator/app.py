@@ -131,6 +131,13 @@ class BaseNavigatorApp(UIProxyReceiver):
         """
         assert self.viewport, "viewport must be initialised first"
         self.viewport.Draw(onPaint=False)
+        
+    def AskRedraw(self):
+        """
+        Redraw the world view. Specifc on wxclient
+        
+        """
+        return True
 
     #
     # Helpers
@@ -365,7 +372,7 @@ class BaseNavigatorApp(UIProxyReceiver):
         """
         returns address of the node.
         """
-        self.display_message("Address", self.world.GetNode().address.ToString())
+        return self.display_message("Address", self.world.GetNode().address.ToString())
 
     def _OnJumpNear(self, evt):
         """

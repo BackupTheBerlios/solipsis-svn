@@ -1,12 +1,10 @@
 """test basic commands of net navigator"""
 
-import sys, os
-import os.path
-import threading
+import sys
 import twisted.scripts.trial as trial
     
 from twisted.trial import unittest, util
-from twisted.internet import base, defer
+from twisted.internet import defer
 from twisted.internet.protocol import ReconnectingClientFactory
 from twisted.protocols.basic import LineReceiver
 
@@ -95,5 +93,9 @@ def main():
     trial.run()
     
 if __name__ == '__main__':
-    os.system("python launch.py")
+    import os
+    print "./launch.py"
+    os.spawnv(os.P_NOWAIT, "./launch.py", ["launch.py"])
+    print "./launch.py -p 23501"
+    os.spawnv(os.P_NOWAIT, "./launch.py", ["launch.py", "-p",  "23501"])
     main()
