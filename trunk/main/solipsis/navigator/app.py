@@ -220,6 +220,8 @@ class BaseNavigatorApp(UIProxyReceiver):
         """
         if self._CheckNodeProxy():
             self.node_proxy.JumpNear(address.ToStruct())
+        else:
+            return "Not connected"
 
     def _JumpNearPeer(self, peer):
         """
@@ -227,6 +229,8 @@ class BaseNavigatorApp(UIProxyReceiver):
         """
         if self._CheckNodeProxy():
             self.node_proxy.JumpNearPeer(peer.address.ToStruct(), peer.id_)
+        else:
+            return "Not connected"
 
     def _JumpNearURL(self, url_string):
         """
@@ -243,6 +247,7 @@ class BaseNavigatorApp(UIProxyReceiver):
             self.url_jump = None
         else:
             self.url_jump = url_string
+            return "Not connected"
 
     def _TryConnect(self, deferred=None):
         """
@@ -372,7 +377,10 @@ class BaseNavigatorApp(UIProxyReceiver):
         """
         returns address of the node.
         """
-        return self.display_message("Address", self.world.GetNode().address.ToString())
+        if self._CheckNodeProxy():
+            return self.display_message("Address", self.world.GetNode().address.ToString())
+        else:
+            return "Not connected"
 
     def _OnJumpNear(self, evt):
         """
@@ -396,6 +404,8 @@ class BaseNavigatorApp(UIProxyReceiver):
             x, y = evt
             self._MoveNode((x * self.world_size, y * self.world_size),
                            jump_near=True)
+        else:
+            return "Not connected"
 
     def _OnKill(self, evt=None):
         """

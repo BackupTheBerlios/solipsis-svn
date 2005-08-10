@@ -77,7 +77,7 @@ class Commands:
 COMMANDS = {"about":   Commands("about", "display general information"),
             "launch": Commands("launch", "connect to local node"),
             "connect": Commands("connect", "connect to specified node",
-                                "bots.netofpeers.net", 8551,
+                                "bots.netofpeers.net", 8554,
                                 converter=lambda s: (s.split(":")[0], int(s.split(":")[1]))),
             "disconnect": Commands("disconnect", "disconnect from current node"),
             "display": Commands("display", "display current address"),
@@ -126,7 +126,9 @@ class SolipsisUiProtocol(basic.LineReceiver):
             if not msg is None:
                 deferred.callback(msg)
         except (KeyError, AttributeError), err:
-            self.sendLine("%s:%s not a valid command (%s)"% (err.__class__, line, err))
+            import traceback
+            traceback.print_exc()
+            self.sendLine("%s (in %s): %s"% (err.__class__, line, err))
 
 class SolipsisUiFactory(protocol.ServerFactory):
 

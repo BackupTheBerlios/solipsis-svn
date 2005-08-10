@@ -9,9 +9,8 @@ from twisted.internet.protocol import ReconnectingClientFactory
 from twisted.protocols.basic import LineReceiver
 
 from solipsis.navigator.netclient.tests import LOCAL_PORT
-
-class CommandTest(unittest.TestCase):
-    """Test good completion of basic commands"""
+        
+class NetworkTest(unittest.TestCase):
 
     def setUp(self):
         from twisted.internet import reactor
@@ -21,9 +20,10 @@ class CommandTest(unittest.TestCase):
                            LOCAL_PORT,
                            self.factory)
         # wait for connection to app establisehd
-        self.factory.deferred = defer.Deferred()
-        self.factory.deferred.addCallback(self.assertEquals, "Ready")
-        return self.factory.deferred
+        deferred = defer.Deferred()
+        self.factory.deferred = [deferred]
+        deferred.addCallback(self.assertEquals, "Ready")
+        return deferred
     setUp.timeout = 6
 
     def tearDown(self):
@@ -32,27 +32,65 @@ class CommandTest(unittest.TestCase):
         self.connector.disconnect()
 
     def assertResponse(self, cmd, response):
-        self.factory.deferred = defer.Deferred()
-        self.factory.deferred.addCallback(self.assertEquals, response)
+        self.factory.deferred.insert(0, defer.Deferred())
+        self.factory.deferred[0].addCallback(self.assertEquals, response)
         self.factory.sendLine(cmd)
+        
+class DisconnectedTest(NetworkTest):
+    """Test good completion of basic commands"""
 
     def test_about(self):
         self.assertResponse("about", """About...: Solipsis Navigator 0.9.3svn
 
 Licensed under the GNU LGPL
 (c) France Telecom R&D""")
-        return self.factory.deferred
+        return self.factory.deferred[0]
     test_about.timeout = 2
 
-    def test_help(self):
-        self.assertResponse("help", "available commands are: ['quit', 'about', 'disconnect', 'help', 'launch', 'menu', 'jump', 'kill', 'connect', 'go', 'display']\n")
-        return self.factory.deferred
-    test_about.timeout = 2
+    def test_launch(self):
+        self.assertResponse("launch", """Connected""")
+        self.assertResponse("disconnect", """Disconnected""")
+        return self.factory.deferred[0]
+    test_launch.timeout = 2
+
+    def test_display(self):
+        self.assertResponse("display", "Not connected")
+        return self.factory.deferred[0]
+    test_display.timeout = 2
 
     def test_menu(self):
         self.assertResponse("menu", "Not implemented yet")
-        return self.factory.deferred
-    test_about.timeout = 2
+        return self.factory.deferred[0]
+    test_menu.timeout = 2
+
+    def test_help(self):
+        self.assertResponse("help", "available commands are: ['quit', 'about', 'disconnect', 'help', 'launch', 'menu', 'jump', 'kill', 'connect', 'go', 'display']\n")
+        return self.factory.deferred[0]
+    test_help.timeout = 2
+
+class ConnectedTest(NetworkTest):
+    """Test good completion of basic commands"""
+
+    def setUp(self):
+        deferred = NetworkTest.setUp(self)
+        deferred.addCallback(self._setUp)
+        return deferred
+    setUp.timeout = 8
+
+    def _setUp(self, result):
+        self.assertResponse("display", "Not connected")
+        self.assertResponse("connect bots.netofpeers.net:8554", "Connected")
+
+    def tearDown(self):
+        self.assertResponse("disconnect", "Disconnected")
+        self.factory.deferred[0].addCallback(NetworkTest.tearDown)
+        return self.factory.deferred[0]
+    tearDown.timeout = 2
+
+    def test_display(self):
+        self.assertResponse("display", "192.33.178.29:6004")
+        return self.factory.deferred[0]
+    test_display.timeout = 2
 
 # Network classes
 # ===============
@@ -62,9 +100,8 @@ class SimpleProtocol(LineReceiver):
         self.factory.sendLine = self.sendLine
 
     def lineReceived(self, data):
-        if not self.factory.deferred is None:
-            self.factory.deferred.callback(data)
-            self.deferred = None
+        if len(self.factory.deferred) > 0:
+            self.factory.deferred.pop().callback(data)
         
 class ReconnectingFactory(ReconnectingClientFactory):
 
