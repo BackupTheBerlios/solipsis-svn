@@ -194,6 +194,14 @@ class NetworkManager:
         message = self.make_message(MESSAGE_ERROR, remote_port)
         self.service_api.SendData(peer_id, message)
 
+    def update_download(self, size):
+        if self.download_dlg:
+            self.download_dlg.update_download(size)
+
+    def update_file(self, file_name, size):
+        if self.download_dlg:
+            self.download_dlg.update_file(file_name, size)
+
     def get_profile(self, peer_id):
         """retreive peer's profile"""
         # try standard download
@@ -472,7 +480,7 @@ class PeerProtocol(basic.LineReceiver):
     def rawDataReceived(self, data):
         """specialised in Client/Server protocol"""
         self.size += len(data)
-        self.factory.manager.download_dlg.update_download(self.size)
+        self.factory.manager.update_download(self.size)
 
     # beginFileTransfer(self, file, consumer, transform=None)
         
@@ -542,8 +550,7 @@ class PeerClientProtocol(PeerProtocol):
                 # TODO: check place where to download and non overwriting
                 # create file
                 file_path, size = self.factory.files.pop()
-                self.factory.manager.download_dlg.update_file(
-                    file_path[-1], size)
+                self.factory.manager.update_file(file_path[-1], size)
                 down_path = os.path.abspath(os.path.join(
                     get_prefs().get("download_repo"),
                     file_path[-1]))
@@ -706,7 +713,7 @@ class DeferredUpload(defer.Deferred):
                 get_prefs().get("download_repo"),
                 self.split_path[-1]))
             self.file = open(down_path, "w+b")
-            self.manager.download_dlg.update_file(self.split_path, self.size)
+            self.manager.update_file(self.split_path, self.size)
             message = "%s %s"% (ASK_UPLOAD_FILES,
                                 UNIVERSAL_SEP.join(self.split_path))
         else:
