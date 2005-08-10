@@ -2,17 +2,17 @@
 # <copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
 # Copyright (C) 2002-2005 France Telecom R&D
-# 
+#
 # This software is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
 # version 2.1 of the License, or (at your option) any later version.
-# 
+#
 # This software is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -60,7 +60,7 @@ class ConfigData(BaseConfigData):
     # -----------------
     def Compute(self):
         """
-        Compute some "hidden" or temporary configuration values 
+        Compute some "hidden" or temporary configuration values
         (e.g. HTTP proxy auto-configuration URL).
         """
         self.StoreCurrentIdentity()
@@ -110,9 +110,11 @@ class ConfigData(BaseConfigData):
         identity = self.identities[self.current_identity]
         for var in self.identity_vars:
             identity[var] = copy.deepcopy(getattr(self, var))
-        # If the identity does not already have a node ID, create one
-        if not identity['node_id']:
+        # If the identity does not already have a node ID,
+        # or if it has been reused, create a new one
+        if not identity['node_id'] or identity['copy_check'] != self._copy_check:
             identity['node_id'] = CreateSecureId()
+            identity['copy_check'] = self._copy_check
 
     def LoadIdentity(self, index):
         """
@@ -124,9 +126,12 @@ class ConfigData(BaseConfigData):
         for var in self.identity_vars:
             try:
                 setattr(self, var, copy.deepcopy(identity[var]))
-                #~ print var, getattr(self, var)
             except KeyError:
                 setattr(self, var, copy.deepcopy(getattr(self, var)))
+        # If the node ID has been reused, create a new one
+        if self.copy_check != self._copy_check:
+            self.node_id = CreateSecureId()
+            self.copy_check = self._copy_check
         self._Notify()
 
     def RemoveCurrentIdentity(self):

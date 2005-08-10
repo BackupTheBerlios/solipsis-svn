@@ -19,6 +19,7 @@
 # </copyright>
 """base class for config. Contains all parameters but identities & bookmarks"""
 
+import os
 import cPickle as pickle
 import random
 
@@ -36,6 +37,7 @@ class BaseConfigData(ManagedData):
     # per-identity basis
     identity_vars = [ 'node_id', 'pseudo', 'host', 'port',
                       'connection_type', 'solipsis_port', 'service_config',
+                      'copy_check',
                     ]
 
     def __init__(self, params=None):
@@ -76,6 +78,11 @@ class BaseConfigData(ManagedData):
 
         # 6. Persistent node ID
         self.node_id = ''
+        # This variable is used to detect that a copy
+        # of the config file has been made, so that we
+        # can reassign new node IDs
+        self._copy_check = os.getcwd()
+        self.copy_check = self._copy_check
 
         # Callables for config change notification
         self._event_sinks = []
@@ -155,6 +162,12 @@ class BaseConfigData(ManagedData):
             node.AddService(service)
         return node
 
+    def AskNotify(self, callback):
+        """
+        Ask to be notified when the configuration is changed.
+        """
+        self._event_sinks.append(callback)
+
     def _Notify(self):
         """
         Notify all event sinks that the config has been updated.
@@ -162,8 +175,3 @@ class BaseConfigData(ManagedData):
         for sink in self._event_sinks:
             sink()
 
-    def AskNotify(self, callback):
-        """
-        Ask to be notified when the configuration is changed.
-        """
-        self._event_sinks.append(callback)
