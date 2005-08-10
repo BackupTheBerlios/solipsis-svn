@@ -47,9 +47,11 @@ class RemoteConnector(object):
             proxy.GetAllPeers()
             proxy.GetEvents()
             self.ui.NodeConnectionSucceeded(proxy)
+            return "Connected"
         def _failure(error):
             self.proxy = None
             self.ui.NodeConnectionFailed(error)
+            return "Connection failed"
 
         self.remote_node = XMLRPCNode(self.reactor,
             host, port, proxy_host, proxy_port)

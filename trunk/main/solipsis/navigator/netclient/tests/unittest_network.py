@@ -5,7 +5,7 @@ import twisted.scripts.trial as trial
     
 from Queue import Queue
 from twisted.trial import unittest, util
-from twisted.internet import defer
+from twisted.internet.defer import Deferred
 from twisted.internet.protocol import ReconnectingClientFactory
 from twisted.protocols.basic import LineReceiver
 
@@ -30,7 +30,7 @@ class NetworkTest(unittest.TestCase):
         self.connector.disconnect()
 
     def assertMessage(self, message):
-        deferred = defer.Deferred()
+        deferred = Deferred()
         self.factory.deferred.put(deferred)
         deferred.addCallback(self.assertEquals, message)
         return deferred
@@ -50,10 +50,11 @@ Licensed under the GNU LGPL
 (c) France Telecom R&D""")
     test_about.timeout = 2
 
-    def _test_launch(self):
-        self.assertResponse("launch", "Connected")
-        return self.assertResponse("disconnect", "Disconnected")
-    _test_launch.timeout = 2
+    def test_connect(self):
+        util.wait(self.assertResponse("connect bots.netofpeers.net:8553", "Connected"))
+        util.wait(self.assertResponse("display", "Address: 192.33.178.29:6003"))
+        util.wait(self.assertResponse("disconnect", "Disconnected"))
+    test_connect.timeout = 2
 
     def test_display(self):
         return self.assertResponse("display", "Not connected")
@@ -64,31 +65,57 @@ Licensed under the GNU LGPL
     test_menu.timeout = 2
 
     def test_help(self):
-        return self.assertResponse("help", "available commands are: ['quit', 'about', 'disconnect', 'help', 'launch', 'menu', 'jump', 'kill', 'connect', 'go', 'display']\n")
+        return self.assertResponse("help", "available commands are: ['quit', 'about', 'disconnect', 'help', 'launch', 'menu', 'jump', 'kill', 'connect', 'go', 'where', 'display']\n")
     test_help.timeout = 2
 
 class ConnectedTest(NetworkTest):
     """Test good completion of basic commands"""
 
-    def setUp(self):
-        deferred = NetworkTest.setUp(self)
-        deferred.addCallback(self._setUp)
+    def assertPosition(self, response, rounding=0.03):
+        deferred = Deferred()
+        self.factory.deferred.put(deferred)
+        def assert_position(msg):
+            print "COMPARE", msg, response
+            # convert to float
+            x, y = msg.split(" ")
+            x, y = float(x), float(y)
+            expected_x, expected_y = response.split(" ")
+            expected_x, expected_y = float(expected_x), float(expected_y)
+            # evaluate difference
+            diff_x = abs(expected_x - x)
+            diff_y = abs(expected_y - y)
+            self.assert_(diff_x < rounding or diff_x > 1-rounding)
+            self.assert_(diff_y < rounding or diff_y > 1-rounding)
+        deferred.addCallback(assert_position)
+        self.factory.sendLine('where')
         return deferred
+
+    def setUp(self):
+        util.wait(NetworkTest.setUp(self))
+        util.wait(self.assertResponse("display", "Not connected"))
+        return self.assertResponse("connect bots.netofpeers.net:8553", "Connected")
     setUp.timeout = 8
 
-    def _setUp(self, result):
-        self.assertResponse("display", "Not connected")
-        self.assertResponse("connect bots.netofpeers.net:8554", "Connected")
-
     def tearDown(self):
-        deferred = self.assertResponse("disconnect", "Disconnected")
-        deferred.addCallback(NetworkTest.tearDown)
-        return deferred
+        util.wait(self.assertResponse("disconnect", "Disconnected"))
+        NetworkTest.tearDown(self)
     tearDown.timeout = 2
 
     def test_display(self):
-        return self.assertResponse("display", "192.33.178.29:6004")
+        return self.assertResponse("display", "Address: 192.33.178.29:6003")
     test_display.timeout = 2
+
+    def test_go(self):
+        self.factory.sendLine("go")
+        util.wait(self.assertPosition("0.0 0.0", rounding=0.1))
+        self.factory.sendLine("go 0.1 0.3")
+        return self.assertPosition("0.1 0.3")
+    test_go.timeout = 2
+
+    def test_jump(self):
+        self.factory.sendLine("jump")
+        util.wait(self.assertPosition("0.9 0.9", rounding=0.1))
+    test_jump.timeout = 2
 
 # Network classes
 # ===============
@@ -122,10 +149,9 @@ class ReconnectingFactory(ReconnectingClientFactory):
 def main():
     # init test cases
     if len(sys.argv)>1:
-        test_case = sys.argv[1]
+        test_case = ".".join([__file__.split('.')[0], sys.argv[1]])
     else:
-        test_case = "CommandTest"
-    test_case = ".".join([__file__.split('.')[0], test_case])
+        test_case = __file__.split('.')[0]
     # launch trial
     sys.argv = [sys.argv[0], test_case]
     trial.run()

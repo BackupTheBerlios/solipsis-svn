@@ -1,6 +1,7 @@
 import unittest
 
-from solipsis.navigator.netclient.network import Commands, SolipsisUiFactory
+from solipsis.navigator.netclient.network import Commands, SolipsisUiFactory, \
+     address_converter, position_converter
 from twisted.internet import defer
 
 class Dummy:
@@ -23,12 +24,19 @@ class CommandTest(unittest.TestCase):
                                converter=lambda : None)
         self.one_cmd = Commands("one", "One argument", "default")
         self.two_cmd = Commands("two", "Two arguments", "localhost", 80,
-                                converter=lambda s: (s.split(":")[0], int(s.split(":")[1])))
+                                converter=address_converter)
 
     def test_convert(self):
         self.assertEquals(self.no_cmd.convert(), None)
         self.assertEquals(self.one_cmd.convert(2), ("2",))
         self.assertEquals(self.two_cmd.convert("127.0.0.1:8080"), ("127.0.0.1", 8080))
+        self.assertEquals(self.two_cmd.convert("127.0.0.1,8080"), ("127.0.0.1", 8080))
+        self.assertEquals(self.two_cmd.convert("127.0.0.1 8080"), ("127.0.0.1", 8080))
+        # position
+        self.pos_cmd = Commands("two", "Two arguments", 0, 0,
+                                converter=position_converter)
+        self.assertEquals(self.pos_cmd.convert("1:0.5"), (1.0, 0.5))
+        self.assertEquals(self.pos_cmd.convert("0.1 0.1"), (0.1, 0.1))
 
     def test_call_no(self):
         self.assertEquals(self.no_cmd.call(self.worker, self.deferred), "none")

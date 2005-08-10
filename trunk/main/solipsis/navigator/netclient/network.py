@@ -73,19 +73,40 @@ class Commands:
 # WRAPPER for Navigator
 #
 ######
+def _get_separator(string):
+    if ":" in string:
+        separator = ":"
+    elif " " in string:
+        separator = " "
+    elif "," in string:
+        separator = ","
+    else:
+        raise ValueError("no separator found")
+    return separator
+
+def address_converter(string):
+    separator = _get_separator(string)
+    address, port = string.split(separator)
+    return (address, int(port))
+
+def position_converter(string):
+    separator = _get_separator(string)
+    x, y = string.split(separator)
+    return (float(x), float(y))
 
 COMMANDS = {"about":   Commands("about", "display general information"),
             "launch": Commands("launch", "connect to local node"),
             "connect": Commands("connect", "connect to specified node",
                                 "bots.netofpeers.net", 8554,
-                                converter=lambda s: (s.split(":")[0], int(s.split(":")[1]))),
+                                converter=address_converter),
             "disconnect": Commands("disconnect", "disconnect from current node"),
             "display": Commands("display", "display current address"),
             "jump":    Commands("jump", "jump to node",
                                 "192.33.178.29:5010"),
             "go":      Commands("go", "go to position",
                                 0, 0,
-                                converter=lambda s: (int(s.split(",")[0]), int(s.split(",")[1]))),
+                                converter=position_converter),
+            "where":   Commands("where", "display current position"),
             "kill":    Commands("kill", "kill node"),
             "quit":    Commands("quit", "close navigator"),
             "menu":    Commands("menu", "display peer menu"),
@@ -141,29 +162,34 @@ class SolipsisUiFactory(protocol.ServerFactory):
 
     # UI events in menu
     def do_about(self, deferred):
-        return self.app._OnAbout(deferred)
+        return self.app._OnAbout()
 
     def do_launch(self, deferred):
-        self.app._OnConnect(deferred)
+        self.app.config_data.solipsis_port = 6010
+        self.app.config_data.connection_type = 'local'
+        self.app._OnConnect(deferred=deferred)
 
     def do_connect(self, deferred, host, port):
-        stream = StringIO()
+        self.app.config_data.connection_type = 'remote'
         self.app.config_data.host = host
         self.app.config_data.port = port
-        self.app._OnConnect(deferred)
+        self.app._OnConnect(deferred=deferred)
 
     def do_disconnect(self, deferred):
-        self.app._OnDisconnect(deferred)
+        return self.app._OnDisconnect()
 
     def do_display(self, deferred):
-        return self.app._OnDisplayAddress(deferred)
+        return self.app._OnDisplayAddress()
 
     def do_jump(self, deferred, adress):
-        self.app._OnJumpNear(deferred, adress)
+        self.app._OnJumpNear(adress)
 
     def do_go(self, deferred, x, y):
         stream = StringIO()
-        self.app._OnJumpPos(deferred, (x, y))
+        self.app._OnJumpPos((x, y))
+
+    def do_where(self, deferred):
+        return self.app.get_position()
 
     def do_kill(self, deferred):
         self.app._OnKill(deferred)

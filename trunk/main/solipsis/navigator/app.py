@@ -343,7 +343,7 @@ class BaseNavigatorApp(UIProxyReceiver):
               + _("Licensed under the GNU LGPL") + "\n(c) France Telecom R&D"
         return self.display_message(_("About..."), msg)
 
-    def _OnConnect(self, evt=None):
+    def _OnConnect(self, evt=None, deferred=None):
         """
         Called on "connect" event (menu -> File -> Connect).
         """
@@ -351,11 +351,11 @@ class BaseNavigatorApp(UIProxyReceiver):
         self._SaveConfig()
         if self.config_data.connection_type == 'local':
             # Local connection mode: create a dedicated Solipsis node
-            self._LaunchNode()
+            self._LaunchNode(deferred)
         else:
             # Remote connection mode: connect to an existing node
             self.connection_trials = 0
-            self._TryConnect()
+            self._TryConnect(deferred)
 
     def _OnDisconnect(self, evt=None):
         """
@@ -372,6 +372,7 @@ class BaseNavigatorApp(UIProxyReceiver):
             self.Redraw()
             self.display_status(_("Not connected"))
             self.services.RemoveAllPeers()
+            return "Disconnected"
 
     def _OnDisplayAddress(self, evt=None):
         """

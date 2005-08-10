@@ -121,6 +121,17 @@ class NavigatorApp(BaseNavigatorApp):
         else:
             return None
 
+    def get_position(self, name=None):
+        if self._CheckNodeProxy():
+            if not name:
+                name = self.world.node_id
+            if name is not None:
+                return self.world.viewport.GetObjectPosition(name)
+            else:
+                return "No node"
+        else:
+            return "Not connected"
+
     #
     # Helpers
     #

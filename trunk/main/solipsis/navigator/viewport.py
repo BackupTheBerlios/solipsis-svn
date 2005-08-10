@@ -35,24 +35,94 @@ class BaseViewport(object):
         self.disabled = False
 
     def Reset(self):
-        raise NotImplementedError
+        # (object name -> index) dictionary
+        self.obj_dict = {}
+        # List of objects
+        self.obj_list = []
+        self.obj_name = []
+        self.obj_visible = []
+        # List of dicts of drawables
+        self.positions = []
+        self.future_positions = []
+        self.obj_arrays = (self.obj_list, self.obj_name, self.obj_visible, 
+            self.positions, self.future_positions)
 
     def Draw(self, onPaint = False):
         """refresh the viewport"""
         raise NotImplementedError
 
     def AddObject(self, name, obj, position):
-        raise NotImplementedError
+        """
+        Add an object to this viewport.
+        """
+        # First add the object to the dictionary
+        name = intern(name)
+        if name in self.obj_dict:
+            print "Cannot add already existing object '%s' to viewport" % name
+            return self.obj_dict[name]
+        index = len(self.obj_list)
+        self.obj_dict[name] = index
+        for array in self.obj_arrays:
+            array.append(None)
+        self.obj_list[index] = obj
+        # Then initialize the object's properties
+        self.obj_name[index] = name
+        self.positions[index] = position
+        self.future_positions[index] = position, position
+        self.obj_visible[index] = True
+        return index
 
     def RemoveObject(self, name):
-        raise NotImplementedError
+        """
+        Remove an object from this viewport (and all its associated drawables).
+        """
+        try:
+            index = self.obj_dict[name]
+        except KeyError:
+            print "Cannot remove unknown object '%s' from viewport" % name
+            return
+        self._RemoveByIndex(index)
 
     def MoveObject(self, name, position):
-        raise NotImplementedError
+        """
+        Move an existing object in the viewport.
+        """
+        try:
+            index = self.obj_dict[name]
+        except KeyError:
+            print "Cannot move unknown object '%s' in viewport" % name
+            raise
+        self.future_positions[index] = position, self.positions[index]
+        return index
 
     def JumpTo(self, position):
         raise NotImplementedError
 
     def MoveTo(self, position):
         raise NotImplementedError
+
+    def GetObjectPosition(self, name):
+        try:
+            index = self.obj_dict[name]
+            x, y = self.positions[index]
+            return "%f %f"% (float(x)/self.world_size, float(y)/self.world_size)
+        except KeyError:
+            return "Not valid anymore"
  
+    #
+    # Private methods: object management
+    #
+
+    def _RemoveByIndex(self, index):
+        """
+        Remove an object giving its index rather than its name.
+        """
+        # Delete stored object properties
+        name = self.obj_name[index]
+        for array in self.obj_arrays:
+            del array[index]
+        del self.obj_dict[name]
+        # Re-arrange moved objects in dictionary
+        _names = self.obj_name
+        for i in xrange(index, len(_names)):
+            self.obj_dict[_names[i]] = i

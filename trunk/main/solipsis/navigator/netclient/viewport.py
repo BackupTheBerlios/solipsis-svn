@@ -28,20 +28,8 @@ class Viewport(BaseViewport):
     def __init__(self, world_size = 2**128):
         BaseViewport.__init__(self, world_size)
         self.disabled = True
-
-    def Reset(self):
-        pass
  
     def Draw(self, onPaint = False):
-        pass
-
-    def AddObject(self, name, obj, position):
-        pass
-
-    def RemoveObject(self, name):
-        pass
-
-    def MoveObject(self, name, position):
         pass
 
     def JumpTo(self, position):

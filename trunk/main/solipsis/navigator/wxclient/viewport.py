@@ -83,20 +83,12 @@ class Viewport(BaseViewport):
         """
         Reinitialize the viewport. Clears all objects.
         """
+        BaseViewport.Reset(self)
         # (object name -> index) dictionary
-        self.obj_dict = {}
-        # List of objects
-        self.obj_list = []
-        self.obj_name = []
-        self.obj_visible = []
         self.obj_glider = []
         # List of dicts of drawables
         self.obj_drawables = []
-        self.positions = []
-        self.future_positions = []
-        self.obj_arrays = (self.obj_list, self.obj_name, self.obj_visible, self.obj_glider,
-            self.obj_drawables, self.positions, self.future_positions)
-
+        self.obj_arrays += (self.obj_glider, self.obj_drawables, )
         # List of (z-index, dict { painter-type -> dict of drawables } )
         self.radix_list = []
         # Different painter instances
@@ -224,28 +216,11 @@ class Viewport(BaseViewport):
         """
         Add an object to this viewport.
         """
-
-        # First add the object to the dictionary
-        name = intern(name)
-        if name in self.obj_dict:
-            print "Cannot add already existing object '%s' to viewport" % name
-            return self.obj_dict[name]
-
-        index = len(self.obj_list)
-        self.obj_dict[name] = index
-        for a in self.obj_arrays:
-            a.append(None)
-        self.obj_list[index] = obj
-
+        index = BaseViewport.AddObject(self, name, obj, position)
         # Then initialize the object's properties
-        self.obj_name[index] = name
-        self.positions[index] = position
-        self.future_positions[index] = position, position
-        self.obj_visible[index] = True
         self.obj_drawables[index] = {}
         self.obj_glider[index] = ExpEvolver(duration = self.glide_duration)
         self._ObjectsGeometryChanged()
-
         return index
 
     def AddDrawable(self, obj_name, drawable, rel_pos, z_order=0):
@@ -291,29 +266,16 @@ class Viewport(BaseViewport):
         del self.obj_drawables[index][id_]
         self._ObjectsGeometryChanged()
 
-    def RemoveObject(self, name):
-        """
-        Remove an object from this viewport (and all its associated drawables).
-        """
-        try:
-            index = self.obj_dict[name]
-        except KeyError:
-            print "Cannot remove unknown object '%s' from viewport" % name
-            return
-        self._RemoveByIndex(index)
-
     def MoveObject(self, name, position):
         """
         Move an existing object in the viewport.
         """
         try:
-            index = self.obj_dict[name]
+            index = BaseViewport.MoveObject(self, name, position)
+            self.obj_glider[index].Reset(0.0, 1.0)
+            self._ObjectsGeometryChanged()
         except KeyError:
-            print "Cannot move unknown object '%s' in viewport" % name
             return
-        self.future_positions[index] = position, self.positions[index]
-        self.obj_glider[index].Reset(0.0, 1.0)
-        self._ObjectsGeometryChanged()
 
     def JumpTo(self, position):
         """
