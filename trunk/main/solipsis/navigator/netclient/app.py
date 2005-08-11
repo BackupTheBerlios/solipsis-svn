@@ -26,7 +26,6 @@ import sys
 _ = gettext.gettext
 
 from solipsis.services.collector import ServiceCollector
-from solipsis.node.discovery.stun import DiscoverAddress
 
 from solipsis.navigator.app import BaseNavigatorApp
 from solipsis.navigator.world import BaseWorld
@@ -53,25 +52,6 @@ class NavigatorApp(BaseNavigatorApp):
         BaseNavigatorApp.OnInit(self)
         self.InitTwisted()
         self.InitNetwork()
-
-    def InitIpAddress(self):
-        """
-        Get local address from Stun
-        """
-        def _succeed(address):
-            """Discovery succeeded"""
-            self.local_ip, port = address
-            print "discovery found address %s:%d" % (self.local_ip, port)
-            self.InitServices()
-        def _fail(failure):
-            """Discovery failed => try next discovery method"""
-            print "discovery failed:", failure.getErrorMessage()
-            print 'using getHostByName:', self.local_ip
-            self.InitServices()
-        deferred = DiscoverAddress(self.local_port, self.reactor, self.params)
-        deferred.addCallback(_succeed)
-        deferred.addErrback(_fail)
-        return deferred
 
     def InitResources(self):
         """Create world"""

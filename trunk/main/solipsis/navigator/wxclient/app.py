@@ -34,7 +34,6 @@ from solipsis.util.network import release_port
 from solipsis.util.urls import SolipsisURL
 
 from solipsis.services.wxcollector import WxServiceCollector
-from solipsis.node.discovery.stun import DiscoverAddress
 from solipsis.navigator.app import BaseNavigatorApp
 
 from solipsis.navigator.wxclient.viewport import Viewport
@@ -128,29 +127,6 @@ class NavigatorApp(BaseNavigatorApp, wx.App, XRCLoader):
         wx.CallAfter(self.InitTwisted)
         wx.CallAfter(self.InitNetwork)
         return True
-
-    def InitIpAddress(self):
-        """
-        Get local address from Stun
-        """
-        def _succeed(address):
-            """Discovery succeeded"""
-            self.local_ip, port = address
-            print "discovery found address %s:%d" % (self.local_ip, port)
-            wx.CallAfter(self.InitServices)
-            wx.CallAfter(self._OpenConnectDialog)
-            release_port(self.local_port)
-        def _fail(failure):
-            """Discovery failed => try next discovery method"""
-            print "discovery failed:", failure.getErrorMessage()
-            print 'using getHostByName:', self.local_ip
-            wx.CallAfter(self.InitServices)
-            wx.CallAfter(self._OpenConnectDialog)
-            release_port(self.local_port)
-        d = DiscoverAddress(self.local_port, self.reactor, self.params)
-        d.addCallback(_succeed)
-        d.addErrback(_fail)
-        return d
 
     def InitResources(self):
         """
@@ -299,6 +275,18 @@ class NavigatorApp(BaseNavigatorApp, wx.App, XRCLoader):
     def display_status(self, msg):
         """report a status"""
         self.statusbar.SetText(msg)
+
+    def _CallAfter(self, fun, *args, **kargs):
+        """
+        Call function asynchronously with args.
+        """
+        wx.CallAfter(fun, *args, **kargs)
+
+    def _LaunchFirstDialog(self):
+        """
+        Display first UI dialog after everything has been initialized properly.
+        """
+        self._CallAfter(self._OpenConnectDialog)
 
     def _DestroyProgress(self):
         """

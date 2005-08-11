@@ -32,6 +32,8 @@ except ImportError:
 else:
     from solipsis.util.wxutils import _
 
+from solipsis.node.discovery import stun, local
+
 from solipsis.util.urls import SolipsisURL
 from solipsis.util.address import Address
 from solipsis.util.entity import ServiceData
@@ -67,8 +69,8 @@ class BaseNavigatorApp(UIProxyReceiver):
         self.services = None	 #InitServices
         self.world = None	 #InitResources
         self.viewport = None	 #InitResources
-        # default value will be overridden by stun result
-        self.local_ip = socket.gethostbyname(socket.gethostname())
+        # This value will be provided by discovery methds (STUN, local)
+        self.local_ip = ""
         self.local_port = params.local_port
         UIProxyReceiver.__init__(self)
 
@@ -86,7 +88,37 @@ class BaseNavigatorApp(UIProxyReceiver):
         """
         Get local address from Stun
         """
-        raise NotImplementedError
+        def _finished():
+            self._CallAfter(self.InitServices)
+            self._LaunchFirstDialog()
+
+        def _local_succeed(address):
+            """Discovery succeeded"""
+            self.local_ip, port = address
+            print "local discovery found address %s:%d" % (self.local_ip, port)
+            _finished()
+        def _local_fail(failure):
+            """Discovery failed => try next discovery method"""
+            print "discovery failed:", failure.getErrorMessage()
+            self.local_ip = socket.gethostbyname(socket.gethostname())
+            print 'using getHostByName:', self.local_ip
+            _finished()
+
+        def _stun_succeed(address):
+            """Discovery succeeded"""
+            self.local_ip, port = address
+            print "STUN discovery found address %s:%d" % (self.local_ip, port)
+            _finished()
+        def _stun_fail(failure):
+            print "STUN failed:", failure.getErrorMessage()
+            d = local.DiscoverAddress(self.local_port, self.reactor, self.params)
+            d.addCallback(_local_succeed)
+            d.addErrback(_local_fail)
+
+        d = stun.DiscoverAddress(self.local_port, self.reactor, self.params)
+        d.addCallback(_stun_succeed)
+        d.addErrback(_stun_fail)
+        return d
 
     def InitResources(self):
         """
@@ -131,11 +163,11 @@ class BaseNavigatorApp(UIProxyReceiver):
         """
         assert self.viewport, "viewport must be initialised first"
         self.viewport.Draw(onPaint=False)
-        
+
     def AskRedraw(self):
         """
         Redraw the world view. Specifc on wxclient
-        
+
         """
         return True
 
@@ -161,6 +193,18 @@ class BaseNavigatorApp(UIProxyReceiver):
     def display_status(self, msg):
         """report a status"""
         raise NotImplementedError
+
+    def _CallAfter(self, fun, *args, **kargs):
+        """
+        Call function asynchronously with args.
+        """
+        fun(*args, **kargs)
+
+    def _LaunchFirstDialog(self):
+        """
+        Display first UI dialog after everything has been initialized properly.
+        """
+        pass
 
     def _DestroyProgress(self):
         """
