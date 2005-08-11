@@ -25,6 +25,7 @@ import os.path
 import solipsis
 import optparse
 
+from twisted.internet.error import CannotListenError
 from solipsis.navigator.main import build_params
 from solipsis.navigator.netclient.app import NavigatorApp
 from solipsis.navigator.netclient.tests import LOCAL_PORT
@@ -34,8 +35,8 @@ USAGE = "launch.py [-t] [-p PORT] [-f FILE]"
 def run():
     # get conf file
     solipsis_path = os.path.abspath(os.path.dirname(solipsis.__file__))
-    conf_file = os.path.normpath(os.sep.join([solipsis_path, "..",
-                                              "conf", "solipsis.conf"]))
+    root_path = os.path.normpath(os.sep.join([solipsis_path, ".."]))
+    conf_file = os.sep.join([root_path, "conf", "solipsis.conf"])
     # get options
     parser = optparse.OptionParser(USAGE)
     parser.add_option("-t", "--testing",
@@ -49,24 +50,16 @@ def run():
                       help="file to read configuration from")
     options, args = parser.parse_args()
     sys.argv = []
-    # test availibity of port
-    try:
-        sock = socket.socket()
-        sock.bind(("localhost", int(options.port)))
-        sock.close()
-    except socket.error, err:
-        print "Navigator already launched on", options.port, err
-        return
-    # app needs logging dir and state too
-    if not os.path.exists("log"):
-        os.mkdir("log")
-    if not os.path.exists("state"):
-        os.mkdir("state")
+    # app needs conf env
+    os.chdir(root_path)
     # launch application
     params = build_params(options.conf_file)
     params.testing = options.testing
     params.local_port = int(options.port)
-    navigator = NavigatorApp(params=params)
+    try:
+        navigator = NavigatorApp(params=params)
+    except CannotListenError, err:
+        print err
 
 if __name__ == "__main__":
     run()
