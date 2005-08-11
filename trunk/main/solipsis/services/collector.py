@@ -258,7 +258,6 @@ class ServiceCollector(object):
                 else:
                     titles = []
             else:
-                print "****", peer_id
                 titles = [(title, lambda : plugin.DoAction(index))
                            for index, title in enumerate(plugin.GetActions())]
         return titles
