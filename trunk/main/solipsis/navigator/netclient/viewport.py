@@ -37,7 +37,7 @@ class Viewport(BaseViewport):
 
     def MoveTo(self, position):
         pass
-
+        
     def MoveObject(self, name, position):
         """
         Move an existing object in the viewport.

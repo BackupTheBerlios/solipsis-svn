@@ -68,7 +68,7 @@ class WxServiceCollector(ServiceCollector):
             plugin.Enable()
             self.enabled_services.add(service_id)
             
-    # FIXME factorize first half with collector.GetPointToPointActions
+    # FIXME factorize first half with collector.GetActions
     def GetPopupMenuItems(self, menu, peer_id):
         """
         Get specific service items for the UI pop-up menu.

@@ -112,6 +112,22 @@ class NavigatorApp(BaseNavigatorApp):
         else:
             return "Not connected"
 
+    def get_peers_by_service(self, service=None):
+        if self._CheckNodeProxy():
+            if service is None:
+                return self.world.items.keys()
+            else:
+                return [peer.id_
+                        for peer in self.world.GetAllPeers()
+                        if not peer.GetService(service) is None]
+        else:
+            return "Not connected"
+        
+    def get_menu(self, peer_id=None):
+        if not self._CheckNodeProxy():
+            return "Not connected"
+        return self.services.GetActions(peer_id)
+
     #
     # Helpers
     #

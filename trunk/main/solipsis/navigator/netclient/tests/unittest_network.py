@@ -120,11 +120,6 @@ class ConnectedTest(NetworkTest):
         self.factory.sendLine("go 0.1 0.3")
         return self.assertPosition("0.1 0.3")
     test_go.timeout = 2
-
-    def test_jump(self):
-        self.factory.sendLine("jump")
-        util.wait(self.assertPosition("0 0.9", rounding=0.05))
-    test_jump.timeout = 2
         
 class ProfileTest(NetworkTest):
     """Test good completion of basic commands"""
@@ -145,6 +140,7 @@ class ProfileTest(NetworkTest):
         # launch fisrt navigator
         util.wait(NetworkTest.setUp(self))
         util.wait(self.assertResponse("connect bots.netofpeers.net:8553", "Connected"))
+        self.factory.sendLine("go 0.1 0.3")
         # launch 'telnet' on second navigator
         from twisted.internet import reactor
         self.other_factory = ReconnectingFactory()
@@ -154,11 +150,11 @@ class ProfileTest(NetworkTest):
         # wait for connection to app establisehd
         util.wait(self.assertOtherMessage("Ready"))
         util.wait(self.assertOtherResponse("connect bots.netofpeers.net:8554", "Connected"))
-        self.factory.sendLine("go 0.1 0.3")
         self.other_factory.sendLine("go 0.6 0.8")
     setUp.timeout = 6
 
     def tearDown(self):
+        # disconnect first one
         NetworkTest.tearDown(self)
         # second one
         self.other_factory.stopTrying()
@@ -169,6 +165,11 @@ class ProfileTest(NetworkTest):
         util.wait(self.assertPosition("0.1 0.3"))
         return self.assertOtherPosition("0.6 0.8")
     test_where.timeout = 2
+
+    def test_jump(self):
+        self.factory.sendLine("jump slp://192.33.178.29:6004")
+        return self.assertPosition("0.6 0.8", rounding=0.05)
+    test_jump.timeout = 2
 
 # Network classes
 # ===============

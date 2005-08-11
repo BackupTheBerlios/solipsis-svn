@@ -109,7 +109,8 @@ COMMANDS = {"about":   Commands("about", "display general information"),
             "where":   Commands("where", "display current position"),
             "kill":    Commands("kill", "kill node"),
             "quit":    Commands("quit", "close navigator"),
-            "menu":    Commands("menu", "display peer menu"),
+            "who":     Commands("who", "display peers in neighbourhood", None),
+            "menu":    Commands("menu", "display peer menu", None),
             "help":    Commands("help", "display help [on cmd]",
                                 converter=lambda s: s.split(" "))}
 
@@ -197,8 +198,12 @@ class SolipsisUiFactory(protocol.ServerFactory):
     def do_quit(self, deferred):
         self.app._OnQuit(deferred)
 
-    def do_menu(self, deferred):
-        return "Not implemented yet"
+    def do_who(self, deferred, service):
+        return '\n'.join(self.app.get_peers_by_service(service))
+
+    def do_menu(self, deferred, peer_id):
+        titles = [title for title, func in self.app.get_menu(peer_id)]
+        return '\n'.join(titles)
 
     def do_help(self, deferred, *args):
         str_stream = StringIO()
