@@ -75,7 +75,7 @@ class ConnectedTest(NetworkTest):
         deferred = Deferred()
         self.factory.deferred.put(deferred)
         def assert_position(msg):
-            print "COMPARE", msg, response
+#             print "COMPARE", msg, response
             # convert to float
             x, y = msg.split(" ")
             x, y = float(x), float(y)
@@ -107,14 +107,14 @@ class ConnectedTest(NetworkTest):
 
     def test_go(self):
         self.factory.sendLine("go")
-        util.wait(self.assertPosition("0.0 0.0", rounding=0.1))
+        util.wait(self.assertPosition("0.0 0.0", rounding=0.05))
         self.factory.sendLine("go 0.1 0.3")
         return self.assertPosition("0.1 0.3")
     test_go.timeout = 2
 
     def test_jump(self):
         self.factory.sendLine("jump")
-        util.wait(self.assertPosition("0.9 0.9", rounding=0.1))
+        util.wait(self.assertPosition("0 0.9", rounding=0.05))
     test_jump.timeout = 2
 
 # Network classes
@@ -158,8 +158,8 @@ def main():
     
 if __name__ == '__main__':
     import os
-    print "./launch.py"
-    os.spawnv(os.P_NOWAIT, "./launch.py", ["launch.py"])
-    print "./launch.py -p 23501"
-    os.spawnv(os.P_NOWAIT, "./launch.py", ["launch.py", "-p",  "23501"])
+#     print "./launch.py"
+#     os.spawnv(os.P_NOWAIT, "./launch.py", ["launch.py"])
+#     print "./launch.py -p 23501"
+#     os.spawnv(os.P_NOWAIT, "./launch.py", ["launch.py", "-p",  "23501"])
     main()

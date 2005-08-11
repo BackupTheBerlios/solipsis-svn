@@ -88,7 +88,8 @@ class Viewport(BaseViewport):
         self.obj_glider = []
         # List of dicts of drawables
         self.obj_drawables = []
-        self.obj_arrays += (self.obj_glider, self.obj_drawables, )
+        self.future_positions = []
+        self.obj_arrays += (self.future_positions, self.obj_glider, self.obj_drawables, )
         # List of (z-index, dict { painter-type -> dict of drawables } )
         self.radix_list = []
         # Different painter instances
@@ -219,6 +220,7 @@ class Viewport(BaseViewport):
         index = BaseViewport.AddObject(self, name, obj, position)
         # Then initialize the object's properties
         self.obj_drawables[index] = {}
+        self.future_positions[index] = position, position
         self.obj_glider[index] = ExpEvolver(duration = self.glide_duration)
         self._ObjectsGeometryChanged()
         return index
@@ -274,7 +276,9 @@ class Viewport(BaseViewport):
             index = BaseViewport.MoveObject(self, name, position)
             self.obj_glider[index].Reset(0.0, 1.0)
             self._ObjectsGeometryChanged()
+            self.future_positions[index] = position, self.positions[index]
         except KeyError:
+            print "Cannot move unknown object '%s' in viewport" % name
             return
 
     def JumpTo(self, position):

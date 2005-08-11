@@ -43,9 +43,9 @@ class BaseViewport(object):
         self.obj_visible = []
         # List of dicts of drawables
         self.positions = []
-        self.future_positions = []
-        self.obj_arrays = (self.obj_list, self.obj_name, self.obj_visible, 
-            self.positions, self.future_positions)
+        self.obj_arrays = (self.obj_list, self.obj_name,
+                           self.obj_visible, 
+                           self.positions)
 
     def Draw(self, onPaint = False):
         """refresh the viewport"""
@@ -68,7 +68,6 @@ class BaseViewport(object):
         # Then initialize the object's properties
         self.obj_name[index] = name
         self.positions[index] = position
-        self.future_positions[index] = position, position
         self.obj_visible[index] = True
         return index
 
@@ -87,13 +86,7 @@ class BaseViewport(object):
         """
         Move an existing object in the viewport.
         """
-        try:
-            index = self.obj_dict[name]
-        except KeyError:
-            print "Cannot move unknown object '%s' in viewport" % name
-            raise
-        self.future_positions[index] = position, self.positions[index]
-        return index
+        return self.obj_dict[name]
 
     def JumpTo(self, position):
         raise NotImplementedError

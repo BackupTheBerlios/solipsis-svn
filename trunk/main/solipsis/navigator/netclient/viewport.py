@@ -38,3 +38,14 @@ class Viewport(BaseViewport):
     def MoveTo(self, position):
         pass
 
+    def MoveObject(self, name, position):
+        """
+        Move an existing object in the viewport.
+        """
+        try:
+            index = BaseViewport.MoveObject(self, name, position)
+            self.positions[index] = position
+        except KeyError:
+            print "Cannot move unknown object '%s' in viewport" % name
+            return
+
