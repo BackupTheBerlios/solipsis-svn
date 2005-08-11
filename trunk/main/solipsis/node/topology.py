@@ -1,17 +1,17 @@
 # <copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
 # Copyright (C) 2002-2005 France Telecom R&D
-# 
+#
 # This software is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
 # version 2.1 of the License, or (at your option) any later version.
-# 
+#
 # This software is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -31,10 +31,13 @@ class Topology(object):
     """
     Manage all the neighbours of a node.
     """
-    
-    # TODO: really check the usefulness of the "epsilon" fudge factor below
+
     world_size = 2 ** 128
-    epsilon = 2.0 ** -50
+    # 'epsilon' is a safety factor used to ensure we have enough
+    # precision when doing floating-point operations.
+    # Since IEEE doubles have a 52 bits mantissa, mandating that
+    # the 48 most significant bits are not zero seems a good heuristic.
+    epsilon = 2.0 ** -48
 
     def __init__(self):
         """
@@ -73,10 +76,14 @@ class Topology(object):
         """
         Sets (X, Y) coordinates of the origin. All calculations
         are relative to this reference point.
+        Returns True if succeeded, False if desired position
+        has been refused.
         """
         if self.origin != (x, y):
             self.origin = (x, y)
-            self._Recalculate()
+            return self._Recalculate()
+        else:
+            return True
 
     def HasPeer(self, id_):
         """
@@ -251,7 +258,8 @@ class Topology(object):
         """
         Returns the peers within a given distance (in distance order if position is None).
         """
-        last = bisect.bisect(self.distance_peers, (distance * (1.0 + self.epsilon), None))
+#         last = bisect.bisect(self.distance_peers, (distance * (1.0 + self.epsilon), None))
+        last = bisect.bisect(self.distance_peers, (distance, None))
         return [self.peers[id_] for (distance, id_) in self.distance_peers[:last]]
 
     def GetEnclosingDistance(self, n):
@@ -366,10 +374,29 @@ class Topology(object):
 
         return closest_id and self.peers[closest_id] or None
 
+    def TooClose(self, position):
+        """
+        Checks whether the position is too close from the center of the topology.
+        """
+        # Relative position
+        xc, yc = self.origin
+        x = self.normalize(position[0] - xc)
+        y = self.normalize(position[1] - yc)
+        # Distance
+        d = math.sqrt(x**2 + y**2)
+        return self._NearZero(d)
 
     #
     # Private methods
     #
+    def _NearZero(self, distance):
+        """
+        Returns True if the distance is near zero.
+        """
+        r = distance < self.epsilon * self.world_size
+#         print "%f" % distance, (r and "too close" or "not too close")
+        return r
+
     def _InsertPeer(self, p):
         """
         Insert peer in internal helper lists.
@@ -384,27 +411,27 @@ class Topology(object):
         y = self.normalize(y - yc)
 
         # Distance
-        d = math.sqrt(x**2 + y**2) * (1.0 + self.epsilon)
-        if d == 0.0:
+        distance = math.sqrt(x**2 + y**2)
+        if self._NearZero(distance):
             self.logger.warning("Null distance for peer '%s', cannot insert" % str(id_))
             return False
 
         # Angle relatively to the [Ox) oriented axis
         # The result is between 0 and 2*PI
         if abs(x) > abs(y):
-            angle = math.acos(x / d)
+            angle = math.acos(x / distance)
             if y < 0.0:
                 angle = 2.0 * math.pi - angle
         else:
-            angle = math.asin(y / d)
+            angle = math.asin(y / distance)
             if x < 0.0:
                 angle = math.pi - angle
         angle %= 2.0 * math.pi
 
         self.relative_positions[id_] = (x, y)
-        self.distances[id_] = d
+        self.distances[id_] = distance
         self.angles[id_] = angle
-        bisect.insort(self.distance_peers, (d, id_))
+        bisect.insort(self.distance_peers, (distance, id_))
         bisect.insort(self.angle_peers, (angle, id_))
         return True
 
@@ -429,7 +456,9 @@ class Topology(object):
         self.angle_peers = []
         self.distance_peers = []
         for p in self.peers.values():
-            self._InsertPeer(p)
+            if not self._InsertPeer(p):
+                return False
+        return True
 
     def _NecessaryPeers(self, max_angle=None):
         """

@@ -448,7 +448,7 @@ class BaseNavigatorApp(UIProxyReceiver):
             assert len(evt) == 2, "_OnJumpPos must be called with tuple (x, y)"
             x, y = evt
             self._MoveNode((x * self.world_size, y * self.world_size),
-                           jump_near=True)
+                           jump_near=False)
         else:
             return "Not connected"
 

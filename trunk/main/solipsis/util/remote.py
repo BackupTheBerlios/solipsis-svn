@@ -168,6 +168,10 @@ class RemoteConnector(object):
         self.ui.UpdateNodePosition(position, jump=True)
         self.ui.AskRedraw()
 
+    def event_MOVED(self, struct_):
+        position = Position.FromStruct(struct_)
+        self.ui.UpdateNodePosition(position, jump=False)
+
     def event_SERVICEDATA(self, struct_):
         d = ServiceData.FromStruct(struct_)
         self.ui.ProcessServiceData(d.peer_id, d.service_id, d.data)

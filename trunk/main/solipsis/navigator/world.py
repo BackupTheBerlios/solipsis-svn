@@ -130,8 +130,8 @@ class BaseWorld:
             self.viewport.MoveObject(self.node_id, position=(x, y))
         if jump:
             self.viewport.JumpTo((x, y))
-        #~ else:
-            #~ self.viewport.MoveTo((x, y))
+        else:
+            self.viewport.MoveTo((x, y))
 
     def UpdatePeer(self, peer):
         """

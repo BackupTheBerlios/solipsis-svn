@@ -232,6 +232,9 @@ class RemoteControl(object):
     def event_Jumped(self, position):
         self._AddNotif("JUMPED", position.ToStruct())
 
+    def event_Moved(self, position):
+        self._AddNotif("MOVED", position.ToStruct())
+
     def event_ServiceData(self, peer_id, service_id, data):
         service_data = ServiceData(peer_id, service_id, data)
         self._AddNotif("SERVICEDATA", service_data.ToStruct())
