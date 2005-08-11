@@ -29,15 +29,44 @@ class NetworkTest(unittest.TestCase):
         self.factory.stopFactory()
         self.connector.disconnect()
 
-    def assertMessage(self, message):
+    def assertMessage(self, message, factory=None):
+        if factory is None:
+            factory = self.factory
         deferred = Deferred()
-        self.factory.deferred.put(deferred)
+        factory.deferred.put(deferred)
         deferred.addCallback(self.assertEquals, message)
         return deferred
 
-    def assertResponse(self, cmd, response):
-        deferred = self.assertMessage(response)
-        self.factory.sendLine(cmd)
+    def assertResponse(self, cmd, response, factory=None):
+        if factory is None:
+            factory = self.factory
+        deferred = self.assertMessage(response, factory)
+        factory.sendLine(cmd)
+        return deferred
+
+    def assertPosition(self, response, rounding=0.03, factory=None):
+        if factory is None:
+            factory = self.factory
+        deferred = Deferred()
+        factory.deferred.put(deferred)
+        def assert_position(msg):
+#             print "COMPARE", msg, response
+            # convert to float
+            x, y = msg.split(" ")
+            x, y = float(x), float(y)
+            expected_x, expected_y = response.split(" ")
+            expected_x, expected_y = float(expected_x), float(expected_y)
+            # evaluate difference
+            diff_x = abs(expected_x - x)
+            diff_y = abs(expected_y - y)
+            try: 
+                self.assert_(diff_x < rounding or diff_x > 1-rounding)
+                self.assert_(diff_y < rounding or diff_y > 1-rounding)
+            except AssertionError:
+                print "%.2f, %.2f out of %.2f %.2f"% (x, y, diff_x, diff_y)
+                raise
+        deferred.addCallback(assert_position)
+        factory.sendLine('where')
         return deferred
         
 class DisconnectedTest(NetworkTest):
@@ -71,28 +100,8 @@ Licensed under the GNU LGPL
 class ConnectedTest(NetworkTest):
     """Test good completion of basic commands"""
 
-    def assertPosition(self, response, rounding=0.03):
-        deferred = Deferred()
-        self.factory.deferred.put(deferred)
-        def assert_position(msg):
-#             print "COMPARE", msg, response
-            # convert to float
-            x, y = msg.split(" ")
-            x, y = float(x), float(y)
-            expected_x, expected_y = response.split(" ")
-            expected_x, expected_y = float(expected_x), float(expected_y)
-            # evaluate difference
-            diff_x = abs(expected_x - x)
-            diff_y = abs(expected_y - y)
-            self.assert_(diff_x < rounding or diff_x > 1-rounding)
-            self.assert_(diff_y < rounding or diff_y > 1-rounding)
-        deferred.addCallback(assert_position)
-        self.factory.sendLine('where')
-        return deferred
-
     def setUp(self):
         util.wait(NetworkTest.setUp(self))
-        util.wait(self.assertResponse("display", "Not connected"))
         return self.assertResponse("connect bots.netofpeers.net:8553", "Connected")
     setUp.timeout = 8
 
@@ -116,6 +125,50 @@ class ConnectedTest(NetworkTest):
         self.factory.sendLine("jump")
         util.wait(self.assertPosition("0 0.9", rounding=0.05))
     test_jump.timeout = 2
+        
+class ProfileTest(NetworkTest):
+    """Test good completion of basic commands"""
+
+    def assertOtherMessage(self, message):
+        return NetworkTest.assertMessage(self, message,
+                                           factory=self.other_factory)
+
+    def assertOtherResponse(self, cmd, response):
+        return NetworkTest.assertResponse(self, cmd, response,
+                                            factory=self.other_factory)
+
+    def assertOtherPosition(self, position):
+        return NetworkTest.assertPosition(self, position,
+                                            factory=self.other_factory)
+
+    def setUp(self):
+        # launch fisrt navigator
+        util.wait(NetworkTest.setUp(self))
+        util.wait(self.assertResponse("connect bots.netofpeers.net:8553", "Connected"))
+        # launch 'telnet' on second navigator
+        from twisted.internet import reactor
+        self.other_factory = ReconnectingFactory()
+        self.other_connector = reactor.connectTCP("localhost",
+                                                  LOCAL_PORT+1,
+                                                  self.other_factory)
+        # wait for connection to app establisehd
+        util.wait(self.assertOtherMessage("Ready"))
+        util.wait(self.assertOtherResponse("connect bots.netofpeers.net:8554", "Connected"))
+        self.factory.sendLine("go 0.1 0.3")
+        self.other_factory.sendLine("go 0.6 0.8")
+    setUp.timeout = 6
+
+    def tearDown(self):
+        NetworkTest.tearDown(self)
+        # second one
+        self.other_factory.stopTrying()
+        self.other_factory.stopFactory()
+        self.other_connector.disconnect()
+
+    def test_where(self):
+        util.wait(self.assertPosition("0.1 0.3"))
+        return self.assertOtherPosition("0.6 0.8")
+    test_where.timeout = 2
 
 # Network classes
 # ===============
@@ -158,8 +211,8 @@ def main():
     
 if __name__ == '__main__':
     import os
-#     print "./launch.py"
-#     os.spawnv(os.P_NOWAIT, "./launch.py", ["launch.py"])
-#     print "./launch.py -p 23501"
-#     os.spawnv(os.P_NOWAIT, "./launch.py", ["launch.py", "-p",  "23501"])
+    print "./launch.py"
+    os.spawnv(os.P_NOWAIT, "./launch.py", ["launch.py"])
+    print "./launch.py -p 23501"
+    os.spawnv(os.P_NOWAIT, "./launch.py", ["launch.py", "-p",  "23501"])
     main()
