@@ -1,0 +1,42 @@
+# Français translation of Solipsis chat plugin.
+# Copyright (C) 2005 Free Software Foundation, Inc.
+# Antoine <solipsis@pitrou.net>, 2005.
+# 
+# 
+msgid ""
+msgstr ""
+"Project-Id-Version: Solipsis chat plugin 0.1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2005-08-05 14:23+0200\n"
+"PO-Revision-Date: 2005-05-11 14:14+0100\n"
+"Last-Translator: Bastian Flinspach <gawes@web.de>\n"
+"Language-Team: French\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+
+msgid "&Close"
+msgstr "&Schließen"
+
+msgid "&Send"
+msgstr "&Senden"
+
+#: plugin.py:42 plugin.py:77
+msgid "Chat"
+msgstr "Chat"
+
+#: plugin.py:38
+msgid "Chat with all peers"
+msgstr "Chat mit allen peers"
+
+#: gui.py:61
+msgid "Nickname"
+msgstr "Spitzname"
+
+#: plugin.py:45
+msgid "Talk with the people that are currently around you"
+msgstr "Sprechen sie mit den Menschen die sich in ihrer Nähe befinden"
+
+msgid "Users"
+msgstr "User"
