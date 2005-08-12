@@ -70,7 +70,7 @@ for filename in os.listdir(service_dir):
         packages.append(package)
         includes.append(package + '.plugin')
 
-extension_dirs = ['solipsis/node/discovery', 'solipsis/node/controller']
+extension_dirs = ['solipsis/node/discovery', 'solipsis/node/controller', 'solipsis/lib/shtoom']
 # 2. Dynamically-loaded behaviour extensions
 for dir in extension_dirs:
     for path in glob.glob(os.path.join(dir, '*.py')):
