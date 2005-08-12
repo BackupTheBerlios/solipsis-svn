@@ -57,7 +57,7 @@ class ConnectDialog(wx.Dialog):
         self.text_ctrl_pseudo.SetFocus()
         self.button_ok.SetDefault()
         # end wxGlade
-        
+
         # We do this early so that self.GetBestVirtualSize() works properly
         self.panel_identities.Show(show=self.config_data.multiple_identities)
 
@@ -106,9 +106,10 @@ class ConnectDialog(wx.Dialog):
         self._UpdateIdentities()
         # We don't call _UpdateUI() from here since it would cause infinite recursion
         # with TextCtrl change events
+        self._ValidateUI()
 
     def OnChangeConnType(self, event): # wxGlade: ConnectDialog.<event_handler>
-        dialog = ConnectionTypeDialog(self.config_data, parent=self) 
+        dialog = ConnectionTypeDialog(self.config_data, parent=self)
         dialog.ShowModal()
         self._UpdateIdentities()
         self._UpdateUI()
@@ -154,6 +155,12 @@ class ConnectDialog(wx.Dialog):
     def _Validate(self):
         return self._ValidatePseudo()
 
+    def _ValidateUI(self):
+        if self._Validate():
+            self.button_ok.Enable()
+        else:
+            self.button_ok.Disable()
+
     def _UpdateSelectedIdentity(self):
         # Update the selected item in the ListCtrl
         index = self.config_data.GetCurrentIdentity()
@@ -195,15 +202,12 @@ class ConnectDialog(wx.Dialog):
                 % ("%s:%d" % (self.config_data.host, self.config_data.port))
         self.label_conntype.SetLabel(conntype_text)
         # Enable the "ok" button if the form is properly filled
-        if self._Validate():
-            self.button_ok.Enable()
-        else:
-            self.button_ok.Disable()
+        self._ValidateUI()
         # Adapt dialog size
         self.Layout()
         self.SetSizeHintsSz(self.GetBestSize())
         self.SetSize(self.GetBestVirtualSize())
-    
+
     def _Apply(self):
         pass
 

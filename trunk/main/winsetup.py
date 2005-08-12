@@ -9,11 +9,11 @@ wxPython
 Twisted (>2.3)
 py2exe
 Edit this script to insert desired services (see data_files)
-(services can be added in the solipsis/services distribution directory later)  
+(services can be added in the solipsis/services distribution directory later)
 Then  issue the command $python setup.py py2exe
 """
 name="Solipsis"
-version="0.9"
+version="0.9.3"
 description="Solipsis, A peer-to-peer system for a massively multi-participant virtual world"
 author="France Telecom R&D"
 author_email="solipsis-tech@lists.berlios.de"
@@ -40,17 +40,17 @@ data_files=[
 #CHAT
     ("solipsis/services/chat", glob.glob("solipsis/services/chat/*.*")),
     ("solipsis/services/chat/po", glob.glob("solipsis/services/chat/po/*.*")),
-    ("solipsis/services/chat/po/de/LC_MESSAGES", 
+    ("solipsis/services/chat/po/de/LC_MESSAGES",
         glob.glob("solipsis/services/chat/po/de/LC_MESSAGES/*.*")),
-    ("solipsis/services/chat/po/fr/LC_MESSAGES", 
+    ("solipsis/services/chat/po/fr/LC_MESSAGES",
         glob.glob("solipsis/services/chat/po/fr/LC_MESSAGES/*.*")),
 #AVATARS
     ("avatars", glob.glob("avatars/*.*")),
     ("solipsis/services/avatar", glob.glob("solipsis/services/avatar/*.*")),
     ("solipsis/services/avatar/po", glob.glob("solipsis/services/avatar/po/*.*")),
-    ("solipsis/services/avatar/po/de/LC_MESSAGES", 
+    ("solipsis/services/avatar/po/de/LC_MESSAGES",
         glob.glob("solipsis/services/avatar/po/de/LC_MESSAGES/*.*")),
-    ("solipsis/services/avatar/po/fr/LC_MESSAGES", 
+    ("solipsis/services/avatar/po/fr/LC_MESSAGES",
         glob.glob("solipsis/services/avatar/po/fr/LC_MESSAGES/*.*")),
 #PROFILE
     ("solipsis/services/profile", glob.glob("solipsis/services/profile/*.*")),
@@ -71,10 +71,10 @@ data_files=[
     ("state", []),
     ("resources", ["resources/navigator.xrc"]),
     ("po", ["po/messages.pot"]),
-    ("po/de/LC_MESSAGES", 
+    ("po/de/LC_MESSAGES",
         ["po/de/LC_MESSAGES/solipsis.mo",
         "po/de/LC_MESSAGES/solipsis.po"]),
-    ("po/fr/LC_MESSAGES", 
+    ("po/fr/LC_MESSAGES",
         ["po/fr/LC_MESSAGES/solipsis.mo",
         "po/fr/LC_MESSAGES/solipsis.po"])]
 
@@ -87,7 +87,7 @@ twistednode = Target(
     script = "twistednode.py",
     icon_resources=[(1, "img/solipsis.ico")]
     )
-   
+
 navigator = Target(
     name = "navigator",
     description = "Solipsis Navigator",
@@ -108,5 +108,5 @@ distutils.core.setup(
                 "excludes": ["Tkconstants","Tkinter","tcl"],
                 "dll_excludes": ["tcl84.dll", "tk84.dll"]}},
     console = [twistednode],
-    windows = [navigator], 
+    windows = [navigator],
     data_files=data_files)

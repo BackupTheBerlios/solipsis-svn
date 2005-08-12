@@ -20,7 +20,7 @@ import py2app
 #import bdist_mpkg
 
 application_name = "Solipsis"
-version = "0.9.2svn"
+version = "0.9.3"
 description = "Solipsis, a peer-to-peer system for a massively multi-participant virtual world"
 author = "France Telecom R&D"
 author_email = "solipsis-tech@lists.berlios.de"
@@ -70,7 +70,7 @@ for filename in os.listdir(service_dir):
         packages.append(package)
         includes.append(package + '.plugin')
 
-extension_dirs = ['solipsis/node/discovery', 'solipsis/node/controller']
+extension_dirs = ['solipsis/node/discovery', 'solipsis/node/controller', 'solipsis/lib/shtoom']
 # 2. Dynamically-loaded behaviour extensions
 for dir in extension_dirs:
     for path in glob.glob(os.path.join(dir, '*.py')):
