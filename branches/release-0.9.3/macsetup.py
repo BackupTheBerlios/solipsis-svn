@@ -20,7 +20,7 @@ import py2app
 #import bdist_mpkg
 
 application_name = "Solipsis"
-version = "0.9.2svn"
+version = "0.9.3"
 description = "Solipsis, a peer-to-peer system for a massively multi-participant virtual world"
 author = "France Telecom R&D"
 author_email = "solipsis-tech@lists.berlios.de"
