@@ -110,7 +110,8 @@ COMMANDS = {"about":   Commands("about", "display general information"),
             "kill":    Commands("kill", "kill node"),
             "quit":    Commands("quit", "close navigator"),
             "who":     Commands("who", "display peers in neighbourhood", None),
-            "menu":    Commands("menu", "display peer menu", None),
+            "menu":    Commands("menu", "display peer menu", None, None,
+                                converter=lambda s: s.split(" ", 1)),
             "help":    Commands("help", "display help [on cmd]",
                                 converter=lambda s: s.split(" "))}
 
@@ -125,7 +126,7 @@ class SolipsisUiProtocol(basic.LineReceiver):
                 defer.Deferred().addCallback(lambda b: self.sendLine("Ready")))
 
     def lineReceived(self, line):
-        cmd_passed = line.strip().lower()
+        cmd_passed = line.strip()
         # quit command
         if cmd_passed in ["q", "exit"]:
             self.transport.loseConnection()
@@ -201,9 +202,13 @@ class SolipsisUiFactory(protocol.ServerFactory):
     def do_who(self, deferred, service):
         return '\n'.join(self.app.get_peers_by_service(service))
 
-    def do_menu(self, deferred, peer_id):
-        titles = [title for title, func in self.app.get_menu(peer_id)]
-        return '\n'.join(titles)
+    def do_menu(self, deferred, peer_id, command=None):
+        commands = self.app.get_menu(peer_id)
+        print "COM", command
+        if not command is None and command in commands:
+            return commands[command](deferred)
+        else:
+            return '\n'.join(commands.keys())
 
     def do_help(self, deferred, *args):
         str_stream = StringIO()

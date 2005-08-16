@@ -249,17 +249,22 @@ class ServiceCollector(object):
 
     def GetActions(self, peer_id):
         """returns titles of available p2p actions"""
+        titles = {}
         for service_id in self._Services():
             plugin = self.plugins[service_id]
             if peer_id is not None and peer_id in self.peers:
                 if self.peers[peer_id].GetService(service_id) is not None:
-                    titles = [(title, lambda : plugin.DoPointToPointAction(index, self.peers[peer_id]))
-                               for index, title in enumerate(plugin.GetPointToPointActions())]
-                else:
-                    titles = []
+                    for index, title in enumerate(plugin.GetPointToPointActions()):
+                        def inner_func(deferred, index=index):
+                            return plugin.DoPointToPointAction(index,
+                                                               self.peers[peer_id],
+                                                               deferred)
+                        titles[title] = inner_func
             else:
-                titles = [(title, lambda : plugin.DoAction(index))
-                           for index, title in enumerate(plugin.GetActions())]
+                for index, title in enumerate(plugin.GetActions()):
+                    def inner_func(deferred, index=index):
+                        return plugin.DoAction(index, deferred)
+                    titles[title] = inner_func
         return titles
  
     #

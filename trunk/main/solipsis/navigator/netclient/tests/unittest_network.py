@@ -94,7 +94,7 @@ Licensed under the GNU LGPL
     test_menu.timeout = 2
 
     def test_help(self):
-        return self.assertResponse("help", "available commands are: ['quit', 'about', 'disconnect', 'help', 'launch', 'menu', 'jump', 'kill', 'connect', 'go', 'where', 'display']\n")
+        return self.assertResponse("help", "available commands are: ['quit', 'about', 'disconnect', 'help', 'launch', 'menu', 'who', 'jump', 'kill', 'connect', 'go', 'where', 'display']\n")
     test_help.timeout = 2
 
 class ConnectedTest(NetworkTest):

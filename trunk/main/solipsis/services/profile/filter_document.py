@@ -374,6 +374,9 @@ class FilterDocument(FilterPersonalMixin, FilterSharingMixin,
         FilterSharingMixin.__init__(self)
         FilterContactMixin.__init__(self)
         FilterSaverMixin.__init__(self, pseudo, directory)
+
+    def __str__(self):
+        return "Filter document for %s"% self.pseudo
         
     def import_document(self, other_document):
         """copy data from another document into self"""

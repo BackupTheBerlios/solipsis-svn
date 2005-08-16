@@ -263,6 +263,9 @@ class CacheDocument(CachePersonalMixin, CacheSharingMixin,
         CacheSharingMixin.__init__(self)
         CacheContactMixin.__init__(self)
         SaverMixin.__init__(self, pseudo, directory)
+
+    def __str__(self):
+        return "Cache document for %s"% self.pseudo
         
     def import_document(self, other_document):
         """copy data from another document into self"""

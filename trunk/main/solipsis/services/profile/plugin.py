@@ -50,6 +50,7 @@ class Plugin(ServicePlugin):
         self.port = random.randrange(7000, 7100)
         self.network = None
         self.editor_frame = None
+        self.viewer_frame = None
         self.filter_frame = None
         self.peer_services = {}
         # declare actions
@@ -130,47 +131,6 @@ class Plugin(ServicePlugin):
                 get_filter_facade().save()
         self.activate(False)
 
-    # Service methods
-    def modify_profile(self, evt=None):
-        """display profile once loaded"""
-        if self.editor_frame:
-            self.editor_frame.Show()
-            
-    def filter_profile(self, evt=None):
-        """display profile once loaded"""
-        if self.filter_frame:
-            self.filter_frame.Show()
-            
-    def show_profile(self, peer_id):
-        """display profile once loaded"""
-        if self.viewer_frame:
-            self.viewer_frame.Show(peer_id)
-
-    def get_profile(self, peer_id):
-        """request downwload of profile"""
-        deferred = self.network.get_profile(peer_id)
-        deferred and deferred.addCallback(self._on_new_profile, peer_id)
-
-    def get_blog_file(self, peer_id):
-        """request downwload of blog"""
-        deferred = self.network.get_blog_file(peer_id)
-        deferred and deferred.addCallback(self._on_new_blog, peer_id)
-
-    def get_files(self, peer_id, file_descriptors):
-        """request downwload of given files"""
-        if self.editor_frame and get_prefs().get("display_dl"):
-            self.editor_frame.download_dlg.init()
-            self.editor_frame.download_dlg.Show()
-        deferred = self.network.get_files(peer_id, file_descriptors,
-                                          self._on_all_files)
-        deferred and deferred.addCallback(
-            lambda file_name: sys.stdout.write("%s downloaded\n"% file_name))
-
-    def select_files(self, peer_id):
-        """request downwload of list of shared files"""
-        deferred = self.network.get_shared_files(peer_id)
-        deferred and deferred.addCallback(self._on_shared_files, peer_id)
-
     def activate(self, active=True):
         """eable/disable service"""
         if not active:
@@ -181,6 +141,52 @@ class Plugin(ServicePlugin):
             for peer_id in self.peer_services.keys():
                 self.NewPeer(*self.peer_services[peer_id])
 
+    # Service methods
+    def modify_profile(self, deferred=None):
+        """display profile once loaded"""
+        if self.editor_frame:
+            self.editor_frame.Show()
+        else:
+            return str(get_facade()._desc)
+            
+    def filter_profile(self, deferred=None):
+        """display profile once loaded"""
+        if self.filter_frame:
+            self.filter_frame.Show()
+        else:
+            return str(get_filter_facade()._desc)
+            
+#     def show_profile(self, peer_id):
+#         """display profile once loaded"""
+#         if self.viewer_frame:
+#             self.viewer_frame.Show(peer_id)
+
+    def get_profile(self, peer_id, deferred=None):
+        """request downwload of profile"""
+        deferred = self.network.get_profile(peer_id)
+        deferred and deferred.addCallback(self._on_new_profile, peer_id)
+
+    def get_blog_file(self, peer_id, deferred=None):
+        """request downwload of blog"""
+        deferred = self.network.get_blog_file(peer_id)
+        deferred and deferred.addCallback(self._on_new_blog, peer_id)
+
+    def select_files(self, peer_id, deferred=None):
+        """request downwload of list of shared files"""
+        deferred = self.network.get_shared_files(peer_id)
+        deferred and deferred.addCallback(self._on_shared_files, peer_id)
+
+    # side method
+    def get_files(self, peer_id, file_descriptors):
+        """request downwload of given files"""
+        if self.editor_frame and get_prefs().get("display_dl"):
+            self.editor_frame.download_dlg.init()
+            self.editor_frame.download_dlg.Show()
+        deferred = self.network.get_files(peer_id, file_descriptors,
+                                          self._on_all_files)
+        deferred and deferred.addCallback(
+            lambda file_name: "%s downloaded\n"% file_name)
+
     # callbacks methods
     def _on_new_profile(self, document, peer_id):
         """store and display file object corresponding to profile"""
@@ -189,18 +195,24 @@ class Plugin(ServicePlugin):
         if self.viewer_frame:
             self.viewer_frame.profile_dlg.activate()
             self.viewer_frame.profile_dlg.Show()
+        else:
+            return str(document)
             
     def _on_new_blog(self, blog, peer_id):
         """store and display file object corresponding to blog"""
+        get_facade().fill_blog((peer_id, blog))
         if self.viewer_frame:
             self.viewer_frame.peer_dlg.activate()
-        get_facade().fill_blog((peer_id, blog))
+        else:
+            return str(blog)
     
     def _on_shared_files(self, files, peer_id):
         """store and display file object corresponding to blog"""
+        get_facade().fill_shared_files((peer_id, files))
         if self.viewer_frame:
             self.viewer_frame.file_dlg.activate()
-        get_facade().fill_shared_files((peer_id, files))
+        else:
+            return str(files)
     
     def _on_all_files(self):
         """store and display file object corresponding to blog"""
@@ -238,20 +250,20 @@ class Plugin(ServicePlugin):
         service.address = "%s:%d" % (self.host, self.port)
 
     # UI event responses
-    def DoAction(self, it):
+    def DoAction(self, it, deferred=None):
         """Called when the general action is invoked, if available."""
         # retreive corect method
         actions = self.MAIN_ACTION.values()
         # call method on peer
-        actions[it]()
+        actions[it](deferred)
 
-    def DoPointToPointAction(self, it, peer):
+    def DoPointToPointAction(self, it, peer, deferred=None):
         """Called when a point-to-point action is invoked, if available."""
         if get_facade() and get_facade().is_activated():
             # retreive corect method
             actions = self.POINT_ACTIONS.values()
             # call method on peer
-            actions[it](peer.id_)
+            actions[it](peer.id_, deferred)
         # service not activated, do nothing
         else:
             print "service not activated"

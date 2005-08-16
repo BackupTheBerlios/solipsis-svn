@@ -67,6 +67,9 @@ class PeerDescriptor:
         # node_id
         self.node_id = None
 
+    def __str__(self):
+        return "PeerDescriptor %s"% self.pseudo
+
     def __repr__(self):
         return "%s (%s)"% (self.pseudo, self.state)
 
@@ -286,6 +289,9 @@ class SharedFiles(dict):
         for containers in self.values():
             result += containers
         return result
+
+    def __str__(self):
+        return "\n".join(files.keys())
 
 class ContainerMixin:
     """Factorize sharing tools on containers"""
