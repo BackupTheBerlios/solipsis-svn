@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Solipsis\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2005-08-08 17:25+0200\n"
-"PO-Revision-Date: 2005-05-24 08:37+0100\n"
+"PO-Revision-Date: 2005-08-16 08:22+0100\n"
 "Last-Translator: Bastian Flinspach <gawes@web.de>\n"
 "Language-Team: Solipsis translators <antoine@pitrou.net>\n"
 "MIME-Version: 1.0\n"
@@ -74,7 +74,7 @@ msgstr "Lesezeichen hinzufügen"
 
 #: solipsis/navigator/wxclient/PreferencesDialog.py:22
 msgid "Allow multiple identities"
-msgstr ""
+msgstr "Erlaube mehrere Identitäten"
 
 msgid "Automatic Rotation"
 msgstr "Automatische Drehung"
@@ -90,7 +90,7 @@ msgstr "Knoten zu Lesezeichen hinzufügen"
 #: solipsis/navigator/wxclient/app.py:525
 #, python-format
 msgid "Bookmark peer \"%s\""
-msgstr "Peer zu Lesezeichen hinzufügen \"%s\""
+msgstr "Teilnehmer zu Lesezeichen hinzufügen \"%s\""
 
 #: solipsis/navigator/wxclient/BookmarksDialog.py:69
 msgid "Bookmarks"
@@ -101,10 +101,8 @@ msgid "Change"
 msgstr "Ändern..."
 
 #: solipsis/navigator/wxclient/PreferencesDialog.py:64
-msgid ""
-"Checking this box will allow to manage multiple identities from the "
-"connection box."
-msgstr ""
+msgid "Checking this box will allow to manage multiple identities from the connection box."
+msgstr "Das anhaken dieses Käöstchens ermöglicht es ihnen, mehrere Identitäten vom Verbindungs Dialog aus zu verwalten."
 
 msgid "Choose whether display orientation changes when moving"
 msgstr "Wählen sie, ob sich die Bildausrichtung beim Bewegen ändern soll."
@@ -125,7 +123,8 @@ msgstr ""
 "Verbinden mittels eines existierenden Solipsis-Knotens \n"
 " (möglicherweise auf einem anderen Computer):"
 
-#: solipsis/navigator/app.py:519 solipsis/navigator/app.py:543
+#: solipsis/navigator/app.py:519
+#: solipsis/navigator/app.py:543
 msgid "Connected"
 msgstr "Verbunden"
 
@@ -134,7 +133,6 @@ msgid "Connecting to the node..."
 msgstr "Mit Knoten verbinden..."
 
 #: solipsis/navigator/wxclient/ConnectDialog.py:50
-#, fuzzy
 msgid "Connection"
 msgstr "Verbinden..."
 
@@ -174,7 +172,7 @@ msgstr "Fehler"
 
 #: solipsis/navigator/app.py:470
 msgid "For information..."
-msgstr ""
+msgstr "Für Informationen..."
 
 #: solipsis/navigator/wxclient/app.py:363
 msgid "For reminder, here is your address:"
@@ -194,7 +192,7 @@ msgstr "Host:"
 
 #: solipsis/navigator/wxclient/ConnectDialog.py:25
 msgid "Identities"
-msgstr ""
+msgstr "Identitäten"
 
 #: solipsis/navigator/wxclient/PreferencesDialog.py:24
 msgid ""
@@ -214,20 +212,21 @@ msgid "Jump near another node"
 msgstr "Springe in die Nähe eines anderen Knotens"
 
 msgid "Jump to a numeric position in the world"
-msgstr ""
+msgstr "Springe an eine numerische Position in der Solipsis Welt"
 
 #: solipsis/navigator/wxclient/PositionJumpDialog.py:52
 msgid "Jump to absolute position"
-msgstr ""
+msgstr "Springe zu einer absoluten position in der Solipsis Welt"
 
 msgid "Jump to position"
-msgstr ""
+msgstr "Springe zu Position"
 
 #: solipsis/navigator/wxclient/PreferencesDialog.py:23
 msgid "Kill node when exiting"
 msgstr "Knoten beim verlassen des Programs auflösen"
 
-#: solipsis/navigator/app.py:275 solipsis/navigator/app.py:582
+#: solipsis/navigator/app.py:275
+#: solipsis/navigator/app.py:582
 msgid "Kill refused"
 msgstr "Auflösen verweigert"
 
@@ -263,7 +262,7 @@ msgstr "Navigator"
 
 #: solipsis/navigator/wxclient/ConnectDialog.py:27
 msgid "New identity"
-msgstr ""
+msgstr "Neue Identität"
 
 #: solipsis/navigator/wxclient/PreferencesDialog.py:26
 msgid "No proxy"
@@ -277,9 +276,12 @@ msgstr ""
 "Erstellen des Knotens fehlgeschlagen. \n"
 "Stellen sie sicher, dass sie über ausreichende Rechte verfügen."
 
-#: solipsis/navigator/wxclient/app.py:171 solipsis/navigator/app.py:197
-#: solipsis/navigator/app.py:362 solipsis/navigator/app.py:529
-#: solipsis/navigator/app.py:552 solipsis/navigator/app.py:567
+#: solipsis/navigator/wxclient/app.py:171
+#: solipsis/navigator/app.py:197
+#: solipsis/navigator/app.py:362
+#: solipsis/navigator/app.py:529
+#: solipsis/navigator/app.py:552
+#: solipsis/navigator/app.py:567
 msgid "Not connected"
 msgstr "Nicht verbunden"
 
@@ -288,9 +290,7 @@ msgid "Not implemented"
 msgstr "Nicht implementiert"
 
 msgid "Paste your address so that your friend can jump near you"
-msgstr ""
-"Geben sie ihre Adresse weiter, so dass ihre Freunde in ihre Nähe springen "
-"können"
+msgstr "Geben sie ihre Adresse weiter, so dass ihre Freunde in ihre Nähe springen können"
 
 #: solipsis/navigator/wxclient/BookmarksDialog.py:103
 msgid "Please choose the peer to add to your bookmarks list."
@@ -301,7 +301,6 @@ msgid "Please enter the address to jump to"
 msgstr "Bitte geben sie eine Adresse ein, zu der sie springen wollen"
 
 #: solipsis/navigator/wxclient/PositionJumpDialog.py:23
-#, fuzzy
 msgid "Please enter the position to jump to:"
 msgstr "Bitte geben sie eine Adresse ein, zu der sie springen wollen"
 
@@ -335,7 +334,7 @@ msgstr "Verlassen"
 
 #: solipsis/navigator/wxclient/PositionJumpDialog.py:28
 msgid "Random..."
-msgstr ""
+msgstr "Zufällig..."
 
 #: solipsis/navigator/wxclient/BookmarksDialog.py:47
 #: solipsis/navigator/wxclient/ConnectDialog.py:28
@@ -348,7 +347,7 @@ msgstr "Entferne gewähltes Lesezeichen"
 
 #: solipsis/navigator/app.py:524
 msgid "Searching peers"
-msgstr "Suche Peers"
+msgstr "Suche Teilnehmer"
 
 #: solipsis/navigator/app.py:330
 msgid "Solipsis Navigator"
@@ -359,7 +358,7 @@ msgid ""
 "Some parameters have wrong values.\n"
 "Please enter proper values."
 msgstr ""
-"Eine PArameter haben falsche Werte.\n"
+"Eine Parameter haben falsche Werte.\n"
 "Bitte geben sie gültige Werte ein!"
 
 #: solipsis/navigator/app.py:475
@@ -368,9 +367,11 @@ msgid ""
 "It may mean that someone else is running a node \n"
 "at the same address."
 msgstr ""
+"Der Teilnehmer nach dem sie fragten scheint seine Identität \n"
+"gewechselt zu haben. Das kann bedeuten, das ein anderer \n"
+"einen Knoten auf der selben Adresse betreibt."
 
 #: solipsis/navigator/app.py:198
-#, fuzzy
 msgid ""
 "This action cannot be performed, \n"
 "because you are not connected."
@@ -379,29 +380,20 @@ msgstr ""
 "da sie nicht mit einem Knoten verbunden sind."
 
 #: solipsis/navigator/app.py:176
-#, fuzzy
 msgid ""
 "This function is not yet implemented.\n"
 " Sorry! Please come back later..."
 msgstr ""
 "Diese Funktion ist noch nicht implementiert. \n"
-"Versuchen sie es später noch einmal..."
+"Versuchen sie es in einer späteren Version noch einmal..."
 
 #: solipsis/navigator/wxclient/ConnectionTypeDialog.py:50
-msgid ""
-"This is the port number used to contact other peers. Usually you don't have "
-"to change its value."
-msgstr ""
-"Dies ist die Port Nummer, die genutzt wird um andere peers zu kontaktieren. "
-"Normalerweise müssen sie diesen Wert nicht ändern."
+msgid "This is the port number used to contact other peers. Usually you don't have to change its value."
+msgstr "Dies ist die Port Nummer, die genutzt wird um andere peers zu kontaktieren. Normalerweise müssen sie diesen Wert nicht ändern."
 
 #: solipsis/navigator/wxclient/PreferencesDialog.py:65
-msgid ""
-"Uncheck this box if you want to remain connected to the Solipsis world even "
-"when you exit the navigator."
-msgstr ""
-"Deaktivieren sie diese Option, wenn sie mit der Solipsis Welt auch dann "
-"verbunden bleiben wollen, wenn sie den Navigator schließen."
+msgid "Uncheck this box if you want to remain connected to the Solipsis world even when you exit the navigator."
+msgstr "Deaktivieren sie diese Option, wenn sie mit der Solipsis Welt auch dann verbunden bleiben wollen, wenn sie den Navigator schließen."
 
 #: solipsis/navigator/wxclient/ConnectionTypeDialog.py:19
 msgid "Use UDP port:"
@@ -409,11 +401,11 @@ msgstr "UDP-Port:"
 
 #: solipsis/navigator/wxclient/PositionJumpDialog.py:24
 msgid "X: "
-msgstr ""
+msgstr "X:"
 
 #: solipsis/navigator/wxclient/PositionJumpDialog.py:26
 msgid "Y: "
-msgstr ""
+msgstr "Y:"
 
 #: solipsis/navigator/app.py:581
 msgid "You cannot kill this node."
@@ -434,65 +426,47 @@ msgstr ""
 "können diese in der Solipsis Welt in ihre Nähe springen."
 
 #: solipsis/navigator/wxclient/ConnectDialog.py:181
-#, fuzzy
 msgid "local node"
 msgstr "Knoten &auflösen"
 
 #~ msgid "&Cancel"
 #~ msgstr "&Abbrechen"
-
 #~ msgid "&Close"
 #~ msgstr "&Schließen"
-
 #~ msgid "&Connect to existing node"
 #~ msgstr "Mit Knoten &verbinden"
-
 #~ msgid "&Edit"
 #~ msgstr "&Edition"
-
 #~ msgid "&File"
 #~ msgstr "&Fichier"
-
 #~ msgid "&New node"
 #~ msgstr "&Neuer Knoten"
-
 #~ msgid "&OK"
 #~ msgstr "&Valider"
-
 #~ msgid "&Ok"
 #~ msgstr "&Ok"
-
 #~ msgid "Connecting"
 #~ msgstr "Verbinden..."
 
 #, fuzzy
 #~ msgid "Coordinate must be between 0.0 and 1.0"
 #~ msgstr "Port muss zwischen 1 und 65535 liegen"
-
 #~ msgid "Disconnect from node"
 #~ msgstr "Se déconnecter du nœud"
-
 #~ msgid "Nickname"
 #~ msgstr "Spitzname"
-
 #~ msgid "Node address"
 #~ msgstr "Adresse des Knotens"
-
 #~ msgid "Peer \"%s\""
 #~ msgstr "Nœud \"%s\""
-
 #~ msgid "Please choose your nickname"
 #~ msgstr "Bitte wählen sie ihren Spitznamen"
-
 #~ msgid "Please enter a valid hostname or address"
 #~ msgstr "Geben sie bitte einen gültigen Hostnamen oder Adresse ein"
-
 #~ msgid "Please enter a valid nickname"
 #~ msgstr "Geben sie bitte einen gültigen Spitznamen ein"
-
 #~ msgid "Port number must be between 1 and 65535"
 #~ msgstr "Port muss zwischen 1 und 65535 liegen"
-
 #~ msgid ""
 #~ "Solipsis Navigator 0.1\n"
 #~ "\n"
@@ -503,7 +477,6 @@ msgstr "Knoten &auflösen"
 #~ "\n"
 #~ "Distribué sous licence GNU LGPL.\n"
 #~ "(c) France Telecom R&&D\n"
-
 #~ msgid ""
 #~ "Solipsis Navigator 0.8.1\n"
 #~ "\n"
@@ -514,9 +487,9 @@ msgstr "Knoten &auflösen"
 #~ "\n"
 #~ "Distribué sous licence GNU LGPL.\n"
 #~ "(c) France Telecom R&&D"
-
 #~ msgid ""
 #~ "This action cannot be performed, because you are not connected to a node."
 #~ msgstr ""
 #~ "Diese Aktion kann nicht ausgeführt werden, da sie nicht mit einem Knoten "
 #~ "verbunden sind."
+
