@@ -1,17 +1,17 @@
 # <copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
 # Copyright (C) 2002-2005 France Telecom R&D
-# 
+#
 # This software is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
 # version 2.1 of the License, or (at your option) any later version.
-# 
+#
 # This software is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -25,6 +25,7 @@
 import re
 import new
 import logging
+from copy import deepcopy
 
 from solipsis.util.utils import set, safe_str, safe_unicode
 from solipsis.util.exception import *
@@ -34,8 +35,11 @@ from solipsis.util.bidict import bidict
 from solipsis.util.entity import Service
 
 VERSION = 1.0
-BANNER = "SOLIPSIS/" + `VERSION`
+BANNER = "SOLIPSIS/"
 CHARSET = "utf-8"
+
+def banner(version=None):
+    return BANNER + str(version or VERSION)
 
 #
 # This is a list of allowed arguments in the Solipsis protocol.
@@ -51,16 +55,19 @@ _args = [
     ('ARG_BEST_DISTANCE', 'Best-Distance', 'best_distance'),
     ('ARG_BEST_ID', 'Best-Id', 'best_id'),
     ('ARG_CLOCKWISE', 'Clockwise', 'clockwise'),
-    ('ARG_HOLD_TIME', 'Hold-Time', 'hold_time'),
     ('ARG_ID', 'Id', 'id_'),
     ('ARG_POSITION', 'Position', 'position'),
+
+    ('ARG_HOLD_TIME', 'Hold-Time', 'hold_time'),
+    ('ARG_NEEDS_MIDDLEMAN', 'Needs-Middleman', 'needs_middleman'),
     ('ARG_SEND_DETECTS', 'Send-Detects', 'send_detects'),
 
     ('ARG_REMOTE_ADDRESS', 'Remote-Address', 'remote_address'),
     ('ARG_REMOTE_AWARENESS_RADIUS', 'Remote-Awareness-Radius', 'remote_awareness_radius'),
     ('ARG_REMOTE_ID', 'Remote-Id', 'remote_id'),
     ('ARG_REMOTE_POSITION', 'Remote-Position', 'remote_position'),
-    ('ARG_REMOTE_PSEUDO', 'Remote-Pseudo', 'remote_pseudo'),
+
+    ('ARG_REMOTE_NEEDS_MIDDLEMAN', 'Remote-Needs-Middleman', 'remote_needs_middleman'),
 
     ('ARG_ACCEPT_LANGUAGES', 'Languages', 'accept_languages'),
     ('ARG_ACCEPT_SERVICES', 'Services', 'accept_services'),
@@ -97,14 +104,12 @@ _aliases = {
     ARG_REMOTE_ADDRESS:             ARG_ADDRESS,
     ARG_REMOTE_AWARENESS_RADIUS:    ARG_AWARENESS_RADIUS,
     ARG_REMOTE_ID:                  ARG_ID,
+    ARG_REMOTE_NEEDS_MIDDLEMAN:     ARG_NEEDS_MIDDLEMAN,
     ARG_REMOTE_POSITION:            ARG_POSITION,
-    ARG_REMOTE_PSEUDO:              ARG_PSEUDO,
 }
 
 def _init_table(table, aliases=_aliases, transform=(lambda x: x)):
     # Create a global table of the specified name, then fill it with values
-    #~ t = {}
-    #~ globals()[table_name] = t
     t = {}
     for k, v in table.items():
         t[k] = transform(v)
@@ -120,18 +125,33 @@ def _init_table(table, aliases=_aliases, transform=(lambda x: x)):
 #
 
 _syntax_table = {
+    # Comma separated list of languages
     ARG_ACCEPT_LANGUAGES : r'([\w]+(\s*,\s*[\w]+)*)?',
+    # Comma separated list of services with optional qualifier
     ARG_ACCEPT_SERVICES  : r'([-_/\w\d]+(;d=\w+)?(\s*,\s*[-_/\w\d]+(;d=\w+)?)*)?',
+    # "Host:port" tuple
     ARG_ADDRESS          : r'\s*.*:\d+\s*',
+    # Long integer
     ARG_AWARENESS_RADIUS : r'\d+',
-    ARG_CLOCKWISE        : r'[-+]1',
+    # Long integer
     ARG_BEST_DISTANCE    : r'\d+',
+    # -1 or +1
+    ARG_CLOCKWISE        : r'[-+]1',
+    # Integer
     ARG_HOLD_TIME        : r'[\d]+',
+    # String without space characters
     ARG_ID               : r'[^\s]*',
+    # "yes" or "no"
+    ARG_NEEDS_MIDDLEMAN  : r'(yes|no)',
+    # Comma separated tuple of three long integers
     ARG_POSITION         : r'\s*\d+\s*,\s*\d+\s*,\s*\d+\s*',
+    # Anything
     ARG_PSEUDO           : r'.*',
+    # "now" or "later"
     ARG_SEND_DETECTS     : r'(now|later)',
+    # String wihout space characters
     ARG_SERVICE_ADDRESS  : r'[^\s]*',
+    # String of latin alphabet characters, digits and hyphens/underscores
     ARG_SERVICE_ID       : r'[-_/\w\d]+',
 }
 
@@ -188,6 +208,7 @@ _from_string = {
     ARG_CLOCKWISE:          (lambda c: int(c) > 0),
     ARG_HOLD_TIME:          int,
     ARG_ID:                 intern,
+    ARG_NEEDS_MIDDLEMAN:    (lambda s: s == "yes"),
     ARG_POSITION:           (lambda s: Position.FromString(s)),
     ARG_PSEUDO:             (lambda s: safe_unicode(s, CHARSET)),
     ARG_SEND_DETECTS:       (lambda s: s == 'now'),
@@ -205,6 +226,7 @@ _to_string = {
     ARG_CLOCKWISE:          (lambda c: c and "+1" or "-1"),
     ARG_HOLD_TIME:          str,
     ARG_ID:                 str,
+    ARG_NEEDS_MIDDLEMAN:    (lambda x: x and "yes" or "no"),
     ARG_POSITION:           (lambda p: p.ToString()),
     ARG_PSEUDO:             (lambda u: safe_str(u, CHARSET)),
     ARG_SEND_DETECTS:       (lambda x: x and "now" or "later"),
@@ -217,8 +239,10 @@ ARGS_TO_STRING = _init_table(_to_string)
 
 
 #
-# Declaration of mandatory arguments for each protocol request
+# Declaration of expected arguments for each protocol request
 #
+
+# Helpers to type faster ;)
 NODE_ARGS = [
     ARG_ADDRESS,
     ARG_AWARENESS_RADIUS,
@@ -233,7 +257,11 @@ REMOTE_ARGS = [
     ARG_REMOTE_POSITION,
 ]
 
-REQUESTS = {
+# This dict contains a request table for each Solipsis protocol version
+REQUESTS = {}
+
+# 1.0 - First stable version of the Solipsis protocol
+REQUESTS[1.0] = {
     'CLOSE'      : [ ARG_ID ],
     'CONNECT'    : NODE_ARGS + [ ARG_HOLD_TIME ],
     'HEARTBEAT'  : [ ARG_ID ],
@@ -257,6 +285,11 @@ REQUESTS = {
     'SERVICEINFO': [ ARG_ID, ARG_SERVICE_ID, ARG_SERVICE_ADDRESS ],
     'SERVICEDATA': [ ARG_ID, ARG_SERVICE_ID, ARG_PAYLOAD ],
 }
+
+# 1.1 - Add parameters for NAT information
+REQUESTS[1.1] = deepcopy(REQUESTS[1.0])
+REQUESTS[1.1]['HELLO'] += [ ARG_NEEDS_MIDDLEMAN ]
+REQUESTS[1.1]['CONNECT'] += [ ARG_NEEDS_MIDDLEMAN ]
 
 
 class Message(object):
@@ -282,16 +315,17 @@ class Parser(object):
     def __init__(self):
         self.logger = logging.getLogger('root')
 
-    def StripMessage(self, message):
+    def StripMessage(self, message, version=None):
         """
         Strip unnecessary parameters from message.
         """
-        required_args = set([ATTRIBUTE_NAMES[arg_id] for arg_id in REQUESTS[message.request]])
+        _req = REQUESTS[version or VERSION]
+        required_args = set([ATTRIBUTE_NAMES[arg_id] for arg_id in _req[message.request]])
         args = message.args
         for k in set(args.__dict__) - required_args:
             delattr(args, k)
 
-    def BuildMessage(self, message):
+    def BuildMessage(self, message, version=None):
         """
         Build protocol data from message.
         """
@@ -300,7 +334,7 @@ class Parser(object):
         payload = ""
 
         # 1. Request and protocol version
-        lines.append(message.request + " " + BANNER)
+        lines.append(message.request + " " + banner(version))
         # 2. Request arguments
         for k, v in args.iteritems():
             arg_id = ATTRIBUTE_NAMES.get_reverse(k)
@@ -334,17 +368,18 @@ class Parser(object):
         # Extract protocol version
         version = float(m.group(2))
 
-        # Basic sanity check
+        # Version check
         if version > VERSION:
             raise EventParsingError("Unexpected protocol version: %s" % str(version))
         elif version < VERSION:
             self.logger.info("Received message from older protocol version: %s" % str(version))
-        if not request in REQUESTS:
+        # Request check
+        if not request in REQUESTS[version]:
             raise EventParsingError("Unknown request: " + request)
 
         # Get args for this request
-        mandatory_args = REQUESTS[request]
-        missing_args = dict.fromkeys(mandatory_args)
+        mandatory_args = REQUESTS[version][request]
+        missing_args = set(mandatory_args)
         args = {}
 
         # Now let's parse each parameter line in turn
@@ -360,7 +395,6 @@ class Parser(object):
             value = t[1].strip()
 
             # Each arg has its own syntax-checking regex
-            # (e.g. for a calibre we expect a 3-digit number)
             try:
                 arg_id = PROTOCOL_STRINGS.get_reverse(name)
                 arg_syntax = ARGS_SYNTAX[arg_id]
@@ -378,10 +412,10 @@ class Parser(object):
                 args[arg_id] = ARGS_FROM_STRING[arg_id](value)
 
             # Log optional arguments
-            if arg_id in missing_args:
-                del missing_args[arg_id]
-            else:
-                self.logger.debug("Optional argument '%s' in message '%s'" % (name, request))
+            try:
+                missing_args.remove(arg_id)
+            except KeyError:
+                self.logger.debug("Unexpected argument '%s' in message '%s'" % (name, request))
 
         # Is there a payload ?
         if nb_line + 1 < len(lines):
@@ -405,6 +439,7 @@ class Parser(object):
         if not parse_only:
             message = Message()
             message.request = request
+            message.version = version
             for arg_id, value in args.iteritems():
                 setattr(message.args, ATTRIBUTE_NAMES[arg_id], value)
             return message
