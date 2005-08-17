@@ -216,6 +216,8 @@ class StunDiscoveryProtocol(DatagramProtocol, _StunBase):
         self.expectedTID = None
         self.oldTIDs = sets.Set()
         self.natType = None
+#         self.servers = [(socket.gethostbyname(host), port)
+#                                             for host, port in servers]
         self.servers = [(socket.gethostbyname(host), port)
                                             for host, port in servers]
         super(StunDiscoveryProtocol, self).__init__(*args, **kwargs)
@@ -417,7 +419,7 @@ class StunDiscoveryProtocol(DatagramProtocol, _StunBase):
 # class StunHook(_StunBase):
 #     """Hook a StunHook into a UDP protocol object, and it will discover
 #        STUN settings for it.
-# 
+#
 #        You should probably use the NATMapper approach rather than using
 #        StunHook directly.
 #     """
@@ -429,7 +431,7 @@ class StunDiscoveryProtocol(DatagramProtocol, _StunBase):
 #         self.oldTIDs = sets.Set()
 #         self._stunState = 'hook'
 #         super(StunHook, self).__init__(*args, **kwargs)
-# 
+#
 #     def initialStunRequest(self, address):
 #         tid = getRandomTID()
 #         self.oldTIDs.add(tid)
@@ -437,7 +439,7 @@ class StunDiscoveryProtocol(DatagramProtocol, _StunBase):
 #                                     self.retransmitInitial, address, tid)
 #         self._pending[tid] = delayed
 #         self.sendRequest(address, tid=tid)
-# 
+#
 #     def retransmitInitial(self, address, tid, count=1):
 #         if count <= MAX_RETRANSMIT:
 #             t = BACKOFF_TIME * 2**min(count, MAX_BACKOFF)
@@ -454,14 +456,14 @@ class StunDiscoveryProtocol(DatagramProtocol, _StunBase):
 #                     print "stun state 1 timeout - no internet UDP possible"
 #                 self.natType = NatTypeUDPBlocked
 #                 self.finishedStun()
-# 
+#
 #     def datagramReceived(self, dgram, address):
 #         if STUNVERBOSE:
 #             print "hook got a datagram from", address
 #         if self.deferred is None:
 #             # We're already done
 #             return
-# 
+#
 #         mt, pktlen, tid = struct.unpack('!hh16s', dgram[:20])
 #         if self._pending.has_key(tid):
 #             delayed = self._pending[tid]
@@ -473,7 +475,7 @@ class StunDiscoveryProtocol(DatagramProtocol, _StunBase):
 #             if not resdict or not resdict.get('externalAddress'):
 #                 # Crap response, ignore it.
 #                 return
-# 
+#
 #             # Got a valid response. Clean up around here first.
 #             self.uninstallStun()
 #             # kill any pending retransmits
@@ -483,12 +485,12 @@ class StunDiscoveryProtocol(DatagramProtocol, _StunBase):
 #             # send response
 #             d, self.deferred = self.deferred, None
 #             d.callback(resdict['externalAddress'])
-# 
+#
 #     def installStun(self):
 #         self._protocol._mp_datagramReceived = self._protocol.datagramReceived
 #         self._protocol.datagramReceived = self.datagramReceived
 #         self.transport = self._protocol.transport
-# 
+#
 #     def discoverAddress(self):
 #         """ Sniff out external address. Returns a deferred with the external
 #             address as a 2-tuple (ip, port)
@@ -500,7 +502,7 @@ class StunDiscoveryProtocol(DatagramProtocol, _StunBase):
 #             d = reactor.resolve(host)
 #             d.addCallback(lambda x, p=port: self.initialStunRequest((x, p)))
 #         return self.deferred
-# 
+#
 #     def uninstallStun(self):
 #         self._protocol.datagramReceived = self._protocol._mp_datagramReceived
 #         del self.transport
@@ -536,19 +538,19 @@ getSTUN = DeferredCache(_getSTUN)
 #     if _cached_mapper is None:
 #         _cached_mapper = STUNMapper()
 #     return _cached_mapper
-# 
+#
 # def clearCache():
 #     global _cached_mapper, _cached_stuntype
 #     _cached_stuntype = None
 #     _cached_mapper = None
 #     getSTUN.clearCache()
-# 
+#
 # class STUNMapper(BaseMapper):
 #     __implements__ = INATMapper
 #     _ptypes = [ 'UDP', ]
 #     def __init__(self):
 #         self._mapped = {}
-# 
+#
 #     def map(self, port):
 #         "See shtoom.interfaces.NATMapper.map"
 #         self._checkValidPort(port)
@@ -558,7 +560,7 @@ getSTUN = DeferredCache(_getSTUN)
 #         d.addCallback(lambda x: self._cb_map_gotSTUN(x, port))
 #         return cd
 #     map = DeferredCache(map, inProgressOnly=True)
-# 
+#
 #     def _cb_map_gotSTUN(self, stun, port):
 #         if not stun.useful:
 #             cd = self._mapped[port]
@@ -569,19 +571,19 @@ getSTUN = DeferredCache(_getSTUN)
 #         d = SH.discoverAddress()
 #         d.addCallback(lambda x: self._cb_map_discoveredAddress(x, port))
 #     map = DeferredCache(map, inProgressOnly=True)
-# 
+#
 #     def _cb_map_discoveredAddress(self, addr, port):
 #         cd = self._mapped[port]
 #         self._mapped[port] = addr
 #         cd.callback(addr)
-# 
+#
 #     def info(self, port):
 #         "See shtoom.interfaces.NATMapper.info"
 #         if port in self._mapped:
 #             return self._mapped[port]
 #         else:
 #             raise ValueError('Port %r is not currently mapped'%(port))
-# 
+#
 #     def unmap(self, port):
 #         "See shtoom.interfaces.NATMapper.unmap"
 #         # A no-op for STUN
