@@ -1,6 +1,7 @@
 """test basic commands of net navigator"""
 
 import sys
+import time
 import twisted.scripts.trial as trial
     
 from Queue import Queue
@@ -12,6 +13,9 @@ from twisted.protocols.basic import LineReceiver
 from solipsis.navigator.netclient.tests import LOCAL_PORT
         
 class NetworkTest(unittest.TestCase):
+
+    def __init__(self):
+        self.wake_up = time.time()
 
     def setUp(self):
         from twisted.internet import reactor
@@ -28,6 +32,14 @@ class NetworkTest(unittest.TestCase):
         self.factory.stopTrying()
         self.factory.stopFactory()
         self.connector.disconnect()
+
+    def wait(self, sec_delay):
+        self.wake_up = time.time()+sec_delay
+        # timeout is 4.0 sec by default
+        util.spinWhile(self._waiting)
+
+    def _waiting(self):
+        return time.time() < self.wake_up
 
     def assertMessage(self, message, factory=None):
         if factory is None:
@@ -136,6 +148,10 @@ class ConnectedTest(NetworkTest):
 class ProfileTest(NetworkTest):
     """Test good completion of basic commands"""
 
+    WINDOWS_ID = "6000_5_34e59f3a65f4555fdab1761a6aeb65c7b228bec7"
+    WINDOWS_NODE = "bots.netofpeers.net:8553"
+    WINDOWS_IP = "10.193.171.56"
+
     def assertOtherMessage(self, message):
         return NetworkTest.assertMessage(self, message,
                                            factory=self.other_factory)
@@ -156,13 +172,15 @@ class ProfileTest(NetworkTest):
         # launch 'telnet' on second navigator
         from twisted.internet import reactor
         self.other_factory = ReconnectingFactory()
-        self.other_connector = reactor.connectTCP("localhost",
-                                                  LOCAL_PORT+1,
+        self.other_connector = reactor.connectTCP(self.WINDOWS_IP,
+                                                  LOCAL_PORT,
                                                   self.other_factory)
         # wait for connection to app establisehd
         util.wait(self.assertOtherMessage("Ready"))
-        util.wait(self.assertOtherResponse("connect bots.netofpeers.net:8554", "Connected"))
-        return self.assertOtherResponse("go 0.15 0.35", "ok")
+        util.wait(self.assertOtherResponse("connect %s"% self.WINDOWS_NODE, "Connected"))
+        util.wait(self.assertOtherResponse("go 0.15 0.35", "ok"))
+        # wait until both navigators have received meta data (no message usable from node)
+        self.wait(0.8)
     setUp.timeout = 8
 
 
@@ -182,24 +200,24 @@ class ProfileTest(NetworkTest):
     test_where.timeout = 2
 
     def test_who(self):
-        return self.assertResponse("who profile", "6000_4_c3496a331b70bdd09253fd9d504822dd85fd3525")
+        return self.assertResponse("who profile", self.WINDOWS_ID)
     test_who.timeout = 2
 
     def test_view_profile(self):
-        util.wait(self.assertResponse("who profile", "6000_4_c3496a331b70bdd09253fd9d504822dd85fd3525"))
-        return self.assertResponse("menu 6000_4_c3496a331b70bdd09253fd9d504822dd85fd3525 View profile...",
-                                   "File document for bruce")
+        util.wait(self.assertResponse("who profile", self.WINDOWS_ID))
+        return self.assertResponse("menu %s View profile..."% self.WINDOWS_ID,
+                                   "File document for zoé")
     test_view_profile.timeout = 4
 
     def test_view_blog(self):
-        util.wait(self.assertResponse("who profile", "6000_4_c3496a331b70bdd09253fd9d504822dd85fd3525"))
-        return self.assertResponse("menu 6000_4_c3496a331b70bdd09253fd9d504822dd85fd3525 View blog...",
-                                   "[Hey Buddy! How are you? (0), Nice world, isn't it? (0)]")
+        util.wait(self.assertResponse("who profile", self.WINDOWS_ID))
+        return self.assertResponse("menu %s View blog..."% self.WINDOWS_ID,
+                                   "[bzz bzz I'm a bee? (0)]")
     test_view_blog.timeout = 4
     
     def test_view_files(self):
-        util.wait(self.assertResponse("who profile", "6000_4_c3496a331b70bdd09253fd9d504822dd85fd3525"))
-        return self.assertResponse("menu 6000_4_c3496a331b70bdd09253fd9d504822dd85fd3525 Get files...",
+        util.wait(self.assertResponse("who profile", self.WINDOWS_ID))
+        return self.assertResponse("menu %s Get files..."% self.WINDOWS_ID,
                                    """.ls_colors
 02. y'a une fille qu'habite chez moi .mp3
 01. bon anniversaire.mp3

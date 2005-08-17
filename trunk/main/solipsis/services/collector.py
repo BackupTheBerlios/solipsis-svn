@@ -242,8 +242,8 @@ class ServiceCollector(object):
         """
         try:
             plugin = self.plugins[service_id]
-        except KeyError:
-            pass
+        except KeyError, err:
+            print err
         else:
             plugin.GotServiceData(peer_id, data)
 

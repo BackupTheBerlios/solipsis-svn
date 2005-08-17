@@ -521,6 +521,9 @@ class BaseNavigatorApp(UIProxyReceiver):
         """
         assert self.services, "services must be initialised first"
         assert self.world, "world must be initialised first"
+        # FIXME: do following properly.... UpdatePeer might be called before AddPeer...
+        if args[0].id_ not in self.services.peers:
+            self.AddPeer(*args, **kargs)
         self.world.UpdatePeer(*args, **kargs)
         self.services.UpdatePeer(*args, **kargs)
 
