@@ -81,7 +81,6 @@ Licensed under the GNU LGPL
 
     def test_connect(self):
         util.wait(self.assertResponse("connect bots.netofpeers.net:8553", "Connected"))
-        util.wait(self.assertResponse("display", "Address: 192.33.178.29:6003"))
         util.wait(self.assertResponse("disconnect", "Disconnected"))
     test_connect.timeout = 2
 
@@ -90,7 +89,7 @@ Licensed under the GNU LGPL
     test_display.timeout = 2
 
     def test_menu(self):
-        return self.assertResponse("menu", "Not implemented yet")
+        return self.assertResponse("menu", "Not connected")
     test_menu.timeout = 2
 
     def test_help(self):
@@ -102,7 +101,8 @@ class ConnectedTest(NetworkTest):
 
     def setUp(self):
         util.wait(NetworkTest.setUp(self))
-        return self.assertResponse("connect bots.netofpeers.net:8553", "Connected")
+        util.wait(self.assertResponse("connect bots.netofpeers.net:8553", "Connected"))
+        return self.assertResponse("go", "ok")
     setUp.timeout = 8
 
     def tearDown(self):
@@ -115,11 +115,23 @@ class ConnectedTest(NetworkTest):
     test_display.timeout = 2
 
     def test_go(self):
-        self.factory.sendLine("go")
         util.wait(self.assertPosition("0.0 0.0", rounding=0.05))
-        self.factory.sendLine("go 0.1 0.3")
+        util.wait(self.assertResponse("go 0.1 0.3", "ok"))
         return self.assertPosition("0.1 0.3")
     test_go.timeout = 2
+
+    def test_menu(self):
+        return self.assertResponse("menu", "Modify Profile...\nFilter Profiles...")
+        return self.assertResponse("menu self Modify Profile...",
+                                   "PeerDescriptor bruce")
+        return self.assertResponse("menu self Filter Profiles...",
+                                   "PeerDescriptor bruce")
+    test_menu.timeout = 2
+
+    def test_who(self):
+        util.wait(self.assertResponse("go 0.67 0.33", "ok"))
+        return self.assertResponse("who profile", "")
+    test_who.timeout = 2
         
 class ProfileTest(NetworkTest):
     """Test good completion of basic commands"""
@@ -140,7 +152,7 @@ class ProfileTest(NetworkTest):
         # launch fisrt navigator
         util.wait(NetworkTest.setUp(self))
         util.wait(self.assertResponse("connect bots.netofpeers.net:8553", "Connected"))
-        self.factory.sendLine("go 0.1 0.3")
+        util.wait(self.assertResponse("go 0.1 0.3", "ok"))
         # launch 'telnet' on second navigator
         from twisted.internet import reactor
         self.other_factory = ReconnectingFactory()
@@ -150,26 +162,50 @@ class ProfileTest(NetworkTest):
         # wait for connection to app establisehd
         util.wait(self.assertOtherMessage("Ready"))
         util.wait(self.assertOtherResponse("connect bots.netofpeers.net:8554", "Connected"))
-        self.other_factory.sendLine("go 0.6 0.8")
-    setUp.timeout = 6
+        return self.assertOtherResponse("go 0.15 0.35", "ok")
+    setUp.timeout = 8
+
 
     def tearDown(self):
         # disconnect first one
+        util.wait(self.assertResponse("disconnect", "Disconnected"))
         NetworkTest.tearDown(self)
         # second one
+        util.wait(self.assertOtherResponse("disconnect", "Disconnected"))
         self.other_factory.stopTrying()
         self.other_factory.stopFactory()
         self.other_connector.disconnect()
 
     def test_where(self):
         util.wait(self.assertPosition("0.1 0.3"))
-        return self.assertOtherPosition("0.6 0.8")
+        return self.assertOtherPosition("0.15 0.35")
     test_where.timeout = 2
 
-    def test_jump(self):
-        self.factory.sendLine("jump slp://192.33.178.29:6004")
-        return self.assertPosition("0.6 0.8", rounding=0.05)
-    test_jump.timeout = 2
+    def test_who(self):
+        return self.assertResponse("who profile", "6000_4_c3496a331b70bdd09253fd9d504822dd85fd3525")
+    test_who.timeout = 2
+
+    def test_view_profile(self):
+        util.wait(self.assertResponse("who profile", "6000_4_c3496a331b70bdd09253fd9d504822dd85fd3525"))
+        return self.assertResponse("menu 6000_4_c3496a331b70bdd09253fd9d504822dd85fd3525 View profile...",
+                                   "File document for bruce")
+    test_view_profile.timeout = 4
+
+    def test_view_blog(self):
+        util.wait(self.assertResponse("who profile", "6000_4_c3496a331b70bdd09253fd9d504822dd85fd3525"))
+        return self.assertResponse("menu 6000_4_c3496a331b70bdd09253fd9d504822dd85fd3525 View blog...",
+                                   "[Hey Buddy! How are you? (0), Nice world, isn't it? (0)]")
+    test_view_blog.timeout = 4
+    
+    def test_view_files(self):
+        util.wait(self.assertResponse("who profile", "6000_4_c3496a331b70bdd09253fd9d504822dd85fd3525"))
+        return self.assertResponse("menu 6000_4_c3496a331b70bdd09253fd9d504822dd85fd3525 Get files...",
+                                   """.ls_colors
+02. y'a une fille qu'habite chez moi .mp3
+01. bon anniversaire.mp3
+03. v%G￿%@lo.mp3
+""")
+    test_view_files.timeout = 4
 
 # Network classes
 # ===============
@@ -178,7 +214,12 @@ class SimpleProtocol(LineReceiver):
     def connectionMade(self):
         self.factory.sendLine = self.sendLine
 
+    def sendLine(self, line):
+        #print "####", line
+        LineReceiver.sendLine(self, line)
+
     def lineReceived(self, data):
+        #print "****", data
         if not self.factory.deferred.empty():
             self.factory.deferred.get().callback(data)
         
@@ -211,9 +252,11 @@ def main():
     trial.run()
     
 if __name__ == '__main__':
-    import os
-    print "./launch.py"
-    os.spawnv(os.P_NOWAIT, "./launch.py", ["launch.py"])
-    print "./launch.py -p 23501"
-    os.spawnv(os.P_NOWAIT, "./launch.py", ["launch.py", "-p",  "23501"])
-    main()
+    import socket
+    sock = socket.socket()
+    try:
+        sock.Bind("localhost", LOCAL_PORT)
+        sock.close()
+        print "be sure to execute ./launch.py -d first"
+    except:
+        main()

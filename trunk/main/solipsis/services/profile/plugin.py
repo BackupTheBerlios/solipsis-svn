@@ -144,17 +144,17 @@ class Plugin(ServicePlugin):
     # Service methods
     def modify_profile(self, deferred=None):
         """display profile once loaded"""
-        if self.editor_frame:
+        if not self.editor_frame is None:
             self.editor_frame.Show()
-        else:
-            return str(get_facade()._desc)
+        if not deferred is None:
+            deferred.callback(str(get_facade()._desc))
             
     def filter_profile(self, deferred=None):
         """display profile once loaded"""
         if self.filter_frame:
             self.filter_frame.Show()
-        else:
-            return str(get_filter_facade()._desc)
+        if not deferred is None:
+            deferred.callback(str(get_filter_facade()._desc))
             
 #     def show_profile(self, peer_id):
 #         """display profile once loaded"""
@@ -163,18 +163,21 @@ class Plugin(ServicePlugin):
 
     def get_profile(self, peer_id, deferred=None):
         """request downwload of profile"""
-        deferred = self.network.get_profile(peer_id)
-        deferred and deferred.addCallback(self._on_new_profile, peer_id)
+        on_done = self.network.get_profile(peer_id)
+        on_done.addCallback(self._on_new_profile, peer_id)
+        deferred and on_done.chainDeferred(deferred)
 
     def get_blog_file(self, peer_id, deferred=None):
         """request downwload of blog"""
-        deferred = self.network.get_blog_file(peer_id)
-        deferred and deferred.addCallback(self._on_new_blog, peer_id)
+        on_done = self.network.get_blog_file(peer_id)
+        on_done.addCallback(self._on_new_blog, peer_id)
+        deferred and on_done.chainDeferred(deferred)
 
     def select_files(self, peer_id, deferred=None):
         """request downwload of list of shared files"""
-        deferred = self.network.get_shared_files(peer_id)
-        deferred and deferred.addCallback(self._on_shared_files, peer_id)
+        on_done = self.network.get_shared_files(peer_id)
+        on_done.addCallback(self._on_shared_files, peer_id)
+        deferred and on_done.chainDeferred(deferred)
 
     # side method
     def get_files(self, peer_id, file_descriptors):
@@ -190,29 +193,25 @@ class Plugin(ServicePlugin):
     # callbacks methods
     def _on_new_profile(self, document, peer_id):
         """store and display file object corresponding to profile"""
-        print "downloaded profile", peer_id
-        get_facade().fill_data((peer_id, document))
         if self.viewer_frame:
             self.viewer_frame.profile_dlg.activate()
             self.viewer_frame.profile_dlg.Show()
-        else:
-            return str(document)
+        get_facade().fill_data((peer_id, document))
+        return str(document)
             
     def _on_new_blog(self, blog, peer_id):
         """store and display file object corresponding to blog"""
-        get_facade().fill_blog((peer_id, blog))
         if self.viewer_frame:
             self.viewer_frame.peer_dlg.activate()
-        else:
-            return str(blog)
+        get_facade().fill_blog((peer_id, blog))
+        return str(blog)
     
     def _on_shared_files(self, files, peer_id):
         """store and display file object corresponding to blog"""
-        get_facade().fill_shared_files((peer_id, files))
         if self.viewer_frame:
             self.viewer_frame.file_dlg.activate()
-        else:
-            return str(files)
+        get_facade().fill_shared_files((peer_id, files))
+        return str(files)
     
     def _on_all_files(self):
         """store and display file object corresponding to blog"""

@@ -30,7 +30,7 @@ from solipsis.navigator.main import build_params
 from solipsis.navigator.netclient.app import NavigatorApp
 from solipsis.navigator.netclient.tests import LOCAL_PORT
 
-USAGE = "launch.py [-t] [-p PORT] [-f FILE]"
+USAGE = "launch.py [-t] [-p PORT] [-f FILE] [-d]"
 
 def run():
     # get conf file
@@ -48,18 +48,28 @@ def run():
     parser.add_option("-f", "--config-file",
                       action="store", dest="conf_file", default=conf_file,
                       help="file to read configuration from")
+    parser.add_option("-d", "--dual",
+                      action="store_true", dest="dual", default=False,
+                      help="launch two processes on port 23500 & 23501")
     options, args = parser.parse_args()
     sys.argv = []
-    # app needs conf env
-    os.chdir(root_path)
-    # launch application
-    params = build_params(options.conf_file)
-    params.testing = options.testing
-    params.local_port = int(options.port)
-    try:
-        navigator = NavigatorApp(params=params)
-    except CannotListenError, err:
-        print err
+    if options.dual:
+        # launch two applications
+        print "./launch.py"
+        os.spawnv(os.P_NOWAIT, "./launch.py", ["launch.py"])
+        print "./launch.py -p 23501"
+        os.spawnv(os.P_NOWAIT, "./launch.py", ["launch.py", "-p",  "23501"])
+    else:
+        # app needs conf env
+        os.chdir(root_path)
+        params = build_params(options.conf_file)
+        params.testing = options.testing
+        params.local_port = int(options.port)
+        # launch application
+        try:
+            navigator = NavigatorApp(params=params)
+        except CannotListenError, err:
+            print err
 
 if __name__ == "__main__":
     run()

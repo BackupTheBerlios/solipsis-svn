@@ -113,7 +113,7 @@ COMMANDS = {"about":   Commands("about", "display general information"),
             "menu":    Commands("menu", "display peer menu", None, None,
                                 converter=lambda s: s.split(" ", 1)),
             "help":    Commands("help", "display help [on cmd]",
-                                converter=lambda s: s.split(" "))}
+                                converter=lambda s: s.split(" ")),}
 
 class SolipsisUiProtocol(basic.LineReceiver):
 
@@ -185,10 +185,12 @@ class SolipsisUiFactory(protocol.ServerFactory):
 
     def do_jump(self, deferred, adress):
         self.app._OnJumpNear(adress)
+        self.app.do_wait(deferred)
 
     def do_go(self, deferred, x, y):
         stream = StringIO()
         self.app._OnJumpPos((x, y))
+        self.app.do_wait(deferred)
 
     def do_where(self, deferred):
         return self.app.get_position()
@@ -204,11 +206,13 @@ class SolipsisUiFactory(protocol.ServerFactory):
 
     def do_menu(self, deferred, peer_id, command=None):
         commands = self.app.get_menu(peer_id)
-        print "COM", command
         if not command is None and command in commands:
             return commands[command](deferred)
         else:
-            return '\n'.join(commands.keys())
+            if isinstance(commands, str):
+                return commands
+            else:
+                return '\n'.join(commands.keys())
 
     def do_help(self, deferred, *args):
         str_stream = StringIO()

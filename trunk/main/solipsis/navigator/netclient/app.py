@@ -40,6 +40,8 @@ class NavigatorApp(BaseNavigatorApp):
         """available kargs: port"""
         BaseNavigatorApp.__init__(self, params, *args, **kargs)
         self.config_data = ConfigData(self.params)
+        self.waiting = True
+        self.waiting_deferred = None
         self.initialised = False
         self.factory = None
         self.listener = None
@@ -128,6 +130,9 @@ class NavigatorApp(BaseNavigatorApp):
             return "Not connected"
         return self.services.GetActions(peer_id)
 
+    def do_wait(self, deferred):
+        self.waiting_deferred = deferred
+
     #
     # Helpers
     #
@@ -157,6 +162,9 @@ class NavigatorApp(BaseNavigatorApp):
         """
         Set "waiting" state of the interface.
         """
-        pass
+        self.waiting = waiting
+        if not waiting and not self.waiting_deferred is None:
+            self.waiting_deferred.callback("ok")
+            self.waiting_deferred = None
 
 

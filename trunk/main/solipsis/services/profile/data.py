@@ -291,7 +291,8 @@ class SharedFiles(dict):
         return result
 
     def __str__(self):
-        return "\n".join(files.keys())
+        result = [container.name for container in self.flatten()]
+        return "\n".join(result)
 
 class ContainerMixin:
     """Factorize sharing tools on containers"""
