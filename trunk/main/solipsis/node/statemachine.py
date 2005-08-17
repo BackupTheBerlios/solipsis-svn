@@ -114,6 +114,7 @@ class StateMachine(object):
         self.topology = Topology()
         self.logger = logger
         self.parser = protocol.Parser()
+        self.node_connector = None
 
         # Expected number of neighbours (in awareness radius)
         self.expected_neighbours = params.expected_neighbours
@@ -122,7 +123,6 @@ class StateMachine(object):
         # Max number of connections (total)
         self.max_connections = int(self.expected_neighbours * self.peer_neighbour_ratio)
 
-        self.peer_sender = None
         # Dispatch tables
         self.peer_dispatch_cache = {}
         self.state_dispatch = {}
@@ -169,11 +169,11 @@ class StateMachine(object):
 
         self.topology.Reset(origin=self.node.position.GetXY())
 
-    def Init(self, peer_sender, event_sender, bootup_addresses):
+    def Init(self, node_connector, event_sender, bootup_addresses):
         """
         Initialize the state machine. This is mandatory.
         """
-        self.peer_sender = peer_sender
+        self.node_connector = node_connector
         self.event_sender = event_sender
         self.bootup_addresses = bootup_addresses
 
@@ -386,7 +386,7 @@ class StateMachine(object):
         """
         A new peer is contacting us.
         """
-        peer = self._Peer(args)
+        peer = Peer.FromArgs(args)
         peer.hold_time = args.hold_time
         topology = self.topology
 
@@ -413,7 +413,7 @@ class StateMachine(object):
         A peer accepts our connection proposal.
         """
         # TODO: check that we sent a HELLO message to this peer
-        peer = self._Peer(args)
+        peer = Peer.FromArgs(args)
         peer.hold_time = args.hold_time
         topology = self.topology
 
@@ -528,7 +528,7 @@ class StateMachine(object):
         A peer answers us a BEST message.
         """
         # Instantiate the best peer
-        peer = self._Peer(args)
+        peer = Peer.FromArgs(args)
         assert self.future_topology is not None, "BEST received but we have no future topology!"
         distance = self.future_topology.RelativeDistance(peer.position.GetXY())
 
@@ -583,7 +583,7 @@ class StateMachine(object):
         """
         A peer signals another peer moving towards us.
         """
-        peer = self._RemotePeer(args)
+        peer = Peer.FromRemoteArgs(args)
         id_ = peer.id_
 
         # Filter 1: don't connect with ourselves
@@ -608,7 +608,7 @@ class StateMachine(object):
         """
         A peer replies to us with an AROUND message.
         """
-        peer = self._RemotePeer(args)
+        peer = Peer.FromRemoteArgs(args)
         assert self.future_topology is not None, "Processing an AROUND message but we have no future topology!"
 
         # Check whether we came back to our BEST peer
@@ -687,7 +687,7 @@ class StateMachine(object):
         """
         A peer notifies us it UPDATEs its characteristics.
         """
-        peer = self._Peer(args)
+        peer = Peer.FromArgs(args)
 
         if not self.topology.HasPeer(peer.id_):
             self.logger.info('UPDATE from %s, but we are not connected' % peer.id_)
@@ -745,7 +745,7 @@ class StateMachine(object):
             self.logger.warning("Error, reception of unexpected SUGGEST message from peer '%s' at address '%s'"
                 % (str(args.id_), args.address.ToString()))
             return
-        peer = self._Peer(args)
+        peer = Peer.FromArgs(args)
         # If the client asked for it, we check the peer has the expected id
         if self.jump_near_expected_id:
             if peer.id_ != self.jump_near_expected_id:
@@ -1178,28 +1178,6 @@ class StateMachine(object):
     #
     # Protocol helpers
     #
-    def _Peer(self, args):
-        """
-        Returns a Peer created from the given message arguments.
-        """
-        return Peer(
-            address = args.address,
-            awareness_radius = args.awareness_radius,
-            id_ = args.id_,
-            position = args.position,
-            )
-
-    def _RemotePeer(self, args):
-        """
-        Returns a Peer created from the given "Remote-*" message arguments.
-        """
-        return Peer(
-            address = args.remote_address,
-            awareness_radius = args.remote_awareness_radius,
-            id_ = args.remote_id,
-            position = args.remote_position,
-            )
-
     def _PeerMessage(self, request, peer=None, remote_peer=None, future=False):
         """
         Builds a protocol message from the given peer(s).
@@ -1228,12 +1206,6 @@ class StateMachine(object):
         # Then remove unnecessary fields
         self.parser.StripMessage(message)
         return message
-
-    def _FillMeta(self, message):
-        a = message.args
-        a.pseudo = self.node.pseudo
-        a.accept_languages = self.node.GetLanguages()
-        a.accept_services = self.node.GetServices()
 
     def _HoldTime(self, address):
         """
@@ -1280,7 +1252,7 @@ class StateMachine(object):
         Send our metadata to a peer.
         """
         msg = self._PeerMessage('QUERYMETA')
-        self._FillMeta(msg)
+        self.node.FillMeta(msg)
         self._SendToPeer(peer, msg)
         return True
 
@@ -1289,7 +1261,7 @@ class StateMachine(object):
         Send our metadata to a peer.
         """
         msg = self._PeerMessage('META')
-        self._FillMeta(msg)
+        self.node.FillMeta(msg)
         self._SendToPeer(peer, msg)
         return True
 
@@ -1315,10 +1287,10 @@ class StateMachine(object):
         """
         Send a Solipsis message to a given address.
         """
-        if self.peer_sender is None:
-            self.logger.error("Attempting to send message but sender method is not initialized")
+        if self.node_connector is None:
+            self.logger.error("Attempting to send message but no NodeConnector available")
             return
-        self.peer_sender(message=message, address=address)
+        self.node_connector.SendToAddress(message=message, address=address)
         try:
             self.sent_messages[message.request] += 1
         except KeyError:

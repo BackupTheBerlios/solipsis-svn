@@ -1,17 +1,17 @@
 # <copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
 # Copyright (C) 2002-2005 France Telecom R&D
-# 
+#
 # This software is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
 # version 2.1 of the License, or (at your option) any later version.
-# 
+#
 # This software is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -61,8 +61,6 @@ class NodeLauncher(object):
         self.host = self.params.host or "127.0.0.1"
         self.port = self.params.port + pool_num
         node = Node(self.reactor, self.params)
-#         node.SetRandomPosition()
-#         node.SetRandomPseudo()
         self.logger = logging.getLogger("peer.port_%d" % self.port)
         self.logger.setLevel(logging.DEBUG)
         self.state_machine = StateMachine(self.reactor, self.params, node, self.logger)
@@ -109,8 +107,7 @@ class NodeLauncher(object):
         Launch the node: initiate network connections and start the state machine.
         """
         # Open Solipsis main port
-        sender = self.node_connector.SendMessage
-        self.state_machine.Init(sender, self.remote_control, bootup_entities)
+        self.state_machine.Init(self.node_connector, self.remote_control, bootup_entities)
         try:
             self.node_connector.Start(self.port)
         except Exception, e:

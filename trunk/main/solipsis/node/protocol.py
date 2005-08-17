@@ -35,11 +35,12 @@ from solipsis.util.bidict import bidict
 from solipsis.util.entity import Service
 
 VERSION = 1.0
+SAFE_VERSION = 1.0
 BANNER = "SOLIPSIS/"
 CHARSET = "utf-8"
 
 def banner(version=None):
-    return BANNER + str(version or VERSION)
+    return BANNER + str(version)
 
 #
 # This is a list of allowed arguments in the Solipsis protocol.
@@ -57,6 +58,7 @@ _args = [
     ('ARG_CLOCKWISE', 'Clockwise', 'clockwise'),
     ('ARG_ID', 'Id', 'id_'),
     ('ARG_POSITION', 'Position', 'position'),
+    ('ARG_VERSION', 'Version', 'version'),
 
     ('ARG_HOLD_TIME', 'Hold-Time', 'hold_time'),
     ('ARG_NEEDS_MIDDLEMAN', 'Needs-Middleman', 'needs_middleman'),
@@ -66,6 +68,7 @@ _args = [
     ('ARG_REMOTE_AWARENESS_RADIUS', 'Remote-Awareness-Radius', 'remote_awareness_radius'),
     ('ARG_REMOTE_ID', 'Remote-Id', 'remote_id'),
     ('ARG_REMOTE_POSITION', 'Remote-Position', 'remote_position'),
+    ('ARG_REMOTE_VERSION', 'Remote-Version', 'remote_version'),
 
     ('ARG_REMOTE_NEEDS_MIDDLEMAN', 'Remote-Needs-Middleman', 'remote_needs_middleman'),
 
@@ -106,6 +109,7 @@ _aliases = {
     ARG_REMOTE_ID:                  ARG_ID,
     ARG_REMOTE_NEEDS_MIDDLEMAN:     ARG_NEEDS_MIDDLEMAN,
     ARG_REMOTE_POSITION:            ARG_POSITION,
+    ARG_REMOTE_VERSION:             ARG_VERSION,
 }
 
 def _init_table(table, aliases=_aliases, transform=(lambda x: x)):
@@ -153,6 +157,8 @@ _syntax_table = {
     ARG_SERVICE_ADDRESS  : r'[^\s]*',
     # String of latin alphabet characters, digits and hyphens/underscores
     ARG_SERVICE_ID       : r'[-_/\w\d]+',
+    # Floating point number
+    ARG_VERSION          : r'\d+\.\d+',
 }
 
 ARGS_SYNTAX = _init_table(_syntax_table,
@@ -214,13 +220,13 @@ _from_string = {
     ARG_SEND_DETECTS:       (lambda s: s == 'now'),
     ARG_SERVICE_ID:         str,
     ARG_SERVICE_ADDRESS:    (lambda a: str(a)),
+    ARG_VERSION:            (lambda v: float(v)),
 }
 
 _to_string = {
     ARG_ACCEPT_LANGUAGES:   _accept_languages_to_string,
     ARG_ACCEPT_SERVICES:    _accept_services_to_string,
     ARG_ADDRESS:            (lambda a: a.ToString()),
-    # TODO: change all coord and distance types to float
     ARG_AWARENESS_RADIUS:   (lambda x: str(long(x))),
     ARG_BEST_DISTANCE:      (lambda x: str(long(x))),
     ARG_CLOCKWISE:          (lambda c: c and "+1" or "-1"),
@@ -232,6 +238,7 @@ _to_string = {
     ARG_SEND_DETECTS:       (lambda x: x and "now" or "later"),
     ARG_SERVICE_ID:         str,
     ARG_SERVICE_ADDRESS:    (lambda a: a is not None and str(a) or ""),
+    ARG_VERSION:            (lambda v: str(v)),
 }
 
 ARGS_FROM_STRING = _init_table(_from_string)
@@ -242,7 +249,10 @@ ARGS_TO_STRING = _init_table(_to_string)
 # Declaration of expected arguments for each protocol request
 #
 
-# Helpers to type faster ;)
+# This dict contains a request table for each Solipsis protocol version
+REQUESTS = {}
+
+# 1.0 - First stable version of the Solipsis protocol
 NODE_ARGS = [
     ARG_ADDRESS,
     ARG_AWARENESS_RADIUS,
@@ -257,10 +267,6 @@ REMOTE_ARGS = [
     ARG_REMOTE_POSITION,
 ]
 
-# This dict contains a request table for each Solipsis protocol version
-REQUESTS = {}
-
-# 1.0 - First stable version of the Solipsis protocol
 REQUESTS[1.0] = {
     'CLOSE'      : [ ARG_ID ],
     'CONNECT'    : NODE_ARGS + [ ARG_HOLD_TIME ],
@@ -286,11 +292,14 @@ REQUESTS[1.0] = {
     'SERVICEDATA': [ ARG_ID, ARG_SERVICE_ID, ARG_PAYLOAD ],
 }
 
-# 1.1 - Add parameters for NAT information
+# 1.1 - Add parameters for NAT information and protocol version handling
 REQUESTS[1.1] = deepcopy(REQUESTS[1.0])
-REQUESTS[1.1]['HELLO'] += [ ARG_NEEDS_MIDDLEMAN ]
-REQUESTS[1.1]['CONNECT'] += [ ARG_NEEDS_MIDDLEMAN ]
-
+REQUESTS[1.1]['HELLO'] += [ ARG_VERSION, ARG_NEEDS_MIDDLEMAN ]
+REQUESTS[1.1]['CONNECT'] += [ ARG_VERSION, ARG_NEEDS_MIDDLEMAN ]
+REQUESTS[1.1]['AROUND'] += [ ARG_REMOTE_VERSION, ARG_REMOTE_NEEDS_MIDDLEMAN ]
+REQUESTS[1.1]['DETECT'] += [ ARG_REMOTE_VERSION, ARG_REMOTE_NEEDS_MIDDLEMAN ]
+REQUESTS[1.1]['FOUND'] += [ ARG_REMOTE_VERSION, ARG_REMOTE_NEEDS_MIDDLEMAN ]
+REQUESTS[1.1]['NEAREST'] += [ ARG_REMOTE_VERSION, ARG_REMOTE_NEEDS_MIDDLEMAN ]
 
 class Message(object):
     """
@@ -332,6 +341,11 @@ class Parser(object):
         lines = []
         args = message.args.__dict__
         payload = ""
+        if not version:
+            try:
+                version = message.version
+            except AttributeError:
+                version = SAFE_VERSION
 
         # 1. Request and protocol version
         lines.append(message.request + " " + banner(version))
@@ -347,7 +361,6 @@ class Parser(object):
         # In debug mode, parse our own message to check it is well-formed
         assert self.ParseMessage(data, parse_only=True), "Bad generated message: " + data
         return data
-
 
     def ParseMessage(self, data, parse_only=False):
         """
