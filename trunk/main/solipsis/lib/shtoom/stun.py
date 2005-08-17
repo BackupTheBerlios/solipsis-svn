@@ -218,8 +218,7 @@ class StunDiscoveryProtocol(DatagramProtocol, _StunBase):
         self.natType = None
 #         self.servers = [(socket.gethostbyname(host), port)
 #                                             for host, port in servers]
-        self.servers = [(socket.gethostbyname(host), port)
-                                            for host, port in servers]
+        self.servers = [(host, port) for host, port in servers]
         super(StunDiscoveryProtocol, self).__init__(*args, **kwargs)
 
     def initialStunRequest(self, address):
