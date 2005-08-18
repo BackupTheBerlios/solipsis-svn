@@ -150,8 +150,7 @@ class NodeConnector(object):
 
     def SendToPeer(self, peer, message):
         """
-        Send a Solipsis message to a peer, possibly
-        using a middleman with the provided address ('on_behalf').
+        Send a Solipsis message to a peer, possibly using a middleman.
         """
         if peer.id_ == self.node.id_:
             self.logger.error("we tried to send a message (%s) to ourselves" % message.request)
