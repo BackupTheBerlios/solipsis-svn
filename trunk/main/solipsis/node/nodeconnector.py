@@ -23,8 +23,9 @@ from twisted.internet.protocol import DatagramProtocol
 
 from solipsis.util.utils import set
 from solipsis.util.address import Address
-from peer import Peer
 import protocol
+from peer import Peer
+from delayedcaller import DelayedCaller
 
 
 class NodeProtocol(DatagramProtocol):
@@ -32,9 +33,9 @@ class NodeProtocol(DatagramProtocol):
         self.node_connector = node_connector
 
     def datagramReceived(self, data, address):
-        self.node_connector.OnMessageReceived(data, address)
+        self.node_connector.OnMessageReceived(address, data)
 
-    def SendData(self, data, address):
+    def SendData(self, address, data):
         self.transport.write(data, address)
 
 
@@ -45,12 +46,27 @@ class NodeConnector(object):
         self.reactor = reactor
         self.params = params
         self.state_machine = state_machine
+        self.node = state_machine.node
         self.logger = logger
         self.parser = protocol.Parser()
         self.node_protocol = NodeProtocol(self)
+        self.caller = DelayedCaller(self.reactor)
 
-        self.known_peers = {}
+        # Statistics
+        self.received_messages = {}
+        self.sent_messages = {}
+
+        self.Reset()
+
+    def Reset(self):
+        # Storage of peers we are currently connected to
         self.current_peers = {}
+
+        # Delayed calls for connection heartbeat and timeout
+        self.dc_peer_heartbeat = {}
+        self.dc_peer_timeout = {}
+
+        self.caller.Reset()
 
     def Start(self, port):
         """
@@ -64,7 +80,37 @@ class NodeConnector(object):
         """
         self.listening.stopListening()
 
-    def OnMessageReceived(self, data, address):
+    def AddPeer(self, peer):
+        """
+        Add a peer to the list of connected peers.
+        """
+        self.current_peers[peer.id_] = peer
+
+        # Setup connection heartbeat callbacks
+        def msg_receive_timeout():
+            self.state_machine._Verbose("timeout (%s) => closing connection with '%s'" % (str(self.node.id_), str(peer.id_)))
+            self.state_machine._CloseConnection(peer)
+        def msg_send_timeout():
+            message = protocol.Message('HEARTBEAT')
+            message.args.id_ = self.node.id_
+            self.SendToPeer(peer, message)
+
+        # Keepalive heuristic (a la BGP)
+        keepalive = peer.hold_time / 3.0
+        self.dc_peer_heartbeat[peer.id_] = self.caller.CallPeriodically(keepalive, msg_send_timeout)
+        self.dc_peer_timeout[peer.id_] = self.caller.CallPeriodically(peer.hold_time, msg_receive_timeout)
+        return True
+
+    def RemovePeer(self, peer_id):
+        """
+        Remove a peer we were connected to.
+        """
+        self.dc_peer_heartbeat[peer_id].Cancel()
+        self.dc_peer_timeout[peer_id].Cancel()
+        del self.dc_peer_heartbeat[peer_id]
+        del self.dc_peer_timeout[peer_id]
+
+    def OnMessageReceived(self, address, data):
         """
         Called when a Solipsis message is received.
         """
@@ -75,28 +121,91 @@ class NodeConnector(object):
                 self.logger.debug("<<<< received from %s:%d\n%s" % (host, port, data))
         except Exception, e:
             print str(e)
+            return
+        # Stats
+        try:
+            self.received_messages[message.request] += 1
+        except KeyError:
+            self.received_messages[message.request] = 1
+        # Reset heartbeat timeout, if applicable
+        try:
+            peer_id = message.args.id_
+        except AttributeError:
+            pass
         else:
-            self.state_machine.PeerMessageReceived(message.request, message.args)
+            if peer_id in self.dc_peer_timeout:
+                self.dc_peer_timeout[peer_id].Reschedule()
+        self.state_machine.PeerMessageReceived(message.request, message.args)
 
-    def SendToAddress(self, message, address):
-        self._SendMessage(message, address)
-
-    #
-    # Internal methods
-    #
-
-    def _SendMessage(self, message, address):
+    def SendToAddress(self, address, message):
         """
         Send a Solipsis message to an address.
         """
         data = self.parser.BuildMessage(message)
-        self._SendData(data, address, log=message.request not in self.no_log)
+        return self._SendData(address, data, log=message.request not in self.no_log)
 
-    def _SendData(self, data, address, log=False):
+    def SendToPeer(self, peer, message, on_behalf_peer=None):
+        """
+        Send a Solipsis message to a peer, possibly
+        using a middleman.
+        """
+        if peer.id_ == self.node.id_:
+            self.logger.error("we tried to send a message (%s) to ourselves" % message.request)
+            return False
+        address = peer.address
+        data = self.parser.BuildMessage(message, version=peer.protocol_version)
+        # Also send message through middleman if remote NAT hole not punched yet
+        if peer.id_ not in self.current_peers:
+            if peer.needs_middleman:
+                if not on_behalf_peer:
+                    print "cannot contact '%s' without a middleman" % peer.id_
+                    return False
+                else:
+                    middleman_msg = protocol.Message('MIDDLEMAN')
+                    middleman_msg.args.id_ = self.node.id_
+                    middleman_msg.args.remote_id = peer.id_
+                    middleman_msg.args.payload = data
+                    middleman_data = self.parser.BuildMessage(middleman_msg,
+                        version=on_behalf_peer.protocol_version)
+                    if not self._SendData(on_behalf_peer.address, middleman_data):
+                        return False
+        else:
+            address = self.current_peers[peer.id_].address
+        # Update stats
+        try:
+            self.sent_messages[message.request] += 1
+        except KeyError:
+            self.sent_messages[message.request] = 1
+        # Really send message
+        if not self._SendData(address, data):
+            return False
+        # Heartbeat handling
+        if peer.id_ in self.dc_peer_heartbeat:
+            self.dc_peer_heartbeat[peer.id_].Reschedule()
+        return True
+
+
+    #
+    # Statistics handling
+    #
+    def DumpStats(self):
+        requests = self.sent_messages.keys()
+        requests.extend([k for k in self.received_messages.keys() if k not in requests])
+        requests.sort()
+        self._Verbose("\n... Message statistics ...")
+        for r in requests:
+            self._Verbose("%s: %d sent, %d received" % (r, self.sent_messages.get(r, 0), self.received_messages.get(r, 0)))
+
+
+    #
+    # Internal methods
+    #
+    def _SendData(self, address, data, log=False):
         if isinstance(address, Address):
             host, port = (address.host, address.port)
         else:
             host, port = address
-        self.node_protocol.SendData(data, (host, port))
+        self.node_protocol.SendData((host, port), data)
         if log:
             self.logger.debug(">>>> sending to %s:%d\n%s" % (host, port, data))
+        return True

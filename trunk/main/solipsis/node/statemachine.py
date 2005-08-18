@@ -64,7 +64,7 @@ class StateMachine(object):
     # With local nodes, we choose a very long timeout which enables us
     # to minimize the number of HEARTBEAT messages in a mass-hosting setup
     minimum_hold_time = 30
-    local_hold_time = 1200
+    local_hold_time = 30 #1200
     remote_hold_time = 30
 
     # Various delays
@@ -127,10 +127,6 @@ class StateMachine(object):
         self.peer_dispatch_cache = {}
         self.state_dispatch = {}
 
-        # Statistics
-        self.received_messages = {}
-        self.sent_messages = {}
-
         # Delayed calls
         self.caller = DelayedCaller(self.reactor)
         self.state_caller = DelayedCaller(self.reactor)
@@ -156,8 +152,6 @@ class StateMachine(object):
         self.jump_near_expected_id = None
 
         # Delayed calls
-        self.dc_peer_heartbeat = {}
-        self.dc_peer_timeout = {}
         self.dc_locating_timeout = None
         self.meta_notify_ids = set()
         self.dc_meta_notify = None
@@ -242,26 +236,6 @@ class StateMachine(object):
             self.logger.info("Ignoring unexpected message '%s' in state '%s'" % (request, self.state.__class__.__name__))
         else:
             func(args)
-            try:
-                self.received_messages[request] += 1
-            except KeyError:
-                self.received_messages[request] = 1
-            # Heartbeat handling
-            try:
-                id_ = args.id_
-            except AttributeError:
-                pass
-            else:
-                if id_ in self.dc_peer_timeout:
-                    self.dc_peer_timeout[id_].Reschedule()
-
-    def DumpStats(self):
-        requests = self.sent_messages.keys()
-        requests.extend([k for k in self.received_messages.keys() if k not in requests])
-        requests.sort()
-        self._Verbose("\n... Message statistics ...")
-        for r in requests:
-            self._Verbose("%s: %d sent, %d received" % (r, self.sent_messages.get(r, 0), self.received_messages.get(r, 0)))
 
 
     #
@@ -896,35 +870,19 @@ class StateMachine(object):
         """
         Add a peer and send the necessary notification messages.
         """
-        if not self.topology.AddPeer(peer):
-            self.logger.warning("sed peer '%s'" % peer.id_)
+        if not self.topology.AddPeer(peer) or not self.node_connector.AddPeer(peer):
+            self.logger.warning("ignoring peer '%s'" % peer.id_)
             return
-
-        def msg_receive_timeout():
-            self._Verbose("timeout (%s) => closing connection with '%s'" % (str(self.node.id_), str(peer.id_)))
-            self._CloseConnection(peer)
-        def msg_send_timeout():
-            self._SendToPeer(peer, self._PeerMessage('HEARTBEAT'))
 
         # Notify remote control
         self.event_sender.event_NewPeer(peer)
-
-        # Setup heartbeat handling callbacks
-        # Keepalive heuristic (a la BGP)
-        keepalive = peer.hold_time / 3.0
-        self.dc_peer_heartbeat[peer.id_] = self.caller.CallPeriodically(keepalive, msg_send_timeout)
-        self.dc_peer_timeout[peer.id_] = self.caller.CallPeriodically(peer.hold_time / 2.0, msg_receive_timeout)
-
+        # Check topology properties
         self._CheckNumberOfPeers(check_ar=False)
 
     def _RemovePeer(self, id_):
         """
         Remove a peer and send the necessary notification messages.
         """
-        self.dc_peer_heartbeat[id_].Cancel()
-        self.dc_peer_timeout[id_].Cancel()
-        del self.dc_peer_heartbeat[id_]
-        del self.dc_peer_timeout[id_]
         try:
             self.meta_notify_ids.remove(id_)
         except KeyError:
@@ -1226,7 +1184,6 @@ class StateMachine(object):
         now = time.time()
         if now - last > self.hello_dampening:
             self.last_hellos[address] = now
-            #~ msg = self._PeerMessage('HELLO', future=self.future_position is not None)
             msg = self._PeerMessage('HELLO')
             msg.args.send_detects = send_detects
             msg.args.hold_time = self._HoldTime(address)
@@ -1241,7 +1198,6 @@ class StateMachine(object):
         # TODO: manage repeted connection failures and
         # optionally cancel request (sending CLOSE and
         # returning False)
-        #~ msg = self._PeerMessage('CONNECT', future=self.future_position is not None)
         msg = self._PeerMessage('CONNECT')
         msg.args.hold_time = self._HoldTime(peer.address)
         self._SendToPeer(peer, msg)
@@ -1287,31 +1243,13 @@ class StateMachine(object):
         """
         Send a Solipsis message to a given address.
         """
-        if self.node_connector is None:
-            self.logger.error("Attempting to send message but no NodeConnector available")
-            return
-        self.node_connector.SendToAddress(message=message, address=address)
-        try:
-            self.sent_messages[message.request] += 1
-        except KeyError:
-            self.sent_messages[message.request] = 1
+        self.node_connector.SendToAddress(address, message)
 
     def _SendToPeer(self, peer, message):
         """
         Send a Solipsis message to a known peer.
         """
-        if peer.id_ == self.node.id_:
-            self.logger.error("we tried to send a message (%s) to ourselves" % message.request)
-            return
-        self._SendToAddress(peer.address, message)
-        # Heartbeat handling
-        try:
-            id_ = message.args.id_
-        except AttributeError:
-            pass
-        else:
-            if id_ in self.dc_peer_heartbeat:
-                self.dc_peer_heartbeat[id_].Reschedule()
+        self.node_connector.SendToPeer(peer, message)
 
     #
     # Various stuff

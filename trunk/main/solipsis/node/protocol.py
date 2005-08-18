@@ -34,7 +34,7 @@ from solipsis.util.address import Address
 from solipsis.util.bidict import bidict
 from solipsis.util.entity import Service
 
-VERSION = 1.0
+VERSION = 1.1
 SAFE_VERSION = 1.0
 BANNER = "SOLIPSIS/"
 CHARSET = "utf-8"
@@ -292,14 +292,26 @@ REQUESTS[1.0] = {
     'SERVICEDATA': [ ARG_ID, ARG_SERVICE_ID, ARG_PAYLOAD ],
 }
 
-# 1.1 - Add parameters for NAT information and protocol version handling
+# 1.1 - Add parameters for NAT hole punching and protocol version handling
+FIRST_REMOTE_ARGS = [
+    ARG_ADDRESS,
+    ARG_REMOTE_VERSION,
+    ARG_REMOTE_NEEDS_MIDDLEMAN
+]
+
 REQUESTS[1.1] = deepcopy(REQUESTS[1.0])
-REQUESTS[1.1]['HELLO'] += [ ARG_VERSION, ARG_NEEDS_MIDDLEMAN ]
-REQUESTS[1.1]['CONNECT'] += [ ARG_VERSION, ARG_NEEDS_MIDDLEMAN ]
-REQUESTS[1.1]['AROUND'] += [ ARG_REMOTE_VERSION, ARG_REMOTE_NEEDS_MIDDLEMAN ]
-REQUESTS[1.1]['DETECT'] += [ ARG_REMOTE_VERSION, ARG_REMOTE_NEEDS_MIDDLEMAN ]
-REQUESTS[1.1]['FOUND'] += [ ARG_REMOTE_VERSION, ARG_REMOTE_NEEDS_MIDDLEMAN ]
-REQUESTS[1.1]['NEAREST'] += [ ARG_REMOTE_VERSION, ARG_REMOTE_NEEDS_MIDDLEMAN ]
+REQUESTS[1.1].update({
+    'CONNECT'    : NODE_ARGS + [ ARG_VERSION, ARG_NEEDS_MIDDLEMAN, ARG_HOLD_TIME ],
+    'HELLO'      : NODE_ARGS + [ ARG_VERSION, ARG_NEEDS_MIDDLEMAN, ARG_HOLD_TIME, ARG_SEND_DETECTS ],
+
+    'AROUND'     : FIRST_REMOTE_ARGS + REMOTE_ARGS,
+    'DETECT'     : FIRST_REMOTE_ARGS + REMOTE_ARGS,
+    'FOUND'      : FIRST_REMOTE_ARGS + [ ARG_REMOTE_ID, ARG_REMOTE_ADDRESS, ARG_REMOTE_POSITION ],
+    'NEAREST'    : FIRST_REMOTE_ARGS + [ ARG_REMOTE_ID, ARG_REMOTE_ADDRESS, ARG_REMOTE_POSITION ],
+
+    'MIDDLEMAN'  : [ ARG_ID, ARG_REMOTE_ID, ARG_PAYLOAD ],
+})
+
 
 class Message(object):
     """
@@ -308,7 +320,8 @@ class Message(object):
     class Args(object):
         pass
 
-    def __init__(self, request = ""):
+    def __init__(self, request = "", version=None):
+        self.version = version or SAFE_VERSION
         self.request = request
         self.args = self.Args()
 
@@ -324,11 +337,11 @@ class Parser(object):
     def __init__(self):
         self.logger = logging.getLogger('root')
 
-    def StripMessage(self, message, version=None):
+    def StripMessage(self, message):
         """
         Strip unnecessary parameters from message.
         """
-        _req = REQUESTS[version or VERSION]
+        _req = REQUESTS[message.version]
         required_args = set([ATTRIBUTE_NAMES[arg_id] for arg_id in _req[message.request]])
         args = message.args
         for k in set(args.__dict__) - required_args:
@@ -341,14 +354,12 @@ class Parser(object):
         lines = []
         args = message.args.__dict__
         payload = ""
-        if not version:
-            try:
-                version = message.version
-            except AttributeError:
-                version = SAFE_VERSION
+        version = version or message.version
 
         # 1. Request and protocol version
-        lines.append(message.request + " " + banner(version))
+        first_line = message.request + " " + banner(version)
+        lines.append(first_line)
+#         print ">", first_line
         # 2. Request arguments
         for k, v in args.iteritems():
             arg_id = ATTRIBUTE_NAMES.get_reverse(k)

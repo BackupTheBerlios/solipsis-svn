@@ -33,7 +33,7 @@ class Peer(Entity):
 
         # Other information
         self.needs_middleman = False
-        self.protocol_version = protocol.VERSION
+        self.protocol_version = protocol.SAFE_VERSION
 
         # Time of latest messages received/sent
         self.last_received_message = 0
@@ -68,13 +68,17 @@ class Peer(Entity):
         """
         peer = cls(
             address = args.remote_address,
-            awareness_radius = args.remote_awareness_radius,
             id_ = args.remote_id,
             position = args.remote_position,
         )
         try:
+            peer.awareness_radius = args.remote_awareness_radius
+        except AttributeError:
+            pass
+        try:
             peer.protocol_version = args.remote_version
             peer.needs_middleman = args.remote_needs_middleman
+            print "version", peer.protocol_version
         except AttributeError:
             pass
         return peer

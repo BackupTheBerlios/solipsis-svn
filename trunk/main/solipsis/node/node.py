@@ -24,6 +24,7 @@ from solipsis.util.address import Address
 from solipsis.util.exception import *
 from solipsis.util.utils import CreateSecureId, safe_str, safe_unicode
 from solipsis.util.entity import Entity, Service
+import protocol
 
 
 class Node(Entity):
