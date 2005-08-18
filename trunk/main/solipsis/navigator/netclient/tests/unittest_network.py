@@ -100,7 +100,7 @@ Licensed under the GNU LGPL
 
     def test_connect(self):
         util.wait(self.assertResponse("connect bots.netofpeers.net:8553", "Connected"))
-        util.wait(self.assertResponse("disconnect", "Disconnected"))
+        return self.assertResponse("disconnect", "Disconnected")
     test_connect.timeout = 2
 
     def test_display(self):
@@ -262,11 +262,9 @@ class SimpleProtocol(LineReceiver):
         self.factory.sendLine = self.sendLine
 
     def sendLine(self, line):
-        #print "####", line
         LineReceiver.sendLine(self, line)
 
     def lineReceived(self, data):
-        #print "****", data
         if not self.factory.deferred.empty():
             self.factory.deferred.get().callback(data)
         

@@ -125,7 +125,7 @@ class NavigatorApp(BaseNavigatorApp):
         else:
             return "Not connected"
         
-    def get_menu(self, peer_id=None):
+    def get_action(self, peer_id=None):
         if not self._CheckNodeProxy():
             return "Not connected"
         return self.services.GetActions(peer_id)

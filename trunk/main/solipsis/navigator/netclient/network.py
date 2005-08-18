@@ -205,7 +205,7 @@ class SolipsisUiFactory(protocol.ServerFactory):
         return '\n'.join(self.app.get_peers_by_service(service))
 
     def do_menu(self, deferred, peer_id, command=None):
-        commands = self.app.get_menu(peer_id)
+        commands = self.app.get_action(peer_id)
         if not command is None and command in commands:
             return commands[command](deferred)
         else:
