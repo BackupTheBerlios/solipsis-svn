@@ -61,6 +61,7 @@ class NodeConnector(object):
     def Reset(self):
         # Storage of peers we are currently connected to
         self.current_peers = {}
+        self.known_peers = {}
 
         # Delayed calls for connection heartbeat and timeout
         self.dc_peer_heartbeat = {}
@@ -85,6 +86,7 @@ class NodeConnector(object):
         Add a peer to the list of connected peers.
         """
         self.current_peers[peer.id_] = peer
+        self.known_peers[peer.id_] = peer
 
         # Setup connection heartbeat callbacks
         def msg_receive_timeout():
@@ -105,6 +107,8 @@ class NodeConnector(object):
         """
         Remove a peer we were connected to.
         """
+        del self.current_peers[peer_id]
+        # Cancel delayed calls relating to the peer
         self.dc_peer_heartbeat[peer_id].Cancel()
         self.dc_peer_timeout[peer_id].Cancel()
         del self.dc_peer_heartbeat[peer_id]
@@ -144,31 +148,30 @@ class NodeConnector(object):
         data = self.parser.BuildMessage(message)
         return self._SendData(address, data, log=message.request not in self.no_log)
 
-    def SendToPeer(self, peer, message, on_behalf_peer=None):
+    def SendToPeer(self, peer, message):
         """
         Send a Solipsis message to a peer, possibly
-        using a middleman.
+        using a middleman with the provided address ('on_behalf').
         """
         if peer.id_ == self.node.id_:
             self.logger.error("we tried to send a message (%s) to ourselves" % message.request)
             return False
+        if peer.id_ not in self.known_peers:
+            self.known_peers[peer.id_] = peer
         address = peer.address
         data = self.parser.BuildMessage(message, version=peer.protocol_version)
         # Also send message through middleman if remote NAT hole not punched yet
         if peer.id_ not in self.current_peers:
             if peer.needs_middleman:
-                if not on_behalf_peer:
+                if not peer.middleman_address:
                     print "cannot contact '%s' without a middleman" % peer.id_
                     return False
-                else:
-                    middleman_msg = protocol.Message('MIDDLEMAN')
-                    middleman_msg.args.id_ = self.node.id_
-                    middleman_msg.args.remote_id = peer.id_
-                    middleman_msg.args.payload = data
-                    middleman_data = self.parser.BuildMessage(middleman_msg,
-                        version=on_behalf_peer.protocol_version)
-                    if not self._SendData(on_behalf_peer.address, middleman_data):
-                        return False
+                middleman_msg = protocol.Message('MIDDLEMAN')
+                middleman_msg.args.id_ = self.node.id_
+                middleman_msg.args.remote_id = peer.id_
+                middleman_msg.args.payload = data
+                if not self.SendToAddress(peer.middleman_address, middleman_msg):
+                    return False
         else:
             address = self.current_peers[peer.id_].address
         # Update stats

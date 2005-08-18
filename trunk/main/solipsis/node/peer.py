@@ -27,12 +27,15 @@ class Peer(Entity):
         """
         Create a new Peer (derived from Entity).
         """
-
         # Call parent class constructor
         super(Peer, self).__init__(*args, **kargs)
 
-        # Other information
+        # True if middleman needed to contact the peer
+        # before a hole is punched through its NAT
         self.needs_middleman = False
+        # The peer from which we know this peer
+        self.middleman_address = None
+        # The highest protocol version accepted by the peer
         self.protocol_version = protocol.SAFE_VERSION
 
         # Time of latest messages received/sent
@@ -78,7 +81,10 @@ class Peer(Entity):
         try:
             peer.protocol_version = args.remote_version
             peer.needs_middleman = args.remote_needs_middleman
-            print "version", peer.protocol_version
+        except AttributeError:
+            pass
+        try:
+            peer.middleman_address = args.address
         except AttributeError:
             pass
         return peer

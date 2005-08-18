@@ -64,7 +64,7 @@ class StateMachine(object):
     # With local nodes, we choose a very long timeout which enables us
     # to minimize the number of HEARTBEAT messages in a mass-hosting setup
     minimum_hold_time = 30
-    local_hold_time = 30 #1200
+    local_hold_time = 1200
     remote_hold_time = 30
 
     # Various delays
@@ -488,8 +488,8 @@ class StateMachine(object):
                 return
 
         self.nearest_peers.add(id_)
-        address = args.remote_address
-        self._SendToAddress(address, self._PeerMessage('FINDNEAREST', future=True))
+        peer = Peer.FromRemoteArgs(args)
+        self._SendToPeer(peer, self._PeerMessage('FINDNEAREST', future=True))
         # We could come here from the Scanning procedure,
         # if a neighbour finds someone closer to us than our current BEST
         if self.InState(states.Scanning):

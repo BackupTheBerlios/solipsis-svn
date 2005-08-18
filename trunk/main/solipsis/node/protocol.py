@@ -354,7 +354,7 @@ class Parser(object):
         lines = []
         args = message.args.__dict__
         payload = ""
-        version = version or message.version
+        version = min(version or message.version, VERSION)
 
         # 1. Request and protocol version
         first_line = message.request + " " + banner(version)
