@@ -12,6 +12,14 @@ from twisted.protocols.basic import LineReceiver
 
 from solipsis.navigator.netclient.tests import LOCAL_PORT
         
+
+##### WATCH OUT !!! ###################################################################
+
+# All these test needs an Netnavigator running on the local machine.
+# call ./launch.py before running the tests
+
+# see also specific needs for ProfileTest
+
 class NetworkTest(unittest.TestCase):
 
     def __init__(self):
@@ -143,13 +151,41 @@ class ConnectedTest(NetworkTest):
         util.wait(self.assertResponse("go 0.67 0.33", "ok"))
         return self.assertResponse("who profile", "")
     test_who.timeout = 2
-        
+
+##### WATCH OUT !!! ###################################################################
+
+# this test uses a remote hard coded profile
+
+# it will work properly with a profile 'zoé' created on the remote machine WINDOWS_IP
+# and running an instance of the netNavigator (launch.py on remote machine).
+# WINDOWS_ID will also depends on the remote machine and you will need to coordinate zoé's
+# profile with hard coded vars ZOE_BLOG & ZOE_FILES
+    
 class ProfileTest(NetworkTest):
     """Test good completion of basic commands"""
 
+    WINDOWS_IP = "10.193.171.41"
     WINDOWS_ID = "6000_5_34e59f3a65f4555fdab1761a6aeb65c7b228bec7"
     WINDOWS_NODE = "bots.netofpeers.net:8555"
-    WINDOWS_IP = "10.193.171.41"
+    ZOE_BLOG = "[bzz bzz I am a bee! (0)]"
+    ZOE_FILES = """pscp.exe
+PIL-1.1.5.win32-py2.4.exe
+GoogleEarth.exe
+Firefox Setup 1.0.6.exe
+putty.exe
+TwistedWeb-0.5.0.tar.bz2
+python-2.4.1.msi
+wrar342fr.exe
+sc32r238.exe
+dxwebsetup.exe
+TortoiseSVN-1.2.1.3895-svn-1.2.1.msi
+aeack01.exe
+LanguagePack_1.2.1_fr.exe
+GenuineCheck.exe
+Twisted_NoDocs-2.0.1.win32-py2.4.exe
+wxPython2.6-win32-unicode-2.6.1.0-py24.exe
+psftp.exe
+pageant.exe"""
 
     def assertOtherMessage(self, message):
         return NetworkTest.assertMessage(self, message,
@@ -210,32 +246,12 @@ class ProfileTest(NetworkTest):
 
     def test_view_blog(self):
         util.wait(self.assertResponse("who profile", self.WINDOWS_ID))
-        return self.assertResponse("menu %s View blog..."% self.WINDOWS_ID,
-                                   "[bzz bzz I am a bee! (0)]")
+        return self.assertResponse("menu %s View blog..."% self.WINDOWS_ID, self.ZOE_BLOG)
     test_view_blog.timeout = 4
     
     def test_view_files(self):
         util.wait(self.assertResponse("who profile", self.WINDOWS_ID))
-        return self.assertResponse("menu %s Get files..."% self.WINDOWS_ID,
-                                   """'pscp.exe
-PIL-1.1.5.win32-py2.4.exe
-GoogleEarth.exe
-Firefox Setup 1.0.6.exe
-putty.exe
-TwistedWeb-0.5.0.tar.bz2
-python-2.4.1.msi
-wrar342fr.exe
-sc32r238.exe
-dxwebsetup.exe
-TortoiseSVN-1.2.1.3895-svn-1.2.1.msi
-aeack01.exe
-LanguagePack_1.2.1_fr.exe
-GenuineCheck.exe
-Twisted_NoDocs-2.0.1.win32-py2.4.exe
-wxPython2.6-win32-unicode-2.6.1.0-py24.exe
-psftp.exe
-pageant.exe'
-""")
+        return self.assertResponse("menu %s Get files..."% self.WINDOWS_ID, self.ZOE_FILES)
     test_view_files.timeout = 4
 
 # Network classes
