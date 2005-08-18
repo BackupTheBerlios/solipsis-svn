@@ -523,7 +523,7 @@ class FileDocument(FilePersonalMixin, FileSharingMixin,
         FileSaverMixin.__init__(self, pseudo, directory)
 
     def __str__(self):
-        return "File document for %s"% self.pseudo
+        return "File document for %s"% self.pseudo.encode(self.encoding)
         
     def import_document(self, other_document):
         """copy data from another document into self"""

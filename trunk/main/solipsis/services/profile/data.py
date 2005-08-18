@@ -68,7 +68,7 @@ class PeerDescriptor:
         self.node_id = None
 
     def __str__(self):
-        return "PeerDescriptor %s"% self.pseudo
+        return "PeerDescriptor %s"% self.pseudo.encode(ENCODING)
 
     def __repr__(self):
         return "%s (%s)"% (self.pseudo, self.state)
@@ -238,6 +238,7 @@ class Blog:
     """Entry of a blog, including comments"""
 
     def __init__(self, text, author, date=None):
+        assert isinstance(text, unicode)
         self.text = text
         if not date:
             self.date = time.asctime()
@@ -247,7 +248,7 @@ class Blog:
         self.comments = []
 
     def __repr__(self):
-        return "%s (%d)"% (self.text, len(self.comments))
+        return "%s (%d)"% (self.text.encode(ENCODING), len(self.comments))
 
     def add_comment(self, text, pseudo, date=None):
         """add sub blog (comment) to blog"""
@@ -270,12 +271,12 @@ class Blog:
   <p>%s</p>
   <p align='right'><cite>%s, %s</cite></p>
 </font>"""\
-               % (self.text, self.author, self.date)
+               % (self.text.encode(ENCODING), self.author, self.date)
     
     def _html_text(self):
         """return blog as main entry"""
         return "<p'>%s</p><p align='right'><cite>%s, %s</cite></p>"\
-               % (self.text, self.author, self.date)
+               % (self.text.encode(ENCODING), self.author, self.date)
         
 # FILES
 #######

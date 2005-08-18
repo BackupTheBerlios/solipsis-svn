@@ -376,7 +376,7 @@ class FilterDocument(FilterPersonalMixin, FilterSharingMixin,
         FilterSaverMixin.__init__(self, pseudo, directory)
 
     def __str__(self):
-        return "Filter document for %s"% self.pseudo
+        return "Filter document for %s"% self.pseudo.encode(self.encoding)
         
     def import_document(self, other_document):
         """copy data from another document into self"""

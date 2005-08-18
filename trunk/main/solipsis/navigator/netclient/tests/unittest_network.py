@@ -35,8 +35,7 @@ class NetworkTest(unittest.TestCase):
 
     def wait(self, sec_delay):
         self.wake_up = time.time()+sec_delay
-        # timeout is 4.0 sec by default
-        util.spinWhile(self._waiting)
+        util.spinWhile(self._waiting, sec_delay+1)
 
     def _waiting(self):
         return time.time() < self.wake_up
@@ -149,8 +148,8 @@ class ProfileTest(NetworkTest):
     """Test good completion of basic commands"""
 
     WINDOWS_ID = "6000_5_34e59f3a65f4555fdab1761a6aeb65c7b228bec7"
-    WINDOWS_NODE = "bots.netofpeers.net:8553"
-    WINDOWS_IP = "10.193.171.56"
+    WINDOWS_NODE = "bots.netofpeers.net:8555"
+    WINDOWS_IP = "10.193.171.41"
 
     def assertOtherMessage(self, message):
         return NetworkTest.assertMessage(self, message,
@@ -178,9 +177,9 @@ class ProfileTest(NetworkTest):
         # wait for connection to app establisehd
         util.wait(self.assertOtherMessage("Ready"))
         util.wait(self.assertOtherResponse("connect %s"% self.WINDOWS_NODE, "Connected"))
-        util.wait(self.assertOtherResponse("go 0.15 0.35", "ok"))
+        util.wait(self.assertOtherResponse("go 0.11 0.31", "ok"))
         # wait until both navigators have received meta data (no message usable from node)
-        self.wait(0.8)
+        self.wait(1.0)
     setUp.timeout = 8
 
 
@@ -196,7 +195,7 @@ class ProfileTest(NetworkTest):
 
     def test_where(self):
         util.wait(self.assertPosition("0.1 0.3"))
-        return self.assertOtherPosition("0.15 0.35")
+        return self.assertOtherPosition("0.11 0.31")
     test_where.timeout = 2
 
     def test_who(self):
@@ -212,16 +211,30 @@ class ProfileTest(NetworkTest):
     def test_view_blog(self):
         util.wait(self.assertResponse("who profile", self.WINDOWS_ID))
         return self.assertResponse("menu %s View blog..."% self.WINDOWS_ID,
-                                   "[bzz bzz I'm a bee? (0)]")
+                                   "[bzz bzz I am a bee! (0)]")
     test_view_blog.timeout = 4
     
     def test_view_files(self):
         util.wait(self.assertResponse("who profile", self.WINDOWS_ID))
         return self.assertResponse("menu %s Get files..."% self.WINDOWS_ID,
-                                   """.ls_colors
-02. y'a une fille qu'habite chez moi .mp3
-01. bon anniversaire.mp3
-03. v%G￿%@lo.mp3
+                                   """'pscp.exe
+PIL-1.1.5.win32-py2.4.exe
+GoogleEarth.exe
+Firefox Setup 1.0.6.exe
+putty.exe
+TwistedWeb-0.5.0.tar.bz2
+python-2.4.1.msi
+wrar342fr.exe
+sc32r238.exe
+dxwebsetup.exe
+TortoiseSVN-1.2.1.3895-svn-1.2.1.msi
+aeack01.exe
+LanguagePack_1.2.1_fr.exe
+GenuineCheck.exe
+Twisted_NoDocs-2.0.1.win32-py2.4.exe
+wxPython2.6-win32-unicode-2.6.1.0-py24.exe
+psftp.exe
+pageant.exe'
 """)
     test_view_files.timeout = 4
 

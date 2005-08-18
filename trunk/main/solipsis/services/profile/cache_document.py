@@ -24,7 +24,7 @@ independant from views"""
 
 import os.path
 from solipsis.services.profile import QUESTION_MARK, \
-     PROFILE_DIR
+     PROFILE_DIR, ENCODING
 from solipsis.services.profile.data import DirContainer
 from solipsis.services.profile.document import SaverMixin, \
      AbstractPersonalData, AbstractSharingData, AbstractContactsData
@@ -265,7 +265,7 @@ class CacheDocument(CachePersonalMixin, CacheSharingMixin,
         SaverMixin.__init__(self, pseudo, directory)
 
     def __str__(self):
-        return "Cache document for %s"% self.pseudo
+        return "Cache document for %s"% self.pseudo.encode(ENCODING)
         
     def import_document(self, other_document):
         """copy data from another document into self"""

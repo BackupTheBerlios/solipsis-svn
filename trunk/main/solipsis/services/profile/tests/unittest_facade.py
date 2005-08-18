@@ -62,12 +62,12 @@ class FacadeTest(unittest.TestCase):
 
     # BLOG TAB
     def test_blog(self):
-        self.facade.add_blog("first blog")
-        self.facade.add_blog("second blog")
-        self.facade.add_comment((0, 'first comment', 'tony'))
+        self.facade.add_blog(u"first blog")
+        self.facade.add_blog(u"second blog")
+        self.facade.add_comment((0, u'first comment', 'tony'))
         blog = self.facade.get_blog(0)
-        self.assertEquals(blog.text, "first blog")
-        self.assertEquals(blog.comments[0].text, 'first comment')
+        self.assertEquals(blog.text, u"first blog")
+        self.assertEquals(blog.comments[0].text, u'first comment')
         self.assertEquals(self.facade.count_blogs(), 2)
         self.facade.remove_blog(0)
         self.assertEquals(self.facade.count_blogs(), 1)
@@ -248,14 +248,14 @@ class HighLevelTest(unittest.TestCase):
                           doc.get_custom_attributes())
         
     def test_get_blog_file(self):
-        self.facade.add_blog("other one")
-        self.facade.add_comment((2, "whaou", "manu"))
+        self.facade.add_blog(u"other one")
+        self.facade.add_comment((2, u"whaou", "manu"))
         blog_pickle = self.facade.get_blog_file()
         blog = pickle.loads(blog_pickle.read())
-        self.assertEquals(blog.blogs[0].text, "first blog")
-        self.assertEquals(blog.blogs[1].text, "second blog")
-        self.assertEquals(blog.blogs[2].text, "other one")
-        self.assertEquals(blog.blogs[2].comments[0].text, "whaou")
+        self.assertEquals(blog.blogs[0].text, u"first blog")
+        self.assertEquals(blog.blogs[1].text, u"second blog")
+        self.assertEquals(blog.blogs[2].text, u"other one")
+        self.assertEquals(blog.blogs[2].comments[0].text, u"whaou")
         
     def test_select_files(self):
         shared_pickle = self.facade.get_shared_files()
