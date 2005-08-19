@@ -49,7 +49,7 @@ __all__ = [
 
 # The highest supported version
 VERSION = 1.1
-# The base version we try to negotiate with peers
+# The lowest version we try to negotiate with peers
 BETTER_VERSION = 1.1
 # The lowest supported version
 SAFE_VERSION = 1.0

@@ -45,7 +45,7 @@ class NodeConnector(object):
     # Requests we don't want to log, even in debug mode
     no_log = set(['HEARTBEAT'])
 
-    # Hold time
+    # Connection hold time
     # With local nodes, we choose a very long timeout which enables us
     # to minimize the number of HEARTBEAT messages in a mass-hosting setup
     minimum_hold_time = 30
@@ -55,6 +55,9 @@ class NodeConnector(object):
     # Minimum time between handshakes (HELLO or CONNECT) with the same peer
     handshake_dampening_duration = 5.0
     handshake_dampening_threshold = 4
+
+    # Delay between attempts at protocol version negotiation
+    version_negotiation_delay = 2.0
 
     def __init__(self, reactor, params, state_machine, logger):
         self.reactor = reactor
@@ -66,7 +69,7 @@ class NodeConnector(object):
         self.node_protocol = NodeProtocol(self)
         self.caller = DelayedCaller(self.reactor)
 
-        # Can be modified by bootstrap code
+        # Can be modified by NAT detection code
         self.needs_middleman = False
 
         # Statistics
@@ -83,6 +86,8 @@ class NodeConnector(object):
         # Delayed calls for connection heartbeat and timeout
         self.dc_peer_heartbeat = {}
         self.dc_peer_timeout = {}
+        # Delayed calls for version negotiation
+        self.dc_peer_negotiate = {}
 
         # For each address, this is the timestamp of the last handshake attempts
         self.last_handshakes = {}
@@ -145,6 +150,14 @@ class NodeConnector(object):
         keepalive = peer.hold_time / 3.0
         self.dc_peer_heartbeat[peer.id_] = self.caller.CallPeriodically(keepalive, msg_send_timeout)
         self.dc_peer_timeout[peer.id_] = self.caller.CallPeriodically(peer.hold_time, msg_receive_timeout)
+
+        # Negotiation is done
+        try:
+            dc = self.dc_peer_negotiate.pop(peer.id_)
+        except KeyError:
+            pass
+        else:
+            dc.Cancel()
         return True
 
     def RemovePeer(self, peer_id):
@@ -152,11 +165,17 @@ class NodeConnector(object):
         Remove a peer we were connected to.
         """
         del self.current_peers[peer_id]
-        # Cancel delayed calls relating to the peer
+        # Cancel delayed calls related to the peer
         self.dc_peer_heartbeat[peer_id].Cancel()
         self.dc_peer_timeout[peer_id].Cancel()
         del self.dc_peer_heartbeat[peer_id]
         del self.dc_peer_timeout[peer_id]
+        try:
+            dc = self.dc_peer_negotiate.pop(peer_id)
+        except KeyError:
+            pass
+        else:
+            dc.Cancel()
 
     def OnMessageReceived(self, address, data):
         """
@@ -196,7 +215,21 @@ class NodeConnector(object):
         message.args.hold_time = self._HoldTime(peer.address)
         message.args.version = protocol.VERSION
         message.args.needs_middleman = self.needs_middleman
-        return self.SendToPeer(peer, message)
+
+        better_version = protocol.BETTER_VERSION
+        def safe_attempt():
+            return self.SendToPeer(peer, message)
+        def negotiation_attempt():
+            return self.SendToPeer(peer, message, version_override=better_version)
+
+        use_negotiation = peer.protocol_version < better_version
+        if use_negotiation:
+            print "using negotiation for %s instead of %s" % (str(better_version), str(peer.protocol_version))
+            dc = self.caller.CallLater(self.version_negotiation_delay, safe_attempt)
+            self.dc_peer_negotiate[peer.id_] = dc
+            return negotiation_attempt()
+        else:
+            return safe_attempt()
 
     def SendToAddress(self, address, message):
         """
@@ -205,7 +238,7 @@ class NodeConnector(object):
         data = self.parser.BuildMessage(message)
         return self._SendData(address, data, log=message.request not in self.no_log)
 
-    def SendToPeer(self, peer, message):
+    def SendToPeer(self, peer, message, version_override=None):
         """
         Send a Solipsis message to a peer, possibly using a middleman.
         """
@@ -215,7 +248,8 @@ class NodeConnector(object):
         if peer.id_ not in self.known_peers:
             self.known_peers[peer.id_] = peer
         address = peer.address
-        data = self.parser.BuildMessage(message, version=peer.protocol_version)
+        version = version_override or peer.protocol_version
+        data = self.parser.BuildMessage(message, version)
         # Also send message through middleman if remote NAT hole not punched yet
         if peer.id_ not in self.current_peers:
             if peer.needs_middleman:
