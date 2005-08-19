@@ -42,6 +42,9 @@ class Peer(Entity):
         self.last_received_message = 0
         self.last_sent_message = 0
 
+        # Connection hold time for this peer
+        self.hold_time = None
+
         self.Freshen()
 
     def Freshen(self):
@@ -58,6 +61,15 @@ class Peer(Entity):
             position = args.position,
         )
         try:
+            peer.hold_time = args.hold_time
+        except AttributeError:
+            pass
+        try:
+            peer.needs_middleman = args.needs_middleman
+        except AttributeError:
+            pass
+        try:
+            peer.protocol_version = args.version
             peer.needs_middleman = args.needs_middleman
         except AttributeError:
             pass

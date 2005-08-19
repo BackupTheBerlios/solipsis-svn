@@ -18,6 +18,7 @@
 # </copyright>
 
 import sys
+import time
 
 from twisted.internet.protocol import DatagramProtocol
 
@@ -41,7 +42,19 @@ class NodeProtocol(DatagramProtocol):
 
 
 class NodeConnector(object):
+    # Requests we don't want to log, even in debug mode
     no_log = set(['HEARTBEAT'])
+
+    # Hold time
+    # With local nodes, we choose a very long timeout which enables us
+    # to minimize the number of HEARTBEAT messages in a mass-hosting setup
+    minimum_hold_time = 30
+    local_hold_time = 1200
+    remote_hold_time = 30
+
+    # Minimum time between handshakes (HELLO or CONNECT) with the same peer
+    handshake_dampening_duration = 3.0
+    handshake_dampening_threshold = 2
 
     def __init__(self, reactor, params, state_machine, logger):
         self.reactor = reactor
@@ -52,6 +65,9 @@ class NodeConnector(object):
         self.parser = Parser()
         self.node_protocol = NodeProtocol(self)
         self.caller = DelayedCaller(self.reactor)
+
+        # Can be modified by bootstrap code
+        self.needs_middleman = False
 
         # Statistics
         self.received_messages = {}
@@ -68,6 +84,9 @@ class NodeConnector(object):
         self.dc_peer_heartbeat = {}
         self.dc_peer_timeout = {}
 
+        # For each address, this is the timestamp of the last handshake attempts
+        self.last_handshakes = {}
+
         self.caller.Reset()
 
     def Start(self, port):
@@ -81,6 +100,30 @@ class NodeConnector(object):
         Stop listening.
         """
         self.listening.stopListening()
+
+    def AcceptHandshake(self, peer):
+        """
+        Checks for recent connection attempts with a peer,
+        and possibly other conditions.
+        Returns True if connection accepted, False if refused.
+        """
+        now = time.time()
+        try:
+            last = self.last_handshakes[peer.address]
+        except KeyError:
+            self.last_handshakes[peer.address] = [now]
+        else:
+            last = [t for t in last if now - t < self.handshake_dampening_duration]
+            self.last_handshakes[peer.address] = last + [now]
+            if len(last) >= self.handshake_dampening_threshold:
+                return False
+        return True
+
+    def AcceptPeer(self, peer):
+        """
+        Returns True if a peer can be accepted for connection.
+        """
+        return peer.hold_time >= self.minimum_hold_time and self.AcceptHandshake(peer)
 
     def AddPeer(self, peer):
         """
@@ -141,6 +184,19 @@ class NodeConnector(object):
             if peer_id in self.dc_peer_timeout:
                 self.dc_peer_timeout[peer_id].Reschedule()
         self.state_machine.PeerMessageReceived(message.request, message.args)
+
+    def SendHandshake(self, peer, message):
+        """
+        Say HELLO or CONNECT to a peer, adding necessary
+        arguments and managing repeated connection attempts.
+        Returns True if succeeded, False if cancelled.
+        """
+        if not self.AcceptHandshake(peer):
+            return False
+        message.args.hold_time = self._HoldTime(peer.address)
+        message.args.version = protocol.VERSION
+        message.args.needs_middleman = self.needs_middleman
+        return self.SendToPeer(peer, message)
 
     def SendToAddress(self, address, message):
         """
@@ -203,6 +259,15 @@ class NodeConnector(object):
     #
     # Internal methods
     #
+    def _HoldTime(self, address):
+        """
+        Choose hold time depending on peer address.
+        """
+        if address.host == self.node.address.host:
+            return self.local_hold_time
+        else:
+            return self.remote_hold_time
+
     def _SendData(self, address, data, log=False):
         if isinstance(address, Address):
             host, port = (address.host, address.port)
@@ -212,3 +277,22 @@ class NodeConnector(object):
         if log:
             self.logger.debug(">>>> sending to %s:%d\n%s" % (host, port, data))
         return True
+
+    def AcceptHandshake(self, peer):
+        """
+        Checks for too many recent connection attempts with a peer,
+        and possibly other conditions.
+        Returns True if connection accepted, False if refused.
+        """
+        now = time.time()
+        try:
+            last = self.last_handshakes[peer.address]
+        except KeyError:
+            self.last_handshakes[peer.address] = [now]
+        else:
+            last = [t for t in last if now - t < self.handshake_dampening_duration]
+            self.last_handshakes[peer.address] = last + [now]
+            if len(last) >= self.handshake_dampening_threshold:
+                return False
+        return True
+

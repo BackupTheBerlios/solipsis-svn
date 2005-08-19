@@ -61,21 +61,12 @@ class StateMachine(object):
     scanning_trials = 3
     connecting_trials = 3
 
-    # Hold time
-    # With local nodes, we choose a very long timeout which enables us
-    # to minimize the number of HEARTBEAT messages in a mass-hosting setup
-    minimum_hold_time = 30
-    local_hold_time = 1200
-    remote_hold_time = 30
-
     # Various delays
-    hello_dampening = 3.0
     meta_change_delay = 0.5
 
     # Time during which we request to send detects on a HELLO
     # after having moved
     move_duration = 3.0
-
 
     # These are all the message types accepted from other peers.
     # Some of them will only be accepted in certain states.
@@ -158,9 +149,6 @@ class StateMachine(object):
         self.dc_meta_notify = None
         self.caller.Reset()
         self.state_caller.Reset()
-
-        # For each address, this is the timestamp of the last HELLO attempt
-        self.last_hellos = {}
 
         self.topology.Reset(origin=self.node.position.GetXY())
 
@@ -308,7 +296,7 @@ class StateMachine(object):
             peers = self.topology.PeersSet()
             for p in self.future_topology.EnumeratePeers():
                 if p not in peers:
-                    self._SayHello(p.address)
+                    self._SayHello(p)
 
         self.state_caller.CallPeriodically(1.0, _check)
         self.state_caller.CallPeriodically(self.connecting_period, _retry)
@@ -362,11 +350,10 @@ class StateMachine(object):
         A new peer is contacting us.
         """
         peer = Peer.FromArgs(args)
-        peer.hold_time = args.hold_time
         topology = self.topology
 
         # Check if we want to accept peer as a neighbour
-        if peer.hold_time < self.minimum_hold_time or not self._AcceptPeer(peer):
+        if not self._AcceptPeer(peer):
             # Refuse connection
             self._SendToPeer(peer, self._PeerMessage('CLOSE'))
         else:
@@ -387,13 +374,11 @@ class StateMachine(object):
         """
         A peer accepts our connection proposal.
         """
-        # TODO: check that we sent a HELLO message to this peer
         peer = Peer.FromArgs(args)
-        peer.hold_time = args.hold_time
         topology = self.topology
 
-        # The proposed hold time is too small
-        if peer.hold_time < self.minimum_hold_time:
+        # Check if we want to accept peer as a neighbour
+        if not self._AcceptPeer(peer):
             # Refuse connection
             self._SendToPeer(peer, self._PeerMessage('CLOSE'))
 
@@ -577,7 +562,7 @@ class StateMachine(object):
             # 2. Check we either don't have too many peers, or have worse peers than this one
             elif self._AcceptPeer(peer):
                 # Connect to this peer
-                self._SayHello(peer.address, send_detects=self.moved)
+                self._SayHello(peer, send_detects=self.moved)
 
     def peer_AROUND(self, args):
         """
@@ -674,14 +659,13 @@ class StateMachine(object):
         """
         A peer replies to us with a FOUND message.
         """
-        id_ = args.remote_id
-        address = args.remote_address
+        peer = Peer.FromRemoteArgs(args)
 
         # Verify that new entity is neither self neither an already known entity.
-        if id_ == self.node.id_:
+        if peer.id_ == self.node.id_:
             self.logger.warning("FOUND message pointing to ourselves received")
-        elif not self.topology.HasPeer(id_):
-            self._SayHello(address)
+        elif not self.topology.HasPeer(peer.id_):
+            self._SayHello(peer)
 
     def peer_SEARCH(self, args):
         """
@@ -780,7 +764,7 @@ class StateMachine(object):
         self._CloseCurrentConnections()
         self.Reset()
         for host, port in self.bootup_addresses:
-            self._SayHello(Address(host, port))
+            self._SayHello(Peer(address=Address(host, port)))
         self.SetState(states.EarlyConnecting())
 
     def TryConnect(self):
@@ -896,6 +880,8 @@ class StateMachine(object):
         """
         True if peer is accepted as a potential neighbour.
         """
+        if not self.node_connector.AcceptPeer(peer):
+            return False
         if self.topology.GetNumberOfPeers() < self.max_connections:
             return True
         return not self.topology.IsWorstPeer(peer)
@@ -941,7 +927,7 @@ class StateMachine(object):
 
         # Try to connect with new peers
         for peer_id in new_peers - old_peers:
-            self._SayHello(self.future_topology.GetPeer(peer_id).address)
+            self._SayHello(self.future_topology.GetPeer(peer_id))
 
         # Don't forget to notify our controller(s)
         self.event_sender.event_Jumped(self.node.position)
@@ -1139,14 +1125,13 @@ class StateMachine(object):
     #
     def _PeerMessage(self, request, peer=None, remote_peer=None, future=False):
         """
-        Builds a protocol message from the given peer(s).
+        Builds a protocol message using parameters from the given peer(s).
         If 'future' is True, the future_position will be used instead of the current one.
         """
         if peer is None:
             peer = self.node
         message = protocol.Message(request)
         # Build message args from involved entities
-        # TODO: rewrite this better
         a = message.args
         p = peer
         a.address = p.address
@@ -1162,47 +1147,24 @@ class StateMachine(object):
             a.remote_awareness_radius = r.awareness_radius
             a.remote_id = r.id_
             a.remote_position = r.position
-        # Then remove unnecessary fields
-        self.parser.StripMessage(message)
+            a.remote_version = r.protocol_version
+            a.remote_needs_middleman = r.needs_middleman
         return message
 
-    def _HoldTime(self, address):
-        """
-        Choose hold time depending on peer address.
-        """
-        if address.host == self.node.address.host:
-            return self.local_hold_time
-        else:
-            return self.remote_hold_time
-
-    def _SayHello(self, address, send_detects=False):
+    def _SayHello(self, peer, send_detects=False):
         """
         Say HELLO to a peer.
         """
-        # TODO: manage repeted connection failures and
-        # optionally cancel request (returning False)
-        last = self.last_hellos.get(address, 0.0)
-        now = time.time()
-        if now - last > self.hello_dampening:
-            self.last_hellos[address] = now
-            msg = self._PeerMessage('HELLO')
-            msg.args.send_detects = send_detects
-            msg.args.hold_time = self._HoldTime(address)
-            self._SendToAddress(address, msg)
-            return True
-        return False
+        msg = self._PeerMessage('HELLO')
+        msg.args.send_detects = send_detects
+        return self.node_connector.SendHandshake(peer, msg)
 
     def _SayConnect(self, peer):
         """
         Answer CONNECT to a peer.
         """
-        # TODO: manage repeted connection failures and
-        # optionally cancel request (sending CLOSE and
-        # returning False)
         msg = self._PeerMessage('CONNECT')
-        msg.args.hold_time = self._HoldTime(peer.address)
-        self._SendToPeer(peer, msg)
-        return True
+        return self.node_connector.SendHandshake(peer, msg)
 
     def _QueryMeta(self, peer):
         """

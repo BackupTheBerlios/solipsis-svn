@@ -330,6 +330,9 @@ REQUESTS[1.1].update({
 })
 
 
+#
+# Object representation of Solipsis messages
+#
 class Args(object):
     pass
 

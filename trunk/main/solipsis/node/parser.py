@@ -42,11 +42,11 @@ class Parser(object):
     def __init__(self):
         self.logger = logging.getLogger('root')
 
-    def StripMessage(self, message):
+    def StripMessage(self, message, version=None):
         """
         Strip unnecessary parameters from message.
         """
-        _req = REQUESTS[message.version]
+        _req = REQUESTS[version or message.version]
         required_args = set([ATTRIBUTE_NAMES[arg_id] for arg_id in _req[message.request]])
         args = message.args
         for k in set(args.__dict__) - required_args:
@@ -61,6 +61,8 @@ class Parser(object):
         payload = ""
         version = min(version or message.version, VERSION)
 
+        # 0. Remove unnecessary fields
+        self.StripMessage(message, version)
         # 1. Request and protocol version
         first_line = message.request + " " + banner(version)
         lines.append(first_line)
