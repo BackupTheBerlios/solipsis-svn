@@ -24,6 +24,7 @@ from twisted.internet.protocol import DatagramProtocol
 from solipsis.util.utils import set
 from solipsis.util.address import Address
 import protocol
+from parser import Parser
 from peer import Peer
 from delayedcaller import DelayedCaller
 
@@ -48,7 +49,7 @@ class NodeConnector(object):
         self.state_machine = state_machine
         self.node = state_machine.node
         self.logger = logger
-        self.parser = protocol.Parser()
+        self.parser = Parser()
         self.node_protocol = NodeProtocol(self)
         self.caller = DelayedCaller(self.reactor)
 

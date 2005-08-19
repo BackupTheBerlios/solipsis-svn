@@ -27,6 +27,7 @@ from solipsis.util.exception import *
 from solipsis.util.position import Position
 from solipsis.util.address import Address
 from peer import Peer
+from parser import Parser
 import protocol
 import states
 from topology import Topology
@@ -113,7 +114,7 @@ class StateMachine(object):
         self.node = node
         self.topology = Topology()
         self.logger = logger
-        self.parser = protocol.Parser()
+        self.parser = Parser()
         self.node_connector = None
 
         # Expected number of neighbours (in awareness radius)

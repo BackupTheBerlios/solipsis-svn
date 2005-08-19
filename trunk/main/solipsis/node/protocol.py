@@ -23,8 +23,6 @@
 
 
 import re
-import new
-import logging
 from copy import deepcopy
 
 from solipsis.util.utils import set, safe_str, safe_unicode
@@ -34,13 +32,25 @@ from solipsis.util.address import Address
 from solipsis.util.bidict import bidict
 from solipsis.util.entity import Service
 
+# Public API
+__all__ = [
+    # Constants
+    'VERSION', 'SAFE_VERSION', 'BANNER', 'CHARSET',
+    # Associative mappings,
+    'ALL_ARGS', 'ATTRIBUTE_NAMES', 'PROTOCOL_STRINGS',
+    # Request types table,
+    'REQUESTS',
+    # Attribute checkers and converters,
+    'ARGS_SYNTAX', 'ARGS_FROM_STRING', 'ARGS_TO_STRING',
+    # Classes
+    'Message',
+]
+
+
 VERSION = 1.1
 SAFE_VERSION = 1.0
 BANNER = "SOLIPSIS/"
 CHARSET = "utf-8"
-
-def banner(version=None):
-    return BANNER + str(version)
 
 #
 # This is a list of allowed arguments in the Solipsis protocol.
@@ -84,9 +94,9 @@ _args = [
 
 # An array of all argument numbers
 ALL_ARGS = []
-# An argument number -> attribute name map
+# An argument number <-> attribute name map
 ATTRIBUTE_NAMES = bidict()
-# An argument number -> protocol header map
+# An argument number <-> protocol header map
 PROTOCOL_STRINGS = bidict()
 
 def _init_args(args):
@@ -96,12 +106,16 @@ def _init_args(args):
     for c, (arg_const, full_string, attr_name) in izip(count(1), args):
         arg_id = c
         globals()[arg_const] = arg_id
-        ALL_ARGS.append(arg_id)
+        # Setup mappings between arg_id and different representations
         ATTRIBUTE_NAMES[arg_id] = intern(attr_name)
         PROTOCOL_STRINGS[arg_id] = intern(full_string)
+        # Populate public API with a global var representing the argument type
+        ALL_ARGS.append(arg_id)
+        __all__.append(arg_const)
 
 _init_args(_args)
 
+# Aliases are helpers to apply the same syntax rules to different parameters
 _aliases = {
     ARG_BEST_ID:                    ARG_ID,
     ARG_REMOTE_ADDRESS:             ARG_ADDRESS,
@@ -293,8 +307,11 @@ REQUESTS[1.0] = {
 }
 
 # 1.1 - Add parameters for NAT hole punching and protocol version handling
-FIRST_REMOTE_ARGS = [
+REMOTE_ARGS = [
     ARG_ADDRESS,
+    ARG_REMOTE_ADDRESS,
+    ARG_REMOTE_ID,
+    ARG_REMOTE_POSITION,
     ARG_REMOTE_VERSION,
     ARG_REMOTE_NEEDS_MIDDLEMAN
 ]
@@ -304,187 +321,24 @@ REQUESTS[1.1].update({
     'CONNECT'    : NODE_ARGS + [ ARG_VERSION, ARG_NEEDS_MIDDLEMAN, ARG_HOLD_TIME ],
     'HELLO'      : NODE_ARGS + [ ARG_VERSION, ARG_NEEDS_MIDDLEMAN, ARG_HOLD_TIME, ARG_SEND_DETECTS ],
 
-    'AROUND'     : FIRST_REMOTE_ARGS + REMOTE_ARGS,
-    'DETECT'     : FIRST_REMOTE_ARGS + REMOTE_ARGS,
-    'FOUND'      : FIRST_REMOTE_ARGS + [ ARG_REMOTE_ID, ARG_REMOTE_ADDRESS, ARG_REMOTE_POSITION ],
-    'NEAREST'    : FIRST_REMOTE_ARGS + [ ARG_REMOTE_ID, ARG_REMOTE_ADDRESS, ARG_REMOTE_POSITION ],
+    'AROUND'     : REMOTE_ARGS + [ ARG_REMOTE_AWARENESS_RADIUS ],
+    'DETECT'     : REMOTE_ARGS + [ ARG_REMOTE_AWARENESS_RADIUS ],
+    'FOUND'      : REMOTE_ARGS,
+    'NEAREST'    : REMOTE_ARGS,
 
     'MIDDLEMAN'  : [ ARG_ID, ARG_REMOTE_ID, ARG_PAYLOAD ],
 })
 
 
+class Args(object):
+    pass
+
 class Message(object):
     """
     This structure is a simple representation of a Solipsis message.
     """
-    class Args(object):
-        pass
-
     def __init__(self, request = "", version=None):
         self.version = version or SAFE_VERSION
         self.request = request
-        self.args = self.Args()
+        self.args = Args()
 
-
-class Parser(object):
-    """
-    This class parses and builds Solipsis messages.
-    """
-    request_syntax = re.compile(r'^\s*(\w+)\s+SOLIPSIS/(\d+\.\d+)\s*$')
-    argument_syntax = re.compile(r'^\s*([-\w]+)\s*:\s*(.*?)\s*$')
-    line_separator = "\r\n"
-
-    def __init__(self):
-        self.logger = logging.getLogger('root')
-
-    def StripMessage(self, message):
-        """
-        Strip unnecessary parameters from message.
-        """
-        _req = REQUESTS[message.version]
-        required_args = set([ATTRIBUTE_NAMES[arg_id] for arg_id in _req[message.request]])
-        args = message.args
-        for k in set(args.__dict__) - required_args:
-            delattr(args, k)
-
-    def BuildMessage(self, message, version=None):
-        """
-        Build protocol data from message.
-        """
-        lines = []
-        args = message.args.__dict__
-        payload = ""
-        version = min(version or message.version, VERSION)
-
-        # 1. Request and protocol version
-        first_line = message.request + " " + banner(version)
-        lines.append(first_line)
-#         print ">", first_line
-        # 2. Request arguments
-        for k, v in args.iteritems():
-            arg_id = ATTRIBUTE_NAMES.get_reverse(k)
-            if arg_id == ARG_PAYLOAD:
-                payload = safe_str(v, CHARSET)
-            else:
-                lines.append('%s: %s' % (PROTOCOL_STRINGS[arg_id], ARGS_TO_STRING[arg_id](v)))
-        # 3. End of message (double CR-LF)
-        data = "\r\n".join(lines) + "\r\n\r\n" + payload
-        # In debug mode, parse our own message to check it is well-formed
-        assert self.ParseMessage(data, parse_only=True), "Bad generated message: " + data
-        return data
-
-    def ParseMessage(self, data, parse_only=False):
-        """
-        Parse and extract message from protocol data.
-        """
-        # Parse raw data to construct message (strip empty lines)
-        lines = data.split(self.line_separator)
-        # If message is empty, return false
-        if not lines:
-            return None
-        # Parse request line
-        m = self.request_syntax.match(lines[0])
-        if m is None:
-            raise EventParsingError("Invalid request syntax: " + repr(lines[0]))
-
-        # Request is first word of the first line (e.g. NEAREST, or BEST ...)
-        request = m.group(1).upper()
-        # Extract protocol version
-        version = float(m.group(2))
-
-        # Version check
-        if version > VERSION:
-            raise EventParsingError("Unexpected protocol version: %s" % str(version))
-        elif version < VERSION:
-            self.logger.info("Received message from older protocol version: %s" % str(version))
-        # Request check
-        if not request in REQUESTS[version]:
-            raise EventParsingError("Unknown request: " + request)
-
-        # Get args for this request
-        mandatory_args = REQUESTS[version][request]
-        missing_args = set(mandatory_args)
-        args = {}
-
-        # Now let's parse each parameter line in turn
-        for nb_line in xrange(1, len(lines)):
-            line = lines[nb_line]
-            if len(line) == 0:
-                break
-            # Get arg name and arg value
-            t = line.split(':', 1)
-            if len(t) != 2:
-                raise EventParsingError("Invalid message syntax:\r\n" + data)
-            name = t[0].strip()
-            value = t[1].strip()
-
-            # Each arg has its own syntax-checking regex
-            try:
-                arg_id = PROTOCOL_STRINGS.get_reverse(name)
-                arg_syntax = ARGS_SYNTAX[arg_id]
-            except KeyError:
-                raise EventParsingError("Unknown arg '%s'" % (name))
-            if not arg_syntax.match(value):
-                raise EventParsingError("Invalid arg syntax for '%s': '%s'" % (name, value))
-
-            # The syntax is correct => add this arg to the arg list
-            if arg_id in args:
-                raise EventParsingError("Duplicate value for arg '%s'" % name)
-
-            # Build argument value from its registered constructor
-            if not parse_only:
-                args[arg_id] = ARGS_FROM_STRING[arg_id](value)
-
-            # Log optional arguments
-            try:
-                missing_args.remove(arg_id)
-            except KeyError:
-                self.logger.debug("Unexpected argument '%s' in message '%s'" % (name, request))
-
-        # Is there a payload ?
-        if nb_line + 1 < len(lines):
-            payload = self.line_separator.join(lines[nb_line+1:])
-            if payload:
-                if ARG_PAYLOAD in missing_args:
-                    del missing_args[ARG_PAYLOAD]
-                else:
-                    self.logger.debug("Optional payload in message '%s'" % request)
-                # Note: we don't try to convert the payload to unicode when
-                # receiving, because it could really be a binary string.
-                # This makes the message handling slightly asymetric.
-                args[ARG_PAYLOAD] = payload
-
-        # Check that all required fields have been encountered
-        if missing_args:
-            raise EventParsingError("Missing arguments (%s) in message '%s'"
-                    % (",".join([PROTOCOL_STRINGS[arg] for arg in missing_args]), request))
-
-        # Everything's ok
-        if not parse_only:
-            message = Message()
-            message.request = request
-            message.version = version
-            for arg_id, value in args.iteritems():
-                setattr(message.args, ATTRIBUTE_NAMES[arg_id], value)
-            return message
-        else:
-            return True
-
-
-def _test():
-    data = ("HEARTBEAT SOLIPSIS/1.0\r\n" +
-            "Id: 192.168.0.1\r\n" +
-            "Position: 455464, 78785425, 0\r\n" +
-            "Clockwise: -1\r\n" +
-            "\r\ntoto")
-    parser = Parser()
-    message = parser.ParseMessage(data)
-    print message.request
-    print message.args.__dict__
-    data = parser.BuildMessage(message)
-    print data
-    message = parser.ParseMessage(data)
-    print message.args.__dict__
-
-if __name__ == '__main__':
-    _test()
