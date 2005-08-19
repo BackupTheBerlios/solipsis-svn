@@ -25,8 +25,8 @@ independant from views"""
 
 import re
 import os.path
-from solipsis.services.profile import PROFILE_DIR, FILTER_EXT, \
-     ENCODING
+from solipsis.services.profile import ENCODING, FILTER_EXT
+from solipsis.services.profile.prefs import get_prefs
 from solipsis.services.profile.document import AbstractPersonalData, \
      CustomConfigParser, SECTION_PERSONAL, SECTION_CUSTOM, SECTION_FILE
 from solipsis.services.profile.file_document import FileSaverMixin
@@ -365,8 +365,10 @@ class FilterDocument(FilterPersonalMixin, FilterSharingMixin,
                      FilterContactMixin, FilterSaverMixin):
     """Describes all data needed in profile in a file"""
 
-    def __init__(self, pseudo, directory=PROFILE_DIR):
+    def __init__(self, pseudo, directory=None):
         assert isinstance(pseudo, unicode), "pseudo must be a unicode"
+        if directory is None:
+            directory = get_prefs("profile_dir")
         self.encoding = ENCODING
         self.config = CustomConfigParser(self.encoding)
         self.filtered_pseudo = FilterValue("filtered_pseudo")

@@ -22,16 +22,19 @@ available. This facade will be used both by GUI and unittests."""
 import pickle
 
 from StringIO import StringIO
-from solipsis.services.profile import ENCODING, PROFILE_DIR
+from solipsis.services.profile import ENCODING
+from solipsis.services.profile.prefs import get_prefs
 from solipsis.services.profile.view import HtmlView
 from solipsis.services.profile.data import PeerDescriptor, Blogs
 from solipsis.services.profile.simple_facade import SimpleFacade
 from solipsis.services.profile.cache_document import CacheDocument
 from solipsis.services.profile.filter_document import FilterDocument
 
-def create_facade(pseudo, directory=PROFILE_DIR):
+def create_facade(pseudo, directory=None):
     """implements pattern singleton on Facade. User may specify
     document end/or view to initialize facade with at creation"""
+    if directory is None:
+        directory = get_prefs("profile_dir")
     if isinstance(pseudo, str):
         pseudo = unicode(pseudo, ENCODING)
     Facade.s_facade = Facade(pseudo, directory)
@@ -42,8 +45,10 @@ def get_facade():
     document end/or view to initialize facade with at creation"""
     return Facade.s_facade
 
-def create_filter_facade(pseudo, directory=PROFILE_DIR):
+def create_filter_facade(pseudo, directory=None):
     """implements pattern singleton on FilterFacade"""
+    if directory is None:
+        directory = get_prefs("profile_dir")
     if isinstance(pseudo, str):
         pseudo = unicode(pseudo, ENCODING)
     FilterFacade.filter_facade = FilterFacade(pseudo, directory)
@@ -58,7 +63,9 @@ class FilterFacade(SimpleFacade):
 
     filter_facade = None
 
-    def __init__(self, pseudo, directory=PROFILE_DIR):
+    def __init__(self, pseudo, directory=None):
+        if directory is None:
+            directory = get_prefs("profile_dir")
         SimpleFacade.__init__(self, pseudo, directory)
         self._desc = PeerDescriptor(pseudo,
                                     document=FilterDocument(pseudo, directory))
@@ -74,7 +81,9 @@ class Facade(SimpleFacade):
     
     s_facade = None
 
-    def __init__(self, pseudo, directory=PROFILE_DIR):
+    def __init__(self, pseudo, directory=None):
+        if directory is None:
+            directory = get_prefs("profile_dir")
         SimpleFacade.__init__(self, pseudo, directory)
         self._desc = PeerDescriptor(pseudo,
                                     document=CacheDocument(pseudo, directory),

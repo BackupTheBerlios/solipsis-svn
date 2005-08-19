@@ -28,9 +28,8 @@ ENCODING = locale.getpreferredencoding()
 VERSION = "0.2.2"
 DISCLAIMER = "All data in profiles are shared within Solipsis communauty"
 
-PROFILE_DIR = os.sep.join([os.path.expanduser("~"), u".solipsis", u"profiles"])
 DOWNLOAD_REPO = os.sep.join([os.path.expanduser("~"), ".solipsis", "download"])
-
+PROFILE_DIR = os.sep.join([os.path.expanduser("~"), ".solipsis", "profiles"])
 PREFS_FILE = os.path.join(PROFILE_DIR, ".preferences")
 
 global solipsis_dir
@@ -70,8 +69,6 @@ PROFILE_FILE = ".default"
 PROFILE_EXT = ".prf"
 BLOG_EXT = ".blog"
 FILTER_EXT = ".filt"
-DISCLAIMER_FILE = ".no_disclaim"
-DISPLAY_FILE = ".no_display"
 UNIVERSAL_SEP = r"\\"
 
 DEFAULT_INTERESTS = [_("City"), _("Country"),

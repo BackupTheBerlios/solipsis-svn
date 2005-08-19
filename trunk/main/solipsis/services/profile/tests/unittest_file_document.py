@@ -14,7 +14,7 @@ from solipsis.services.profile.data import PeerDescriptor, load_blogs
 from solipsis.services.profile.file_document import FileDocument
 from solipsis.services.profile.cache_document import CacheDocument
 from solipsis.services.profile.data import DirContainer, Blogs
-from solipsis.services.profile import ENCODING, PROFILE_DIR
+from solipsis.services.profile import ENCODING
 from solipsis.services.profile.tests import REPO, PROFILE_UNICODE, \
      PROFILE_DIRECTORY, PROFILE_TEST, PROFILE_BRUCE, PROFILE_TATA
 

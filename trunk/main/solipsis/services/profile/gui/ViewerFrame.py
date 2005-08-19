@@ -6,7 +6,7 @@ import sys
 
 from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxy
-from solipsis.services.profile import PROFILE_DIR, PROFILE_FILE
+from solipsis.services.profile import PROFILE_FILE
 from solipsis.services.profile.prefs import get_prefs
 from solipsis.services.profile.file_document import FileDocument
 from solipsis.services.profile.view import HtmlView
@@ -119,7 +119,7 @@ class ViewerFrame(wx.Frame):
         """export .html"""
         dlg = wx.FileDialog(
             self, message="Export HTML file as ...",
-            defaultDir=PROFILE_DIR,
+            defaultDir=get_prefs("profile_dir"),
             defaultFile="",
             wildcard="HTML File (*.html)|*.html",
             style=wx.SAVE)
@@ -147,7 +147,7 @@ class ViewerFrame(wx.Frame):
         """save profile .prf"""
         dlg = wx.FileDialog(
             self, message="Add profile ...",
-            defaultDir=PROFILE_DIR,
+            defaultDir=get_prefs("profile_dir"),
             defaultFile="",
             wildcard="Solipsis file (*.prf)|*.prf",
             style=wx.OPEN)
@@ -231,7 +231,7 @@ class ViewerFrame(wx.Frame):
         """display about"""
         # not modal because would freeze the wx thread while twisted
         # one goes on and initialize profile
-        about_dlg = AboutDialog(get_prefs().get("disclaimer"), self, -1)
+        about_dlg = AboutDialog(get_prefs("disclaimer"), self, -1)
         about_dlg.Show()
 
     def display_profile(self, peer_desc):

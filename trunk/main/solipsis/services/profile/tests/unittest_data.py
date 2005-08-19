@@ -150,8 +150,8 @@ class FileTest(unittest.TestCase):
         self.assertEquals(copy_f._tag, u"my file")
         self.assertEquals(copy_f.name, "date.doc")
         # dir container, no validator
-        PROFILE_DIR = os.path.join(DATA_DIR, "profiles")
-        dir_c = DirContainer(PROFILE_DIR, share=False, tag=u"my dir")
+        PROFILES_DIR = os.path.join(DATA_DIR, "profiles")
+        dir_c = DirContainer(PROFILES_DIR, share=False, tag=u"my dir")
         copy_d = dir_c.copy()
         self.assertEquals(copy_d._shared, False)
         self.assertEquals(copy_d._tag, u"my dir")
@@ -163,17 +163,17 @@ class FileTest(unittest.TestCase):
         self.assertEquals(empty_copy, None)
         # validator -> result
         copy_d.share(True)
-        copy_d.share_container([PROFILE_DIR + "/bruce.prf",
-                                PROFILE_DIR + "/test.blog",
-                                PROFILE_DIR + "/test.prf"], False)
+        copy_d.share_container([PROFILES_DIR + "/bruce.prf",
+                                PROFILES_DIR + "/test.blog",
+                                PROFILES_DIR + "/test.prf"], False)
         valid_copy = copy_d.copy(is_shared)
         self.assertEquals(valid_copy._shared, True)
         self.assertEquals(valid_copy._tag, u"my dir")
         self.assertEquals(valid_copy.name, "profiles")
-        self.assertEquals(valid_copy.has_key(PROFILE_DIR + "/bruce.prf"), False)
-        self.assertEquals(valid_copy.has_key(PROFILE_DIR + "/test.blog"), False)
-        self.assertEquals(valid_copy.has_key(PROFILE_DIR + "/test.prf"), False)
-        self.assertEquals(valid_copy.has_key(PROFILE_DIR + "/test.filt"), True)
+        self.assertEquals(valid_copy.has_key(PROFILES_DIR + "/bruce.prf"), False)
+        self.assertEquals(valid_copy.has_key(PROFILES_DIR + "/test.blog"), False)
+        self.assertEquals(valid_copy.has_key(PROFILES_DIR + "/test.prf"), False)
+        self.assertEquals(valid_copy.has_key(PROFILES_DIR + "/test.filt"), True)
 
     def test_setting(self):
         """set data"""

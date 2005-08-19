@@ -199,6 +199,8 @@ class SolipsisUiFactory(protocol.ServerFactory):
         self.app._OnKill(deferred)
 
     def do_quit(self, deferred):
+        if self.app.config_data.connection_type == 'local':
+            self.app._OnKill()
         self.app._OnQuit(deferred)
 
     def do_who(self, deferred, service):

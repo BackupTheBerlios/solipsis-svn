@@ -27,8 +27,8 @@ import os.path
 import time
 import tempfile
 import sys
-from solipsis.services.profile import ENCODING, QUESTION_MARK, \
-     PROFILE_DIR
+from solipsis.services.profile import ENCODING, QUESTION_MARK
+from solipsis.services.profile.prefs import get_prefs
 from solipsis.services.profile.data import DEFAULT_TAG, \
      DirContainer, ContainerMixin, \
      PeerDescriptor, load_blogs
@@ -476,7 +476,7 @@ class FileContactMixin(AbstractContactsData):
 class FileSaverMixin(SaverMixin):
     """Implements API for saving & loading in a File oriented context"""
 
-    def __init__(self, pseudo, directory=PROFILE_DIR):
+    def __init__(self, pseudo, directory):
         SaverMixin.__init__(self, pseudo, directory)
     
     # MENU
@@ -513,8 +513,10 @@ class FileDocument(FilePersonalMixin, FileSharingMixin,
                    FileContactMixin, FileSaverMixin):
     """Describes all data needed in profile in a file"""
 
-    def __init__(self, pseudo, directory=PROFILE_DIR):
+    def __init__(self, pseudo, directory=None):
         assert isinstance(pseudo, unicode), "pseudo must be a unicode"
+        if directory is None:
+            directory = get_prefs("profile_dir")
         self.encoding = ENCODING
         self.config = CustomConfigParser(ENCODING)
         FilePersonalMixin.__init__(self, pseudo)

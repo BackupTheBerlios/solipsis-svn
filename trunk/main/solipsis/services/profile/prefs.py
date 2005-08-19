@@ -21,17 +21,24 @@
 import os.path
 
 import ConfigParser
-from solipsis.services.profile import PREFS_FILE, DOWNLOAD_REPO
+from solipsis.services.profile import PREFS_FILE, DOWNLOAD_REPO, PROFILE_DIR
 
 MAIN_SECTION = "General"
 DIALOG_SECTION = "Dialogs"
 
-def get_prefs():
+def get_prefs(option):
     """load config from file PREFS_FILE creating it if necessary"""
     if not Preferences.conf:
         Preferences.conf = Preferences(PREFS_FILE)
         Preferences.conf.load()
-    return Preferences.conf
+    return Preferences.conf.get(option)
+
+def set_prefs(option, value=None):
+    """load config from file PREFS_FILE creating it if necessary"""
+    if not Preferences.conf:
+        Preferences.conf = Preferences(PREFS_FILE)
+        Preferences.conf.load()
+    Preferences.conf.set(option, value)
 
 class Param:
     """simple structure to define a parameter"""
@@ -77,6 +84,8 @@ class Preferences:
               "display_dl": BoolParam("Download Dialog", MAIN_SECTION, True),
               "download_repo": StringParam("Download directory",
                                            MAIN_SECTION, DOWNLOAD_REPO),
+              "profile_dir": StringParam("Profile directory",
+                                           MAIN_SECTION, PROFILE_DIR),
               "profile_width": IntParam("Profile width", DIALOG_SECTION, 460),
               "profile_height": IntParam("Profile height", DIALOG_SECTION, 600),
               "match_width": IntParam("Match width", DIALOG_SECTION, 460),

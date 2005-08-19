@@ -23,8 +23,8 @@ gathared in views.py. Documents are to be seen as completely
 independant from views"""
 
 import os.path
-from solipsis.services.profile import QUESTION_MARK, \
-     PROFILE_DIR, ENCODING
+from solipsis.services.profile import QUESTION_MARK, ENCODING
+from solipsis.services.profile.prefs import get_prefs
 from solipsis.services.profile.data import DirContainer
 from solipsis.services.profile.document import SaverMixin, \
      AbstractPersonalData, AbstractSharingData, AbstractContactsData
@@ -257,8 +257,10 @@ class CacheDocument(CachePersonalMixin, CacheSharingMixin,
                    CacheContactMixin, SaverMixin):
     """Describes all data needed in profile in a file"""
 
-    def __init__(self, pseudo, directory=PROFILE_DIR):
+    def __init__(self, pseudo, directory=None):
         assert isinstance(pseudo, unicode), "pseudo must be a unicode"
+        if directory is None:
+            directory = get_prefs("profile_dir")
         CachePersonalMixin.__init__(self)
         CacheSharingMixin.__init__(self)
         CacheContactMixin.__init__(self)

@@ -60,7 +60,7 @@ class Launcher(object):
                 break
         else:
             return None
-        prog_path = os.path.normcase('.' + os.sep + prog_name)
+        prog_path = os.path.abspath(prog_name)
         # We try to keep the same Python interpreter as currently
         if os.path.exists(sys.executable) and re.match(r'.*\.py[cow]?$', prog_name, re.IGNORECASE):
             return [sys.executable, prog_path]

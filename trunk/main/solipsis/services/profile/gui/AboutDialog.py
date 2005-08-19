@@ -4,7 +4,7 @@
 import wx
 
 from solipsis.util.wxutils import _
-from solipsis.services.profile.prefs import get_prefs
+from solipsis.services.profile.prefs import set_prefs
 from solipsis.services.profile import TORE_IMG, VERSION, DISCLAIMER
 
 # begin wxGlade: dependencies
@@ -38,7 +38,7 @@ class AboutDialog(wx.Dialog):
 
     def on_check_display(self, evt):
         """set whether disclaimer will be displayed at startup or not"""
-        get_prefs().set("disclaimer", self.display_check.IsChecked())
+        set_prefs("disclaimer", self.display_check.IsChecked())
 
     def on_close(self, evt):
         self.Close()

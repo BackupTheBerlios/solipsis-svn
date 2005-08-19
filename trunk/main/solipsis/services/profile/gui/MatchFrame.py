@@ -6,7 +6,7 @@ import sys
 
 from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxyReceiver
-from solipsis.services.profile.prefs import get_prefs
+from solipsis.services.profile.prefs import get_prefs, set_prefs
 from solipsis.services.profile.facade import get_filter_facade
 from solipsis.services.profile.gui.MatchPanel import MatchPanel
 from solipsis.services.profile.gui.AboutDialog import AboutDialog
@@ -89,8 +89,8 @@ class MatchFrame(wx.Frame, UIProxyReceiver):
         """hide  application"""
         # save size
         new_size = self.GetSize()
-        get_prefs().set("match_width", new_size.GetWidth())
-        get_prefs().set("match_height", new_size.GetHeight())
+        set_prefs("match_width", new_size.GetWidth())
+        set_prefs("match_height", new_size.GetHeight())
         # do not destroy window
         self.Hide()
         
@@ -98,7 +98,7 @@ class MatchFrame(wx.Frame, UIProxyReceiver):
         """display about"""
         # not modal because would freeze the wx thread while twisted
         # one goes on and initialize profile
-        about_dlg = AboutDialog(get_prefs().get("disclaimer"), self, -1)
+        about_dlg = AboutDialog(get_prefs("disclaimer"), self, -1)
         about_dlg.Show()
 
     def set_page(self):
@@ -118,8 +118,8 @@ class MatchFrame(wx.Frame, UIProxyReceiver):
         self.SetTitle(_("Matches"))
         self.SetSize((460, 600))
         # end wxGlade
-        width = get_prefs().get("match_width")
-        height = get_prefs().get("match_height")
+        width = get_prefs("match_width")
+        height = get_prefs("match_height")
         self.SetSize((width, height))
 
     def __do_layout(self):

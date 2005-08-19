@@ -20,13 +20,16 @@
 available. This facade will be used both by GUI and unittests."""
 
 from sys import stderr
-from solipsis.services.profile import ENCODING, PROFILE_DIR
+from solipsis.services.profile import ENCODING
+from solipsis.services.profile.prefs import get_prefs
 
 class SimpleFacade:
     """manages user's actions & connects document and view"""
     
-    def __init__(self, pseudo, directory=PROFILE_DIR):
+    def __init__(self, pseudo, directory=None):
         assert isinstance(pseudo, unicode), "pseudo must be a unicode"
+        if directory is None:
+            directory = get_prefs("profile_dir")
         self._desc = None
         self.pseudo = pseudo
         self._activated = True

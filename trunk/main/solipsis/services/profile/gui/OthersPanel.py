@@ -4,12 +4,13 @@
 import wx, wx.html
 import os, os.path
 from solipsis.util.wxutils import _
+from solipsis.services.profile import PROFILE_EXT, \
+     BULB_ON_IMG, BULB_OFF_IMG
+from solipsis.services.profile.prefs import get_prefs
 from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile.document import PeerDescriptor
 from solipsis.services.profile.view import HtmlView
 from solipsis.services.profile.data import PeerDescriptor
-from solipsis.services.profile import PROFILE_DIR, PROFILE_EXT, \
-     BULB_ON_IMG, BULB_OFF_IMG
 
 # begin wxGlade: dependencies
 # end wxGlade
@@ -70,7 +71,7 @@ class OthersPanel(wx.Panel):
         else:
             peer_desc = PeerDescriptor(peer_id)
         # get document
-        full_path = os.sep.join([PROFILE_DIR, peer_id, PROFILE_EXT])
+        full_path = os.sep.join([get_prefs("profile_dir"), peer_id, PROFILE_EXT])
         if not peer_desc.document and os.path.exists(full_path):
             doc = FileDocument()
             doc.load(full_path)

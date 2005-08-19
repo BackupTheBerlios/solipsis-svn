@@ -6,7 +6,7 @@ import sys
 import os.path
 from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxyReceiver
-from solipsis.services.profile.prefs import get_prefs
+from solipsis.services.profile.prefs import get_prefs, set_prefs
 from solipsis.services.profile.pathutils import formatbytes
 from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile import DOWNLOAD, DOWNLOAD_DIR, \
@@ -70,7 +70,7 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
         path = self.repo_value.GetValue()
         while path and not os.path.isdir(path):
             path = os.path.dirname(path)
-        get_prefs().set("download_repo", path.encode(ENCODING))
+        set_prefs("download_repo", path.encode(ENCODING))
         self.repo_value.SetValue(path)
         self.repo_button.SetToolTipString(path)
         self.SetTitle()
@@ -79,12 +79,12 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
         """select download directory in DirDialog"""
         # pop up to choose repository
         dlg = wx.DirDialog(self, message=_("Choose location to download files into"),
-                           defaultPath = unicode(get_prefs().get("download_repo"), ENCODING),
+                           defaultPath = unicode(get_prefs("download_repo"), ENCODING),
                            style=wx.DD_DEFAULT_STYLE|wx.DD_NEW_DIR_BUTTON)
         if dlg.ShowModal() == wx.ID_OK:
             # path chosen
             path = dlg.GetPath()
-            get_prefs().set("download_repo", path.encode(ENCODING))
+            set_prefs("download_repo", path.encode(ENCODING))
             self.repo_value.SetValue(path)
             self.repo_button.SetToolTipString(path)
             self.SetTitle()
@@ -150,7 +150,7 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
                 title = self.peer_desc.pseudo + "'s files"
             else:
                 title = unicode("your files going into " + \
-                                get_prefs().get("download_repo"), ENCODING)
+                                get_prefs("download_repo"), ENCODING)
         wx.Dialog.SetTitle(self, title)
 
     def set_desc(self, value):
@@ -171,7 +171,7 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
         self.download_button.SetToolTipString(_("Download selected files"))
         self.download_button.SetSize(self.download_button.GetBestSize())
         # end wxGlade
-        self.repo_value.SetValue(unicode(get_prefs().get("download_repo"), ENCODING))
+        self.repo_value.SetValue(unicode(get_prefs("download_repo"), ENCODING))
         if not self.plugin:
             self.download_button.Enable(False)
 

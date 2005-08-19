@@ -24,8 +24,9 @@ import stat
 import pickle
 import time
 
-from solipsis.services.profile import ENCODING, PROFILE_DIR, \
+from solipsis.services.profile import ENCODING, \
      BLOG_EXT, BULB_ON_IMG, BULB_OFF_IMG, VERSION
+from solipsis.services.profile.prefs import get_prefs
 
 DEFAULT_TAG = u"none"
 
@@ -129,9 +130,11 @@ class PeerDescriptor:
 # BLOGS
 #######
 
-def load_blogs(pseudo, directory=PROFILE_DIR):
+def load_blogs(pseudo, directory=None):
     """use pickle to loas blogs. file name given without extension
     (same model as profile"""
+    if directory is None:
+        directory = get_prefs("profile_dir")
     # reformating name
     file_name =  os.path.join(directory, pseudo)
     file_name += BLOG_EXT
@@ -149,7 +152,7 @@ def retro_compatibility(blogs):
     if not hasattr(blogs, "version"):
         # v 0.1.0: owner only
         blogs.pseudo = blogs.owner
-        blogs._dir = PROFILE_DIR
+        blogs._dir = get_prefs("profile_dir")
         return blogs.copy()
     elif blogs.version == "0.2.0":
         # v 0.2.0: path derived from _id & _dir. owner becomes pseudo
@@ -165,9 +168,10 @@ def retro_compatibility(blogs):
 class Blogs:
     """container for all blogs, responsible for authentification"""
 
-
-    def __init__(self, pseudo, directory=PROFILE_DIR):
+    def __init__(self, pseudo, directory=None):
         assert isinstance(pseudo, unicode), "pseudo must be a unicode"
+        if directory is None:
+            directory = get_prefs("profile_dir")
         self.pseudo = pseudo 
         self._dir = directory
         self.blogs = []

@@ -8,8 +8,7 @@ from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxy
 from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile.data import PeerDescriptor
-from solipsis.services.profile.prefs import get_prefs
-from solipsis.services.profile import PROFILE_DIR
+from solipsis.services.profile.prefs import get_prefs, set_prefs
 
 from solipsis.services.profile.gui.FileDialog import FileDialog
 from solipsis.services.profile.gui.ProfileDialog import ProfileDialog
@@ -83,11 +82,11 @@ class EditorFrame(wx.Frame):
             #put here special initialisation for standalone editor
             pass
         self.profile_dlg = ProfileDialog(parent, -1, plugin=self.plugin)
-        self.download_dlg = UIProxy(DownloadDialog(get_prefs().get("display_dl"), parent, -1))
+        self.download_dlg = UIProxy(DownloadDialog(get_prefs("display_dl"), parent, -1))
         # events
         self.bind_controls()
         # disclaimer
-        if get_prefs().get("disclaimer"):
+        if get_prefs("disclaimer"):
             self.on_about(None)
 
     def on_change_facade(self):
@@ -136,7 +135,7 @@ class EditorFrame(wx.Frame):
         """export .html"""
         dlg = wx.FileDialog(
             self, message="Export HTML file as ...",
-            defaultDir=PROFILE_DIR,
+            defaultDir=get_prefs("profile_dir"),
             defaultFile="%s.html"% get_facade().get_pseudo(),
             wildcard="HTML File (*.html)|*.html",
             style=wx.SAVE)
@@ -158,8 +157,8 @@ class EditorFrame(wx.Frame):
                 self.on_save(evt)
         # save size
         new_size = self.GetSize()
-        get_prefs().set("profile_width", new_size.GetWidth())
-        get_prefs().set("profile_height", new_size.GetHeight())
+        set_prefs("profile_width", new_size.GetWidth())
+        set_prefs("profile_height", new_size.GetHeight())
         # close dialog
         if self.options["standalone"]:
             self.profile_dlg.Destroy()
@@ -172,7 +171,7 @@ class EditorFrame(wx.Frame):
         """display about"""
         # not modal because would freeze the wx thread while twisted
         # one goes on and initialize profile
-        about_dlg = AboutDialog(get_prefs().get("disclaimer"), self, -1)
+        about_dlg = AboutDialog(get_prefs("disclaimer"), self, -1)
         about_dlg.Show()
 
     def on_display_profile(self, evt):
@@ -200,8 +199,8 @@ class EditorFrame(wx.Frame):
             self.profile_statusbar.SetStatusText(profile_statusbar_fields[i], i)
         # end wxGlade
         # set previous size
-        width = get_prefs().get("profile_width")
-        height = get_prefs().get("profile_height")
+        width = get_prefs("profile_width")
+        height = get_prefs("profile_height")
         self.SetSize((width, height))
         self.do_modified(False)
         self.activate_item.Check()

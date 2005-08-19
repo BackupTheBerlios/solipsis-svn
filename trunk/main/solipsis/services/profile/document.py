@@ -28,7 +28,8 @@ import re
 import os.path
 import ConfigParser
 from os.path import isfile, isdir
-from solipsis.services.profile import PROFILE_DIR, PROFILE_EXT, DEFAULT_INTERESTS, ENCODING
+from solipsis.services.profile import PROFILE_EXT, DEFAULT_INTERESTS, ENCODING
+from solipsis.services.profile.prefs import get_prefs
 from solipsis.services.profile.data import  Blogs, retro_compatibility, \
      DirContainer, SharedFiles, PeerDescriptor
 
@@ -58,9 +59,11 @@ def read_document(stream):
     doc.config = config
     return doc
 
-def load_document(pseudo, directory=PROFILE_DIR):
+def load_document(pseudo, directory=None):
     """build FileDocumentn from file"""
     assert isinstance(pseudo, unicode), "pseudo must be a unicode"
+    if directory is None:
+        directory = get_prefs("profile_dir")
     from solipsis.services.profile.file_document import FileDocument
     doc = FileDocument(pseudo, directory)
     if not doc.load():
@@ -475,7 +478,7 @@ class SaverMixin:
     """Take in charge saving & loading of document. Leave funciton
     import_document to be redefined."""
 
-    def __init__(self, pseudo, directory=PROFILE_DIR):
+    def __init__(self, pseudo, directory):
         # point out file where document is saved
         self.pseudo = pseudo
         self._dir = directory
@@ -529,8 +532,10 @@ class AbstractDocument(AbstractPersonalData, AbstractSharingData,
                        AbstractContactsData, SaverMixin):
     """data container on file"""
 
-    def __init__(self, pseudo, directory=PROFILE_DIR):
+    def __init__(self, pseudo, directory=None):
         assert isinstance(pseudo, unicode), "pseudo must be a unicode"
+        if directory is None:
+            directory = get_prefs("profile_dir")
         AbstractPersonalData.__init__(self)
         AbstractSharingData.__init__(self)
         AbstractContactsData.__init__(self)

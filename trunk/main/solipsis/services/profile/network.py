@@ -552,7 +552,7 @@ class PeerClientProtocol(PeerProtocol):
                 file_path, size = self.factory.files.pop()
                 self.factory.manager.update_file(file_path[-1], size)
                 down_path = os.path.abspath(os.path.join(
-                    get_prefs().get("download_repo"),
+                    get_prefs("download_repo"),
                     file_path[-1]))
                 print "loading into", down_path
                 self.file = open(down_path, "w+b")
@@ -710,7 +710,7 @@ class DeferredUpload(defer.Deferred):
         elif self.message == MESSAGE_FILES:
             # TODO: check place where to download and non overwriting
             down_path = os.path.abspath(os.path.join(
-                get_prefs().get("download_repo"),
+                get_prefs("download_repo"),
                 self.split_path[-1]))
             self.file = open(down_path, "w+b")
             self.manager.update_file(self.split_path, self.size)

@@ -121,7 +121,8 @@ class ConnectedTest(NetworkTest):
     def setUp(self):
         util.wait(NetworkTest.setUp(self))
         util.wait(self.assertResponse("connect bots.netofpeers.net:8553", "Connected"))
-        return self.assertResponse("go", "ok")
+        util.wait(self.assertResponse("go", "ok"))
+        self.wait(0.5)
     setUp.timeout = 8
 
     def tearDown(self):
@@ -150,7 +151,7 @@ class ConnectedTest(NetworkTest):
     def test_who(self):
         util.wait(self.assertResponse("go 0.67 0.33", "ok"))
         return self.assertResponse("who profile", "")
-    test_who.timeout = 2
+    test_who.timeout = 3
 
 ##### WATCH OUT !!! ###################################################################
 
@@ -215,7 +216,7 @@ pageant.exe"""
         util.wait(self.assertOtherResponse("connect %s"% self.WINDOWS_NODE, "Connected"))
         util.wait(self.assertOtherResponse("go 0.11 0.31", "ok"))
         # wait until both navigators have received meta data (no message usable from node)
-        self.wait(1.0)
+        self.wait(2)
     setUp.timeout = 8
 
 
