@@ -290,7 +290,10 @@ class NodeConnector(object):
         try:
             target = self.known_peers[target_id]
         except KeyError:
+            print "cannot do middleman for %s" % target_id
             return False
+#         print "doing middleman %s -> %s" % (source_id, target_id)
+        return self._SendData(target.address, data, log=True)
 
     #
     # Statistics handling

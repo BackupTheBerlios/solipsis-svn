@@ -85,6 +85,7 @@ class StateMachine(object):
         'HELLO':        [],
         'JUMPNEAR':     [],
         'META':         [],
+        'MIDDLEMAN':    [],
         'NEAREST':      [states.Locating, states.Scanning],
         'QUERYAROUND':  [states.Connecting, states.Idle, states.LostGlobalConnectivity],
         'QUERYMETA':    [],
