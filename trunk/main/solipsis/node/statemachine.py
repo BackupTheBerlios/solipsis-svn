@@ -353,7 +353,7 @@ class StateMachine(object):
         topology = self.topology
 
         # Check if we want to accept peer as a neighbour
-        if not self._AcceptPeer(peer):
+        if not self.node_connector.AcceptHandshake(peer) or not self._AcceptPeer(peer):
             # Refuse connection
             self._SendToPeer(peer, self._PeerMessage('CLOSE'))
         else:
@@ -378,7 +378,7 @@ class StateMachine(object):
         topology = self.topology
 
         # Check if we want to accept peer as a neighbour
-        if not self._AcceptPeer(peer):
+        if not self.node_connector.AcceptHandshake(peer) or not self._AcceptPeer(peer):
             # Refuse connection
             self._SendToPeer(peer, self._PeerMessage('CLOSE'))
 

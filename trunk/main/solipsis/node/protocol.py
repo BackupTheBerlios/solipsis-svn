@@ -35,7 +35,7 @@ from solipsis.util.entity import Service
 # Public API
 __all__ = [
     # Constants
-    'VERSION', 'SAFE_VERSION', 'BANNER', 'CHARSET',
+    'VERSION', 'BETTER_VERSION', 'SAFE_VERSION', 'BANNER', 'CHARSET',
     # Associative mappings,
     'ALL_ARGS', 'ATTRIBUTE_NAMES', 'PROTOCOL_STRINGS',
     # Request types table,
@@ -47,8 +47,13 @@ __all__ = [
 ]
 
 
+# The highest supported version
 VERSION = 1.1
+# The base version we try to negotiate with peers
+BETTER_VERSION = 1.1
+# The lowest supported version
 SAFE_VERSION = 1.0
+
 BANNER = "SOLIPSIS/"
 CHARSET = "utf-8"
 

@@ -53,8 +53,8 @@ class NodeConnector(object):
     remote_hold_time = 30
 
     # Minimum time between handshakes (HELLO or CONNECT) with the same peer
-    handshake_dampening_duration = 3.0
-    handshake_dampening_threshold = 2
+    handshake_dampening_duration = 5.0
+    handshake_dampening_threshold = 4
 
     def __init__(self, reactor, params, state_machine, logger):
         self.reactor = reactor
@@ -123,7 +123,7 @@ class NodeConnector(object):
         """
         Returns True if a peer can be accepted for connection.
         """
-        return peer.hold_time >= self.minimum_hold_time and self.AcceptHandshake(peer)
+        return peer.hold_time >= self.minimum_hold_time
 
     def AddPeer(self, peer):
         """
@@ -276,23 +276,5 @@ class NodeConnector(object):
         self.node_protocol.SendData((host, port), data)
         if log:
             self.logger.debug(">>>> sending to %s:%d\n%s" % (host, port, data))
-        return True
-
-    def AcceptHandshake(self, peer):
-        """
-        Checks for too many recent connection attempts with a peer,
-        and possibly other conditions.
-        Returns True if connection accepted, False if refused.
-        """
-        now = time.time()
-        try:
-            last = self.last_handshakes[peer.address]
-        except KeyError:
-            self.last_handshakes[peer.address] = [now]
-        else:
-            last = [t for t in last if now - t < self.handshake_dampening_duration]
-            self.last_handshakes[peer.address] = last + [now]
-            if len(last) >= self.handshake_dampening_threshold:
-                return False
         return True
 
