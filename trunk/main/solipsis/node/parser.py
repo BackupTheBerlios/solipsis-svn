@@ -46,8 +46,12 @@ class Parser(object):
         """
         Strip unnecessary parameters from message.
         """
-        _req = REQUESTS[version or message.version]
-        required_args = set([ATTRIBUTE_NAMES[arg_id] for arg_id in _req[message.request]])
+        version = version or message.version
+        try:
+            _req = REQUESTS[version][message.request]
+        except KeyError:
+            raise EventParsingError("Unknown request '%s' in version '%s'" % (message.request, str(version)))
+        required_args = set([ATTRIBUTE_NAMES[arg_id] for arg_id in _req])
         args = message.args
         for k in set(args.__dict__) - required_args:
             delattr(args, k)
@@ -153,7 +157,7 @@ class Parser(object):
             payload = self.line_separator.join(lines[nb_line+1:])
             if payload:
                 if ARG_PAYLOAD in missing_args:
-                    del missing_args[ARG_PAYLOAD]
+                    missing_args.remove(ARG_PAYLOAD)
                 else:
                     self.logger.debug("Optional payload in message '%s'" % request)
                 # Note: we don't try to convert the payload to unicode when

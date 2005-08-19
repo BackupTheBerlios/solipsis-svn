@@ -53,8 +53,8 @@ class NodeConnector(object):
     remote_hold_time = 30
 
     # Minimum time between handshakes (HELLO or CONNECT) with the same peer
-    handshake_dampening_duration = 5.0
-    handshake_dampening_threshold = 4
+    handshake_dampening_duration = 6.0
+    handshake_dampening_threshold = 10
 
     # Delay between attempts at protocol version negotiation
     version_negotiation_delay = 2.0
@@ -70,7 +70,7 @@ class NodeConnector(object):
         self.caller = DelayedCaller(self.reactor)
 
         # Can be modified by NAT detection code
-        self.needs_middleman = False
+        self.needs_middleman = True
 
         # Statistics
         self.received_messages = {}
@@ -203,11 +203,17 @@ class NodeConnector(object):
         message.args.version = protocol.VERSION
         message.args.needs_middleman = self.needs_middleman
 
+        # Explanation:
+        # - 'can_ignore_middleman': this a special case since the NAT hole
+        #   may already have been punched by a previous message (e.g. HELLO),
+        #   but the peer is not yet in our current list
+        # - 'version_override': we first try to with the 'better' version and
+        #   fall back to the lower version we know the peer supports
         better_version = protocol.BETTER_VERSION
         def safe_attempt():
-            return self.SendToPeer(peer, message)
+            return self.SendToPeer(peer, message, can_ignore_middleman=True)
         def negotiation_attempt():
-            return self.SendToPeer(peer, message, version_override=better_version)
+            return self.SendToPeer(peer, message, version_override=better_version, can_ignore_middleman=True)
 
         use_negotiation = peer.protocol_version < better_version
         if use_negotiation:
@@ -225,7 +231,7 @@ class NodeConnector(object):
         data = self.parser.BuildMessage(message)
         return self._SendData(address, data, log=message.request not in self.no_log)
 
-    def SendToPeer(self, peer, message, version_override=None):
+    def SendToPeer(self, peer, message, version_override=None, can_ignore_middleman=False):
         """
         Send a Solipsis message to a peer, possibly using a middleman.
         """
@@ -234,36 +240,57 @@ class NodeConnector(object):
             return False
         if peer.id_ not in self.known_peers:
             self.known_peers[peer.id_] = peer
-        address = peer.address
         version = version_override or peer.protocol_version
         data = self.parser.BuildMessage(message, version)
-        # Also send message through middleman if remote NAT hole not punched yet
+        try_middleman = False
+        try_directly = True
         if peer.id_ not in self.current_peers:
+            address = peer.address
             if peer.needs_middleman:
+                # Send message through middleman if remote NAT hole not punched yet
                 if not peer.middleman_address:
-                    print "cannot contact '%s' without a middleman" % peer.id_
-                    return False
-                middleman_msg = protocol.Message('MIDDLEMAN')
-                middleman_msg.args.id_ = self.node.id_
-                middleman_msg.args.remote_id = peer.id_
-                middleman_msg.args.payload = data
-                if not self.SendToAddress(peer.middleman_address, middleman_msg):
-                    return False
+                    if not can_ignore_middleman:
+                        print "cannot contact '%s' without a middleman ('%s')" % (peer.id_, message.request)
+                        return False
+                else:
+                    try_middleman = True
+                    # There's no need to also send the message directly
+                    # except if we have to punch a hole in our own NAT.
+                    if not self.needs_middleman:
+                        try_directly = False
         else:
             address = self.current_peers[peer.id_].address
+        # Really send message
+        if try_middleman:
+            middleman_msg = protocol.Message('MIDDLEMAN')
+            middleman_msg.args.id_ = self.node.id_
+            middleman_msg.args.remote_id = peer.id_
+            middleman_msg.args.payload = data
+            # MIDDLEMAN doesn't exist in old protocol versions
+            middleman_msg.version = protocol.BETTER_VERSION
+            if not self.SendToAddress(peer.middleman_address, middleman_msg):
+                return False
+        if try_directly:
+            if not self._SendData(address, data):
+                return False
+            # Heartbeat handling
+            if peer.id_ in self.dc_peer_heartbeat:
+                self.dc_peer_heartbeat[peer.id_].Reschedule()
         # Update stats
         try:
             self.sent_messages[message.request] += 1
         except KeyError:
             self.sent_messages[message.request] = 1
-        # Really send message
-        if not self._SendData(address, data):
-            return False
-        # Heartbeat handling
-        if peer.id_ in self.dc_peer_heartbeat:
-            self.dc_peer_heartbeat[peer.id_].Reschedule()
         return True
 
+    def DoMiddleman(self, source_id, target_id, data):
+        """
+        Relay a Solipsis message on behalf of a peer to another peer.
+        """
+        try:
+            target = self.known_peers[target_id]
+        except KeyError:
+            return False
 
     #
     # Statistics handling

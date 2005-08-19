@@ -355,7 +355,7 @@ class StateMachine(object):
         # Check if we want to accept peer as a neighbour
         if not self.node_connector.AcceptHandshake(peer) or not self._AcceptPeer(peer):
             # Refuse connection
-            self._SendToPeer(peer, self._PeerMessage('CLOSE'))
+            self._SayClose(peer)
         else:
             if topology.HasPeer(peer.id_):
                 # If we are already connected, update characteristics
@@ -380,7 +380,7 @@ class StateMachine(object):
         # Check if we want to accept peer as a neighbour
         if not self.node_connector.AcceptHandshake(peer) or not self._AcceptPeer(peer):
             # Refuse connection
-            self._SendToPeer(peer, self._PeerMessage('CLOSE'))
+            self._SayClose(peer)
 
         if not topology.HasPeer(peer.id_):
             self._AddPeer(peer)
@@ -724,6 +724,11 @@ class StateMachine(object):
         self.future_position = args.remote_position
         self._StartFindNearest(addresses=[args.address])
 
+    def peer_MIDDLEMAN(self, args):
+        """
+        A peer asks us to relay a message to another peer.
+        """
+        self.node_connector.DoMiddleman(args.id_, args.remote_id, args.payload)
 
     #
     # Control events
@@ -764,7 +769,9 @@ class StateMachine(object):
         self._CloseCurrentConnections()
         self.Reset()
         for host, port in self.bootup_addresses:
-            self._SayHello(Peer(address=Address(host, port)))
+            address = Address(host, port)
+            if address != self.node.address:
+                self._SayHello(Peer(address=address))
         self.SetState(states.EarlyConnecting())
 
     def TryConnect(self):
@@ -880,6 +887,8 @@ class StateMachine(object):
         """
         True if peer is accepted as a potential neighbour.
         """
+        if peer.id_ == self.node.id_:
+            return False
         if not self.node_connector.AcceptPeer(peer):
             return False
         if self.topology.GetNumberOfPeers() < self.max_connections:
@@ -971,7 +980,8 @@ class StateMachine(object):
         # Send FINDNEAREST to all selected addresses
         message = self._PeerMessage('FINDNEAREST', future=True)
         for address in addresses:
-            self._SendToAddress(address, message)
+            if address != self.node.address:
+                self._SendToAddress(address, message)
 
         # Jump into the proper state
         self.SetState(states.Locating())
@@ -1165,6 +1175,13 @@ class StateMachine(object):
         """
         msg = self._PeerMessage('CONNECT')
         return self.node_connector.SendHandshake(peer, msg)
+
+    def _SayClose(self, peer):
+        """
+        Say CLOSE to a peer.
+        """
+        msg = self._PeerMessage('CLOSE')
+        return self.node_connector.SendToPeer(peer, msg, can_ignore_middleman=True)
 
     def _QueryMeta(self, peer):
         """
