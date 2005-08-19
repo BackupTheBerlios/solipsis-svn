@@ -66,7 +66,7 @@ class Parser(object):
         # 1. Request and protocol version
         first_line = message.request + " " + banner(version)
         lines.append(first_line)
-        print ">", first_line
+#         print ">", first_line
         # 2. Request arguments
         for k, v in args.iteritems():
             arg_id = ATTRIBUTE_NAMES.get_reverse(k)
