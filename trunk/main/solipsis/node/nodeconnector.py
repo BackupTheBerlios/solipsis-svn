@@ -128,7 +128,7 @@ class NodeConnector(object):
         """
         Returns True if a peer can be accepted for connection.
         """
-        return peer.hold_time >= self.minimum_hold_time
+        return peer.hold_time is None or (peer.hold_time >= self.minimum_hold_time)
 
     def AddPeer(self, peer):
         """
@@ -152,12 +152,7 @@ class NodeConnector(object):
         self.dc_peer_timeout[peer.id_] = self.caller.CallPeriodically(peer.hold_time, msg_receive_timeout)
 
         # Negotiation is done
-        try:
-            dc = self.dc_peer_negotiate.pop(peer.id_)
-        except KeyError:
-            pass
-        else:
-            dc.Cancel()
+        self._CancelPeerDCs(peer.id_, [self.dc_peer_negotiate])
         return True
 
     def RemovePeer(self, peer_id):
@@ -166,16 +161,7 @@ class NodeConnector(object):
         """
         del self.current_peers[peer_id]
         # Cancel delayed calls related to the peer
-        self.dc_peer_heartbeat[peer_id].Cancel()
-        self.dc_peer_timeout[peer_id].Cancel()
-        del self.dc_peer_heartbeat[peer_id]
-        del self.dc_peer_timeout[peer_id]
-        try:
-            dc = self.dc_peer_negotiate.pop(peer_id)
-        except KeyError:
-            pass
-        else:
-            dc.Cancel()
+        self._CancelPeerDCs(peer_id, [self.dc_peer_heartbeat, self.dc_peer_timeout, self.dc_peer_negotiate])
 
     def OnMessageReceived(self, address, data):
         """
@@ -206,9 +192,10 @@ class NodeConnector(object):
 
     def SendHandshake(self, peer, message):
         """
-        Say HELLO or CONNECT to a peer, adding necessary
-        arguments and managing repeated connection attempts.
-        Returns True if succeeded, False if cancelled.
+        Special method for sending HELLO and CONNECT messages.
+        In addition to proper message sending, this method also
+        manages version negotiation.
+        Returns True if succeeded, False otherwise.
         """
         if not self.AcceptHandshake(peer):
             return False
@@ -224,7 +211,7 @@ class NodeConnector(object):
 
         use_negotiation = peer.protocol_version < better_version
         if use_negotiation:
-            print "using negotiation for %s instead of %s" % (str(better_version), str(peer.protocol_version))
+#             print "using negotiation for %s instead of %s" % (str(better_version), str(peer.protocol_version))
             dc = self.caller.CallLater(self.version_negotiation_delay, safe_attempt)
             self.dc_peer_negotiate[peer.id_] = dc
             return negotiation_attempt()
@@ -303,6 +290,9 @@ class NodeConnector(object):
             return self.remote_hold_time
 
     def _SendData(self, address, data, log=False):
+        """
+        Send raw data to a destination address, and optionally log it.
+        """
         if isinstance(address, Address):
             host, port = (address.host, address.port)
         else:
@@ -311,4 +301,16 @@ class NodeConnector(object):
         if log:
             self.logger.debug(">>>> sending to %s:%d\n%s" % (host, port, data))
         return True
+
+    def _CancelPeerDCs(self, peer_id, dc_tables):
+        """
+        Cancel delayed calls for the given peer in the given tables.
+        """
+        for t in dc_tables:
+            try:
+                dc = t.pop(peer_id)
+            except KeyError:
+                pass
+            else:
+                dc.Cancel()
 

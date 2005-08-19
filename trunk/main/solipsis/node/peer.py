@@ -45,11 +45,6 @@ class Peer(Entity):
         # Connection hold time for this peer
         self.hold_time = None
 
-        self.Freshen()
-
-    def Freshen(self):
-        self.last_access = time.time()
-
     def FromArgs(cls, args):
         """
         Returns a Peer created from the given message arguments.
@@ -99,6 +94,7 @@ class Peer(Entity):
             peer.middleman_address = args.address
         except AttributeError:
             pass
+#         print peer.protocol_version
         return peer
 
     FromRemoteArgs = classmethod(FromRemoteArgs)
