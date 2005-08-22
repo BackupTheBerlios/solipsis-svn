@@ -387,6 +387,7 @@ class StateMachine(object):
             self._AddPeer(peer)
         else:
             self.logger.info("reception of CONNECT but we are already connected to '%s'" % peer.id_)
+            self._UpdatePeer(peer)
         self._QueryMeta(peer)
 
     def peer_CLOSE(self, args):
@@ -1175,7 +1176,10 @@ class StateMachine(object):
         Answer CONNECT to a peer.
         """
         msg = self._PeerMessage('CONNECT')
-        return self.node_connector.SendHandshake(peer, msg)
+        # When sending a CONNECT message, we don't want negotiation
+        # so we use the normal way of sending messages
+        self.node_connector.FillHandshake(peer, msg)
+        return self.node_connector.SendToPeer(peer, msg, can_ignore_middleman=True)
 
     def _SayClose(self, peer):
         """

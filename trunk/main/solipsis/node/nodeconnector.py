@@ -55,6 +55,7 @@ class NodeConnector(object):
     # Minimum time between handshakes (HELLO or CONNECT) with the same peer
     handshake_dampening_duration = 6.0
     handshake_dampening_threshold = 10
+    outgoing_handshake_duration = 1.5
 
     # Delay between attempts at protocol version negotiation
     version_negotiation_delay = 2.0
@@ -91,6 +92,7 @@ class NodeConnector(object):
 
         # For each address, this is the timestamp of the last handshake attempts
         self.last_handshakes = {}
+        self.outgoing_handshakes = {}
 
         self.caller.Reset()
 
@@ -153,6 +155,10 @@ class NodeConnector(object):
 
         # Negotiation is done
         self._CancelPeerDCs(peer.id_, [self.dc_peer_negotiate])
+        try:
+            del self.outgoing_handshakes[peer.address]
+        except KeyError:
+            pass
         return True
 
     def RemovePeer(self, peer_id):
@@ -190,6 +196,15 @@ class NodeConnector(object):
                 self.dc_peer_timeout[peer_id].Reschedule()
         self.state_machine.PeerMessageReceived(message.request, message.args)
 
+    def FillHandshake(self, peer, message):
+        """
+        Fill handshake parameters in a Solipsis message.
+        (e.g. protocol version, hold time...)
+        """
+        message.args.hold_time = self._HoldTime(peer.address)
+        message.args.version = protocol.VERSION
+        message.args.needs_middleman = self.needs_middleman
+
     def SendHandshake(self, peer, message):
         """
         Special method for sending HELLO and CONNECT messages.
@@ -197,11 +212,19 @@ class NodeConnector(object):
         manages version negotiation.
         Returns True if succeeded, False otherwise.
         """
-        if not self.AcceptHandshake(peer):
-            return False
-        message.args.hold_time = self._HoldTime(peer.address)
-        message.args.version = protocol.VERSION
-        message.args.needs_middleman = self.needs_middleman
+        now = time.time()
+        try:
+            last = self.outgoing_handshakes[peer.address]
+        except KeyError:
+            pass
+        else:
+            # If we already tried an outgoing handshake
+            # recently, pretend we have sent the message
+            if now - last < self.outgoing_handshake_duration:
+#                 print "*** handshake already sent to", peer.id_
+                return True
+        self.outgoing_handshakes[peer.address] = now
+        self.FillHandshake(peer, message)
 
         # Explanation:
         # - 'can_ignore_middleman': this a special case since the NAT hole
@@ -271,7 +294,7 @@ class NodeConnector(object):
             if not self.SendToAddress(peer.middleman_address, middleman_msg):
                 return False
         if try_directly:
-            if not self._SendData(address, data):
+            if not self._SendData(address, data, log=message.request not in self.no_log):
                 return False
             # Heartbeat handling
             if peer.id_ in self.dc_peer_heartbeat:
@@ -319,7 +342,7 @@ class NodeConnector(object):
         else:
             return self.remote_hold_time
 
-    def _SendData(self, address, data, log=False):
+    def _SendData(self, address, data, log=True):
         """
         Send raw data to a destination address, and optionally log it.
         """
