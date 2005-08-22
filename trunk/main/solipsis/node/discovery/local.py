@@ -23,7 +23,7 @@ import twisted.internet.defer as defer
 
 import solipsis.lib.shtoom.nat as nat
 
-local_timeout = 0.5
+local_timeout = 3.0
 
 def DiscoverAddress(port, reactor, params):
     d = defer.Deferred()
