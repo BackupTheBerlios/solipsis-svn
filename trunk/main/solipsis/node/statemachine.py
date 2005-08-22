@@ -882,6 +882,7 @@ class StateMachine(object):
         except KeyError:
             pass
         self.topology.RemovePeer(id_)
+        self.node_connector.RemovePeer(id_)
         # Notify remote control
         self.event_sender.event_LostPeer(id_)
 
