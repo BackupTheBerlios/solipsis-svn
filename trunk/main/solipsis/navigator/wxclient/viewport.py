@@ -1,17 +1,17 @@
 # <copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
 # Copyright (C) 2002-2005 France Telecom R&D
-# 
+#
 # This software is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
 # version 2.1 of the License, or (at your option) any later version.
-# 
+#
 # This software is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -299,6 +299,7 @@ class Viewport(BaseViewport):
     def MoveToPixels(self, position, strafe=False):
         """
         Move to a position in physical (pixel) coordinates.
+        Returns logical (world) coordinates.
         """
         w, h = self._WindowSize()
         cx, cy = self.center
@@ -306,8 +307,8 @@ class Viewport(BaseViewport):
         y = h / 2 - float(position[1])
         cs = math.cos(-self.angle)
         sn = math.sin(-self.angle)
-        fx = self.normalize((x * cs - y * sn) / self.ratio) + cx
-        fy = self.normalize((y * cs + x * sn) / self.ratio) + cy
+        fx = (x * cs - y * sn) / self.ratio + cx
+        fy = (y * cs + x * sn) / self.ratio + cy
         self._SetFutureCenter((fx, fy))
 
         # Change orientation according to the destination we move towards
@@ -332,7 +333,7 @@ class Viewport(BaseViewport):
         fx = fx % self.world_size
         fy = fy % self.world_size
         return (fx, fy)
-    
+
     def MoveToRelative(self, (dx, dy)):
         """
         Move to a position relatively to the current one and the viewport size.
@@ -402,7 +403,7 @@ class Viewport(BaseViewport):
         Returns True if the viewport is empty.
         """
         return len(self.obj_list) == 0
-    
+
     def AutoRotate(self, flag):
         """
         Set the autorotate flag. If True, the viewport will smoothly change
@@ -510,7 +511,7 @@ class Viewport(BaseViewport):
                 width = int(width * 1.5)
                 height = int(height * 1.5)
         #~ print "Rebuilding dim DC %d*%d..." % (width, height)
-        
+
         opaque = wx.Colour(63, 63, 63)
         transparent = wx.RED
         # Create bitmap & enable transparency
@@ -582,15 +583,25 @@ class Viewport(BaseViewport):
         """
         Immediately set the viewport center in logical coordinates.
         """
-        self.center = position
-        self.future_center = position, position
+        x = self.normalize(position[0])
+        y = self.normalize(position[1])
+        self.center = x, y
+        self.future_center = (x, y), (x, y)
 
     def _SetFutureCenter(self, position):
         """
         Set the viewport center in logical coordinates.
         """
-        self.future_center = position, self.center
-        self.center_glider.Reset(0.0, 1.0)
+        epsilon = 2**-15
+        x, y = position
+        fx, fy = self.future_center[0]
+        if abs(self.normalize(x - fx)) > abs(epsilon * fx) or abs(self.normalize(y - fy)) > abs(epsilon * fy):
+            cx = self.normalize(self.center[0])
+            cy = self.normalize(self.center[1])
+            x = self.normalize(x - cx) + cx
+            y = self.normalize(y - cy) + cy
+            self.future_center = (x, y), (cx, cy)
+            self.center_glider.Reset(0.0, 1.0)
 
     def _SetRatio(self, ratio):
         """
