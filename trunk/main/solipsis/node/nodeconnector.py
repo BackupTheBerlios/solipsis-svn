@@ -44,12 +44,14 @@ class NodeProtocol(DatagramProtocol):
 class NodeConnector(object):
     # Requests we don't want to log, even in debug mode
     no_log = set(['HEARTBEAT'])
+#     no_log = set([])
 
     # Connection hold time
     # With local nodes, we choose a very long timeout which enables us
     # to minimize the number of HEARTBEAT messages in a mass-hosting setup
     minimum_hold_time = 30
     local_hold_time = 1200
+#     local_hold_time = 30
     remote_hold_time = 30
 
     # Minimum time between handshakes (HELLO or CONNECT) with the same peer
@@ -149,9 +151,10 @@ class NodeConnector(object):
             self.SendToPeer(peer, message)
 
         # Keepalive heuristic (a la BGP)
-        keepalive = peer.hold_time / 3.0
+#         keepalive = peer.hold_time / 3.0
+        keepalive = self._HoldTime(peer.address) / 3.0
         self.dc_peer_heartbeat[peer.id_] = self.caller.CallPeriodically(keepalive, msg_send_timeout)
-        self.dc_peer_timeout[peer.id_] = self.caller.CallPeriodically(peer.hold_time, msg_receive_timeout)
+        self.dc_peer_timeout[peer.id_] = self.caller.CallPeriodically(self._HoldTime(peer.address), msg_receive_timeout)
 
         # Negotiation is done
         self._CancelPeerDCs(peer.id_, [self.dc_peer_negotiate])
@@ -366,4 +369,3 @@ class NodeConnector(object):
                 pass
             else:
                 dc.Cancel()
-
