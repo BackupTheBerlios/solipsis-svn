@@ -44,14 +44,12 @@ class NodeProtocol(DatagramProtocol):
 class NodeConnector(object):
     # Requests we don't want to log, even in debug mode
     no_log = set(['HEARTBEAT'])
-#     no_log = set([])
 
     # Connection hold time
     # With local nodes, we choose a very long timeout which enables us
     # to minimize the number of HEARTBEAT messages in a mass-hosting setup
-    minimum_hold_time = 30
+    minimum_hold_time = 25
     local_hold_time = 1200
-#     local_hold_time = 30
     remote_hold_time = 30
 
     # Minimum time between handshakes (HELLO or CONNECT) with the same peer
@@ -141,7 +139,7 @@ class NodeConnector(object):
         """
         self.current_peers[peer.id_] = peer
         self.known_peers[peer.id_] = peer
-        print "adding peer with protocol %s" % str(peer.protocol_version)
+#         print "adding peer with protocol %s" % str(peer.protocol_version)
 
         # Setup connection heartbeat callbacks
         def msg_receive_timeout():
@@ -227,7 +225,7 @@ class NodeConnector(object):
             # If we already tried an outgoing handshake
             # recently, pretend we have sent the message
             if now - last < self.outgoing_handshake_duration:
-                print "* handshake already sent to", peer.id_
+#                 print "* handshake already sent to", peer.id_
                 return True
         self.outgoing_handshakes[peer.address] = now
         self.FillHandshake(peer, message)
