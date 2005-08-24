@@ -94,7 +94,6 @@ class Peer(Entity):
             peer.middleman_address = args.address
         except AttributeError:
             pass
-#         print peer.protocol_version
         return peer
 
     FromRemoteArgs = classmethod(FromRemoteArgs)

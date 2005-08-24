@@ -125,6 +125,7 @@ class NodeConnector(object):
             last = [t for t in last if now - t < self.handshake_dampening_duration]
             self.last_handshakes[peer.address] = last + [now]
             if len(last) >= self.handshake_dampening_threshold:
+                print "*** refusing handshake with '%s'" % peer.id_
                 return False
         return True
 
@@ -140,6 +141,7 @@ class NodeConnector(object):
         """
         self.current_peers[peer.id_] = peer
         self.known_peers[peer.id_] = peer
+        print "adding peer with protocol %s" % str(peer.protocol_version)
 
         # Setup connection heartbeat callbacks
         def msg_receive_timeout():
@@ -197,6 +199,7 @@ class NodeConnector(object):
         else:
             if peer_id in self.dc_peer_timeout:
                 self.dc_peer_timeout[peer_id].Reschedule()
+#         print "  <", message.request, "%s:%d" % (host, port)
         self.state_machine.PeerMessageReceived(message.request, message.args)
 
     def FillHandshake(self, peer, message):
@@ -224,7 +227,7 @@ class NodeConnector(object):
             # If we already tried an outgoing handshake
             # recently, pretend we have sent the message
             if now - last < self.outgoing_handshake_duration:
-#                 print "*** handshake already sent to", peer.id_
+                print "* handshake already sent to", peer.id_
                 return True
         self.outgoing_handshakes[peer.address] = now
         self.FillHandshake(peer, message)
@@ -270,10 +273,15 @@ class NodeConnector(object):
         data = self.parser.BuildMessage(message, version)
         try_middleman = False
         try_directly = True
-        if peer.id_ not in self.current_peers:
+        our_address = self.node.address
+        # Special treatment when we seem to be behind the same NAT
+        if peer.address.host == our_address.host and \
+            peer.address.private_host is not None and our_address.private_host is not None:
+            address = Address(peer.address.private_host, peer.address.private_port)
+        # Send message through middleman if remote NAT hole not punched yet
+        elif peer.id_ not in self.current_peers:
             address = peer.address
             if peer.needs_middleman:
-                # Send message through middleman if remote NAT hole not punched yet
                 if not peer.middleman_address:
                     if not can_ignore_middleman:
                         print "cannot contact '%s' without a middleman ('%s')" % (peer.id_, message.request)
@@ -296,12 +304,14 @@ class NodeConnector(object):
             middleman_msg.version = protocol.BETTER_VERSION
             if not self.SendToAddress(peer.middleman_address, middleman_msg):
                 return False
+#             print "> MIDDLEMAN", message.request
         if try_directly:
             if not self._SendData(address, data, log=message.request not in self.no_log):
                 return False
             # Heartbeat handling
             if peer.id_ in self.dc_peer_heartbeat:
                 self.dc_peer_heartbeat[peer.id_].Reschedule()
+#             print ">", message.request, address.ToString()
         # Update stats
         try:
             self.sent_messages[message.request] += 1
