@@ -85,6 +85,9 @@ class EditorFrame(wx.Frame):
         self.download_dlg = UIProxy(DownloadDialog(get_prefs("display_dl"), parent, -1))
         # events
         self.bind_controls()
+
+    def Show(self, show=True):
+        wx.Frame.Show(self, show)
         # disclaimer
         if get_prefs("disclaimer"):
             self.on_about(None)
