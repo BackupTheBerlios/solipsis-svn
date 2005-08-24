@@ -25,7 +25,7 @@ class Address(Marshallable):
     """
     Represents a Solipsis Address.
     """
-    __metaclass__ = Autohash(('host', 'port'))
+    __metaclass__ = Autohash(('host', 'port', 'private_host', 'private_port'))
 
     marshallable_fields = {
         'host':
@@ -40,15 +40,30 @@ class Address(Marshallable):
         """
         self.host = str(host)
         self.port = int(port)
+        # When not None, these two fields represent the private address
+        # for reaching the object from behind the same NAT
+        self.private_host = None
+        self.private_port = None
 
     def ToString(self):
-        return "%s:%d" % (self.host, self.port)
+        if self.private_host is not None:
+            return "%s:%d@%s:%d" % (self.host, self.port, self.private_host, self.private_port)
+        else:
+            return "%s:%d" % (self.host, self.port)
 
-    def FromString(cls, s):
-        t = s.split(':')
-        if len(t) != 2:
-            raise ValueError("Wrong address format: '%s'" % s)
-        obj = cls(t[0].strip(), t[1])
+    def FromString(cls, address_string):
+        def parse_tuple(s):
+            t = s.split(':')
+            if len(t) != 2:
+                raise ValueError("Wrong address format: '%s'" % s)
+            return (t[0].strip(), int(t[1]))
+        addresses = address_string.split("@")
+        if len(addresses) > 2:
+            raise ValueError("Wrong address format: '%s'" % address_string)
+        host, port = parse_tuple(addresses[0])
+        obj = cls(host, port)
+        if len(addresses) == 2:
+            obj.private_host, obj.private_port = parse_tuple(addresses[1])
         return obj
 
     FromString = classmethod(FromString)
@@ -58,8 +73,8 @@ class Address(Marshallable):
         return SolipsisURL(host=self.host, port=self.port)
 
     def __eq__(self, other):
-        return self.host == other.host and self.port == other.port
+        return self.host == other.host and self.port == other.port \
+            and self.private_host == other.private_host and self.private_port == other.private_port
 
     def __ne__(self, other):
-        return self.host != other.host or self.port != other.port
-
+        return not self == other

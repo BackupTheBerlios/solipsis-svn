@@ -82,15 +82,15 @@ class NodeLauncher(object):
                 sys.exit(1)
             discovery = _import('solipsis.node.discovery.' + method)
             d = discovery.DiscoverAddress(self.port, self.reactor, self.params)
-            d.addCallback(_succeed)
+            d.addCallback(_found_public_addr)
             d.addErrback(_fail)
 
-        def _succeed(address):
+        def _found_public_addr(address):
             # Discovery succeeded
             self.host, self.port = address
             node.address = Address(self.host, self.port)
-            discovery_deferred.callback((self.host, self.port))
-            print discovery_methods[0], "discovery found address %s:%d" % (self.host, self.port)
+            print "public address is %s:%d" % (self.host, self.port)
+            _find_private_addr()
 
         def _fail(failure):
             # Discovery failed => try next discovery method
@@ -98,7 +98,23 @@ class NodeLauncher(object):
             discovery_methods.pop(0)
             _try_next()
 
-        _try_next()
+        def _find_private_addr():
+            discovery = _import('solipsis.node.discovery.local')
+            d = discovery.DiscoverAddress(self.port, self.reactor, self.params)
+            d.addCallback(_found_private_addr)
+
+        def _found_private_addr(address):
+            host, port = address
+            if host != self.host or port != self.port:
+                node.address.private_host = host
+                node.address.private_port = port
+                print "private address is %s:%d" % (host, port)
+            discovery_deferred.callback((self.host, self.port))
+
+        if self.params.host.strip():
+            _found_public_addr((self.params.host.strip(), self.params.port))
+        else:
+            _try_next()
         return discovery_deferred
 
 
