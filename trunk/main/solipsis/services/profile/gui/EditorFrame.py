@@ -89,7 +89,7 @@ class EditorFrame(wx.Frame):
     def Show(self, show=True):
         wx.Frame.Show(self, show)
         # disclaimer
-        if get_prefs("disclaimer"):
+        if show and get_prefs("disclaimer"):
             self.on_about(None)
 
     def on_change_facade(self):
