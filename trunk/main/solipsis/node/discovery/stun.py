@@ -26,6 +26,8 @@ stun_section = {
 }
 stun_timeout = 2.0
 
+_stun_type = None
+
 class _StunClient(stun.StunDiscoveryProtocol):
     stun_answers = {
         stun.NatTypeUDPBlocked:
@@ -64,13 +66,21 @@ class _StunClient(stun.StunDiscoveryProtocol):
         self._Failed()
 
     def finishedStun(self):
+        global _stun_type
 #         self.timeout.cancel()
         self.listening.stopListening()
+        _stun_type = self.natType
+        print "STUN answer: %s" % self.stun_answers[_stun_type]
         if self.externalAddress is not None:
-            print "STUN answer: %s" % self.stun_answers[self.natType]
             self.d.callback(self.externalAddress)
         else:
             self._Failed()
+
+def NeedsMiddleman():
+    if _stun_type in (stun.NatTypeSymUDP, stun.NatTypeRestrictedCone, stun.NatTypePortRestricted):
+        return True
+    else:
+        return False
 
 def DiscoverAddress(port, reactor, params):
     print "Using STUN to get public IP (port: %d)" % port

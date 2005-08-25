@@ -24,6 +24,7 @@ from twisted.internet.protocol import DatagramProtocol
 
 from solipsis.util.utils import set
 from solipsis.util.address import Address
+from solipsis.node.discovery import stun
 import protocol
 from parser import Parser
 from peer import Peer
@@ -70,7 +71,7 @@ class NodeConnector(object):
         self.node_protocol = NodeProtocol(self)
         self.caller = DelayedCaller(self.reactor)
 
-        # Can be modified by NAT detection code
+        # This flag will be updated by NAT detection code
         self.needs_middleman = True
 
         # Statistics
@@ -100,6 +101,7 @@ class NodeConnector(object):
         """
         Start listening to Solipsis messages.
         """
+        self.needs_middleman = stun.NeedsMiddleman()
         self.listening = self.reactor.listenUDP(port, self.node_protocol)
 
     def Stop(self):
