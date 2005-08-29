@@ -46,7 +46,7 @@ class BaseNavigatorApp(UIProxyReceiver):
     """
     Main application class
     """
-    version = "0.9.3svn"
+    version = "0.9.4svn"
     config_file = os.sep.join(["state", "config.bin"])
     world_size = 2**128
 

@@ -1,17 +1,17 @@
 # <copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
 # Copyright (C) 2002-2005 France Telecom R&D
-# 
+#
 # This software is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
 # version 2.1 of the License, or (at your option) any later version.
-# 
+#
 # This software is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -51,8 +51,8 @@ class ChatWindow(wx.EvtHandler, XRCLoader, UIProxyReceiver):
         # We must create the TextCtrl and its Sizer manually since XRCed
         # does not yet support adding the TE_RICH flag to a TextCtrl...
         # (which is needed to have styles inside the TextCtrl under Windows!)
-        
-        self.chat_view = wx.TextCtrl(parent=self.chat_panel, 
+
+        self.chat_view = wx.TextCtrl(parent=self.chat_panel,
             style=wx.TE_MULTILINE | wx.TE_READONLY | wx.TE_RICH)
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(self.chat_view, flag=wx.EXPAND, proportion=1)
@@ -98,13 +98,13 @@ class ChatWindow(wx.EvtHandler, XRCLoader, UIProxyReceiver):
             # Restore default style
             style.SetTextColour(wx.NullColour)
             self.chat_view.SetDefaultStyle(style)
-    
+
     def AppendSelfMessage(self, peer_id, message):
         """
         Append a formatted message to the text window.
         """
         self.AppendMessage(peer_id, message, True)
-    
+
     def AddPeer(self, peer):
         if peer.pseudo:
             self.pseudos[peer.id_] = peer.pseudo
@@ -120,7 +120,7 @@ class ChatWindow(wx.EvtHandler, XRCLoader, UIProxyReceiver):
             self.chat_users.DeleteItem(index)
         except Exception, e:
             print "FIXME:", str(e)
-    
+
     def UpdatePeer(self, peer):
         self.RemovePeer(peer.id_)
         self.AddPeer(peer)
@@ -130,7 +130,7 @@ class ChatWindow(wx.EvtHandler, XRCLoader, UIProxyReceiver):
         Destroy chat interface.
         """
         self.chat_window.Destroy()
-    
+
     def Show(self):
         """
         Show chat interface.
