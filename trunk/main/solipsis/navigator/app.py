@@ -23,6 +23,7 @@
 import os
 import gc
 import socket
+import atexit
 # This hack suggests something is wrong with the code factoring
 try:
     import wx
@@ -69,6 +70,9 @@ class BaseNavigatorApp(UIProxyReceiver):
         self.services = None	 #InitServices
         self.world = None	 #InitResources
         self.viewport = None	 #InitResources
+        # register exit handler
+        self.exiting = False
+        atexit.register(self._OnQuit)
         # This value will be provided by discovery methds (STUN, local)
         self.local_ip = ""
         self.local_port = params.local_port
@@ -465,6 +469,9 @@ class BaseNavigatorApp(UIProxyReceiver):
         """
         Called on quit event (menu -> File -> Quit, window close box).
         """
+        if self.exiting:
+            return
+        self.exiting = True
         self.alive = False
         self._SaveConfig()
         # Kill the node if necessary
@@ -492,7 +499,6 @@ class BaseNavigatorApp(UIProxyReceiver):
         # twisted.trial.unittest framework
         if not self.testing:
             self.reactor.stop()
-
 
     #===-----------------------------------------------------------------===#
     # Actions from the network thread(s)
