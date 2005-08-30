@@ -28,6 +28,7 @@ class BookmarkPropsDialog(wx.Dialog):
         self.__set_properties()
         self.__do_layout()
 
+        self.Bind(wx.EVT_BUTTON, self.OnCopyURL, id=wx.ID_COPY)
         self.Bind(wx.EVT_BUTTON, self.OnClose, id=wx.ID_CLOSE)
         # end wxGlade
 
@@ -35,13 +36,14 @@ class BookmarkPropsDialog(wx.Dialog):
 
         # Initialize UI values
         self.text_ctrl_name.SetValue(self.peer.pseudo)
-        self.value_url.SetLabel(self.peer.address.GetURL().ToString())
+        self.value_url.SetLabel(self._GetURL())
         self.value_id.SetLabel(self.peer.id_)
         self.SetTitle(_("Properties for %s") % self.peer.pseudo.strip())
         self._UpdateUI()
 
     def __set_properties(self):
         # begin wxGlade: BookmarkPropsDialog.__set_properties
+        self.button_copy_url.SetToolTipString(_("Copy this address to your clipboard"))
         self.button_close.SetDefault()
         # end wxGlade
 
@@ -91,24 +93,40 @@ class BookmarkPropsDialog(wx.Dialog):
                 style=wx.OK | wx.ICON_ERROR)
             dialog.ShowModal()
 
+    def OnCopyURL(self, event): # wxGlade: BookmarkPropsDialog.<event_handler>
+        url = self._GetURL()
+        name = self._GetName()
+        clipboard = wx.TheClipboard
+        clipboard.Open()
+        clipboard.SetData(wx.TextDataObject(url))
+        clipboard.Close()
+        msg = _("The Solipsis address for %s has been copied to the clipboard.") % name
+        dialog = wx.MessageDialog(self,
+            message=msg,
+            caption=name,
+            style=wx.OK|wx.CENTRE|wx.ICON_INFORMATION
+            )
+        dialog.ShowModal()
 
     #
     # Helpers
     #
+    def _GetURL(self):
+        return self.peer.address.GetURL().ToString()
+
+    def _GetName(self):
+        return self.text_ctrl_name.GetValue().strip()
+
     def _UpdateUI(self):
         # Adapt dialog size
         self.Layout()
         self.SetSize(self.GetBestVirtualSize())
 
     def _Validate(self):
-        name = self.text_ctrl_name.GetValue().strip()
-        if not name:
-            return False
-        return True
+        return len(self._GetName()) > 0
 
     def _Apply(self):
-        name = self.text_ctrl_name.GetValue().strip()
-        self.peer.pseudo = name
+        self.peer.pseudo = self._GetName()
 
 
 # end of class BookmarkPropsDialog

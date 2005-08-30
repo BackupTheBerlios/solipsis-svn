@@ -44,11 +44,11 @@ class BookmarksDialog(wx.Frame):
         kwds["style"] = wx.DEFAULT_FRAME_STYLE
         wx.Frame.__init__(self, *args, **kwds)
         self.panel_1 = wx.Panel(self, -1)
-        
+
         # Tool Bar
         self.toolbar = wx.ToolBar(self, -1, style=wx.TB_HORIZONTAL|wx.TB_TEXT|wx.TB_HORZ_LAYOUT|wx.TB_HORZ_TEXT)
         self.SetToolBar(self.toolbar)
-        self.toolbar.AddLabelTool(TOOL_ADD_BOOKMARK, _("Add bookmark"), (TB(wx.ART_ADD_BOOKMARK)), wx.NullBitmap, wx.ITEM_NORMAL, _("Bookmark a node"), "")
+        self.toolbar.AddLabelTool(TOOL_ADD_BOOKMARK, _("Add bookmark"), (TB(wx.ART_ADD_BOOKMARK)), wx.NullBitmap, wx.ITEM_NORMAL, _("Remember one of your current neighbours"), "")
         self.toolbar.AddLabelTool(TOOL_DEL_BOOKMARK, _("Remove"), (TB(wx.ART_DEL_BOOKMARK)), wx.NullBitmap, wx.ITEM_NORMAL, _("Remove selected bookmark"), "")
         self.toolbar.AddLabelTool(TOOL_PROPERTIES, _("Information"), (TB(wx.ART_FILE_OPEN)), wx.NullBitmap, wx.ITEM_NORMAL, _("Get bookmark information"), "")
         # Tool Bar end
