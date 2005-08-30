@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Solipsis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-08-30 11:53+0200\n"
+"POT-Creation-Date: 2005-08-30 17:02+0200\n"
 "PO-Revision-Date: 2005-05-22 12:53+0900\n"
 "Last-Translator: Makoto IGUCHI <info@igucci.org>\n"
 "Language-Team: Solipsis translators <solipsis-tech@lists.berlios.de>\n"
@@ -58,11 +58,11 @@ msgstr ""
 msgid "About"
 msgstr "Solipsisについて"
 
-#: solipsis/navigator/wxclient/app.py:532
+#: solipsis/navigator/wxclient/app.py:533
 msgid "About Solipsis"
 msgstr "Solipsisについて"
 
-#: solipsis/navigator/app.py:392
+#: solipsis/navigator/app.py:400
 msgid "About..."
 msgstr "Solipsisについて..."
 
@@ -87,11 +87,7 @@ msgstr "自動的に回転"
 msgid "Automatic proxy detection"
 msgstr "プロキシ自動検出"
 
-#: solipsis/navigator/wxclient/BookmarksDialog.py:51
-msgid "Bookmark a node"
-msgstr "ノードをブックマーク"
-
-#: solipsis/navigator/wxclient/app.py:514
+#: solipsis/navigator/wxclient/app.py:515
 #, python-format
 msgid "Bookmark peer \"%s\""
 msgstr "ピア \"%s\" をブックマーク"
@@ -118,7 +114,7 @@ msgstr "移動時、表示方向を自動的に変更するか選択"
 msgid "Connect to Solipsis"
 msgstr "Solipsisに接続"
 
-#: solipsis/navigator/wxclient/app.py:531
+#: solipsis/navigator/wxclient/app.py:532
 msgid "Connect to node"
 msgstr "ノードに接続"
 
@@ -128,11 +124,11 @@ msgid ""
 "(possibly on a remote computer):"
 msgstr ""
 
-#: solipsis/navigator/app.py:586 solipsis/navigator/app.py:610
+#: solipsis/navigator/app.py:594 solipsis/navigator/app.py:618
 msgid "Connected"
 msgstr "接続完了"
 
-#: solipsis/navigator/wxclient/app.py:558
+#: solipsis/navigator/wxclient/app.py:559
 msgid "Connecting to the node..."
 msgstr "ノードに接続中..."
 
@@ -141,15 +137,15 @@ msgstr "ノードに接続中..."
 msgid "Connection"
 msgstr "接続中"
 
-#: solipsis/navigator/app.py:622
+#: solipsis/navigator/app.py:630
 msgid "Connection error"
 msgstr "接続エラー"
 
-#: solipsis/navigator/wxclient/app.py:557
+#: solipsis/navigator/wxclient/app.py:558
 msgid "Connection progress"
 msgstr "接続状況"
 
-#: solipsis/navigator/app.py:620
+#: solipsis/navigator/app.py:628
 msgid ""
 "Connection to the node has failed. \n"
 "Please the check the node is running, then retry."
@@ -163,7 +159,11 @@ msgstr ""
 msgid "Connection type"
 msgstr "接続エラー"
 
-#: solipsis/navigator/wxclient/app.py:529
+#: solipsis/navigator/wxclient/BookmarkPropsDialog.py:46
+msgid "Copy this address to your clipboard"
+msgstr ""
+
+#: solipsis/navigator/wxclient/app.py:530
 msgid "Disconnect"
 msgstr "切断"
 
@@ -171,16 +171,16 @@ msgid "Edit bookmarks"
 msgstr "ブックマークを編集"
 
 #: solipsis/navigator/wxclient/ConnectionTypeDialog.py:113
-#: solipsis/navigator/wxclient/BookmarkPropsDialog.py:86
+#: solipsis/navigator/wxclient/BookmarkPropsDialog.py:92
 #: solipsis/util/wxutils.py:161
 msgid "Error"
 msgstr "エラー"
 
-#: solipsis/navigator/app.py:537
+#: solipsis/navigator/app.py:545
 msgid "For information..."
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:352
+#: solipsis/navigator/wxclient/app.py:353
 msgid "For reminder, here is your address:"
 msgstr "あなたのアドレスはこちら:"
 
@@ -219,7 +219,7 @@ msgstr ""
 msgid "Information"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:387
+#: solipsis/navigator/wxclient/app.py:388
 msgid "Jump near an entity"
 msgstr "エンティティの近くにジャンプ"
 
@@ -240,7 +240,7 @@ msgstr ""
 msgid "Kill node when exiting"
 msgstr "終了時ノードを削除"
 
-#: solipsis/navigator/app.py:334 solipsis/navigator/app.py:649
+#: solipsis/navigator/app.py:342 solipsis/navigator/app.py:657
 msgid "Kill refused"
 msgstr "削除失敗"
 
@@ -250,7 +250,7 @@ msgid ""
 "on this computer."
 msgstr ""
 
-#: solipsis/navigator/app.py:391
+#: solipsis/navigator/app.py:399
 msgid "Licensed under the GNU LGPL"
 msgstr "GNU LGPLライセンス下で公開・配布されています"
 
@@ -284,11 +284,11 @@ msgstr ""
 msgid "No proxy"
 msgstr "プロキシなし"
 
-#: solipsis/navigator/wxclient/BookmarkPropsDialog.py:23
+#: solipsis/navigator/wxclient/BookmarkPropsDialog.py:24
 msgid "Node ID :"
 msgstr ""
 
-#: solipsis/navigator/app.py:332
+#: solipsis/navigator/app.py:340
 msgid ""
 "Node creation failed. \n"
 "Please check you have sufficient rights."
@@ -296,13 +296,13 @@ msgstr ""
 "ノード作成に失敗しました。\n"
 "十分な権限を有しているか確認してください。"
 
-#: solipsis/navigator/wxclient/app.py:148 solipsis/navigator/app.py:251
-#: solipsis/navigator/app.py:421 solipsis/navigator/app.py:596
-#: solipsis/navigator/app.py:619 solipsis/navigator/app.py:634
+#: solipsis/navigator/wxclient/app.py:148 solipsis/navigator/app.py:259
+#: solipsis/navigator/app.py:429 solipsis/navigator/app.py:604
+#: solipsis/navigator/app.py:627 solipsis/navigator/app.py:642
 msgid "Not connected"
 msgstr "未接続"
 
-#: solipsis/navigator/app.py:229
+#: solipsis/navigator/app.py:237
 msgid "Not implemented"
 msgstr "未実装"
 
@@ -315,12 +315,12 @@ msgstr ""
 msgid "Please choose the peer to add to your bookmarks list."
 msgstr "あなたのブックマークリストに追加するピアを選択してください。"
 
-#: solipsis/navigator/wxclient/BookmarkPropsDialog.py:85
+#: solipsis/navigator/wxclient/BookmarkPropsDialog.py:91
 #, fuzzy
 msgid "Please enter a name for this bookmark."
 msgstr "正しいホスト名、またはアドレスを入力してください"
 
-#: solipsis/navigator/wxclient/app.py:386
+#: solipsis/navigator/wxclient/app.py:387
 msgid "Please enter the address to jump to"
 msgstr "ジャンプ先アドレスを入力してください"
 
@@ -346,7 +346,7 @@ msgstr "ポート:"
 msgid "Preferences"
 msgstr "環境設定"
 
-#: solipsis/navigator/wxclient/BookmarkPropsDialog.py:39
+#: solipsis/navigator/wxclient/BookmarkPropsDialog.py:41
 #, python-format
 msgid "Properties for %s"
 msgstr ""
@@ -367,6 +367,10 @@ msgstr "終了"
 msgid "Random..."
 msgstr ""
 
+#: solipsis/navigator/wxclient/BookmarksDialog.py:51
+msgid "Remember one of your current neighbours"
+msgstr ""
+
 #: solipsis/navigator/wxclient/BookmarksDialog.py:52
 #: solipsis/navigator/wxclient/ConnectDialog.py:28
 msgid "Remove"
@@ -376,11 +380,11 @@ msgstr "削除"
 msgid "Remove selected bookmark"
 msgstr "選択したブックマークを削除"
 
-#: solipsis/navigator/app.py:591
+#: solipsis/navigator/app.py:599
 msgid "Searching peers"
 msgstr "ピア検索中"
 
-#: solipsis/navigator/app.py:389
+#: solipsis/navigator/app.py:397
 msgid "Solipsis Navigator"
 msgstr "Solipsis ナビゲータ"
 
@@ -390,14 +394,19 @@ msgid ""
 "Please enter proper values."
 msgstr ""
 
-#: solipsis/navigator/app.py:542
+#: solipsis/navigator/wxclient/BookmarkPropsDialog.py:103
+#, python-format
+msgid "The Solipsis address for %s has been copied to the clipboard."
+msgstr ""
+
+#: solipsis/navigator/app.py:550
 msgid ""
 "The peer you asked for seems to have changed identity. \n"
 "It may mean that someone else is running a node \n"
 "at the same address."
 msgstr ""
 
-#: solipsis/navigator/app.py:252
+#: solipsis/navigator/app.py:260
 #, fuzzy
 msgid ""
 "This action cannot be performed, \n"
@@ -406,7 +415,7 @@ msgstr ""
 "ノードに未接続のため、このアクションは\n"
 "実行できませんでした。"
 
-#: solipsis/navigator/app.py:230
+#: solipsis/navigator/app.py:238
 #, fuzzy
 msgid ""
 "This function is not yet implemented.\n"
@@ -441,15 +450,15 @@ msgstr ""
 msgid "Y: "
 msgstr ""
 
-#: solipsis/navigator/app.py:648
+#: solipsis/navigator/app.py:656
 msgid "You cannot kill this node."
 msgstr "このノードは削除できません。"
 
-#: solipsis/navigator/wxclient/app.py:356
+#: solipsis/navigator/wxclient/app.py:357
 msgid "Your Solipsis address"
 msgstr "あなたの Solipsis アドレス"
 
-#: solipsis/navigator/wxclient/app.py:349
+#: solipsis/navigator/wxclient/app.py:350
 msgid ""
 "Your address has been copied to the clipboard. \n"
 "If you paste it and send it to your friends, \n"
@@ -484,6 +493,9 @@ msgstr "ノード削除(&K)"
 
 #~ msgid "&Ok"
 #~ msgstr "OK(&O)"
+
+#~ msgid "Bookmark a node"
+#~ msgstr "ノードをブックマーク"
 
 #~ msgid "Connecting"
 #~ msgstr "接続中"

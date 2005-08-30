@@ -19,7 +19,7 @@ class BookmarkPropsDialog(wx.Dialog):
         self.label_name = wx.StaticText(self, -1, _("Name :"))
         self.text_ctrl_name = wx.TextCtrl(self, -1, "")
         self.label_url = wx.StaticText(self, -1, _("Address :"))
-        self.value_url = wx.StaticText(self, -1, _("label_1"))
+        self.value_url = wx.StaticText(self, -1, "")
         self.button_copy_url = wx.Button(self, wx.ID_COPY, "")
         self.label_id = wx.StaticText(self, -1, _("Node ID :"))
         self.value_id = wx.StaticText(self, -1, "")

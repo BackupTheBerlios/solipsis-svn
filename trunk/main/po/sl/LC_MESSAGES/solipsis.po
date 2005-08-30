@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Solipsis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-08-30 11:53+0200\n"
+"POT-Creation-Date: 2005-08-30 17:02+0200\n"
 "PO-Revision-Date: 2005-05-19 14:24+0100\n"
 "Last-Translator: Antoine Pitrou <solipsis@pitrou.net>\n"
 "Language-Team: Solipsis translators <solipsis-tech@lists.berlios.de>\n"
@@ -57,11 +57,11 @@ msgstr ""
 msgid "About"
 msgstr "O Programu"
 
-#: solipsis/navigator/wxclient/app.py:532
+#: solipsis/navigator/wxclient/app.py:533
 msgid "About Solipsis"
 msgstr "O Programu Solipsis"
 
-#: solipsis/navigator/app.py:392
+#: solipsis/navigator/app.py:400
 msgid "About..."
 msgstr "O Programu..."
 
@@ -86,11 +86,7 @@ msgstr "Avtomatièna Rotacija"
 msgid "Automatic proxy detection"
 msgstr "Avtomatièno zaznaj proxy"
 
-#: solipsis/navigator/wxclient/BookmarksDialog.py:51
-msgid "Bookmark a node"
-msgstr "Zaznamkaj node"
-
-#: solipsis/navigator/wxclient/app.py:514
+#: solipsis/navigator/wxclient/app.py:515
 #, python-format
 msgid "Bookmark peer \"%s\""
 msgstr "Zaznamkaj peer\"%s\""
@@ -117,7 +113,7 @@ msgstr "Izberi."
 msgid "Connect to Solipsis"
 msgstr "Poveži z Solipsis"
 
-#: solipsis/navigator/wxclient/app.py:531
+#: solipsis/navigator/wxclient/app.py:532
 msgid "Connect to node"
 msgstr "Poveži z node-om"
 
@@ -127,11 +123,11 @@ msgid ""
 "(possibly on a remote computer):"
 msgstr ""
 
-#: solipsis/navigator/app.py:586 solipsis/navigator/app.py:610
+#: solipsis/navigator/app.py:594 solipsis/navigator/app.py:618
 msgid "Connected"
 msgstr "Povezan"
 
-#: solipsis/navigator/wxclient/app.py:558
+#: solipsis/navigator/wxclient/app.py:559
 msgid "Connecting to the node..."
 msgstr "Povezujem z node-om..."
 
@@ -140,15 +136,15 @@ msgstr "Povezujem z node-om..."
 msgid "Connection"
 msgstr "Povezujem..."
 
-#: solipsis/navigator/app.py:622
+#: solipsis/navigator/app.py:630
 msgid "Connection error"
 msgstr "Napaka med povezavo"
 
-#: solipsis/navigator/wxclient/app.py:557
+#: solipsis/navigator/wxclient/app.py:558
 msgid "Connection progress"
 msgstr "Potek povezave"
 
-#: solipsis/navigator/app.py:620
+#: solipsis/navigator/app.py:628
 msgid ""
 "Connection to the node has failed. \n"
 "Please the check the node is running, then retry."
@@ -163,7 +159,11 @@ msgstr ""
 msgid "Connection type"
 msgstr "Napaka med povezavo"
 
-#: solipsis/navigator/wxclient/app.py:529
+#: solipsis/navigator/wxclient/BookmarkPropsDialog.py:46
+msgid "Copy this address to your clipboard"
+msgstr ""
+
+#: solipsis/navigator/wxclient/app.py:530
 msgid "Disconnect"
 msgstr "Prekini"
 
@@ -171,16 +171,16 @@ msgid "Edit bookmarks"
 msgstr "Uredi zaznamke"
 
 #: solipsis/navigator/wxclient/ConnectionTypeDialog.py:113
-#: solipsis/navigator/wxclient/BookmarkPropsDialog.py:86
+#: solipsis/navigator/wxclient/BookmarkPropsDialog.py:92
 #: solipsis/util/wxutils.py:161
 msgid "Error"
 msgstr "Napaka"
 
-#: solipsis/navigator/app.py:537
+#: solipsis/navigator/app.py:545
 msgid "For information..."
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:352
+#: solipsis/navigator/wxclient/app.py:353
 msgid "For reminder, here is your address:"
 msgstr "Da se spomnete, imate tukaj naslov:"
 
@@ -219,7 +219,7 @@ msgstr ""
 msgid "Information"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:387
+#: solipsis/navigator/wxclient/app.py:388
 msgid "Jump near an entity"
 msgstr "Skoèi v blizino osebka"
 
@@ -240,7 +240,7 @@ msgstr ""
 msgid "Kill node when exiting"
 msgstr "Ustavi node ko zapustiš program"
 
-#: solipsis/navigator/app.py:334 solipsis/navigator/app.py:649
+#: solipsis/navigator/app.py:342 solipsis/navigator/app.py:657
 msgid "Kill refused"
 msgstr "Ustavitev zavrnjena"
 
@@ -250,7 +250,7 @@ msgid ""
 "on this computer."
 msgstr ""
 
-#: solipsis/navigator/app.py:391
+#: solipsis/navigator/app.py:399
 msgid "Licensed under the GNU LGPL"
 msgstr "Patentiran pod GNU LGPL"
 
@@ -284,11 +284,11 @@ msgstr ""
 msgid "No proxy"
 msgstr "Nimam Proxy-a"
 
-#: solipsis/navigator/wxclient/BookmarkPropsDialog.py:23
+#: solipsis/navigator/wxclient/BookmarkPropsDialog.py:24
 msgid "Node ID :"
 msgstr ""
 
-#: solipsis/navigator/app.py:332
+#: solipsis/navigator/app.py:340
 msgid ""
 "Node creation failed. \n"
 "Please check you have sufficient rights."
@@ -296,13 +296,13 @@ msgstr ""
 "Ustvaritev node-a je bila neuspešna. \n"
 "Prosim poglejte èe imate dovol velike pravice."
 
-#: solipsis/navigator/wxclient/app.py:148 solipsis/navigator/app.py:251
-#: solipsis/navigator/app.py:421 solipsis/navigator/app.py:596
-#: solipsis/navigator/app.py:619 solipsis/navigator/app.py:634
+#: solipsis/navigator/wxclient/app.py:148 solipsis/navigator/app.py:259
+#: solipsis/navigator/app.py:429 solipsis/navigator/app.py:604
+#: solipsis/navigator/app.py:627 solipsis/navigator/app.py:642
 msgid "Not connected"
 msgstr "Ne povezan"
 
-#: solipsis/navigator/app.py:229
+#: solipsis/navigator/app.py:237
 msgid "Not implemented"
 msgstr "Še neuporabljeno"
 
@@ -313,12 +313,12 @@ msgstr "Prilepi svoj naslov, da lahko tvoj prijatelj skoèi v tvojo bljižino"
 msgid "Please choose the peer to add to your bookmarks list."
 msgstr "Prosimo, izberite peer, ki bi ga radi dodali v svoj spisek zaznamkov."
 
-#: solipsis/navigator/wxclient/BookmarkPropsDialog.py:85
+#: solipsis/navigator/wxclient/BookmarkPropsDialog.py:91
 #, fuzzy
 msgid "Please enter a name for this bookmark."
 msgstr "Prosimo, vnesite veljavno ime strežnika ali njegov naslov"
 
-#: solipsis/navigator/wxclient/app.py:386
+#: solipsis/navigator/wxclient/app.py:387
 msgid "Please enter the address to jump to"
 msgstr "Prosimo vpišite naslov kamor želite skoèiti"
 
@@ -344,7 +344,7 @@ msgstr "Port:"
 msgid "Preferences"
 msgstr "Nastavitve"
 
-#: solipsis/navigator/wxclient/BookmarkPropsDialog.py:39
+#: solipsis/navigator/wxclient/BookmarkPropsDialog.py:41
 #, python-format
 msgid "Properties for %s"
 msgstr ""
@@ -365,6 +365,10 @@ msgstr "Zapusti"
 msgid "Random..."
 msgstr ""
 
+#: solipsis/navigator/wxclient/BookmarksDialog.py:51
+msgid "Remember one of your current neighbours"
+msgstr ""
+
 #: solipsis/navigator/wxclient/BookmarksDialog.py:52
 #: solipsis/navigator/wxclient/ConnectDialog.py:28
 msgid "Remove"
@@ -374,11 +378,11 @@ msgstr "Odstrani"
 msgid "Remove selected bookmark"
 msgstr "Odstrani oznaèeni zaznamek"
 
-#: solipsis/navigator/app.py:591
+#: solipsis/navigator/app.py:599
 msgid "Searching peers"
 msgstr "Išèem peer-e"
 
-#: solipsis/navigator/app.py:389
+#: solipsis/navigator/app.py:397
 msgid "Solipsis Navigator"
 msgstr "Solipsis Navigator"
 
@@ -388,14 +392,19 @@ msgid ""
 "Please enter proper values."
 msgstr ""
 
-#: solipsis/navigator/app.py:542
+#: solipsis/navigator/wxclient/BookmarkPropsDialog.py:103
+#, python-format
+msgid "The Solipsis address for %s has been copied to the clipboard."
+msgstr ""
+
+#: solipsis/navigator/app.py:550
 msgid ""
 "The peer you asked for seems to have changed identity. \n"
 "It may mean that someone else is running a node \n"
 "at the same address."
 msgstr ""
 
-#: solipsis/navigator/app.py:252
+#: solipsis/navigator/app.py:260
 #, fuzzy
 msgid ""
 "This action cannot be performed, \n"
@@ -404,7 +413,7 @@ msgstr ""
 "Te akcije ni bilo mogoèe izvesti,\n"
 "ker niste povezani z node-om."
 
-#: solipsis/navigator/app.py:230
+#: solipsis/navigator/app.py:238
 #, fuzzy
 msgid ""
 "This function is not yet implemented.\n"
@@ -439,15 +448,15 @@ msgstr ""
 msgid "Y: "
 msgstr ""
 
-#: solipsis/navigator/app.py:648
+#: solipsis/navigator/app.py:656
 msgid "You cannot kill this node."
 msgstr "Ne morete ustaviti tega node-a."
 
-#: solipsis/navigator/wxclient/app.py:356
+#: solipsis/navigator/wxclient/app.py:357
 msgid "Your Solipsis address"
 msgstr "Tvoj Solipsis naslov"
 
-#: solipsis/navigator/wxclient/app.py:349
+#: solipsis/navigator/wxclient/app.py:350
 msgid ""
 "Your address has been copied to the clipboard. \n"
 "If you paste it and send it to your friends, \n"
@@ -485,6 +494,9 @@ msgstr "&Ustavi node"
 
 #~ msgid "&Ok"
 #~ msgstr "&Potrdi"
+
+#~ msgid "Bookmark a node"
+#~ msgstr "Zaznamkaj node"
 
 #~ msgid "Connecting"
 #~ msgstr "Povezujem..."
