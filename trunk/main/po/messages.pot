@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-08-16 16:09+0200\n"
+"POT-Creation-Date: 2005-08-30 11:53+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -81,9 +81,9 @@ msgstr ""
 msgid "About"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:148 solipsis/navigator/app.py:247
-#: solipsis/navigator/app.py:417 solipsis/navigator/app.py:590
-#: solipsis/navigator/app.py:613 solipsis/navigator/app.py:628
+#: solipsis/navigator/wxclient/app.py:148 solipsis/navigator/app.py:251
+#: solipsis/navigator/app.py:421 solipsis/navigator/app.py:596
+#: solipsis/navigator/app.py:619 solipsis/navigator/app.py:634
 msgid "Not connected"
 msgstr ""
 
@@ -135,34 +135,42 @@ msgstr ""
 msgid "Connecting to the node..."
 msgstr ""
 
-#: solipsis/navigator/wxclient/BookmarksDialog.py:46
-#: solipsis/navigator/wxclient/BookmarksDialog.py:104
+#: solipsis/navigator/wxclient/BookmarksDialog.py:51
+#: solipsis/navigator/wxclient/BookmarksDialog.py:112
 msgid "Add bookmark"
 msgstr ""
 
-#: solipsis/navigator/wxclient/BookmarksDialog.py:46
+#: solipsis/navigator/wxclient/BookmarksDialog.py:51
 msgid "Bookmark a node"
 msgstr ""
 
-#: solipsis/navigator/wxclient/BookmarksDialog.py:47
+#: solipsis/navigator/wxclient/BookmarksDialog.py:52
 #: solipsis/navigator/wxclient/ConnectDialog.py:28
 msgid "Remove"
 msgstr ""
 
-#: solipsis/navigator/wxclient/BookmarksDialog.py:47
+#: solipsis/navigator/wxclient/BookmarksDialog.py:52
 msgid "Remove selected bookmark"
 msgstr ""
 
-#: solipsis/navigator/wxclient/BookmarksDialog.py:69
+#: solipsis/navigator/wxclient/BookmarksDialog.py:53
+msgid "Information"
+msgstr ""
+
+#: solipsis/navigator/wxclient/BookmarksDialog.py:53
+msgid "Get bookmark information"
+msgstr ""
+
+#: solipsis/navigator/wxclient/BookmarksDialog.py:77
 msgid "Bookmarks"
 msgstr ""
 
-#: solipsis/navigator/wxclient/BookmarksDialog.py:76
+#: solipsis/navigator/wxclient/BookmarksDialog.py:84
 #: solipsis/navigator/wxclient/ConnectDialog.py:49
 msgid "Pseudo"
 msgstr ""
 
-#: solipsis/navigator/wxclient/BookmarksDialog.py:103
+#: solipsis/navigator/wxclient/BookmarksDialog.py:111
 msgid "Please choose the peer to add to your bookmarks list."
 msgstr ""
 
@@ -251,6 +259,7 @@ msgid ""
 msgstr ""
 
 #: solipsis/navigator/wxclient/ConnectionTypeDialog.py:113
+#: solipsis/navigator/wxclient/BookmarkPropsDialog.py:86
 #: solipsis/util/wxutils.py:161
 msgid "Error"
 msgstr ""
@@ -330,74 +339,95 @@ msgstr ""
 msgid "Jump to absolute position"
 msgstr ""
 
-#: solipsis/navigator/app.py:225
+#: solipsis/navigator/wxclient/BookmarkPropsDialog.py:19
+msgid "Name :"
+msgstr ""
+
+#: solipsis/navigator/wxclient/BookmarkPropsDialog.py:21
+msgid "Address :"
+msgstr ""
+
+#: solipsis/navigator/wxclient/BookmarkPropsDialog.py:23
+msgid "Node ID :"
+msgstr ""
+
+#: solipsis/navigator/wxclient/BookmarkPropsDialog.py:39
+#, python-format
+msgid "Properties for %s"
+msgstr ""
+
+#: solipsis/navigator/wxclient/BookmarkPropsDialog.py:85
+msgid "Please enter a name for this bookmark."
+msgstr ""
+
+#: solipsis/navigator/app.py:229
 msgid "Not implemented"
 msgstr ""
 
-#: solipsis/navigator/app.py:226
+#: solipsis/navigator/app.py:230
 msgid ""
 "This function is not yet implemented.\n"
 " Sorry! Please come back later..."
 msgstr ""
 
-#: solipsis/navigator/app.py:248
+#: solipsis/navigator/app.py:252
 msgid ""
 "This action cannot be performed, \n"
 "because you are not connected."
 msgstr ""
 
-#: solipsis/navigator/app.py:328
+#: solipsis/navigator/app.py:332
 msgid ""
 "Node creation failed. \n"
 "Please check you have sufficient rights."
 msgstr ""
 
-#: solipsis/navigator/app.py:330 solipsis/navigator/app.py:643
+#: solipsis/navigator/app.py:334 solipsis/navigator/app.py:649
 msgid "Kill refused"
 msgstr ""
 
-#: solipsis/navigator/app.py:385
+#: solipsis/navigator/app.py:389
 msgid "Solipsis Navigator"
 msgstr ""
 
-#: solipsis/navigator/app.py:387
+#: solipsis/navigator/app.py:391
 msgid "Licensed under the GNU LGPL"
 msgstr ""
 
-#: solipsis/navigator/app.py:388
+#: solipsis/navigator/app.py:392
 msgid "About..."
 msgstr ""
 
-#: solipsis/navigator/app.py:531
+#: solipsis/navigator/app.py:537
 msgid "For information..."
 msgstr ""
 
-#: solipsis/navigator/app.py:536
+#: solipsis/navigator/app.py:542
 msgid ""
 "The peer you asked for seems to have changed identity. \n"
 "It may mean that someone else is running a node \n"
 "at the same address."
 msgstr ""
 
-#: solipsis/navigator/app.py:580 solipsis/navigator/app.py:604
+#: solipsis/navigator/app.py:586 solipsis/navigator/app.py:610
 msgid "Connected"
 msgstr ""
 
-#: solipsis/navigator/app.py:585
+#: solipsis/navigator/app.py:591
 msgid "Searching peers"
 msgstr ""
 
-#: solipsis/navigator/app.py:614
+#: solipsis/navigator/app.py:620
 msgid ""
 "Connection to the node has failed. \n"
 "Please the check the node is running, then retry."
 msgstr ""
 
-#: solipsis/navigator/app.py:616
+#: solipsis/navigator/app.py:622
 msgid "Connection error"
 msgstr ""
 
-#: solipsis/navigator/app.py:642
+#: solipsis/navigator/app.py:648
 msgid "You cannot kill this node."
 msgstr ""
 
