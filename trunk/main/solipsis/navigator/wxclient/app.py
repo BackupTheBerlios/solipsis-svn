@@ -286,6 +286,7 @@ class NavigatorApp(BaseNavigatorApp, wx.App, XRCLoader):
         """
         Display first UI dialog after everything has been initialized properly.
         """
+        BaseNavigatorApp._LaunchFirstDialog(self)
         self._CallAfter(self._OpenConnectDialog)
 
     def _DestroyProgress(self):

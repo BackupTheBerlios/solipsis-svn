@@ -24,6 +24,9 @@ import os
 import gc
 import socket
 import atexit
+
+from twisted.internet import defer
+
 # This hack suggests something is wrong with the code factoring
 try:
     import wx
@@ -92,9 +95,9 @@ class BaseNavigatorApp(UIProxyReceiver):
         """
         Get local address from Stun
         """
+        final_deferred = defer.Deferred()
         def _finished():
-            self._CallAfter(self.InitServices)
-            self._LaunchFirstDialog()
+            final_deferred.callback(None)
 
         def _local_succeed(address):
             """Discovery succeeded"""
@@ -122,7 +125,10 @@ class BaseNavigatorApp(UIProxyReceiver):
         d = stun.DiscoverAddress(self.local_port, self.reactor, self.params)
         d.addCallback(_stun_succeed)
         d.addErrback(_stun_fail)
-        return d
+#         d = local.DiscoverAddress(self.local_port, self.reactor, self.params)
+#         d.addCallback(_local_succeed)
+#         d.addErrback(_local_fail)
+        return final_deferred
 
     def InitResources(self):
         """
@@ -147,7 +153,10 @@ class BaseNavigatorApp(UIProxyReceiver):
         assert self.network_loop, "network_loop must be initialised first"
         self.network = TwistedProxy(self.network_loop, self.reactor)
         # get local ip
-        self.InitIpAddress()
+        def got_ip(value):
+            self._CallAfter(self.InitServices)
+            self._CallAfter(self._LaunchFirstDialog)
+        self.InitIpAddress().addCallback(got_ip)
         self.network_loop.start()
 
     def InitServices(self):
@@ -171,7 +180,6 @@ class BaseNavigatorApp(UIProxyReceiver):
     def AskRedraw(self):
         """
         Redraw the world view. Specifc on wxclient
-
         """
         return True
 
