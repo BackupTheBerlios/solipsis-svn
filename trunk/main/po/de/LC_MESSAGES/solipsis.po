@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Solipsis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-08-30 17:02+0200\n"
+"POT-Creation-Date: 2005-09-01 16:54+0200\n"
 "PO-Revision-Date: 2005-09-01 08:09+0100\n"
 "Last-Translator: Bastian Flinspach <gawes@web.de>\n"
 "Language-Team: Solipsis translators <solipsis-tech@lists.berlios.de>\n"
@@ -100,8 +100,12 @@ msgid "Change"
 msgstr "Ändern..."
 
 #: solipsis/navigator/wxclient/PreferencesDialog.py:64
-msgid "Checking this box will allow to manage multiple identities from the connection box."
-msgstr "Das anhaken dieses Käöstchens ermöglicht es ihnen, mehrere Identitäten vom Verbindungs Dialog aus zu verwalten."
+msgid ""
+"Checking this box will allow to manage multiple identities from the "
+"connection box."
+msgstr ""
+"Das anhaken dieses Käöstchens ermöglicht es ihnen, mehrere Identitäten vom "
+"Verbindungs Dialog aus zu verwalten."
 
 msgid "Choose whether display orientation changes when moving"
 msgstr "Wählen sie, ob sich die Bildausrichtung beim Bewegen ändern soll."
@@ -122,8 +126,7 @@ msgstr ""
 "Verbinden mittels eines existierenden Solipsis-Knotens \n"
 " (möglicherweise auf einem anderen Computer):"
 
-#: solipsis/navigator/app.py:594
-#: solipsis/navigator/app.py:618
+#: solipsis/navigator/app.py:594 solipsis/navigator/app.py:618
 msgid "Connected"
 msgstr "Verbunden"
 
@@ -237,8 +240,7 @@ msgstr "Springe zu Position"
 msgid "Kill node when exiting"
 msgstr "Knoten beim verlassen des Programs auflösen"
 
-#: solipsis/navigator/app.py:342
-#: solipsis/navigator/app.py:657
+#: solipsis/navigator/app.py:342 solipsis/navigator/app.py:657
 msgid "Kill refused"
 msgstr "Auflösen verweigert"
 
@@ -296,12 +298,9 @@ msgstr ""
 "Erstellen des Knotens fehlgeschlagen. \n"
 "Stellen sie sicher, dass sie über ausreichende Rechte verfügen."
 
-#: solipsis/navigator/wxclient/app.py:148
-#: solipsis/navigator/app.py:259
-#: solipsis/navigator/app.py:429
-#: solipsis/navigator/app.py:604
-#: solipsis/navigator/app.py:627
-#: solipsis/navigator/app.py:642
+#: solipsis/navigator/wxclient/app.py:148 solipsis/navigator/app.py:259
+#: solipsis/navigator/app.py:429 solipsis/navigator/app.py:604
+#: solipsis/navigator/app.py:627 solipsis/navigator/app.py:642
 msgid "Not connected"
 msgstr "Nicht verbunden"
 
@@ -310,7 +309,9 @@ msgid "Not implemented"
 msgstr "Nicht implementiert"
 
 msgid "Paste your address so that your friend can jump near you"
-msgstr "Geben sie ihre Adresse weiter, so dass ihre Freunde in ihre Nähe springen können"
+msgstr ""
+"Geben sie ihre Adresse weiter, so dass ihre Freunde in ihre Nähe springen "
+"können"
 
 #: solipsis/navigator/wxclient/BookmarksDialog.py:111
 msgid "Please choose the peer to add to your bookmarks list."
@@ -426,12 +427,20 @@ msgstr ""
 "Versuchen sie es in einer späteren Version noch einmal..."
 
 #: solipsis/navigator/wxclient/ConnectionTypeDialog.py:50
-msgid "This is the port number used to contact other peers. Usually you don't have to change its value."
-msgstr "Dies ist die Port Nummer, die genutzt wird um andere peers zu kontaktieren. Normalerweise müssen sie diesen Wert nicht ändern."
+msgid ""
+"This is the port number used to contact other peers. Usually you don't have "
+"to change its value."
+msgstr ""
+"Dies ist die Port Nummer, die genutzt wird um andere peers zu kontaktieren. "
+"Normalerweise müssen sie diesen Wert nicht ändern."
 
 #: solipsis/navigator/wxclient/PreferencesDialog.py:65
-msgid "Uncheck this box if you want to remain connected to the Solipsis world even when you exit the navigator."
-msgstr "Deaktivieren sie diese Option, wenn sie mit der Solipsis Welt auch dann verbunden bleiben wollen, wenn sie den Navigator schließen."
+msgid ""
+"Uncheck this box if you want to remain connected to the Solipsis world even "
+"when you exit the navigator."
+msgstr ""
+"Deaktivieren sie diese Option, wenn sie mit der Solipsis Welt auch dann "
+"verbunden bleiben wollen, wenn sie den Navigator schließen."
 
 #: solipsis/navigator/wxclient/ConnectionTypeDialog.py:19
 msgid "Use UDP port:"
@@ -469,42 +478,59 @@ msgstr "Lokaler Knoten"
 
 #~ msgid "&Cancel"
 #~ msgstr "&Abbrechen"
+
 #~ msgid "&Close"
 #~ msgstr "&Schließen"
+
 #~ msgid "&Connect to existing node"
 #~ msgstr "Mit Knoten &verbinden"
+
 #~ msgid "&Edit"
 #~ msgstr "&Edition"
+
 #~ msgid "&File"
 #~ msgstr "&Fichier"
+
 #~ msgid "&New node"
 #~ msgstr "&Neuer Knoten"
+
 #~ msgid "&OK"
 #~ msgstr "&Valider"
+
 #~ msgid "&Ok"
 #~ msgstr "&Ok"
+
 #~ msgid "Bookmark a node"
 #~ msgstr "Knoten zu Lesezeichen hinzufügen"
+
 #~ msgid "Connecting"
 #~ msgstr "Verbinden..."
 
 #, fuzzy
 #~ msgid "Coordinate must be between 0.0 and 1.0"
 #~ msgstr "Port muss zwischen 1 und 65535 liegen"
+
 #~ msgid "Disconnect from node"
 #~ msgstr "Se déconnecter du nœud"
+
 #~ msgid "Nickname"
 #~ msgstr "Spitzname"
+
 #~ msgid "Node address"
 #~ msgstr "Adresse des Knotens"
+
 #~ msgid "Peer \"%s\""
 #~ msgstr "Nœud \"%s\""
+
 #~ msgid "Please choose your nickname"
 #~ msgstr "Bitte wählen sie ihren Spitznamen"
+
 #~ msgid "Please enter a valid nickname"
 #~ msgstr "Geben sie bitte einen gültigen Spitznamen ein"
+
 #~ msgid "Port number must be between 1 and 65535"
 #~ msgstr "Port muss zwischen 1 und 65535 liegen"
+
 #~ msgid ""
 #~ "Solipsis Navigator 0.1\n"
 #~ "\n"
@@ -515,6 +541,7 @@ msgstr "Lokaler Knoten"
 #~ "\n"
 #~ "Distribué sous licence GNU LGPL.\n"
 #~ "(c) France Telecom R&&D\n"
+
 #~ msgid ""
 #~ "Solipsis Navigator 0.8.1\n"
 #~ "\n"
@@ -525,9 +552,9 @@ msgstr "Lokaler Knoten"
 #~ "\n"
 #~ "Distribué sous licence GNU LGPL.\n"
 #~ "(c) France Telecom R&&D"
+
 #~ msgid ""
 #~ "This action cannot be performed, because you are not connected to a node."
 #~ msgstr ""
 #~ "Diese Aktion kann nicht ausgeführt werden, da sie nicht mit einem Knoten "
 #~ "verbunden sind."
-
