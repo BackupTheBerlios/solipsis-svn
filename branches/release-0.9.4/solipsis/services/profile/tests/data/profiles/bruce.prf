@@ -1,0 +1,25 @@
+#ISO-8859-1
+
+[Personal]
+photo = /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/profile_male.gif
+firstname = Bruce
+title = Mr
+repositories = 
+pseudo = bruce
+lastname = Willis
+email = bruce.willis@stars.com
+
+[Files]
+
+[Custom]
+City = 
+Country = 
+Favourite Book = 
+music = jazz
+Favourite Movie = 
+Sport = 
+Studies = 
+film = Die Hard
+
+[Others]
+
