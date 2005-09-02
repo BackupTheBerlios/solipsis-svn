@@ -13,7 +13,7 @@ Edit this script to insert desired services (see data_files)
 Then  issue the command $python setup.py py2exe
 """
 name="Solipsis"
-version="0.9.3"
+version="0.9.4"
 description="Solipsis, A peer-to-peer system for a massively multi-participant virtual world"
 author="France Telecom R&D"
 author_email="solipsis-tech@lists.berlios.de"
