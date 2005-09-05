@@ -24,6 +24,7 @@ for _id in _ids:
     locals()[_id] = wx.NewId()
 
 COL_PSEUDO = 0
+COL_URL = 1
 
 
 class BookmarksDialog(wx.Frame):
@@ -44,7 +45,7 @@ class BookmarksDialog(wx.Frame):
         kwds["style"] = wx.DEFAULT_FRAME_STYLE
         wx.Frame.__init__(self, *args, **kwds)
         self.panel_1 = wx.Panel(self, -1)
-        
+
         # Tool Bar
         self.toolbar = wx.ToolBar(self, -1, style=wx.TB_HORIZONTAL|wx.TB_TEXT|wx.TB_HORZ_LAYOUT|wx.TB_HORZ_TEXT)
         self.SetToolBar(self.toolbar)
@@ -69,6 +70,14 @@ class BookmarksDialog(wx.Frame):
         self.Bind(wx.EVT_SHOW, self.OnShow)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
 
+        # Calculate colour for URLs, by dimming
+        # between default text and background colours
+        rgb_front = self.GetForegroundColour().Get()
+        rgb_back = self.GetBackgroundColour().Get()
+        c = [f * 0.3 + b * 0.7 for (f, b) in zip(rgb_front, rgb_back)]
+        self.url_colour = wx.Colour(*c)
+
+        # Fill UI with data
         self.config_data.AskNotify(self.ApplyConfig)
         self.ApplyConfig()
 
@@ -82,6 +91,7 @@ class BookmarksDialog(wx.Frame):
 
         self.UpdateToolbarState()
         self.list_ctrl.InsertColumn(COL_PSEUDO, _("Pseudo"))
+        self.list_ctrl.InsertColumn(COL_URL, _("Address"))
 
     def __do_layout(self):
         # begin wxGlade: BookmarksDialog.__do_layout
@@ -197,10 +207,21 @@ class BookmarksDialog(wx.Frame):
         self.list_ctrl.DeleteAllItems()
         self.item_map.clear()
         for peer in peers:
+            # Insert peer info at the end
             index = self.list_ctrl.GetItemCount()
+            # Pseudo
             self.list_ctrl.InsertStringItem(index, peer.pseudo)
+            # URL
+            _item = wx.ListItem()
+            _item.SetText(peer.address.GetURL().ToString())
+            _item.SetTextColour(self.url_colour)
+            _item.SetId(index)
+            _item.SetColumn(COL_URL)
+            self.list_ctrl.SetItem(_item)
+            # Keep reference between list index and peer
             self.item_map[index] = peer
         self.list_ctrl.SetColumnWidth(COL_PSEUDO, wx.LIST_AUTOSIZE)
+        self.list_ctrl.SetColumnWidth(COL_URL, wx.LIST_AUTOSIZE)
 
     def UpdateToolbarState(self):
         nb_selected_bookmarks = len(self.selected_items)
