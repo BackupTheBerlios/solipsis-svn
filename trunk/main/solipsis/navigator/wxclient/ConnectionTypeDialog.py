@@ -88,7 +88,7 @@ class ConnectionTypeDialog(wx.Dialog):
     #
     # Event handlers
     #
-    
+
     # Note: radio buttons are managed manually because of a bug under Windows...
 
     def OnRadioLocal(self, event): # wxGlade: ConnectionTypeDialog.<event_handler>
@@ -140,11 +140,11 @@ class ConnectionTypeDialog(wx.Dialog):
         enable = self.radio_btn_remote.GetValue()
         self.text_ctrl_remote_host.Enable(enable=enable)
         self.text_ctrl_remote_port.Enable(enable=enable)
-        
+
         # Adapt dialog size
         self.Layout()
         self.SetSize(self.GetBestVirtualSize())
-    
+
     def _Apply(self):
         if self.radio_btn_local.GetValue():
             self.config_data.connection_type = 'local'
