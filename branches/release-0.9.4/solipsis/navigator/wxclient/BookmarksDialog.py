@@ -52,7 +52,7 @@ class BookmarksDialog(wx.Frame):
         self.toolbar.AddLabelTool(TOOL_DEL_BOOKMARK, _("Remove"), (TB(wx.ART_DEL_BOOKMARK)), wx.NullBitmap, wx.ITEM_NORMAL, _("Remove selected bookmark"), "")
         self.toolbar.AddLabelTool(TOOL_PROPERTIES, _("Information"), (TB(wx.ART_FILE_OPEN)), wx.NullBitmap, wx.ITEM_NORMAL, _("Get bookmark information"), "")
         # Tool Bar end
-        self.list_ctrl = wx.ListCtrl(self.panel_1, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+        self.list_ctrl = wx.ListCtrl(self.panel_1, -1, style=wx.LC_REPORT|wx.LC_VRULES|wx.SUNKEN_BORDER)
         self.button_close = wx.Button(self.panel_1, wx.ID_CLOSE, "")
 
         self.__set_properties()

@@ -1,4 +1,10 @@
 
+Solipsis (0.9.4)
+    - new protocol version (1.1): see details at
+    http://lists.berlios.de/pipermail/solipsis-tech/2005-September/000156.html
+    - German translation update and new Spanish translation
+    - several bug fixes
+
 Solipsis (0.9.3)
 
     - much better IP address discovery (thanks to the Shtoom project)
