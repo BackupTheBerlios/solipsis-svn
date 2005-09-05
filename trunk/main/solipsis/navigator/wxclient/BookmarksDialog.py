@@ -72,9 +72,10 @@ class BookmarksDialog(wx.Frame):
 
         # Calculate colour for URLs, by dimming
         # between default text and background colours
+        # (note: doesn't work on GTK and Aqua backends)
         rgb_front = self.GetForegroundColour().Get()
         rgb_back = self.GetBackgroundColour().Get()
-        c = [f * 0.3 + b * 0.7 for (f, b) in zip(rgb_front, rgb_back)]
+        c = [f * 0.7 + b * 0.3 for (f, b) in zip(rgb_front, rgb_back)]
         self.url_colour = wx.Colour(*c)
 
         # Fill UI with data
