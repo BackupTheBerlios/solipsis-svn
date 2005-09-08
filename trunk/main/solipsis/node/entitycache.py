@@ -36,10 +36,51 @@ Structure of the XML format used for storage:
 
 """
 
+import time
+from elementtree.ElementTree import Element, SubElement, ElementTree
+
 from peer import Peer
 
+EARLIEST_TIMESTAMP = 0
+
+class _ConnectionInterval(object):
+    def __init__(self, start, end):
+        self.start = start
+        self.end = end
+
+class _PeerHistory(object):
+    def __init__(self, peer=None):
+        self.peer = peer
+        # Keyed by end timestamp
+        self.intervals = {}
+
 class EntityCache(object):
+    max_stored_entities = 500
+    max_stored_history = 5000
+
     def __init__(self):
-        self.history = {}
+        # Both dicts keyed by peer_id
+        self.history_store = {}
         self.current_peers = {}
+
+    def Evict(self):
+        # All connection end timestamps
+        end_timestamps = [(end, peer_id)
+            for end in h.intervals()
+            for (peer_id, h) in self.history_store.itervalues()]
+        end_timestamps.sort()
+        # Keep `max_stored_history` most recent
+        evict_timestamps = end_timestamps[:-self.max_stored_history]
+        for end, peer_id in evict_timestamps:
+            del self.history_store[peer_id].intervals[end]
+        print "flushed %d intervals" % len(evict_timestamps)
+        # Freshest connection end timestamps, by peer
+        end_timestamps = [(max(h.intervals, EARLIEST_TIMESTAMP), peer_id)
+            for (peer_id, h) in self.history_store.itervalues()]
+        end_timestamps.sort()
+        # Keep `max_stored_entities` most recent
+        evict_peers = end_timestamps[:-self.max_stored_entities]
+        for end, peer_id in evict_peers:
+            del self.history_store[peer_id]
+        print "flushed %d entities" % len(evict_peers)
 
