@@ -54,6 +54,23 @@ class _PeerHistory(object):
         # Keyed by end timestamp
         self.intervals = {}
 
+    def ToElement(self):
+        """
+        Gets an ElementTree.Element representation.
+        """
+        peer = self.peer
+        elt = Element("entity", id=peer.id_)
+        SubElement(elt, "address").text = peer.address.ToString()
+        SubElement(elt, "version").text = str(peer.protocol_version)
+        hist = SubElement(elt, "history")
+        keys = self.intervals.keys()
+        keys.sort()
+        for k in keys:
+            c = SubElement(hist, "connected")
+            i = self.intervals[k]
+            c.text = "%s-%s" % (i.start, i.end)
+        return elt
+
 class EntityCache(object):
     max_stored_entities = 500
     max_stored_history = 5000
