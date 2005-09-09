@@ -37,14 +37,21 @@ Structure of the XML format used for storage:
 """
 
 import time
+import copy
+import os
 from elementtree.ElementTree import Element, SubElement, ElementTree
 
+from solipsis.util.utils import set, CreateSecureId
 from peer import Peer
+
 
 EARLIEST_TIMESTAMP = 0
 
+def _timestamp():
+    return int(time.time())
+
 class _ConnectionInterval(object):
-    def __init__(self, start, end):
+    def __init__(self, start, end=None):
         self.start = start
         self.end = end
 
@@ -53,6 +60,24 @@ class _PeerHistory(object):
         self.peer = peer
         # Keyed by end timestamp
         self.intervals = {}
+        self.last_interval = None
+
+    def Copy(self):
+        other = copy.copy(self)
+        # When a copy is asked, produce a distinct interval dict
+        other.intervals = self.intervals.copy()
+        return other
+
+    def Open(self):
+        assert self.last_interval is None, "Already open"
+        self.last_interval = _ConnectionInterval(_timestamp())
+
+    def Close(self):
+        assert self.last_interval is not None, "Not open"
+        i = self.last_interval
+        i.end = _timestamp()
+        self.intervals[i.end] = i
+        self.last_interval = None
 
     def ToElement(self):
         """
@@ -71,33 +96,178 @@ class _PeerHistory(object):
             c.text = "%s-%s" % (i.start, i.end)
         return elt
 
-class EntityCache(object):
+    def Merge(self, other):
+        """
+        Merge with other (fresher) history entry.
+        """
+        assert self.last_interval is None, "Cannot merge while open"
+        self.peer = other.peer
+        self.intervals.update(other.intervals)
+
+    def Flush(self):
+        """
+        Flush past data.
+        """
+        self.intervals.clear()
+
+class _HistoryStore(object):
     max_stored_entities = 500
     max_stored_history = 5000
 
     def __init__(self):
-        # Both dicts keyed by peer_id
-        self.history_store = {}
-        self.current_peers = {}
+        # Keyed by peer_id
+        self.entries = {}
 
-    def Evict(self):
+    def OnPeerConnected(self, peer):
+        """
+        Update store data when a peer is connected.
+        """
+        peer_id = peer.id_
+        try:
+            entry = self.entries[peer_id]
+        except KeyError:
+            entry = _PeerHistory(peer)
+            self.entries[peer_id] = entry
+        entry.Open()
+
+    def OnPeerDisconnected(self, peer_id):
+        """
+        Update store data when a peer is disconnected.
+        """
+        self.entries[peer_id].Close()
+
+    def EvictIntervals(self):
         # All connection end timestamps
         end_timestamps = [(end, peer_id)
-            for end in h.intervals()
-            for (peer_id, h) in self.history_store.itervalues()]
+            for (peer_id, h) in self.entries.iteritems()
+            for end in h.intervals]
         end_timestamps.sort()
         # Keep `max_stored_history` most recent
         evict_timestamps = end_timestamps[:-self.max_stored_history]
         for end, peer_id in evict_timestamps:
-            del self.history_store[peer_id].intervals[end]
+            del self.entries[peer_id].intervals[end]
         print "flushed %d intervals" % len(evict_timestamps)
+
+    def EvictEntities(self):
         # Freshest connection end timestamps, by peer
         end_timestamps = [(max(h.intervals, EARLIEST_TIMESTAMP), peer_id)
-            for (peer_id, h) in self.history_store.itervalues()]
+            for (peer_id, h) in self.entries.iteritems()]
         end_timestamps.sort()
         # Keep `max_stored_entities` most recent
         evict_peers = end_timestamps[:-self.max_stored_entities]
         for end, peer_id in evict_peers:
-            del self.history_store[peer_id]
+            del self.entries[peer_id]
         print "flushed %d entities" % len(evict_peers)
+
+    def Evict(self):
+        """
+        Evict superfluous data, to maintain a sensible size.
+        """
+        self.EvictIntervals()
+        self.EvictEntities()
+
+    def FlushHistory(self):
+        """
+        Flush all non-present data.
+        """
+        for entry in self.entries.itervalues():
+            entry.Flush()
+
+    def IterMerge(self, other):
+        """
+        Merges this history store with another, returning an iterator
+        over (peer_id, history entry) tuples.
+        The other history store takes precedence when there is a conflict.
+        """
+        this_peers = set(self.entries)
+        other_peers = set(other.entries)
+        for peer_id in this_peers - other_peers:
+            yield (peer_id, self.entries[peer_id])
+        for peer_id in other_peers - this_peers:
+            yield (peer_id, other.entries[peer_id])
+        for peer_id in other_peers & this_peers:
+            entry = self.entries[peer_id].Copy()
+            entry.Merge(other.entries[peer_id])
+            yield (peer_id, entry)
+
+    def Merge(self, other):
+        """
+        Merges the other history store into this one.
+        The other history store takes precedence when there is a conflict.
+        """
+        this_peers = set(self.entries)
+        other_peers = set(other.entries)
+        for peer_id in other_peers - this_peers:
+            self.entries[peer_id] = other.entries[peer_id].Copy()
+        for peer_id in other_peers & this_peers:
+            self.entries[peer_id].Merge(other.entries[peer_id])
+
+    def MergeEntry(self, other, peer_id):
+        """
+        Merge a specific entry from another history store.
+        """
+        if peer_id in self.entries:
+            self.entries[peer_id].Merge(other.entries[peer_id])
+        else:
+            self.entries[peer_id] = other.entries[peer_id]
+
+    def ToElement(self, it=None):
+        """
+        Represents the store contents as an ElementTree.Element.
+        """
+        if it is None:
+            it = self.entries.iteritems()
+        elt = Element("entities")
+        for peer_id, entry in it:
+            elt.append(entry.ToElement())
+        return elt
+
+class EntityCache(object):
+    def __init__(self):
+        self.history = _HistoryStore()
+        self.current_peers = _HistoryStore()
+
+    def Fortify(self):
+        self.history.Merge(self.current_peers)
+        self.history.Evict()
+        self.current_peers.FlushHistory()
+
+    def OnPeerConnected(self, peer):
+        self.current_peers.OnPeerConnected(peer)
+
+    def OnPeerDisconnected(self, peer):
+        self.current_peers.OnPeerDisconnected(peer)
+
+    def Write(self, outfile):
+        self.Fortify()
+        et = ElementTree(self.history.ToElement())
+        et.write(outfile)
+
+    def SaveAtomic(self, dirname, filename):
+        tmpfilename = filename + '.'
+        tmpfilename += CreateSecureId("%s %s" % (hash(self), time.time()))
+        path = os.path.join(dirname, filename)
+        tmppath = os.path.join(dirname, tmpfilename)
+        f = file(tmppath, 'wb')
+        try:
+            self.Write(f)
+            f.close()
+            try:
+                os.rename(tmppath, path)
+            except OSError:
+                try:
+                    os.unlink(path)
+                except OSError:
+                    # We may get there when concurrency is tight
+                    pass
+                try:
+                    os.rename(tmppath, path)
+                except OSError:
+                    # We may get there when concurrency is tight
+                    pass
+        finally:
+            try:
+                os.unlink(tmppath)
+            except OSError:
+                pass
 

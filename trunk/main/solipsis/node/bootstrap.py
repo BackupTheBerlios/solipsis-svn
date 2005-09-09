@@ -138,7 +138,6 @@ class NodeLauncher(object):
         else:
             self.state_machine.TryConnect()
         self.reactor.addSystemEventTrigger('before', 'shutdown', self.state_machine.Close)
-        #~ self.reactor.addSystemEventTrigger('after', 'shutdown', self.state_machine.DumpStats)
 
         # Start remote controller(s)
         if not self.params.bot:

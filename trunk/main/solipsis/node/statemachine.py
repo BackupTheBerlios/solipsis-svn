@@ -32,6 +32,7 @@ import protocol
 import states
 from topology import Topology
 from delayedcaller import DelayedCaller
+from entitycache import EntityCache
 
 
 class StateMachine(object):
@@ -67,6 +68,10 @@ class StateMachine(object):
     # Time during which we request to send detects on a HELLO
     # after having moved
     move_duration = 3.0
+
+    # File to save entity cache to
+    entity_cache_dir = 'state'
+    entity_cache_file = 'entities.met'
 
     # These are all the message types accepted from other peers.
     # Some of them will only be accepted in certain states.
@@ -124,6 +129,9 @@ class StateMachine(object):
         self.caller = DelayedCaller(self.reactor)
         self.state_caller = DelayedCaller(self.reactor)
 
+        # Entity cache for bootstrap
+        self.entity_cache = EntityCache()
+
         self.Reset()
 
     def Reset(self):
@@ -166,6 +174,7 @@ class StateMachine(object):
         Close all connections and finalize stuff.
         """
         self._CloseCurrentConnections()
+        self.entity_cache.SaveAtomic(self.entity_cache_dir, self.entity_cache_file)
         self.Reset()
 
     def SetState(self, state):
@@ -868,6 +877,8 @@ class StateMachine(object):
             self.logger.warning("ignoring peer '%s'" % peer.id_)
             return
 
+        # Open history entry
+        self.entity_cache.OnPeerConnected(peer)
         # Notify remote control
         self.event_sender.event_NewPeer(peer)
         # Check topology properties
@@ -883,6 +894,8 @@ class StateMachine(object):
             pass
         self.topology.RemovePeer(id_)
         self.node_connector.RemovePeer(id_)
+        # Close history entry
+        self.entity_cache.OnPeerDisconnected(id_)
         # Notify remote control
         self.event_sender.event_LostPeer(id_)
 
