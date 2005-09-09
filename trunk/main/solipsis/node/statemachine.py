@@ -21,6 +21,7 @@ import sys
 import math
 import random
 import time
+import os
 
 from solipsis.util.utils import set
 from solipsis.util.exception import *
@@ -70,8 +71,7 @@ class StateMachine(object):
     move_duration = 3.0
 
     # File to save entity cache to
-    entity_cache_dir = 'state'
-    entity_cache_file = 'entities.met'
+    entity_cache_file = os.path.join('state', 'entities.met')
 
     # These are all the message types accepted from other peers.
     # Some of them will only be accepted in certain states.
@@ -131,6 +131,7 @@ class StateMachine(object):
 
         # Entity cache for bootstrap
         self.entity_cache = EntityCache()
+        self._LoadEntityCache()
 
         self.Reset()
 
@@ -174,7 +175,7 @@ class StateMachine(object):
         Close all connections and finalize stuff.
         """
         self._CloseCurrentConnections()
-        self.entity_cache.SaveAtomic(self.entity_cache_dir, self.entity_cache_file)
+        self._SaveEntityCache()
         self.Reset()
 
     def SetState(self, state):
@@ -924,6 +925,11 @@ class StateMachine(object):
         self._SendToPeer(peer, self._PeerMessage('CLOSE'))
         self._RemovePeer(peer.id_)
 
+    def _SaveEntityCache(self):
+        self.entity_cache.SaveAtomic(self.entity_cache_file)
+
+    def _LoadEntityCache(self):
+        self.entity_cache.Load(self.entity_cache_file)
 
     #
     # Teleportation algorithm

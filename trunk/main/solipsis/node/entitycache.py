@@ -42,6 +42,7 @@ import os
 from elementtree.ElementTree import Element, SubElement, ElementTree
 
 from solipsis.util.utils import set, CreateSecureId
+from solipsis.util.address import Address
 from peer import Peer
 
 
@@ -66,19 +67,43 @@ class _PeerHistory(object):
         other = copy.copy(self)
         # When a copy is asked, produce a distinct interval dict
         other.intervals = self.intervals.copy()
+        other.last_interval = None
         return other
 
     def Open(self):
+        """
+        Open new connection interval.
+        """
         assert self.last_interval is None, "Already open"
         self.last_interval = _ConnectionInterval(_timestamp())
 
     def Close(self):
+        """
+        Close current interval.
+        """
         assert self.last_interval is not None, "Not open"
         i = self.last_interval
         i.end = _timestamp()
         self.intervals[i.end] = i
         self.last_interval = None
 
+    def Merge(self, other):
+        """
+        Merge with other (fresher) history entry.
+        """
+        assert self.last_interval is None, "Cannot merge while open"
+        self.peer = other.peer
+        self.intervals.update(other.intervals)
+
+    def Flush(self):
+        """
+        Flush past data.
+        """
+        self.intervals.clear()
+
+    #
+    # I/O
+    #
     def ToElement(self):
         """
         Gets an ElementTree.Element representation.
@@ -96,19 +121,24 @@ class _PeerHistory(object):
             c.text = "%s-%s" % (i.start, i.end)
         return elt
 
-    def Merge(self, other):
+    def FromElement(cls, elt):
         """
-        Merge with other (fresher) history entry.
+        Creates a peer history from an ElementTree.Element.
         """
-        assert self.last_interval is None, "Cannot merge while open"
-        self.peer = other.peer
-        self.intervals.update(other.intervals)
+        obj = cls()
+        peer_id = elt.get('id')
+        address = Address.FromString(elt.findtext('address'))
+        obj.peer = Peer(id_=peer_id, address=address)
+        obj.peer.protocol_version = float(elt.findtext('version'))
+        hist = elt.find('history')
+        intervals = hist.findall('connected')
+        for i in intervals:
+            start, end = map(int, i.text.split('-'))
+            obj.intervals[end] = _ConnectionInterval(start, end)
+        return obj
 
-    def Flush(self):
-        """
-        Flush past data.
-        """
-        self.intervals.clear()
+    FromElement = classmethod(FromElement)
+
 
 class _HistoryStore(object):
     max_stored_entities = 500
@@ -198,19 +228,15 @@ class _HistoryStore(object):
         this_peers = set(self.entries)
         other_peers = set(other.entries)
         for peer_id in other_peers - this_peers:
+            print "new", peer_id
             self.entries[peer_id] = other.entries[peer_id].Copy()
         for peer_id in other_peers & this_peers:
+            print "merge", peer_id
             self.entries[peer_id].Merge(other.entries[peer_id])
 
-    def MergeEntry(self, other, peer_id):
-        """
-        Merge a specific entry from another history store.
-        """
-        if peer_id in self.entries:
-            self.entries[peer_id].Merge(other.entries[peer_id])
-        else:
-            self.entries[peer_id] = other.entries[peer_id]
-
+    #
+    # I/O
+    #
     def ToElement(self, it=None):
         """
         Represents the store contents as an ElementTree.Element.
@@ -221,6 +247,20 @@ class _HistoryStore(object):
         for peer_id, entry in it:
             elt.append(entry.ToElement())
         return elt
+
+    def FromElement(cls, elt):
+        """
+        Creates a history store from an ElementTree.Element.
+        """
+        obj = cls()
+        entities = elt.findall('.//entity')
+        for e in entities:
+            entry = _PeerHistory.FromElement(e)
+            obj.entries[entry.peer.id_] = entry
+        return obj
+
+    FromElement = classmethod(FromElement)
+
 
 class EntityCache(object):
     def __init__(self):
@@ -243,11 +283,28 @@ class EntityCache(object):
         et = ElementTree(self.history.ToElement())
         et.write(outfile)
 
-    def SaveAtomic(self, dirname, filename):
-        tmpfilename = filename + '.'
-        tmpfilename += CreateSecureId("%s %s" % (hash(self), time.time()))
-        path = os.path.join(dirname, filename)
-        tmppath = os.path.join(dirname, tmpfilename)
+    def Read(self, infile):
+        try:
+            et = ElementTree(file=infile)
+        except (IOError, EOFError), e:
+            print "failed loading entity cache: %s" % str(e)
+            return
+        self.history = _HistoryStore.FromElement(et)
+        self.current_peers = _HistoryStore()
+
+    def Load(self, path):
+        if not os.path.isfile(path):
+            return False
+        f = file(path, 'rb')
+        try:
+            self.Read(f)
+        finally:
+            f.close()
+        return True
+
+    def SaveAtomic(self, path):
+        tmppath = path + '.'
+        tmppath += CreateSecureId("%s %s" % (hash(self), time.time()))
         f = file(tmppath, 'wb')
         try:
             self.Write(f)
