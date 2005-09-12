@@ -23,6 +23,7 @@ from wx.xrc import XRCCTRL, XRCID
 
 from PIL import Image
 
+from solipsis.util.compat import abspath
 from solipsis.util.uiproxy import UIProxyReceiver
 from solipsis.util.wxutils import _
 from solipsis.util.wxutils import *        # '*' doesn't import '_'
@@ -55,10 +56,10 @@ class ConfigDialog(wx.EvtHandler, XRCLoader, UIProxyReceiver):
         # charset (e.g. "windows-1252") but wxWidgets tries to decode it using
         # the 'ascii' codec...
         charset = GetCharset()
-        defaultDir=os.path.realpath(self.avatar_dir)
+        defaultDir = abspath(self.avatar_dir)
         if not isinstance(defaultDir, unicode):
             defaultDir = defaultDir.decode(charset)
-        defaultFile=os.path.basename(self.filename)
+        defaultFile = os.path.basename(self.filename)
         if not isinstance(defaultFile, unicode):
             defaultFile = defaultFile.decode(charset)
         dialog = wx.FileDialog(None, _("Choose your avatar"),
