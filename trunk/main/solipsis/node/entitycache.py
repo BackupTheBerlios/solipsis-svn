@@ -152,6 +152,8 @@ class _HistoryStore(object):
         """
         Update store data when a peer is connected.
         """
+        if peer.needs_middleman:
+            return
         peer_id = peer.id_
         try:
             entry = self.entries[peer_id]
@@ -164,7 +166,11 @@ class _HistoryStore(object):
         """
         Update store data when a peer is disconnected.
         """
-        self.entries[peer_id].Close()
+        try:
+            self.entries[peer_id].Close()
+        except KeyError:
+            # This simply means the peer was ignored because it needs a middleman
+            pass
 
     def EvictIntervals(self):
         # All connection end timestamps
@@ -275,8 +281,8 @@ class EntityCache(object):
     def OnPeerConnected(self, peer):
         self.current_peers.OnPeerConnected(peer)
 
-    def OnPeerDisconnected(self, peer):
-        self.current_peers.OnPeerDisconnected(peer)
+    def OnPeerDisconnected(self, peer_id):
+        self.current_peers.OnPeerDisconnected(peer_id)
 
     def Write(self, outfile):
         self.Fortify()
