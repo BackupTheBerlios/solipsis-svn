@@ -22,6 +22,16 @@
 import os
 import sys
 
+_getcwd = os.path.supports_unicode_filenames and os.getcwdu or os.getcwd
+
+# Taken and improved from Python stdlib
+def _abspath(path):
+    """Return an absolute path."""
+    if not os.path.isabs(path):
+        path = join(_getcwd(), path)
+    return os.path.normpath(path)
+
+
 # Launching code
 if __name__ == '__main__':
     # following line needed at Logilab cause of weird behaviours...
@@ -29,7 +39,7 @@ if __name__ == '__main__':
 #     sys.stderr =  sys.stdout
     # Adjust path
     current_file = sys.argv[0]
-    current_path = os.path.normcase(os.path.dirname(os.path.abspath(current_file)))
+    current_path = os.path.normcase(os.path.dirname(_abspath(current_file)))
     os.chdir(current_path)
     if not current_path in sys.path:
         sys.path.insert(0, current_path)
