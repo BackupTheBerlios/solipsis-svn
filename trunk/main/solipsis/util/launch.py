@@ -22,6 +22,7 @@ import os.path
 import sys
 import re
 
+from solipsis.util.compat import abspath
 from solipsis.util.exception import BadInstall
 
 
@@ -60,7 +61,7 @@ class Launcher(object):
                 break
         else:
             return None
-        prog_path = os.path.abspath(prog_name)
+        prog_path = abspath(prog_name)
         # We try to keep the same Python interpreter as currently
         if os.path.exists(sys.executable) and re.match(r'.*\.py[cow]?$', prog_name, re.IGNORECASE):
             return [sys.executable, prog_path]

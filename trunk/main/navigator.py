@@ -28,7 +28,7 @@ _getcwd = os.path.supports_unicode_filenames and os.getcwdu or os.getcwd
 def _abspath(path):
     """Return an absolute path."""
     if not os.path.isabs(path):
-        path = join(_getcwd(), path)
+        path = os.path.join(_getcwd(), path)
     return os.path.normpath(path)
 
 

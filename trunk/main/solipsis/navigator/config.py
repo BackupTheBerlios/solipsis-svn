@@ -23,6 +23,7 @@ import os
 import cPickle as pickle
 import random
 
+from solipsis.util.compat import getcwd
 from solipsis.util.entity import Entity
 from solipsis.util.address import Address
 from solipsis.util.utils import ManagedData
@@ -81,7 +82,7 @@ class BaseConfigData(ManagedData):
         # This variable is used to detect that a copy
         # of the config file has been made, so that we
         # can reassign new node IDs
-        self._copy_check = os.getcwd()
+        self._copy_check = getcwd()
         self.copy_check = self._copy_check
 
         # Callables for config change notification

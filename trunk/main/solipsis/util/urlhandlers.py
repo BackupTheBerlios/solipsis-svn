@@ -21,6 +21,8 @@ import os
 import sys
 import re
 
+from compat import abspath
+
 def _GnomeSetURLHandler(scheme, cmd_args):
     try:
         import gconf
@@ -61,7 +63,7 @@ def SetSolipsisURLHandlers(prog_name=None):
     """
     if prog_name is None:
         prog_name = os.path.basename(sys.argv[0])
-    prog_path = os.path.abspath(prog_name)
+    prog_path = abspath(prog_name)
     if '"' in prog_path:
         escaped_prog_path = prog_path
     else:

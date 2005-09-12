@@ -235,10 +235,10 @@ class _HistoryStore(object):
         this_peers = set(self.entries)
         other_peers = set(other.entries)
         for peer_id in other_peers - this_peers:
-            print "new", peer_id
+#             print "new", peer_id
             self.entries[peer_id] = other.entries[peer_id].Copy()
         for peer_id in other_peers & this_peers:
-            print "merge", peer_id
+#             print "merge", peer_id
             self.entries[peer_id].Merge(other.entries[peer_id])
 
     #
