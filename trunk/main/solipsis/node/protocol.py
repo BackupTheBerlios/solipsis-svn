@@ -25,7 +25,7 @@
 import re
 from copy import deepcopy
 
-from solipsis.util.utils import set, safe_str, safe_unicode
+from solipsis.util.compat import set, safe_str, safe_unicode
 from solipsis.util.exception import *
 from solipsis.util.position import Position
 from solipsis.util.address import Address

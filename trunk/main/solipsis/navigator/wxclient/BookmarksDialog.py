@@ -5,7 +5,7 @@ import copy
 import wx
 import operator
 
-from solipsis.util.utils import set
+from solipsis.util.compat import set
 from solipsis.util.wxutils import _
 from solipsis.util.wxutils import GetStockToolbarBitmap as TB
 

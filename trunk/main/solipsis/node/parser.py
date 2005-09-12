@@ -24,7 +24,7 @@
 import re
 import logging
 
-from solipsis.util.utils import set, safe_str, safe_unicode
+from solipsis.util.compat import set, safe_str, safe_unicode
 from solipsis.util.exception import *
 from protocol import *
 

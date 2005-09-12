@@ -1,17 +1,17 @@
 # <copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
 # Copyright (C) 2002-2005 France Telecom R&D
-# 
+#
 # This software is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
 # version 2.1 of the License, or (at your option) any later version.
-# 
+#
 # This software is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -21,7 +21,7 @@ import os
 import os.path
 import traceback
 
-from solipsis.util.utils import set
+from solipsis.util.compat import set
 from solipsis.util.uiproxy import TwistedProxy
 from solipsis.util.entity import Service
 
@@ -221,7 +221,7 @@ class ServiceCollector(object):
                 pass
             else:
                 plugin.LostPeer(peer_id)
-    
+
     def RemoveAllPeers(self):
         """
         Called when all peers have disappeared (typically, when disconnecting).
@@ -229,13 +229,13 @@ class ServiceCollector(object):
         peers = self.peers.keys()
         for peer_id in peers:
             self.RemovePeer(peer_id)
-    
+
     def SetNode(self, node):
         self.node = node
         for service_id in self._Services():
             plugin = self.plugins[service_id]
             plugin.ChangedNode(node)
-    
+
     def ProcessServiceData(self, peer_id, service_id, data):
         """
         Called when service-specific data has been received.
@@ -266,7 +266,7 @@ class ServiceCollector(object):
                         return plugin.DoAction(index, deferred)
                     titles[title] = inner_func
         return titles
- 
+
     #
     # API callable from service plugins
     #

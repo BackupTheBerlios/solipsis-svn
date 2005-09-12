@@ -23,7 +23,7 @@ import time
 
 from twisted.internet import defer
 
-from solipsis.util.utils import set
+from solipsis.util.compat import set
 from solipsis.util.exception import *
 from solipsis.util.entity import Entity, Service, ServiceData
 from solipsis.util.address import Address

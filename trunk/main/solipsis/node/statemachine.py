@@ -23,7 +23,7 @@ import random
 import time
 import os
 
-from solipsis.util.utils import set
+from solipsis.util.compat import set
 from solipsis.util.exception import *
 from solipsis.util.position import Position
 from solipsis.util.address import Address

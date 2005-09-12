@@ -41,7 +41,8 @@ import copy
 import os
 from elementtree.ElementTree import Element, SubElement, ElementTree
 
-from solipsis.util.utils import set, CreateSecureId
+from solipsis.util.compat import set
+from solipsis.util.utils import CreateSecureId
 from solipsis.util.address import Address
 from peer import Peer
 

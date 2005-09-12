@@ -21,7 +21,7 @@
 includes callbacks to viewport (see viewport.py). DOES NOT INCLUDE
 AVATARS."""
 
-from solipsis.util.utils import safe_str, safe_unicode
+from solipsis.util.compat import safe_str, safe_unicode
 
 class Item(object):
     """

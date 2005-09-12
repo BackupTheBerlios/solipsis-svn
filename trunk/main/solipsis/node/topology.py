@@ -22,7 +22,7 @@ import math
 import bisect
 import random
 
-from solipsis.util.utils import set
+from solipsis.util.compat import set
 from solipsis.util.exception import *
 
 

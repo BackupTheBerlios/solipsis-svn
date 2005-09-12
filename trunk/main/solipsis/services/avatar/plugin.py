@@ -1,17 +1,17 @@
 # <copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
 # Copyright (C) 2002-2005 France Telecom R&D
-# 
+#
 # This software is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
 # version 2.1 of the License, or (at your option) any later version.
-# 
+#
 # This software is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -21,7 +21,7 @@ import socket
 import wx
 import random
 
-from solipsis.util.utils import set
+from solipsis.util.compat import set
 from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import TwistedProxy, UIProxy
 from solipsis.services.plugin import ServicePlugin
@@ -58,7 +58,7 @@ class Plugin(ServicePlugin):
 
     def GetPointToPointActions(self):
         return []
-    
+
     def DescribeService(self, service):
         service.address = "%s:%d" % (self.host, self.port)
 
@@ -76,7 +76,7 @@ class Plugin(ServicePlugin):
         # Start network
         self.network.Start()
         print "Avatar: enable"
-        
+
     def Enable(self):
         """
         Enable the service.
@@ -154,7 +154,7 @@ class Plugin(ServicePlugin):
         """
         if peer_id in self.hosts:
             del self.hosts[peer_id]
-    
+
     def ChangedNode(self, node):
         """
         The node has changed (also perhaps its ID).
@@ -163,7 +163,7 @@ class Plugin(ServicePlugin):
         self._ApplyConfig()
         if self.node_avatar_hash is not None:
             self.avatars.BindHashToPeer(self.node_avatar_hash, self.node_id)
-    
+
     def Configure(self, evt=None):
         """
         Called when the "Configure" action is selected.

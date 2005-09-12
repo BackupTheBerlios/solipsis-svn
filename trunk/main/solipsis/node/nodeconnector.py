@@ -22,7 +22,7 @@ import time
 
 from twisted.internet.protocol import DatagramProtocol
 
-from solipsis.util.utils import set
+from solipsis.util.compat import set
 from solipsis.util.address import Address
 from solipsis.node.discovery import stun
 import protocol

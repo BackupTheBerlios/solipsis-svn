@@ -20,41 +20,8 @@
 import sha
 import random
 
-DEFAULT_CHARSET = 'utf-8'
+from compat import safe_str
 
-# Python < 2.4 compatibility
-try:
-    set = set
-except NameError:
-    from sets import Set as set
-
-def safe_unicode(s, charset=None):
-    """
-    Forced conversion of a string to unicode, does nothing
-    if the argument is already an unicode object.
-    This function is useful because the .decode method
-    on an unicode object, instead of being a no-op, tries to
-    do a double conversion back and forth (which often fails
-    because 'ascii' is the default codec).
-    """
-    if isinstance(s, str):
-        return s.decode(charset or DEFAULT_CHARSET)
-    else:
-        return s
-
-def safe_str(s, charset=None):
-    """
-    Forced conversion of an unicode to string, does nothing
-    if the argument is already a plain str object.
-    This function is useful because the .encode method
-    on an str object, instead of being a no-op, tries to
-    do a double conversion back and forth (which often fails
-    because 'ascii' is the default codec).
-    """
-    if isinstance(s, unicode):
-        return s.encode(charset or DEFAULT_CHARSET)
-    else:
-        return s
 
 def CreateSecureId(seed=''):
     """
