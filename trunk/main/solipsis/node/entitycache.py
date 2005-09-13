@@ -39,6 +39,8 @@ Structure of the XML format used for storage:
 import time
 import copy
 import os
+import bisect
+import random
 from elementtree.ElementTree import Element, SubElement, ElementTree
 
 from solipsis.util.compat import set
@@ -101,6 +103,18 @@ class _PeerHistory(object):
         Flush past data.
         """
         self.intervals.clear()
+
+    def GetTotalDuration(self):
+        """
+        Return summed duration of history intervals.
+        """
+        return sum([i.end - i.start for i in self.intervals.itervalues()])
+
+    def GetLatestEnd(self):
+        """
+        Return end timestamp of latest interval.
+        """
+        return max(self.intervals.keys() + [EARLIEST_TIMESTAMP])
 
     #
     # I/O
@@ -187,7 +201,7 @@ class _HistoryStore(object):
 
     def EvictEntities(self):
         # Freshest connection end timestamps, by peer
-        end_timestamps = [(max(h.intervals, EARLIEST_TIMESTAMP), peer_id)
+        end_timestamps = [(max(h.intervals.keys() + [EARLIEST_TIMESTAMP]), peer_id)
             for (peer_id, h) in self.entries.iteritems()]
         end_timestamps.sort()
         # Keep `max_stored_entities` most recent
@@ -210,23 +224,6 @@ class _HistoryStore(object):
         for entry in self.entries.itervalues():
             entry.Flush()
 
-    def IterMerge(self, other):
-        """
-        Merges this history store with another, returning an iterator
-        over (peer_id, history entry) tuples.
-        The other history store takes precedence when there is a conflict.
-        """
-        this_peers = set(self.entries)
-        other_peers = set(other.entries)
-        for peer_id in this_peers - other_peers:
-            yield (peer_id, self.entries[peer_id])
-        for peer_id in other_peers - this_peers:
-            yield (peer_id, other.entries[peer_id])
-        for peer_id in other_peers & this_peers:
-            entry = self.entries[peer_id].Copy()
-            entry.Merge(other.entries[peer_id])
-            yield (peer_id, entry)
-
     def Merge(self, other):
         """
         Merges the other history store into this one.
@@ -240,6 +237,17 @@ class _HistoryStore(object):
         for peer_id in other_peers & this_peers:
 #             print "merge", peer_id
             self.entries[peer_id].Merge(other.entries[peer_id])
+
+    def WeightedEntities(self):
+        """
+        Return a list of (w, peer) tuples where 'w' is
+        a numeric weight of the peer according to the peer history.
+        """
+        l = []
+        for entry in self.entries.itervalues():
+            w = float(entry.GetTotalDuration())
+            l.append((w, entry.peer))
+        return l
 
     #
     # I/O
@@ -307,7 +315,33 @@ class EntityCache(object):
             self.Read(f)
         finally:
             f.close()
+#         self.IterChoose()
         return True
+
+    def IterChoose(self):
+        iter_count = 0
+        # Build weighted decision tree
+        l = self.history.WeightedEntities()
+        l.sort()
+        l.reverse()
+        total = sum([w for (w, e) in l])
+        print total
+        # Huffman algorithm to optimize average tree traversing length
+        while len(l) > 1:
+            left = l.pop()
+            right = l.pop()
+            bisect.insort(l, (left[0] + right[0], (left, right)))
+        print l[0][0]
+        # Build decision tree
+        def _build_dec(item):
+            w, e = item
+            if not isinstance(e, tuple):
+                return [w, 1, e]
+            left, right = e
+            left = _build_dec(left)
+            right = _build_dec(right)
+            return [left[0], left[1] + right[1], left, right]
+        decision_tree = _build_dec(l[0])
 
     def SaveAtomic(self, path):
         tmppath = path + '.'
