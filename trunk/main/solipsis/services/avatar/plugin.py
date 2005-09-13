@@ -39,10 +39,12 @@ class Plugin(ServicePlugin):
         self.reactor = self.service_api.GetReactor()
         self.host = local_ip
         self.port = 7780 + random.randrange(0, 100)
+
         # Network address container: { peer_id => (host, port) }
         self.hosts = {}
         self.node_avatar_hash = None
         self.node_id = None
+
         # Peers for which we have received an avatar hash but whose
         # address we don't know yet
         self.pending_peers = set()
@@ -129,6 +131,8 @@ class Plugin(ServicePlugin):
             # If we have an avatar, send its hash to our new neighbour
             if self.node_avatar_hash is not None:
                 self.service_api.SendData(peer.id_, self.node_avatar_hash)
+            # Use default avatar for now
+            self.avatars.BindHashToPeer(None, peer.id_)
             # If we need to fetch the peer's avatar, do it
             if peer.id_ in self.pending_peers:
                 self._LoadPeerAvatar(peer.id_)

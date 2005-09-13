@@ -1,17 +1,17 @@
 # <copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
 # Copyright (C) 2002-2005 France Telecom R&D
-# 
+#
 # This software is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
 # version 2.1 of the License, or (at your option) any later version.
-# 
+#
 # This software is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -40,7 +40,7 @@ class _AvatarRepository(object):
         """
         # Size of processed avatars
         self.processed_avatar_size = 40
-    
+
         # peer ID -> avatar hash
         self.peer_avatar_hashes = {}
 
@@ -50,11 +50,15 @@ class _AvatarRepository(object):
         self.original_avatar_cache = {}
         # hash -> wx.Bitmap
         self.processed_avatar_cache = {}
-        
+
         # Callables for avatar change notification
         self.event_sinks = []
 
-        self.default_avatars = None
+        self.builtin_avatars = None
+        # File containing default avatar if not defined
+        self.default_avatar_hash = None
+        self.default_avatar_file = "img/ghost.png"
+
 
     def AskNotify(self, callback):
         """
@@ -68,14 +72,17 @@ class _AvatarRepository(object):
         Get a random avatar hash from the default avatar list.
         """
         self._LoadDefaultAvatars()
-        return random.choice(self.default_avatars)
-    
+        return random.choice(self.builtin_avatars)
+
     def BindHashToPeer(self, hash_, peer_id):
         """
         Tries to add an avatar based on its hash value.
         Returns True if ok, False if the hash was not found.
+        (if hash is None, use the default avatar)
         """
         self._LoadDefaultAvatars()
+        if hash_ is None:
+            hash_ = self.default_avatar_hash
         try:
             pil = self.pil_avatar_cache[hash_]
         except KeyError:
@@ -104,7 +111,7 @@ class _AvatarRepository(object):
         self.peer_avatar_hashes[peer_id] = hash_
         self._Notify([peer_id])
         return hash_
-    
+
     def GetAvatarBitmap(self, peer_id):
         """
         Returns a peer's avatar as a wxBitmap, or None if not found.
@@ -126,7 +133,7 @@ class _AvatarRepository(object):
             return None
         self._CalculateAvatar(hash_)
         return self.processed_avatar_cache[hash_]
-    
+
     def GetProcessedAvatarSize(self):
         return self.processed_avatar_size
 
@@ -198,7 +205,7 @@ class _AvatarRepository(object):
 
     def _ProcessAvatar(self, source):
         """
-        Process the original avatar (as PIL image) and returns 
+        Process the original avatar (as PIL image) and returns
         its processed counterpart (as PIL image).
         """
         # 1. Crop a square area inside the image
@@ -209,7 +216,7 @@ class _AvatarRepository(object):
         else:
             crop_box = (0, crop_offset, w, h - crop_offset)
         cropped = source.crop(crop_box)
-            
+
         # 2. Resize to desired target size
         s = min(self.processed_avatar_size, w, h)
         resized = cropped.resize((s, s), Image.ANTIALIAS)
@@ -249,14 +256,30 @@ class _AvatarRepository(object):
         """
         return sha.new(data).hexdigest()
 
+    def _LoadAvatar(self, path):
+        """
+        Load an avatar contained in a file.
+        """
+        try:
+            f = file(path, 'rb')
+        except (IOError, OSError), e:
+            print "Failed to load '%s':" % path
+            print str(e)
+            return None
+        else:
+            data = f.read()
+            f.close()
+            hash_ = self._AddAvatar(data)
+            return hash_
+
     def _LoadDefaultAvatars(self):
         """
         Loads binary contents of default avatars.
         """
         # If already loaded, do nothing
-        if self.default_avatars:
+        if self.builtin_avatars is not None:
             return
-        self.default_avatars = []
+        self.builtin_avatars = []
         avatar_dir = 'avatars'
         l = os.listdir(avatar_dir)
         for filename in l:
@@ -265,15 +288,10 @@ class _AvatarRepository(object):
             path = os.path.join(avatar_dir, filename)
             if not os.path.isfile(path):
                 continue
-            try:
-                f = file(path, 'rb')
-            except IOError, e:
-                print str(e)
-            else:
-                data = f.read()
-                f.close()
-                hash_ = self._AddAvatar(data)
-                self.default_avatars.append(hash_)
+            hash_ = self._LoadAvatar(path)
+            if hash_:
+                self.builtin_avatars.append(hash_)
+        self.default_avatar_hash = self._LoadAvatar(self.default_avatar_file)
 
 
 AvatarRepository = Singleton(_AvatarRepository)
