@@ -192,7 +192,7 @@ class BookmarksDialog(wx.Frame):
         self.menu_items = []
         # Append bookmarked peers, ordered by pseudo
         peers = self.bookmarks.GetAllPeers()
-        peers.sort(cmp=lambda p, q: cmp(p.pseudo, q.pseudo))
+        peers.sort(lambda p, q: cmp(p.pseudo, q.pseudo))
         for peer in peers:
             def _clicked(evt, peer=peer):
                 self.app._JumpNearPeer(peer)
@@ -204,7 +204,7 @@ class BookmarksDialog(wx.Frame):
     def UpdateBookmarks(self):
         # Append bookmarked peers, ordered by pseudo
         peers = self.bookmarks.GetAllPeers()
-        peers.sort(cmp=lambda p, q: cmp(p.pseudo, q.pseudo))
+        peers.sort(lambda p, q: cmp(p.pseudo, q.pseudo))
         self.list_ctrl.DeleteAllItems()
         self.item_map.clear()
         for peer in peers:
