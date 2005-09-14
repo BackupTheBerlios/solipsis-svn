@@ -182,6 +182,11 @@ def _parseStunResponse(dgram, address, expectedTID=None, oldtids=[]):
 class  _StunBase(object):
 
     def sendRequest(self, server, tid=None, avpairs=()):
+        # <AP>
+        if not self.transport:
+            print "No transport defined, cannot send STUN request"
+            return
+        # </AP>
         if tid is None:
             tid = getRandomTID()
         mt = 0x1 # binding request
@@ -216,12 +221,18 @@ class StunDiscoveryProtocol(DatagramProtocol, _StunBase):
         self.expectedTID = None
         self.oldTIDs = sets.Set()
         self.natType = None
+        # <AP>
 #         self.servers = [(socket.gethostbyname(host), port)
 #                                             for host, port in servers]
         self.servers = [(host, port) for host, port in servers]
+        # </AP>
         super(StunDiscoveryProtocol, self).__init__(*args, **kwargs)
 
     def initialStunRequest(self, address):
+        # <AP>
+        if self._finished:
+            return
+        # </AP>
         tid = getRandomTID()
         delayed = reactor.callLater(INITIAL_TIMEOUT,
                                     self.retransmitInitial, address, tid)
@@ -230,6 +241,10 @@ class StunDiscoveryProtocol(DatagramProtocol, _StunBase):
         self.sendRequest(address, tid=tid)
 
     def retransmitInitial(self, address, tid, count=1):
+        # <AP>
+        if self._finished:
+            return
+        # </AP>
         if count <= MAX_RETRANSMIT:
             t = BACKOFF_TIME * 2**min(count, MAX_BACKOFF)
             delayed = reactor.callLater(t, self.retransmitInitial,
@@ -311,6 +326,10 @@ class StunDiscoveryProtocol(DatagramProtocol, _StunBase):
         self._finishedStun()
 
     def retransmitStunState2(self, address, tid, count=1):
+        # <AP>
+        if self._finished:
+            return
+        # </AP>
         if count <= MAX_RETRANSMIT:
             t = BACKOFF_TIME * 2**min(count, MAX_BACKOFF)
             self.state2DelayedCall = reactor.callLater(t,
@@ -353,6 +372,10 @@ class StunDiscoveryProtocol(DatagramProtocol, _StunBase):
             self._finishedStun()
 
     def retransmitStunState3(self, address, tid, count=1):
+        # <AP>
+        if self._finished:
+            return
+        # </AP>
         if count <= (2 * MAX_RETRANSMIT):
             t = BACKOFF_TIME * 2**min(count, MAX_BACKOFF)
             self.state3DelayedCall = reactor.callLater(t,
@@ -373,6 +396,10 @@ class StunDiscoveryProtocol(DatagramProtocol, _StunBase):
         self._finishedStun()
 
     def retransmitStunState4(self, address, tid, count = 1):
+        # <AP>
+        if self._finished:
+            return
+        # </AP>
         if count < MAX_RETRANSMIT:
             t = BACKOFF_TIME * 2**min(count, MAX_BACKOFF)
             self.state4DelayedCall = reactor.callLater(t,
