@@ -53,7 +53,10 @@ class _StunClient(stun.StunDiscoveryProtocol):
     def Run(self, port):
         self.d = defer.Deferred()
 #         self.timeout = self.reactor.callLater(stun_timeout, self.Timeout)
-        self.listening = self.reactor.listenUDP(port, self)
+        try:
+            self.listening = self.reactor.listenUDP(port, self)
+        except Exception, e:
+            self.d.errback(e)
         self.reactor.callLater(0, self.startDiscovery)
         return self.d
 
