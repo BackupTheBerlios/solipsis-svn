@@ -41,6 +41,7 @@ import copy
 import os
 import bisect
 import random
+import math
 from elementtree.ElementTree import Element, SubElement, ElementTree
 
 from solipsis.util.compat import set
@@ -95,8 +96,12 @@ class _PeerHistory(object):
         Merge with other (fresher) history entry.
         """
         assert self.last_interval is None, "Cannot merge while open"
+        # Flush history if address has changed
+        if self.peer.address == other.peer.address:
+            self.intervals.update(other.intervals)
+        else:
+            self.intervals = other.intervals.copy()
         self.peer = other.peer
-        self.intervals.update(other.intervals)
 
     def Flush(self):
         """
@@ -175,6 +180,11 @@ class _HistoryStore(object):
         except KeyError:
             entry = _PeerHistory(peer)
             self.entries[peer_id] = entry
+        else:
+            # Forget history if address has changed
+            if peer.address != entry.peer.address:
+                entry.Flush()
+            entry.peer = peer
         entry.Open()
 
     def OnPeerDisconnected(self, peer_id):
@@ -281,24 +291,40 @@ class EntityCache(object):
     def __init__(self):
         self.history = _HistoryStore()
         self.current_peers = _HistoryStore()
+        self.default_entities = []
 
     def Fortify(self):
+        """
+        Perform useful maintenance tasks.
+        """
         self.history.Merge(self.current_peers)
         self.history.Evict()
         self.current_peers.FlushHistory()
 
     def OnPeerConnected(self, peer):
+        """
+        Call this method when a peer is connected.
+        """
         self.current_peers.OnPeerConnected(peer)
 
     def OnPeerDisconnected(self, peer_id):
+        """
+        Call this method when a peer is disconnected.
+        """
         self.current_peers.OnPeerDisconnected(peer_id)
 
     def Write(self, outfile):
+        """
+        Write the entity cache to an open file object.
+        """
         self.Fortify()
         et = ElementTree(self.history.ToElement())
         et.write(outfile)
 
     def Read(self, infile):
+        """
+        Read the entity cache from an open file object.
+        """
         try:
             et = ElementTree(file=infile)
         except (IOError, EOFError), e:
@@ -308,6 +334,9 @@ class EntityCache(object):
         self.current_peers = _HistoryStore()
 
     def Load(self, path):
+        """
+        Load the entity cache from the given file path.
+        """
         if not os.path.isfile(path):
             return False
         f = file(path, 'rb')
@@ -315,39 +344,66 @@ class EntityCache(object):
             self.Read(f)
         finally:
             f.close()
-#         it = self.IterChoose()
-#         for i in xrange(200):
-#             print it.next().address.ToString()
         return True
 
-    def IterChoose(self):
+    def SetDefaultEntities(self, addresses):
+        """
+        Sets the list of default entities.
+        """
+        self.default_entities = [Peer(address=address) for address in addresses]
+
+    def IterChoose(self, loop=True, other_entities=None):
+        """
+        An iterator that will return
+        entities to connect to.
+        """
+        self.Fortify()
         iter_count = 0
+        if other_entities is None:
+            other_entities = self.default_entities
         # Build weighted decision tree
         choices = self.history.WeightedEntities()
         choices.sort()
         choices.reverse()
         total = sum([w for (w, e) in choices])
-        print total
-        while True:
-            # Start with a fresh item choice list
-            current_list = choices[:]
-            current_total = total
-            while current_list:
-                r = random.random() * current_total
-                # This is O(N), but N is bound by max_stored_entities,
-                # and also we will statistically stop in the first slots
-                # (due to the reverse sort above)
-                for i, (w, e) in enumerate(current_list):
-                    if r <= w:
-                        break
-                    r -= w
-                else:
-                    raise AssertionError("weighted search exhausted")
-                # Remove the chosen item from future choices
-                current_total -= w
-                current_list.pop(i)
+        current_other_entities = other_entities[:]
+        current_list = choices[:]
+        current_total = total
+        while current_list or current_other_entities:
+            iter_count += 1
+            if loop and choices and not current_list:
+                # Re-start with a fresh item choice list
+                current_list = choices[:]
+                current_total = total
+                print "!! rewinding entity choice list"
+            if loop and other_entities and not current_other_entities:
+                # Re-populate additional entities
+                current_other_entities = other_entities[:]
+            w = len(current_other_entities) * (current_total or 1.0) * (1.0 - math.exp(-iter_count / 60.0))
+            r = random.random() * (current_total + w)
+            # Uniform choice amongst additional entities
+            if r < w:
+                i = int(len(current_other_entities) * r / w)
+                e = current_other_entities.pop(i)
+                print "chosen other =", e.address.ToString()
                 yield e
-            print "!! rewinding choice list"
+                continue
+            r -= w
+            # This is O(N), but N is bound by max_stored_entities,
+            # and also we will statistically stop in the first slots
+            # (due to the reverse sort above)
+            for i, (w, e) in enumerate(current_list):
+                if r <= w:
+                    break
+                r -= w
+            else:
+                raise AssertionError("weighted search exhausted")
+            # Remove the chosen item from future choices
+            current_total -= w
+            current_list.pop(i)
+            print "chosen peer =", e.address.ToString()
+            yield e
+
 
 #         # Huffman algorithm to optimize average tree traversing length
 #         while len(l) > 1:
@@ -367,6 +423,9 @@ class EntityCache(object):
 #         decision_tree = _build_dec(l[0])
 
     def SaveAtomic(self, path):
+        """
+        Atomically save the entity cache to the given file path.
+        """
         tmppath = path + '.'
         tmppath += CreateSecureId("%s %s" % (hash(self), time.time()))
         f = file(tmppath, 'wb')

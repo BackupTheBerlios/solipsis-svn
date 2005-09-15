@@ -118,12 +118,12 @@ class NodeLauncher(object):
         return discovery_deferred
 
 
-    def Launch(self, bootup_entities):
+    def Launch(self, bootup_addresses):
         """
         Launch the node: initiate network connections and start the state machine.
         """
         # Open Solipsis main port
-        self.state_machine.Init(self.node_connector, self.remote_control, bootup_entities)
+        self.state_machine.Init(self.node_connector, self.remote_control, bootup_addresses)
         try:
             self.node_connector.Start(self.port)
         except Exception, e:
@@ -195,9 +195,9 @@ class Bootstrap(object):
 
         # Startup entities are loaded from a file
         if not self.params.as_seed:
-            bootup_entities = self._ParseEntitiesFile(self.params.entities_file)
+            bootup_addresses = self._ParseDefaultEntities(self.params.entities_file)
         else:
-            bootup_entities = []
+            bootup_addresses = []
 
         def _succeed(results):
             # Build the list of local addresses once they are known
@@ -205,9 +205,9 @@ class Bootstrap(object):
             for ok, result in results:
                 if ok:
                     host, port = result
-                    addresses.append((host, port))
+                    addresses.append(Address(host, port))
             for p in self.pool:
-                self.reactor.callLater(0, p.Launch, bootup_entities or addresses)
+                self.reactor.callLater(0, p.Launch, bootup_addresses or addresses)
             # Send statistics
             if self.params.send_stats:
                 getPage('http://solipsis.netofpeers.net/stat/index.php?z=1')
@@ -225,32 +225,18 @@ class Bootstrap(object):
     #
     # Private methods
     #
-    def _ParseSeedsFile(self, filename):
-        f = file(filename)
-        seeds = []
-
-        for line in f:
-            p = line.find('#')
-            if p >= 0:
-                line = line[:p]
-            t = line.strip().split()
-            if len(t) >= 1:
-                host, port = "127.0.0.1", int(t[0])
-                if port != self.params.port:
-                    seeds.append((host, port))
-        return seeds
-
-    def _ParseEntitiesFile(self, filename):
-        f = file(filename)
-        entities = []
-
-        for line in f:
-            p = line.find('#')
-            if p >= 0:
-                line = line[:p]
-            t = line.strip().split()
-            if len(t) >= 2:
-                host, port = t[0], int(t[1])
-                entities.append((host, port))
-        entities.reverse() # a bit of fun
-        return entities
+    def _ParseDefaultEntities(self, filename):
+        f = file(filename, "r")
+        try:
+            addresses = []
+            for line in f:
+                p = line.find('#')
+                if p >= 0:
+                    line = line[:p]
+                t = line.strip().split()
+                if len(t) >= 2:
+                    host, port = t[0], int(t[1])
+                    addresses.append(Address(host, port))
+        finally:
+            f.close()
+        return addresses

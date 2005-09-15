@@ -43,8 +43,7 @@ class StateMachine(object):
     """
     world_size = 2**128
 
-    # It is safer not to set this greater than 1
-    teleportation_flood = 1
+    teleportation_flood = 4
     neighbour_tolerance = 0.3
     peer_neighbour_ratio = 1.8
 
@@ -132,6 +131,7 @@ class StateMachine(object):
         # Entity cache for bootstrap
         self.entity_cache = EntityCache()
         self._LoadEntityCache()
+        self.entity_chooser = None
 
         self.Reset()
 
@@ -168,7 +168,8 @@ class StateMachine(object):
         """
         self.node_connector = node_connector
         self.event_sender = event_sender
-        self.bootup_addresses = bootup_addresses
+        self.entity_cache.SetDefaultEntities(bootup_addresses)
+        self.entity_chooser = None
 
     def Close(self):
         """
@@ -780,10 +781,9 @@ class StateMachine(object):
         """
         self._CloseCurrentConnections()
         self.Reset()
-        for host, port in self.bootup_addresses:
-            address = Address(host, port)
-            if address != self.node.address:
-                self._SayHello(Peer(address=address))
+        for peer in self.entity_cache.IterChoose(loop=False):
+            if peer.address != self.node.address:
+                self._SayHello(peer)
         self.SetState(states.EarlyConnecting())
 
     def TryConnect(self):
@@ -793,11 +793,12 @@ class StateMachine(object):
         """
         self._CloseCurrentConnections()
         self.Reset()
-        if len(self.bootup_addresses) > self.teleportation_flood:
-            addresses = random.sample(self.bootup_addresses, self.teleportation_flood)
-        else:
-            addresses = self.bootup_addresses
-        self._StartFindNearest([Address(host, port) for host, port in addresses])
+        # 'self.entity_chooser' will be reused in case the connection fails
+        if not self.entity_chooser:
+            self.entity_chooser = self.entity_cache.IterChoose()
+        addresses = [peer.address
+            for peer, i in zip(self.entity_chooser, xrange(self.teleportation_flood - 1))]
+        self._StartFindNearest(addresses)
 
     def MoveTo(self, (x, y, z), jump_near=False):
         """
@@ -926,10 +927,12 @@ class StateMachine(object):
         self._RemovePeer(peer.id_)
 
     def _SaveEntityCache(self):
-        self.entity_cache.SaveAtomic(self.entity_cache_file)
+        if not self.params.as_seed:
+            self.entity_cache.SaveAtomic(self.entity_cache_file)
 
     def _LoadEntityCache(self):
-        self.entity_cache.Load(self.entity_cache_file)
+        if not self.params.as_seed:
+            self.entity_cache.Load(self.entity_cache_file)
 
     #
     # Teleportation algorithm
