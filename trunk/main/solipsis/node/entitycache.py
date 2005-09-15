@@ -162,7 +162,7 @@ class _PeerHistory(object):
 
 class _HistoryStore(object):
     max_stored_entities = 500
-    max_stored_history = 5000
+    max_stored_history = 2000
 
     def __init__(self):
         # Keyed by peer_id
@@ -207,7 +207,7 @@ class _HistoryStore(object):
         evict_timestamps = end_timestamps[:-self.max_stored_history]
         for end, peer_id in evict_timestamps:
             del self.entries[peer_id].intervals[end]
-        print "flushed %d intervals" % len(evict_timestamps)
+#         print "flushed %d intervals" % len(evict_timestamps)
 
     def EvictEntities(self):
         # Freshest connection end timestamps, by peer
@@ -218,7 +218,7 @@ class _HistoryStore(object):
         evict_peers = end_timestamps[:-self.max_stored_entities]
         for end, peer_id in evict_peers:
             del self.entries[peer_id]
-        print "flushed %d entities" % len(evict_peers)
+#         print "flushed %d entities" % len(evict_peers)
 
     def Evict(self):
         """
@@ -338,6 +338,7 @@ class EntityCache(object):
         Load the entity cache from the given file path.
         """
         if not os.path.isfile(path):
+            print "entities file '%s' not found" % path
             return False
         f = file(path, 'rb')
         try:
@@ -345,6 +346,16 @@ class EntityCache(object):
         finally:
             f.close()
         return True
+
+# ** this routine needs an overlap check when merging intervals
+#     def Merge(self, path):
+#         """
+#         Merge information from the given file path.
+#         """
+#         other = type(self)()
+#         if other.Load(path):
+#             self.Fortify()
+#             self.history.Merge(other.history)
 
     def SetDefaultEntities(self, addresses):
         """
@@ -385,7 +396,6 @@ class EntityCache(object):
             if r < w:
                 i = int(len(current_other_entities) * r / w)
                 e = current_other_entities.pop(i)
-                print "chosen other =", e.address.ToString()
                 yield e
                 continue
             r -= w
@@ -401,7 +411,6 @@ class EntityCache(object):
             # Remove the chosen item from future choices
             current_total -= w
             current_list.pop(i)
-            print "chosen peer =", e.address.ToString()
             yield e
 
 

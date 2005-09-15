@@ -17,6 +17,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
 
+import os
 import sys
 import logging
 import random
@@ -193,9 +194,10 @@ class Bootstrap(object):
             self.pool.append(p)
             deferreds.append(p.Prepare())
 
-        # Startup entities are loaded from a file
+        # Load default startup addresses from a separate config file
         if not self.params.as_seed:
-            bootup_addresses = self._ParseDefaultEntities(self.params.entities_file)
+            path = os.path.join(self.params.config_dir, self.params.default_entities_file)
+            bootup_addresses = self._ParseDefaultEntities(path)
         else:
             bootup_addresses = []
 

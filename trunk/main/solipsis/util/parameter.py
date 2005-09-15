@@ -17,14 +17,14 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
 
-import os, os.path
+import os
 import sys
 import random
 import locale
 from ConfigParser import ConfigParser
 import logging, logging.config
 
-from solipsis.util.compat import safe_str, safe_unicode
+from solipsis.util.compat import safe_str, safe_unicode, abspath
 
 # The parameters come from an external source (config file or
 # command-line options), so we have to take into account the
@@ -44,7 +44,8 @@ class Parameters(object):
         'position_x': ('pos_x', long, 0),
         'position_y': ('pos_y', long, 0),
         'expected_neighbours': ('expected_neighbours', int, 10),
-        'entities_file': ('entities_file', str, None),
+        'entities_file': ('entities_file', str, 'entities.met'),
+        'default_entities_file': ('default_entities_file', str, None),
         'address_discovery': ('discovery_methods', lambda s: [t.strip() for t in s.split(',')], []),
         'controllers': ('controllers', lambda s: [t.strip() for t in s.split(',')], []),
         'send_statistics': ('send_stats', int, 0),
@@ -125,6 +126,9 @@ class Parameters(object):
             sys.stderr.write("\nError while reading configuration file %s:\n" % self.configFileName)
             sys.stderr.write(str(e))
             sys.exit(1)
+
+        self.config_dir = os.path.dirname(abspath(self._config_file))
+        self.state_dir = abspath('state')
 
         self.LoadSection("solipsis", self.solipsis_section)
         self.LoadSection("navigator", self.navigator_section)

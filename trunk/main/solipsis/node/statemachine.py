@@ -69,9 +69,6 @@ class StateMachine(object):
     # after having moved
     move_duration = 3.0
 
-    # File to save entity cache to
-    entity_cache_file = os.path.join('state', 'entities.met')
-
     # These are all the message types accepted from other peers.
     # Some of them will only be accepted in certain states.
     # The motivation is twofold:
@@ -129,6 +126,7 @@ class StateMachine(object):
         self.state_caller = DelayedCaller(self.reactor)
 
         # Entity cache for bootstrap
+        self.entity_cache_file = os.path.join(params.state_dir, params.entities_file)
         self.entity_cache = EntityCache()
         self._LoadEntityCache()
         self.entity_chooser = None
