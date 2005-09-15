@@ -315,33 +315,56 @@ class EntityCache(object):
             self.Read(f)
         finally:
             f.close()
-#         self.IterChoose()
+#         it = self.IterChoose()
+#         for i in xrange(200):
+#             print it.next().address.ToString()
         return True
 
     def IterChoose(self):
         iter_count = 0
         # Build weighted decision tree
-        l = self.history.WeightedEntities()
-        l.sort()
-        l.reverse()
-        total = sum([w for (w, e) in l])
+        choices = self.history.WeightedEntities()
+        choices.sort()
+        choices.reverse()
+        total = sum([w for (w, e) in choices])
         print total
-        # Huffman algorithm to optimize average tree traversing length
-        while len(l) > 1:
-            left = l.pop()
-            right = l.pop()
-            bisect.insort(l, (left[0] + right[0], (left, right)))
-        print l[0][0]
-        # Build decision tree
-        def _build_dec(item):
-            w, e = item
-            if not isinstance(e, tuple):
-                return [w, 1, e]
-            left, right = e
-            left = _build_dec(left)
-            right = _build_dec(right)
-            return [left[0], left[1] + right[1], left, right]
-        decision_tree = _build_dec(l[0])
+        while True:
+            # Start with a fresh item choice list
+            current_list = choices[:]
+            current_total = total
+            while current_list:
+                r = random.random() * current_total
+                # This is O(N), but N is bound by max_stored_entities,
+                # and also we will statistically stop in the first slots
+                # (due to the reverse sort above)
+                for i, (w, e) in enumerate(current_list):
+                    if r <= w:
+                        break
+                    r -= w
+                else:
+                    raise AssertionError("weighted search exhausted")
+                # Remove the chosen item from future choices
+                current_total -= w
+                current_list.pop(i)
+                yield e
+            print "!! rewinding choice list"
+
+#         # Huffman algorithm to optimize average tree traversing length
+#         while len(l) > 1:
+#             left = l.pop()
+#             right = l.pop()
+#             bisect.insort(l, (left[0] + right[0], (left, right)))
+#         print l[0][0]
+#         # Build decision tree
+#         def _build_dec(item):
+#             w, e = item
+#             if not isinstance(e, tuple):
+#                 return [w, 1, e]
+#             left, right = e
+#             left = _build_dec(left)
+#             right = _build_dec(right)
+#             return [left[0], left[1] + right[1], left, right]
+#         decision_tree = _build_dec(l[0])
 
     def SaveAtomic(self, path):
         tmppath = path + '.'
