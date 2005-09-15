@@ -42,12 +42,6 @@ class ConfigData(BaseConfigData):
         # 1. User-defined bookmarks
         self.bookmarks = BookmarkList()
 
-        # Override languages
-        lang_code = wx.Locale.GetLanguageInfo(
-            wx.Locale.GetSystemLanguage()).CanonicalName
-        if lang_code:
-            self.languages = [str(lang_code.split('_')[0])]
-
         # 99. Identities
         self.identities = []
         self.current_identity = -1

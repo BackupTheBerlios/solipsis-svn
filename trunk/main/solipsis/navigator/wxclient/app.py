@@ -206,6 +206,13 @@ class NavigatorApp(BaseNavigatorApp, wx.App, XRCLoader):
             self.locale.AddCatalog("solipsis")
         # Workaround for buggy Python behaviour with floats
         system_locale.setlocale(system_locale.LC_NUMERIC, "C")
+        # Override languages in config
+#         lang_code = wx.Locale.GetLanguageInfo(
+#             wx.Locale.GetSystemLanguage()).CanonicalName
+        lang_code = self.locale.GetCanonicalName()
+        if lang_code:
+            self.config_data.languages = [str(lang_code.split('_')[0])]
+
 
     def InitValidators(self):
         """
