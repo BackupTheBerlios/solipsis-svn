@@ -161,4 +161,15 @@ class NavigatorApp(BaseNavigatorApp):
             self.waiting_deferred.callback("ok")
             self.waiting_deferred = None
 
-
+    #===-----------------------------------------------------------------===#
+    # Actions from the network thread(s)
+    #
+    def NodeConnectionFailed(self, error):
+        """
+        Failed connecting to the node.
+        """
+        if self.connection_trials > 0:
+            self.connection_trials -= 1
+            self.future_call(3000, self._TryConnect)
+        else:
+            BaseNavigatorApp.NodeConnectionFailed(self, error)
