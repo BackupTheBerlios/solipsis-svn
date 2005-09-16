@@ -110,7 +110,7 @@ class NodeLauncher(object):
                 node.address.private_host = host
                 node.address.private_port = port
                 print "private address is %s:%d" % (host, port)
-            discovery_deferred.callback((self.host, self.port))
+            discovery_deferred.callback(node.address)
 
         if self.params.host.strip():
             _found_public_addr((self.params.host.strip(), self.params.port))
@@ -204,10 +204,9 @@ class Bootstrap(object):
         def _succeed(results):
             # Build the list of local addresses once they are known
             addresses = []
-            for ok, result in results:
+            for ok, address in results:
                 if ok:
-                    host, port = result
-                    addresses.append(Address(host, port))
+                    addresses.append(address)
             for p in self.pool:
                 self.reactor.callLater(0, p.Launch, bootup_addresses or addresses)
             # Send statistics
