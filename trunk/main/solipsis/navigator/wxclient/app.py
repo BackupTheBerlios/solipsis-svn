@@ -573,7 +573,7 @@ class NavigatorApp(BaseNavigatorApp, wx.App, XRCLoader):
                 self.connection_trials -= 1
                 self.progress_dialog.Update(
                     self.progress_max - self.connection_trials)
-            self.future_call(1000, self._TryConnect)
+            self.future_call(3000, self._TryConnect)
         else:
             # Connection failed
             BaseNavigatorApp.NodeConnectionFailed(self, error)
