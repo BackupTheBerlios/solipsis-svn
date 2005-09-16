@@ -1,5 +1,16 @@
+Solipsis (0.9.5)
+
+    - new dynamic entity cache: see details at
+    http://lists.berlios.de/pipermail/solipsis-tech/2005-September/000168.html
+    - differents avatars for nodes which have the avatar plugin
+    but do not have a configured avatar (to distinguish them from robots)
+    - additional column in bookmark view to display URL
+    - trial bug fix for timing problems in STUN sequence
+    - trial bug fix for unicode path problems
+    - trial bug fix for wxPython 2.5 compatibility
 
 Solipsis (0.9.4)
+
     - new protocol version (1.1): see details at
     http://lists.berlios.de/pipermail/solipsis-tech/2005-September/000156.html
     - German translation update and new Spanish translation
@@ -17,36 +28,36 @@ Solipsis (0.9.3)
 
 Solipsis (0.9.1)
 
-  * Changes in Profile (v 0.2.1)
-  ==============================
+    * Changes in Profile (v 0.2.1)
+    ==============================
 
-	+ Reviewed ergonomy of GUI:
-	---------------------------
+    + Reviewed ergonomy of GUI:
+    ---------------------------
 
-	Merge of the Personal and Custom tabs which result in a clearer
-	and more concise set of data
+    Merge of the Personal and Custom tabs which result in a clearer
+    and more concise set of data
 
-	The Contact tab has been removed for now but will reappear soon in
-	one form or another
+    The Contact tab has been removed for now but will reappear soon in
+    one form or another
 
-	The menu has been clarified (purified) too.
+    The menu has been clarified (purified) too.
 
-	+ Reviewed saving & loading system:
-	-----------------------------------
+    + Reviewed saving & loading system:
+    -----------------------------------
 
-	Profiles are now loaded according to the identity used when
-	connecting to solipsis. This identity defines the pseudo of the
-	profile and the name of the file where to save data.
+    Profiles are now loaded according to the identity used when
+    connecting to solipsis. This identity defines the pseudo of the
+    profile and the name of the file where to save data.
 
-	A popup prompts the user to save its modification if any.
+    A popup prompts the user to save its modification if any.
 
-	+ Bug fixes
-	-----------
+    + Bug fixes
+    -----------
 
-	Ip addresses were not set up correctly which resulted in problems
-	of file transfer.
+    Ip addresses were not set up correctly which resulted in problems
+    of file transfer.
 
-	Paths from windows read on Linux were not rightly interpreted,
-	wich also resulted on impossibility of file transfer.
+    Paths from windows read on Linux were not rightly interpreted,
+    wich also resulted on impossibility of file transfer.
 
- -- emb <emb@logilab.fr>  01/06/2005
+-- emb <emb@logilab.fr>  01/06/2005
