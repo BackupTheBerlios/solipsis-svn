@@ -92,7 +92,7 @@ class DisconnectedTest(NetworkTest):
     """Test good completion of basic commands"""
 
     def test_about(self):
-        return self.assertResponse("about", """About...: Solipsis Navigator 0.9.3svn
+        return self.assertResponse("about", """About...: Solipsis Navigator 0.9.4svn
 
 Licensed under the GNU LGPL
 (c) France Telecom R&D""")
