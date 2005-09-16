@@ -19,8 +19,10 @@ from distutils.core import setup
 import py2app
 #import bdist_mpkg
 
+from solipsis import VERSION
+
 application_name = "Solipsis"
-version = "0.9.3"
+version = VERSION
 description = "Solipsis, a peer-to-peer system for a massively multi-participant virtual world"
 author = "France Telecom R&D"
 author_email = "solipsis-tech@lists.berlios.de"

@@ -36,6 +36,8 @@ except ImportError:
 else:
     from solipsis.util.wxutils import _
 
+from solipsis import VERSION
+
 from solipsis.node.discovery import stun, local
 
 from solipsis.util.urls import SolipsisURL
@@ -50,7 +52,7 @@ class BaseNavigatorApp(UIProxyReceiver):
     """
     Main application class
     """
-    version = "0.9.4svn"
+    version = VERSION
     config_file = os.sep.join(["state", "config.bin"])
     world_size = 2**128
 
@@ -512,7 +514,7 @@ class BaseNavigatorApp(UIProxyReceiver):
         # everything.When testing, reactor is managed by
         # twisted.trial.unittest framework
         if not self.testing:
-            try: 
+            try:
                 self.reactor.stop()
             except RuntimeError, e:
                 print e

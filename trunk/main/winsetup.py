@@ -1,7 +1,3 @@
-import os
-import sys
-import distutils.core
-import glob
 """
 How to build win32 Solipsis binaries :
 Download Python2.4
@@ -12,8 +8,16 @@ Edit this script to insert desired services (see data_files)
 (services can be added in the solipsis/services distribution directory later)
 Then  issue the command $python setup.py py2exe
 """
+
+import os
+import sys
+import distutils.core
+import glob
+
+from solipsis import VERSION
+
 name="Solipsis"
-version="0.9.3"
+version = VERSION
 description="Solipsis, A peer-to-peer system for a massively multi-participant virtual world"
 author="France Telecom R&D"
 author_email="solipsis-tech@lists.berlios.de"
