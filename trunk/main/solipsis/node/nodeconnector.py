@@ -59,7 +59,7 @@ class NodeConnector(object):
     outgoing_handshake_duration = 1.5
 
     # Delay between attempts at protocol version negotiation
-    version_negotiation_delay = 2.0
+    version_negotiation_delay = 3.0
 
     def __init__(self, reactor, params, state_machine, logger):
         self.reactor = reactor

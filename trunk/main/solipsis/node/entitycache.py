@@ -380,7 +380,7 @@ class EntityCache(object):
         current_other_entities = other_entities[:]
         current_list = choices[:]
         current_total = total
-        while current_list or current_other_entities:
+        while loop or current_list or current_other_entities:
             iter_count += 1
             if loop and choices and not current_list:
                 # Re-start with a fresh item choice list
