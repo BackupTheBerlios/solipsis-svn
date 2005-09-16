@@ -5,9 +5,9 @@ import os.path
 import sys
 import time
 
-pool_size = 20
+pool_size = 15
 first_port = 5001
-seed_delay = 5.0
+seed_delay = 7.0
 delay = 7.0
 
 
