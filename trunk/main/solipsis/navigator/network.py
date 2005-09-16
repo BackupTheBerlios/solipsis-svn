@@ -48,11 +48,9 @@ class BaseNetworkLoop(threading.Thread):
 
     def run(self):
         """
-        Run the reactor loop if not testing. When testing, reactor is
-        managed by twisted.trial.unittest framework
+        Run the reactor loop
         """
-        if not self.testing:
-            self.reactor.run(installSignalHandlers=0)
+        self.reactor.run(installSignalHandlers=0)
 
     #
     # Actions from the UI thread

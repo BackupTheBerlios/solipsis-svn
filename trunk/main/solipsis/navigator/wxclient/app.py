@@ -160,6 +160,7 @@ class NavigatorApp(BaseNavigatorApp, wx.App, XRCLoader):
         """
         self.network_loop = NetworkLoop(self.reactor, self)
         BaseNavigatorApp.InitNetwork(self)
+        self.network_loop.start()
         self.network.StartURLListener(self.params.url_port_min,
                                       self.params.url_port_max)
         SetSolipsisURLHandlers()

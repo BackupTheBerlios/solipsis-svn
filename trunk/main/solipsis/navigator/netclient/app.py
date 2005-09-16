@@ -94,14 +94,8 @@ class NavigatorApp(BaseNavigatorApp):
         for deferred in self.factory.initialised:
             deferred.callback(True)
 
-    def stopListening(self):
-        """close connection from manager and stop accepting"""
-        if self.listener:
-            defered = self.listener.stopListening()
-            self.listener = None
-            return defered
-        else:
-            return None
+    def startListening(self):
+        self.network_loop.start()
 
     def get_position(self, name=None):
         if self._CheckNodeProxy():

@@ -35,6 +35,15 @@ class NetworkLoop(BaseNetworkLoop):
     def __init__(self, reactor, ui, testing=False):
         BaseNetworkLoop.__init__(self, reactor, TwistedProxy(ui, reactor), testing)
 
+    def start(self):
+        """
+        Overrides start not to create thread but to run the reactor
+        loop in main thread. If not testing. When testing, reactor is
+        managed by twisted.trial.unittest framework
+        """
+        if not self.testing:
+            self.reactor.run()
+
 class Commands:
 
     def __init__(self, name, help, *args, **kwargs):

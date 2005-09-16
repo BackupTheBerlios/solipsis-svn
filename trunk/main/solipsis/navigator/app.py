@@ -56,6 +56,7 @@ class BaseNavigatorApp(UIProxyReceiver):
 
     def __init__(self, params, *args, **kargs):
         """available kargs: port"""
+        self.final_deferred = defer.Deferred()
         self.params = params
         self.alive = True
         self.node_proxy = None
@@ -81,6 +82,9 @@ class BaseNavigatorApp(UIProxyReceiver):
         self.local_port = params.local_port
         UIProxyReceiver.__init__(self)
 
+    def addCallback(self, fun, *args):
+        self.final_deferred.addCallback(fun, *args)
+
     def OnInit(self):
         """
         Main initialization handler.
@@ -95,9 +99,8 @@ class BaseNavigatorApp(UIProxyReceiver):
         """
         Get local address from Stun
         """
-        final_deferred = defer.Deferred()
         def _finished():
-            final_deferred.callback(None)
+            self.final_deferred.callback(None)
 
         def _local_succeed(address):
             """Discovery succeeded"""
@@ -125,10 +128,6 @@ class BaseNavigatorApp(UIProxyReceiver):
         d = stun.DiscoverAddress(self.local_port, self.reactor, self.params)
         d.addCallback(_stun_succeed)
         d.addErrback(_stun_fail)
-#         d = local.DiscoverAddress(self.local_port, self.reactor, self.params)
-#         d.addCallback(_local_succeed)
-#         d.addErrback(_local_fail)
-        return final_deferred
 
     def InitResources(self):
         """
@@ -152,12 +151,13 @@ class BaseNavigatorApp(UIProxyReceiver):
         """
         assert self.network_loop, "network_loop must be initialised first"
         self.network = TwistedProxy(self.network_loop, self.reactor)
-        # get local ip
+        # set final callback when got local ip
         def got_ip(value):
             self._CallAfter(self.InitServices)
             self._CallAfter(self._LaunchFirstDialog)
-        self.InitIpAddress().addCallback(got_ip)
-        self.network_loop.start()
+        self.addCallback(got_ip)
+        # get local ip
+        self.InitIpAddress()
 
     def InitServices(self):
         """
@@ -319,8 +319,14 @@ class BaseNavigatorApp(UIProxyReceiver):
         self.world.Reset()
         self.viewport.Reset()
         self.network.ConnectToNode(self.config_data, deferred)
-        self.display_status("connecting to %s:%d"\
-                            % (self.config_data.host, self.config_data.port))
+        if self.config_data.connection_type == "local":
+            self.display_status("connecting to %s:%d"\
+                                % ("localhost",
+                                   self.config_data.local_control_port))
+        else:
+            self.display_status("connecting to %s:%d"\
+                                % (self.config_data.host,
+                                   self.config_data.port))
         self.services.RemoveAllPeers()
         self.services.SetNode(self.config_data.GetNode())
 
@@ -506,7 +512,10 @@ class BaseNavigatorApp(UIProxyReceiver):
         # everything.When testing, reactor is managed by
         # twisted.trial.unittest framework
         if not self.testing:
-            self.reactor.stop()
+            try: 
+                self.reactor.stop()
+            except RuntimeError, e:
+                print e
 
     #===-----------------------------------------------------------------===#
     # Actions from the network thread(s)

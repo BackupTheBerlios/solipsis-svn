@@ -10,9 +10,9 @@ email = manu@ft.com
 
 [Files]
 /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/date.txt = ,tagos
-/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/subsubdir = ,none
-/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data = ,none
 /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/TOtO.txt = ,none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data = ,none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/subsubdir = ,none
 /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/subsubdir/null = shared,empty
 /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1 = shared,none
 /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/subsubdir/dummy.txt = shared,empty
@@ -25,7 +25,7 @@ email = manu@ft.com
 /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/emptydir = shared,none
 
 [Others]
-bruce = bruce,Friend,bruce,Fri Aug 19 17:06:11 2005
+bruce = bruce,Friend,bruce,Thu Sep 15 17:04:03 2005
 
 [Custom]
 City = 

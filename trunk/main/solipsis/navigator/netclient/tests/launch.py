@@ -68,6 +68,8 @@ def run():
         # launch application
         try:
             navigator = NavigatorApp(params=params)
+            navigator.addCallback(navigator._TryConnect)
+            navigator.startListening()
         except CannotListenError, err:
             print err
 
