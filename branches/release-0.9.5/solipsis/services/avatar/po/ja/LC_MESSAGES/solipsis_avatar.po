@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-08-05 14:23+0200\n"
+"POT-Creation-Date: 2005-09-20 17:16+0200\n"
 "PO-Revision-Date: 2005-05-22 12:45+0900\n"
 "Last-Translator: Makoto IGUCHI <info@igucci.org>\n"
 "Language-Team: \n"
@@ -11,59 +11,59 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: plugin.py:91
+#: plugin.py:93
 msgid "&Configure"
 msgstr "設定(&C)"
 
-#: gui.py:53
+#: gui.py:54
 msgid "All files"
 msgstr "すべてのファイル"
 
-#: plugin.py:101
+#: plugin.py:103
 msgid "Avatar"
 msgstr "アバタ"
 
-#: gui.py:96
+#: gui.py:97
 msgid "Avatar updated"
 msgstr "アバタ更新"
 
-#: plugin.py:51
+#: plugin.py:53
 msgid "Avatars"
 msgstr "アバタ"
 
-#: gui.py:64
+#: gui.py:65
 msgid "Choose your avatar"
 msgstr "アバタを選択してください"
 
-#: gui.py:104
+#: gui.py:105
 msgid "Error"
 msgstr "エラー"
 
-#: plugin.py:54
+#: plugin.py:56
 msgid "Exchange avatars to customize your appearance"
 msgstr "見た目のカスタマイズのためにアバタを交換"
 
-#: gui.py:53
+#: gui.py:54
 msgid "Images"
 msgstr "イメージ"
 
-#: gui.py:103
+#: gui.py:104
 msgid "Please choose another file."
 msgstr "他のファイルを選択してください。"
 
-#: plugin.py:98
+#: plugin.py:100
 msgid "Shrink avatars"
 msgstr "アバタを小さくする"
 
-#: plugin.py:94
+#: plugin.py:96
 msgid "Stretch avatars"
 msgstr "アバタを大きくする"
 
-#: gui.py:78
+#: gui.py:79
 msgid "The file you chose could not be opened."
 msgstr "選択したファイルを開けませんでした。"
 
-#: gui.py:100
+#: gui.py:101
 #, python-format
 msgid ""
 "The file you chose does not belong to the \n"
@@ -72,6 +72,6 @@ msgstr ""
 "選択したファイルはサポート対象のイメージタイプでは\n"
 "ありませんでした (%s)。"
 
-#: gui.py:95
+#: gui.py:96
 msgid "Your avatar has been updated."
 msgstr "アバタが更新されました。"
