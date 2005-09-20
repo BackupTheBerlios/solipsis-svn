@@ -82,6 +82,9 @@ class _AvatarRepository(object):
         """
         self._LoadDefaultAvatars()
         if hash_ is None:
+            # Don't revert to default if avatar already exists
+            if peer_id in self.peer_avatar_hashes:
+                return True
             hash_ = self.default_avatar_hash
         try:
             pil = self.pil_avatar_cache[hash_]
