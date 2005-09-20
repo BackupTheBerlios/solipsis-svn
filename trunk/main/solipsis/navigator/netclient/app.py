@@ -97,6 +97,9 @@ class NavigatorApp(BaseNavigatorApp):
     def startListening(self):
         self.network_loop.start()
 
+    def stopListening(self):
+        pass
+    
     def get_position(self, name=None):
         if self._CheckNodeProxy():
             if not name:
@@ -160,6 +163,10 @@ class NavigatorApp(BaseNavigatorApp):
         if not waiting and not self.waiting_deferred is None:
             self.waiting_deferred.callback("ok")
             self.waiting_deferred = None
+
+    def _OnQuit(self):
+        self.stopListening()
+        BaseNavigatorApp._OnQuit(self)
 
     #===-----------------------------------------------------------------===#
     # Actions from the network thread(s)
