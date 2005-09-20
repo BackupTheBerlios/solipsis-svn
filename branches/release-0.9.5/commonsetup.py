@@ -8,23 +8,26 @@ def get_dynamic_modules():
     """
     print "enumerating dynamic modules"
     includes = []
+    sep = os.sep
 
     service_dir = 'solipsis/services'
+    service_dir = os.path.normpath(service_dir)
     # 1. Dynamically-loaded service plugins
     for filename in os.listdir(service_dir):
         path = os.path.join(service_dir, filename)
         if os.path.isdir(path) and not filename.startswith('_') and not filename.startswith('.'):
-            package = path.replace('/', '.')
+            package = path.replace(sep, '.')
     #         packages.append(package)
             includes.append(package + '.plugin')
 
     extension_dirs = ['solipsis/node/discovery', 'solipsis/node/controller', 'solipsis/lib/shtoom']
     # 2. Dynamically-loaded behaviour extensions
-    for dir in extension_dirs:
-        for path in glob.glob(os.path.join(dir, '*.py')):
+    for dir_ in extension_dirs:
+        dir_ = os.path.normpath(dir_)
+        for path in glob.glob(os.path.join(dir_, '*.py')):
             filename = os.path.basename(path)
             if not filename.startswith('_'):
-                module = path.replace('/', '.')[:-3]
+                module = path.replace(sep, '.')[:-3]
                 includes.append(module)
 
 #     print "includes =", includes
@@ -36,6 +39,7 @@ def get_data_files():
     """
     print "enumerating resources"
     data_files = []
+    sep = os.sep
 
     # Please note: base directories of service plugins will be automatically
     # included as long as they contain some localization data (.mo files)
@@ -47,7 +51,9 @@ def get_data_files():
         'conf', 'default',
     ]
     for dirpath, dirnames, filenames in os.walk('.'):
-        if dirpath.startswith('./dist/') or dirpath.startswith('./build/') or '/.svn' in dirpath:
+        if dirpath.startswith('.' + sep + 'dist' + sep) or \
+            dirpath.startswith('.' + sep + 'build' + sep) or \
+            (sep + '.svn') in dirpath:
             continue
         found = False
         files = []
