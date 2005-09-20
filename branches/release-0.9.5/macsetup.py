@@ -16,10 +16,11 @@ import glob
 import re
 
 from distutils.core import setup
-import py2app
 #import bdist_mpkg
 
+# Local imports
 from solipsis import VERSION
+from commonsetup import *
 
 application_name = "Solipsis"
 version = VERSION
@@ -29,11 +30,11 @@ author_email = "solipsis-tech@lists.berlios.de"
 url = "http://solipsis.netofpeers.net/"
 license = "COPYRIGHT"
 
-packages = []
-includes = ['solipsis.node.main']
-resources = []
-#data_files = [('.', ['twistednode.py'])]
-data_files = []
+#
+# Invoke common setup routines
+#
+includes = ['solipsis.node.main'] + get_dynamic_modules()
+data_files = get_data_files()
 
 #
 # Create dynamic setup info
@@ -58,64 +59,12 @@ f = file(dynfile, 'w')
 f.write(s)
 f.close()
 
-#
-# Find all packages and modules
-#
-print "enumerating modules"
-
-service_dir = 'solipsis/services'
-# 1. Dynamically-loaded service plugins
-for filename in os.listdir(service_dir):
-    path = os.path.join(service_dir, filename)
-    if os.path.isdir(path) and not filename.startswith('_') and not filename.startswith('.'):
-        package = path.replace('/', '.')
-        packages.append(package)
-        includes.append(package + '.plugin')
-
-extension_dirs = ['solipsis/node/discovery', 'solipsis/node/controller', 'solipsis/lib/shtoom']
-# 2. Dynamically-loaded behaviour extensions
-for dir in extension_dirs:
-    for path in glob.glob(os.path.join(dir, '*.py')):
-        filename = os.path.basename(path)
-        if not filename.startswith('_'):
-            module = path.replace('/', '.')[:-3]
-            includes.append(module)
-
-#print "packages =", packages
-#print "includes =", includes
 
 #
-# Find all resource files and dirs
+# Launch the distutils machinery with options computed above
 #
-print "enumerating resources"
 
-# Please note: base directories of service plugins will be automatically
-# included as long as they contain some localization data (.mo files)
-extensions = [
-    'xrc',
-    'mo',
-    'png', 'gif', 'jpg', 'jpeg',
-    'txt', 'html',
-    'conf', 'met',
-]
-for dirpath, dirnames, filenames in os.walk('.'):
-    if dirpath.startswith('./dist/') or dirpath.startswith('./build/') or '/.svn' in dirpath:
-        continue
-    found = False
-    files = []
-    dirpath = dirpath[2:]
-    # Include files with one of the registered extensions
-    for filename in filenames:
-        for ext in extensions:
-            if filename.endswith('.' + ext):
-                break
-        else:
-            continue
-        path = os.path.join(dirpath, filename)
-        files.append(path)
-        found = True
-    data_files.append((dirpath, files))
-#print "data_files =", data_files
+import py2app
 
 # Note that you must replace hypens '-' with underscores '_'
 # when converting option names from the command line to a script.
