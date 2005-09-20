@@ -1,0 +1,38 @@
+#ISO-8859-1
+[Personal]
+firstname = manu
+title = Mr
+photo = /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/question_mark.gif
+repositories = /home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests
+pseudo = test
+lastname = breton
+email = manu@ft.com
+
+[Files]
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/date.txt = ,tagos
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/TOtO.txt = ,none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data = ,none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/subsubdir = ,none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/subsubdir/null = shared,empty
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1 = shared,none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/subsubdir/dummy.txt = shared,empty
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/.path = ,none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/.svn = ,none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/date.doc = ,none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/routage = shared,none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/.svn = ,none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/profiles = ,none
+/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests/data/emptydir = shared,none
+
+[Others]
+bruce = bruce,Friend,bruce,Thu Sep 15 17:04:03 2005
+
+[Custom]
+City = 
+color = blue
+Country = 
+Favourite Book = 
+homepage = manu.com
+Favourite Movie = 
+Studies = 
+
