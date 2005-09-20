@@ -1,35 +1,35 @@
 #: gui/FilePanel.py:102
 msgid "#shared"
-msgstr ""
+msgstr "#partagés"
 
 #: gui/FilterFrame.py:36
 msgid "&Activated\tCtrl+A"
-msgstr ""
+msgstr "&Activé\tCtrl+A"
 
 #: gui/EditorFrame.py:52
 msgid "&Add directory...\tCtrl+A"
-msgstr ""
+msgstr "&Ajouter un répertoire...\tCtrl+A""
 
 #: gui/ViewerFrame.py:61
 msgid "&Anonymous\tCtrl+A"
-msgstr ""
+msgstr "&Anonyme\tCtrl+A"
 
 #: gui/FilterFrame.py:41 gui/EditorFrame.py:48 gui/ViewerFrame.py:46
 #: gui/MatchFrame.py:33
 msgid "&Close\tCtrl+W"
-msgstr ""
+msgstr "&Fermer\tCtrl+W"
 
 #: gui/EditorFrame.py:44 gui/ViewerFrame.py:44
 msgid "&Export HTML ...\tCtrl+E"
-msgstr ""
+msgstr "&Exporter en HTML...\tCtrl+E""
 
 #: gui/ViewerFrame.py:63
 msgid "&Friend\tCtrl+F"
-msgstr ""
+msgstr "&Ami\tCtrl+F"
 
 #: gui/MatchFrame.py:31
 msgid "&Get files\tCtrl+G"
-msgstr ""
+msgstr "&"
 
 #: gui/ViewerFrame.py:65
 msgid "&Ignore\tCtrl+I"

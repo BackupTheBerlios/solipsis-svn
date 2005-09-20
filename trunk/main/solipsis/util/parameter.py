@@ -46,7 +46,7 @@ class Parameters(object):
         'expected_neighbours': ('expected_neighbours', int, 10),
         'entities_file': ('entities_file', str, 'entities.met'),
         'default_entities_file': ('default_entities_file', str, None),
-        'address_discovery': ('discovery_methods', lambda s: [t.strip() for t in s.split(',')], []),
+        'address_discovery': ('discovery_methods', lambda s: [t.strip() for t in s.split(',')], ['stun']),
         'controllers': ('controllers', lambda s: [t.strip() for t in s.split(',')], []),
         'send_statistics': ('send_stats', int, 0),
         'services': ('services', lambda s: [t.strip() for t in s.split(',')], []),

@@ -64,6 +64,7 @@ class BaseNavigatorApp(UIProxyReceiver):
         self.node_proxy = None
         self.testing = self.params.testing or False
         self.url_jump = self.params.url_jump or None
+        self.discovery_methods = self.params.discovery_methods or ['stun']
         self.connection_trials = 0
         if self.params.memdebug:
             self.memsizer = MemSizer()
@@ -101,32 +102,47 @@ class BaseNavigatorApp(UIProxyReceiver):
         """
         Get local address from Stun
         """
-        def _finished():
-            self.final_deferred.callback(None)
+        preferred_method = len(self.discovery_methods) > 0 \
+                           and self.discovery_methods[0] or 'stun'
+        if preferred_method == 'stun':
+            self._InitIpAddressByStun()
+        elif  preferred_method == 'local':
+            self._InitIpAddressByLocal()
+        else:
+            print "discovery_methods should be ['stun', 'local']. Using stun."
+            self._InitIpAddressByStun()
 
+    def _InitIpAddressByLocal(self):
+        """
+        Get local address from Stun
+        """
         def _local_succeed(address):
             """Discovery succeeded"""
             self.local_ip, port = address
             print "local discovery found address %s:%d" % (self.local_ip, port)
-            _finished()
+            self.final_deferred.callback(None)
         def _local_fail(failure):
             """Discovery failed => try next discovery method"""
             print "discovery failed:", failure.getErrorMessage()
             self.local_ip = socket.gethostbyname(socket.gethostname())
             print 'using getHostByName:', self.local_ip
-            _finished()
+            self.final_deferred.callback(None)
+        d = local.DiscoverAddress(self.local_port, self.reactor, self.params)
+        d.addCallback(_local_succeed)
+        d.addErrback(_local_fail)
 
+    def _InitIpAddressByStun(self):
+        """
+        Get local address from Stun
+        """
         def _stun_succeed(address):
             """Discovery succeeded"""
             self.local_ip, port = address
             print "STUN discovery found address %s:%d" % (self.local_ip, port)
-            _finished()
+            self.final_deferred.callback(None)
         def _stun_fail(failure):
             print "STUN failed:", failure.getErrorMessage()
-            d = local.DiscoverAddress(self.local_port, self.reactor, self.params)
-            d.addCallback(_local_succeed)
-            d.addErrback(_local_fail)
-
+            self._InitIpAddressByLocal()
         d = stun.DiscoverAddress(self.local_port, self.reactor, self.params)
         d.addCallback(_stun_succeed)
         d.addErrback(_stun_fail)
