@@ -35,10 +35,10 @@ sys.path.append("solipsis/node")
 sys.path.append("solipsis/navigator")
 
 data_files=[
-    ("",["entities.met", "LICENSE", "README.txt"]),
+    ("",["LICENSE", "README.txt"]),
     ("img", glob.glob("img/*.*")),
     ("",["msvcr71.dll"]),
-    ("conf", ["conf/solipsis.conf"]),
+    ("conf", glob.glob("conf/*.conf") + glob.glob("conf/*.default")),
 # Insert services files here
     ("solipsis/services", glob.glob("solipsis/services/*.*")),
 #CHAT
