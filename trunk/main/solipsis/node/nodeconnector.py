@@ -304,14 +304,12 @@ class NodeConnector(object):
             middleman_msg.version = protocol.BETTER_VERSION
             if not self.SendToAddress(peer.middleman_address, middleman_msg):
                 return False
-#             print "> MIDDLEMAN", message.request
         if try_directly:
             if not self._SendData(address, data, log=message.request not in self.no_log):
                 return False
             # Heartbeat handling
             if peer.id_ in self.dc_peer_heartbeat:
                 self.dc_peer_heartbeat[peer.id_].Reschedule()
-#             print ">", message.request, address.ToString()
         # Update stats
         try:
             self.sent_messages[message.request] += 1
@@ -359,10 +357,13 @@ class NodeConnector(object):
         """
         Send raw data to a destination address, and optionally log it.
         """
-        if isinstance(address, Address):
-            host, port = (address.host, address.port)
+        our_address = self.node.address
+        # Special treatment when we seem to be behind the same NAT
+        if address.host == our_address.host and \
+            address.private_host is not None and our_address.private_host is not None:
+            host, port = address.private_host, address.private_port
         else:
-            host, port = address
+            host, port = address.host, address.port
         self.node_protocol.SendData((host, port), data)
         if log:
             self.logger.debug(">>>> sending to %s:%d\n%s" % (host, port, data))
