@@ -5,6 +5,8 @@ Solipsis (0.9.5)
     - differents avatars for nodes which have the avatar plugin
     but do not have a configured avatar (to distinguish them from robots)
     - additional column in bookmark view to display URL
+    - bug: we used the public address in some cases when contacting a node
+    behind the same NAT as us
     - trial bug fix for timing problems in STUN sequence
     - trial bug fix for unicode path problems
     - trial bug fix for wxPython 2.5 compatibility
