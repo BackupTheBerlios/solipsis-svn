@@ -37,7 +37,10 @@ class Target:
 sys.path.append("solipsis/node")
 sys.path.append("solipsis/navigator")
 
-data_files = get_data_files()
+data_files = [
+     ("",["msvcr71.dll"]),
+]
+data_files = get_data_files(data_files)
 
 # data_files=[
 #     ("",["LICENSE", "README.txt"]),
