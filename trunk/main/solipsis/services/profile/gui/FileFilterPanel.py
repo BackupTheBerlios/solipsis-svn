@@ -66,6 +66,8 @@ class FileFilterPanel(wx.Panel):
             get_filter_facade().add_file((self.f_key_value.GetValue(), filter_value))
             self.do_modified(True)
         except Exception:
+            import traceback
+            traceback.print_exc()
             dlg = wx.MessageDialog(self, """Regular expression '%s' not valid.
 See Info > Help for more information"""% self.f_filter_value.GetValue(),
                                "Error on %s"% self.f_key_value.GetValue(),
