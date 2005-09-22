@@ -164,12 +164,12 @@ class Facade(SimpleFacade):
     # FILE TAB
     def add_file(self, value):
         """sets new value for repositor"""
-        path = path.encode(ENCODING)
+        value = value.encode(ENCODING)
         SimpleFacade.add_file(self, value)
 
     def del_file(self, value):
         """sets new value for repositor"""
-        path = path.encode(ENCODING)
+        value = value.encode(ENCODING)
         SimpleFacade.add_file(self, value)
     
     def expand_dir(self, path):
