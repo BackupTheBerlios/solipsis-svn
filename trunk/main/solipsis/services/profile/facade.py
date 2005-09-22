@@ -170,7 +170,7 @@ class Facade(SimpleFacade):
     def del_file(self, value):
         """sets new value for repositor"""
         value = value.encode(ENCODING)
-        SimpleFacade.add_file(self, value)
+        SimpleFacade.del_file(self, value)
     
     def expand_dir(self, path):
         """update doc when dir expanded"""
