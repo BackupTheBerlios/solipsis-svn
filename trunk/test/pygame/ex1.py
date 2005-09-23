@@ -37,7 +37,9 @@ class SDLPanel(wx.Panel):
         global pyGame
         wx.Panel.__init__(self, parent, ID, size=tplSize)
         self.Fit()
-        os.environ['SDL_WINDOWID'] = str(self.GetHandle())
+        handle = self.GetHandle()
+        print "handle =", handle
+        os.environ['SDL_WINDOWID'] = str(handle)
 #         os.environ['SDL_VIDEODRIVER'] = 'windib'
         import pygame
         pyGame = pygame
