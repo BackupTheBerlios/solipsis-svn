@@ -31,14 +31,12 @@ from os.path import isfile, isdir
 from solipsis.services.profile import DEFAULT_INTERESTS, ENCODING
 from solipsis.services.profile.prefs import get_prefs
 from solipsis.services.profile.data import  Blogs, retro_compatibility, \
-     DirContainer, SharedFiles, PeerDescriptor
+     ContainerMixin, DirContainer, SharedFiles, PeerDescriptor
 
 SECTION_PERSONAL = "Personal"
 SECTION_CUSTOM = "Custom"
 SECTION_OTHERS = "Others"
 SECTION_FILE = "Files"
-
-#TODO: move download repo in option object
 
 def read_document(stream):
     """use FileDocument to load document"""
@@ -234,9 +232,10 @@ class AbstractSharingData:
         # check type
         if not isinstance(value, str):
             raise TypeError("repository '%s' expected as str"% value)
-        if not isdir(value):
-            raise AssertionError("repository %s does not exist"% value)
-        # check path
+        # already added?
+        if value in self.files:
+            return
+        # included or including existing path?
         for repo in self.files:
             if value.startswith(repo):
                 raise ValueError("'%s' part of existing repo %s"\
@@ -283,7 +282,9 @@ class AbstractSharingData:
         if not isinstance(share, bool):
             raise TypeError("share expected as bool")
         files = [os.path.join(path, name) for name in names]
-        self._get_sharing_container(path).share_container(files, share)
+        for file_name in files:
+            container = self.get_container(file_name)
+            container.share(share)
 
     def share_file(self, pair):
         """forward command to cache"""
@@ -292,11 +293,13 @@ class AbstractSharingData:
             raise TypeError("path expected as str")
         if not isinstance(share, bool):
             raise TypeError("share expected as bool")
-        self._get_sharing_container(path).share_container(path, share)
+        self.get_container(path).share(share)
 
-# TODO: define
-#     def share_container(self, container):
-#         pass
+    def set_container(self, container):
+        assert isinstance(container, ContainerMixin)
+        parent_path = container.get_parent_path()
+        parent_container = self.get_container(parent_path)
+        parent_container[container.get_path()] = container
             
     def recursive_share(self, (path, share)):
         """forward command to cache"""
@@ -444,11 +447,13 @@ class AbstractContactsData:
 
     def fill_data(self, (peer_id, document)):
         """stores CacheDocument associated with peer"""
+        # set peer_desc
         if not self.has_peer(peer_id):
             peer_desc = PeerDescriptor(document.pseudo, document=document)
             self.set_peer((peer_id, peer_desc))
         else:
             peer_desc = self.get_peer(peer_id)
+        # set data
         peer_desc.set_document(document)
         self.last_downloaded_desc = peer_desc
         return peer_desc
@@ -458,11 +463,13 @@ class AbstractContactsData:
         blog = retro_compatibility(blog)
         if not isinstance(blog, Blogs):
             raise TypeError("data expected as AbstractDocument")
+        # set peer_desc
         if not self.has_peer(peer_id):
             peer_desc = PeerDescriptor(blog.pseudo, blog=blog)
             self.set_peer((peer_id, peer_desc))
         else:
             peer_desc = self.get_peer(peer_id)
+        # set blog
         peer_desc.set_blog(blog)
         self.last_downloaded_desc = peer_desc
         return peer_desc
@@ -474,14 +481,12 @@ class AbstractContactsData:
         assert self.has_peer(peer_id), "no profile for %s in %s"\
                % (peer_id, self.__class__)
         peer_desc = self.get_peer(peer_id)
-        peer_doc = peer_desc.document
-        for repo, file_containers in files.items():
-            if repo not in peer_doc.get_repositories():
-                peer_doc.add_repositories(repo)
-            shared_files = [file_container.get_path() for file_container
-                            in file_containers]
-            for shared_file in shared_files:
-                peer_desc.document.share_files(repo, shared_files)
+        # set repositories
+        for repo in files.get_repositories():
+            peer_desc.document.add_repository(repo)
+        # set files
+        for file_container in files.flatten():
+            peer_desc.document.set_container(file_container)
         self.last_downloaded_desc = peer_desc
         return peer_desc
 

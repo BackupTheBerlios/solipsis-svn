@@ -3,6 +3,7 @@ gathared in views.py. Documents are to be seen as completely
 independant from views"""
 
 import unittest
+import os, os.path
 from ConfigParser import ConfigParser
 from os.path import abspath
 from pprint import pprint
@@ -10,7 +11,7 @@ from pprint import pprint
 from solipsis.services.profile.document import CustomConfigParser, AbstractDocument
 from solipsis.services.profile.file_document import FileDocument
 from solipsis.services.profile.cache_document import CacheDocument
-from solipsis.services.profile.data import DEFAULT_TAG, PeerDescriptor
+from solipsis.services.profile.data import DEFAULT_TAG, PeerDescriptor, FileContainer
 from solipsis.services.profile.tests import PROFILE_DIRECTORY, PROFILE_TEST, \
      REPO, PSEUDO, TEST_DIR
 from solipsis.services.profile import ENCODING
@@ -126,6 +127,18 @@ class DocumentTest(unittest.TestCase):
                               ("data", "['.path', 'routage']", True))
             document.share_files((abspath("data"), ['.path', 'routage'], True))
             document.share_files([abspath("data"), ['.path', 'routage'], True])
+        
+    def test_set_container(self):
+        path = os.path.join(abspath("data"), "date.txt")
+        container = FileContainer(path,
+                                  share=True,
+                                  tag=u"Shared by set_container")
+        for document in self.documents:
+            self.assertEquals(document.get_container(path)._shared, False)
+            self.assertEquals(document.get_container(path)._tag, DEFAULT_TAG)
+            document.set_container(container)
+            self.assertEquals(document.get_container(path)._shared, True)
+            self.assertEquals(document.get_container(path)._tag, u"Shared by set_container")
         
     def test_tag_file(self):
         """tag files giving root & unicode names"""

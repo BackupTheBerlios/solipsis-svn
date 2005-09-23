@@ -339,6 +339,10 @@ class ContainerMixin:
     def get_path(self):
         """return well formated path correspondinf to file"""
         return os.sep.join(self._paths)
+
+    def get_parent_path(self):
+        """return well formated path correspondinf to file"""
+        return os.sep.join(self._paths[:-1])
     
     def _validate(self, path):
         """assert path is valid"""
@@ -533,18 +537,6 @@ class DirContainer(dict, ContainerMixin):
             else:
                 container.share(share)
                 
-    # TODO: remove
-    def share_container(self, full_path, share=True):
-        """wrapps sharing methods matching 'full_path' with list or path"""
-        if isinstance(full_path, str):
-            self[full_path].share(share)
-        elif isinstance(full_path, list) or isinstance(full_path, tuple):
-            for path in full_path:
-                self[path].share(share)
-        else:
-            raise TypeError("full_path '%s' expected as list or string"\
-                            % full_path)
-
     def add_shared(self, addition=True):
         """update number of shared element"""
         self._nb_shared += addition and 1 or -1
