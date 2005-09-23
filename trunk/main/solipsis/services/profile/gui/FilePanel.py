@@ -385,9 +385,11 @@ class SelectedListState(FilePanelState):
     def on_tag(self, evt):
         """tag selected files or directory"""
         dir_name = self.owner.tree_list.GetItemText(self.owner.tree_list.GetSelection(), FULL_PATH_COL)
-        file_names = [self.owner.dir_list.GetItemText(item)
+        file_names = [os.path.join(dir_name, self.owner.dir_list.GetItemText(item))
                       for item in self.owner._get_selected_listitems()]
-        get_facade().tag_files((dir_name, file_names, self.owner.tag_value.GetValue()))
+        tag_value = self.owner.tag_value.GetValue()
+        for file_name in file_names:
+            get_facade().tag_file((file_name, tag_value))
         self.owner.do_modified(True)
 
 class SelectedTreeState(FilePanelState):

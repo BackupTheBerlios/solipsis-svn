@@ -208,14 +208,6 @@ class Facade(SimpleFacade):
                                "share_file",
                                "update_files")
 
-    def tag_files(self, (path, names, tag)):
-        """forward command to cache"""
-        path = path.encode(ENCODING)
-        names = [name.encode(ENCODING) for name in names]
-        return self._try_change((path, names, tag),
-                               "tag_files",
-                               "update_files")
-
     def tag_file(self, (path, tag)):
         """forward command to cache"""
         path = path.encode(ENCODING)

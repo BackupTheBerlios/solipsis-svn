@@ -172,26 +172,6 @@ class FacadeTest(unittest.TestCase):
                                  ["routage"], False))
         self.assertEquals(files[abspath("data/routage")]._shared, False)
 
-    def test_tag_files(self):
-        files = self.facade.get_document().get_files()[REPO]
-        self.facade.expand_dir(abspath("data"))
-        self.facade.tag_files((abspath("data"),
-                               ["routage", "subdir1"], u"tag desc 1"))
-        self.assertEquals(files[abspath("data/routage")]._tag,
-                          u"tag desc 1")
-        self.assertEquals(files[abspath("data/subdir1")]._tag,
-                          u"tag desc 1")
-        self.assertEquals(files[abspath("data/date.txt")]._tag,
-                          DEFAULT_TAG)
-        self.facade.tag_files((abspath("data"),
-                               ["routage", "date.txt"], u"tag desc 3"))
-        self.assertEquals(files[abspath("data/routage")]._tag,
-                          u"tag desc 3")
-        self.assertEquals(files[abspath("data/subdir1")]._tag,
-                          u"tag desc 1")
-        self.assertEquals(files[abspath("data/date.txt")]._tag,
-                          u"tag desc 3")
-
     # OTHERS TAB
     def test_set_peer(self):
         self.assertEquals(self.facade.has_peer(u"emb"), False)

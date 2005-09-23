@@ -47,12 +47,12 @@ def write_test_profile():
     document.share_files((abspath("data/subdir1/subsubdir"),
                           ["null", "dummy.txt"],
                           True))
-    document.tag_files((abspath("data"),
-                        ["date.txt"],
-                        u"tagos"))
-    document.tag_files((abspath("data/subdir1/subsubdir"),
-                        ["null", "dummy.txt"],
-                        u"empty"))
+    document.tag_file((os.path.join(abspath("data"), "date.txt"),
+                       u"tagos"))
+    document.tag_file((os.path.join(abspath("data/subdir1/subsubdir"), "null"),
+                       u"empty"))
+    document.tag_file((os.path.join(abspath("data/subdir1/subsubdir"), "dummy.txt"),
+                       u"empty"))
     # set peers
     bruce_doc = FileDocument(PROFILE_BRUCE, PROFILE_DIRECTORY)
     bruce_doc.load()

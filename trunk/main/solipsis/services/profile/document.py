@@ -311,20 +311,6 @@ class AbstractSharingData:
             raise TypeError("share expected as bool")
         self.get_container(path).recursive_share(share)
         
-    def tag_files(self, triplet):
-        """sets new value for tagged files"""
-        path, names, tag = triplet
-        if not isinstance(path, str):
-            raise TypeError("path expected as str")
-        if not isinstance(names, list) \
-               and not isinstance(names, tuple):
-            raise TypeError("names expected as list")
-        if not isinstance(tag, unicode):
-            raise TypeError("tag expected as unicode")
-        files = [os.path.join(path, name) for name in names]
-        for file_path in files:
-            self.get_container(file_path).tag(tag)
-        
     def tag_file(self, pair):
         """sets new value for tagged file"""
         path, tag = pair

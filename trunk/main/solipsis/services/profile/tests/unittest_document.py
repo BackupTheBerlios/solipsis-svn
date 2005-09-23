@@ -17,6 +17,10 @@ from solipsis.services.profile.tests import PROFILE_DIRECTORY, PROFILE_TEST, \
      REPO, PSEUDO, TEST_DIR
 from solipsis.services.profile import ENCODING
 
+def tag_files(document, (dir_path, file_paths, tag)):
+    for file_path in file_paths:
+        document.tag_file((os.path.join(dir_path, file_path), tag))
+
 class DocumentTest(unittest.TestCase):
     """test that all fields are correctly validated"""
 
@@ -141,20 +145,6 @@ class DocumentTest(unittest.TestCase):
             self.assertEquals(document.get_container(path)._shared, True)
             self.assertEquals(document.get_container(path)._tag, u"Shared by set_container")
         
-    def test_tag_file(self):
-        """tag files giving root & unicode names"""
-        for document in self.documents:
-            self.assertRaises(TypeError, document.tag_files,
-                              ("data", "['.path', 'routage']", "tag desc"))
-            self.assertRaises(TypeError, document.tag_files,
-                              ("data", ['.path', 'routage'], "tag desc"))
-            self.assertRaises(TypeError, document.tag_files,
-                              ("data", "['.path', 'routage']", "tag desc"))
-            self.assertRaises(TypeError, document.tag_files,
-                              ("data", ['.path', 'routage'], "tag desc"))
-            document.tag_files((abspath("data"), ['.path', 'routage'], u"tag desc"))
-            document.tag_files([abspath("data"), ['.path', 'routage'], u"tag desc"])
-        
     def test_add_repository(self):
         """expand dir giving unicode name"""
         for document in self.documents:
@@ -164,7 +154,7 @@ class DocumentTest(unittest.TestCase):
 
     def test_get_container(self):
         for document in self.documents:
-            document.tag_files((abspath("data/profiles"),
+            tag_files(document, (abspath("data/profiles"),
                                ["bruce.prf", ".svn"], u"first"))
             document.share_files((abspath("data/profiles"),
                                   ["bruce.prf", "demi.prf"], True))
@@ -220,10 +210,10 @@ class DocumentTest(unittest.TestCase):
         document = CacheDocument(PROFILE_TEST, PROFILE_DIRECTORY)
         # create 2 repos
         document.add_repository(REPO + "/data/profiles")
-        document.tag_files((REPO + "/data/profiles", ["bruce.prf", ".svn"], u"first"))
+        tag_files(document, (REPO + "/data/profiles", ["bruce.prf", ".svn"], u"first"))
         document.share_files((REPO + "/data/profiles", ["bruce.prf", "demi.prf"], True))
         document.add_repository(REPO + "/data/subdir1")
-        document.tag_files((REPO + "/data/subdir1", ["date.doc", ".svn"], u"second"))
+        tag_files(document, (REPO + "/data/subdir1", ["date.doc", ".svn"], u"second"))
         document.share_files((REPO + "/data/subdir1", ["date.doc", "subsubdir"], True))
         # check sharing state
         self.assertEquals(document.get_container(
