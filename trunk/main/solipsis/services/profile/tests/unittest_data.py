@@ -6,7 +6,7 @@ import unittest
 import sys
 import os, os.path
 
-from os.path import abspath, join
+from os.path import abspath
 from StringIO import StringIO
 from solipsis.services.profile.path_containers import DEFAULT_TAG, \
      DirContainer, FileContainer
@@ -144,7 +144,7 @@ class FileTest(unittest.TestCase):
 
     def test_copy(self):
         # file container, no validator
-        file_c = FileContainer("data/subdir1/date.doc", tag=u"my file")
+        file_c = FileContainer(os.sep.join(["data", "subdir1", "date.doc"]), tag=u"my file")
         self.assertEquals(file_c._shared, False)
         self.assertEquals(file_c._tag, u"my file")
         self.assertEquals(file_c.name, "date.doc")
@@ -167,18 +167,18 @@ class FileTest(unittest.TestCase):
         empty_copy = copy_d.copy(not_shared)
         self.assertEquals(empty_copy, None)
         # validator -> result
-        for file_name in [PROFILES_DIR + "/bruce.prf",
-                          PROFILES_DIR + "/test.blog",
-                          PROFILES_DIR + "/test.prf"]:
+        for file_name in [os.path.join(PROFILES_DIR, "bruce.prf"),
+                          os.path.join(PROFILES_DIR, "test.blog"),
+                          os.path.join(PROFILES_DIR, "test.prf")]:
             copy_d[file_name].share()
         valid_copy = copy_d.copy(is_shared)
         self.assertEquals(valid_copy._shared, True)
         self.assertEquals(valid_copy._tag, u"my dir")
         self.assertEquals(valid_copy.name, "profiles")
-        self.assertEquals(valid_copy.has_key(PROFILES_DIR + "/bruce.prf"), True)
-        self.assertEquals(valid_copy.has_key(PROFILES_DIR + "/test.blog"), True)
-        self.assertEquals(valid_copy.has_key(PROFILES_DIR + "/test.prf"), True)
-        self.assertEquals(valid_copy.has_key(PROFILES_DIR + "/test.filt"), False)
+        self.assertEquals(valid_copy.has_key(os.path.join(PROFILES_DIR, "bruce.prf")), True)
+        self.assertEquals(valid_copy.has_key(os.path.join(PROFILES_DIR, "test.blog")), True)
+        self.assertEquals(valid_copy.has_key(os.path.join(PROFILES_DIR, "test.prf")), True)
+        self.assertEquals(valid_copy.has_key(os.path.join(PROFILES_DIR, "test.filt")), False)
 
     def test_setting(self):
         """set data"""
@@ -201,13 +201,14 @@ class FileTest(unittest.TestCase):
         # simple sets
         self.container[DATA_DIR] = DirContainer(DATA_DIR + os.sep)
         self.container[DATA_DIR] = DirContainer(DATA_DIR)
-        self.container[join(REPO, "data/subdir1/subsubdir")] = DirContainer(join(REPO, "data/subdir1/subsubdir"))
-        self.container[join(REPO, "data/subdir1/date.doc")] = FileContainer(join(REPO, "data/subdir1/date.doc"),
-                                                                            dir_c.add_shared)
-        self.container[join(REPO, "data/subdir1/subsubdir/null")] = FileContainer(join(REPO, "data/subdir1/subsubdir/null"),
-                                                                                  dir_c.add_shared)
-        self.container[join(REPO, "runtests.py")] = FileContainer(join(REPO, "runtests.py"),
-                                                                  dir_c.add_shared)
+        self.container[os.sep.join([REPO, "data", "subdir1", "subsubdir"])] = \
+                                         DirContainer(os.sep.join([REPO, "data", "subdir1", "subsubdir"]))
+        self.container[os.sep.join([REPO, "data", "subdir1", "date.doc"])] = \
+                                         FileContainer(os.sep.join([REPO, "data", "subdir1", "date.doc"]), dir_c.add_shared)
+        self.container[os.sep.join([REPO, "data", "subdir1", "subsubdir", "null"])] = \
+                                         FileContainer(os.sep.join([REPO, "data", "subdir1", "subsubdir", "null"]), dir_c.add_shared)
+        self.container[os.sep.join([REPO, "runtests.py"])] = \
+                                         FileContainer(os.sep.join([REPO, "runtests.py"]), dir_c.add_shared)
 
     def test_getting(self):
         """get data"""
@@ -215,29 +216,29 @@ class FileTest(unittest.TestCase):
         self.container.add(DATA_DIR)
         self.assertEquals(isinstance(self.container[DATA_DIR], DirContainer), True)
         # file
-        self.container.add(join(REPO, "data/subdir1/date.doc"))
-        self.container.add(join(REPO, "runtests.py"))
-        self.assertEquals(isinstance(self.container[join(REPO, "data/subdir1/date.doc")], FileContainer), True)
-        self.assertEquals(isinstance(self.container[join(REPO, "runtests.py")], FileContainer), True)
+        self.container.add(os.sep.join([REPO, "data", "subdir1", "date.doc"]))
+        self.container.add(os.sep.join([REPO, "runtests.py"]))
+        self.assertEquals(isinstance(self.container[os.sep.join([REPO, "data", "subdir1", "date.doc"])], FileContainer), True)
+        self.assertEquals(isinstance(self.container[os.sep.join([REPO, "runtests.py"])], FileContainer), True)
         # generic
-        self.container.add(join(REPO, "data/profiles"))
-        self.container.add(join(REPO, "data/routage"))
-        self.assertEquals(isinstance(self.container[join(REPO, "data/profiles")], DirContainer), True)
-        self.assertEquals(isinstance(self.container[join(REPO, "data/routage")], FileContainer), True)
+        self.container.add(os.sep.join([REPO, "data", "profiles"]))
+        self.container.add(os.sep.join([REPO, "data", "routage"]))
+        self.assertEquals(isinstance(self.container[os.sep.join([REPO, "data", "profiles"])], DirContainer), True)
+        self.assertEquals(isinstance(self.container[os.sep.join([REPO, "data", "routage"])], FileContainer), True)
         # wrapper
-        dir_c = DirContainer(join(REPO, "data/emptydir"))
-        file_c = FileContainer(join(REPO, "data/subdir1/subsubdir/default.solipsis"), dir_c.add_shared)
-        self.container[join(REPO, "data/emptydir")] = dir_c
-        self.container[join(REPO, "data/subdir1/subsubdir/default.solipsis")] = file_c
-        self.assertEquals(self.container[join(REPO, "data/emptydir")].name, "emptydir")
-        self.assertEquals(self.container[join(REPO, "data/subdir1/subsubdir/default.solipsis")].name, "default.solipsis")
+        dir_c = DirContainer(os.sep.join([REPO, "data", "emptydir"]))
+        file_c = FileContainer(os.sep.join([REPO, "data", "subdir1", "subsubdir", "default.solipsis"]), dir_c.add_shared)
+        self.container[os.sep.join([REPO, "data", "emptydir"])] = dir_c
+        self.container[os.sep.join([REPO, "data", "subdir1", "subsubdir", "default.solipsis"])] = file_c
+        self.assertEquals(self.container[os.sep.join([REPO, "data", "emptydir"])].name, "emptydir")
+        self.assertEquals(self.container[os.sep.join([REPO, "data", "subdir1", "subsubdir", "default.solipsis"])].name, "default.solipsis")
         
     def test_deleting(self):
         """delete data"""
         # add data
-        root_str = join(REPO, "runtests.py")
-        dir_str = join(REPO, "data/emptydir")
-        file_str = join(REPO, "data/subdir1/subsubdir/default.solipsis")
+        root_str = os.sep.join([REPO, "runtests.py"])
+        dir_str = os.sep.join([REPO, "data", "emptydir"])
+        file_str = os.sep.join([REPO, "data", "subdir1", "subsubdir", "default.solipsis"])
         self.assertEquals(self.container.has_key(root_str), False)
         self.assertEquals(self.container.has_key(dir_str), False)
         self.assertEquals(self.container.has_key(file_str), False)
@@ -258,35 +259,35 @@ class FileTest(unittest.TestCase):
     def test_adding(self):
         """add data"""
         # dir
-        self.assertRaises(AssertionError, self.container.add, join(REPO, "data/dummy"))
-        self.assertRaises(AssertionError, self.container.add, join(REPO, "data/dummy.txt"))
+        self.assertRaises(AssertionError, self.container.add, os.sep.join([REPO, "data", "dummy"]))
+        self.assertRaises(AssertionError, self.container.add, os.sep.join([REPO, "data", "dummy.txt"]))
         self.assertRaises(AssertionError, self.container.add, "data")
         self.container.add(DATA_DIR)
-        self.container.add(join(REPO, "data/subdir1/subsubdir"))
-        self.container.add(join(REPO, "data/subdir1/date.doc"))
-        self.container.add(join(REPO, "data/subdir1/subsubdir/null"))
-        self.container.add(join(REPO, "runtests.py"))
+        self.container.add(os.sep.join([REPO, "data", "subdir1", "subsubdir"]))
+        self.container.add(os.sep.join([REPO, "data", "subdir1", "date.doc"]))
+        self.container.add(os.sep.join([REPO, "data", "subdir1", "subsubdir", "null"]))
+        self.container.add(os.sep.join([REPO, "runtests.py"]))
         
     def test_expanding(self):
         """expanding command"""
         self.container.add(DATA_DIR)
-        self.container.add(join(REPO, "data/subdir1"))
-        self.assert_(self.container.has_key(join(REPO, "data/subdir1")))
-        self.assert_(not self.container.has_key(join(REPO, "data/profiles")))
-        self.assert_(not self.container.has_key(join(REPO, "data/emptydir")))
-        self.assert_(not self.container.has_key(join(REPO, "data/routage")))
-        self.assert_(not self.container.has_key(join(REPO, "data/.path")))
-        self.assert_(not self.container.has_key(join(REPO, "data/date.txt")))
+        self.container.add(os.sep.join([REPO, "data", "subdir1"]))
+        self.assert_(self.container.has_key(os.sep.join([REPO, "data", "subdir1"])))
+        self.assert_(not self.container.has_key(os.sep.join([REPO, "data", "profiles"])))
+        self.assert_(not self.container.has_key(os.sep.join([REPO, "data", "emptydir"])))
+        self.assert_(not self.container.has_key(os.sep.join([REPO, "data", "routage"])))
+        self.assert_(not self.container.has_key(os.sep.join([REPO, "data", ".path"])))
+        self.assert_(not self.container.has_key(os.sep.join([REPO, "data", "date.txt"])))
         #expand
         self.container.expand_dir(DATA_DIR)
         self.assert_(self.container.has_key(DATA_DIR))
-        self.assert_(self.container.has_key(join(REPO, "data/subdir1")))
-        self.assert_(self.container.has_key(join(REPO, "data/profiles")))
-        self.assert_(self.container.has_key(join(REPO, "data/emptydir")))
-        self.assert_(self.container.has_key(join(REPO, "data/routage")))
-        self.assert_(self.container.has_key(join(REPO, "data/.path")))
-        self.assert_(self.container.has_key(join(REPO, "data/date.txt")))
-        self.assert_(not self.container.has_key(join(REPO, "data/subdir1/subsubdir")))
+        self.assert_(self.container.has_key(os.sep.join([REPO, "data", "subdir1"])))
+        self.assert_(self.container.has_key(os.sep.join([REPO, "data", "profiles"])))
+        self.assert_(self.container.has_key(os.sep.join([REPO, "data", "emptydir"])))
+        self.assert_(self.container.has_key(os.sep.join([REPO, "data", "routage"])))
+        self.assert_(self.container.has_key(os.sep.join([REPO, "data", ".path"])))
+        self.assert_(self.container.has_key(os.sep.join([REPO, "data", "date.txt"])))
+        self.assert_(not self.container.has_key(os.sep.join([REPO, "data", "subdir1", "subsubdir"])))
         
     def test_sharing(self):
         # tests/data (containing 3 files & 3 directories
@@ -338,13 +339,13 @@ class FileTest(unittest.TestCase):
     def test_tagging(self):
         """tag data"""
         self.container.add(DATA_DIR)
-        for file_path in [join(REPO, "data/routage"),
-                          join(REPO, "data/date.txt"),
-                          join(REPO, "data/subdir1")]:
+        for file_path in [os.sep.join([REPO, "data", "routage"]),
+                          os.sep.join([REPO, "data", "date.txt"]),
+                          os.sep.join([REPO, "data", "subdir1"])]:
             self.container[file_path].tag(u"tag1")
-        self.assertEquals(self.container[join(REPO, "data/routage")]._tag, u"tag1")
-        self.assertEquals(self.container[join(REPO, "data/date.txt")]._tag, u"tag1")
-        self.assertEquals(self.container[join(REPO, "data/subdir1")]._tag, u"tag1")
+        self.assertEquals(self.container[os.sep.join([REPO, "data", "routage"])]._tag, u"tag1")
+        self.assertEquals(self.container[os.sep.join([REPO, "data", "date.txt"])]._tag, u"tag1")
+        self.assertEquals(self.container[os.sep.join([REPO, "data", "subdir1"])]._tag, u"tag1")
         self.assertRaises(AssertionError, self.container[DATA_DIR].__getitem__, ".path")
 
 if __name__ == '__main__':

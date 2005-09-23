@@ -118,7 +118,7 @@ def load_blogs(pseudo, directory=None):
     file_name += BLOG_EXT
     # loading
     if os.path.exists(file_name):
-        blog_file = open(file_name)
+        blog_file = open(file_name, "rb")
         blogs = pickle.load(blog_file)
         blog_file.close()
         return retro_compatibility(blogs)

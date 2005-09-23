@@ -48,7 +48,7 @@ class MatchTest(unittest.TestCase):
         # peer
         peer_document = FileDocument(PROFILE_TEST, PROFILE_DIRECTORY)
         peer_document.load()
-        peer_document.share_files((REPO, ['data/date.txt', 'data/subdir1'], True))
+        peer_document.share_files((REPO, [os.path.join("data", "date.txt"), os.path.join("data", "subdir1")], True))
         self.peer_desc = PeerDescriptor(PROFILE_TEST, document=peer_document)
         # filter
         self.document = FilterDocument(PROFILE_TEST, PROFILE_DIRECTORY)

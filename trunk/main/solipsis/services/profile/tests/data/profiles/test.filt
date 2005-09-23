@@ -1,7 +1,7 @@
-#ISO-8859-1
+#cp1252
 [Personal]
 lastname = True,breton
-photo = False,/home/emb/svn/FTRD/solipsis/trunk/main/solipsis/services/profile/images/question_mark.gif
+photo = False,D:\svn\solipsis\solipsis\services\profile\images\question_mark.gif
 email = False,manu@ft.com
 firstname = True,
 title = True,Mr
