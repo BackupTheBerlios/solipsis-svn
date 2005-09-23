@@ -3,6 +3,7 @@
 
 import wx
 import sys
+import os, os.path
 
 from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxy
@@ -79,14 +80,16 @@ class ViewerFrame(wx.Frame):
         self.__do_layout()
         # end wxGlade
         
+        self.profile_dlg = UIProxy(ProfileDialog(parent, -1, plugin=self.plugin))
+        self.peer_dlg = UIProxy(BlogDialog(parent, -1, plugin=self.plugin))
+        self.file_dlg = UIProxy(FileDialog(parent, -1, plugin=self.plugin))
         # quite different initialisation according to launched by navigator or not
         if self.options["standalone"]:
             self.import_item = wx.MenuItem(self.action_item, wx.NewId(), _("Import...\tCtrl+I"), _("Load a profile and add it in contact list"), wx.ITEM_NORMAL)
             self.action_item.AppendItem(self.import_item)
-        # set up dialogs
-        self.profile_dlg = UIProxy(ProfileDialog(parent, -1, plugin=self.plugin))
-        self.peer_dlg = UIProxy(BlogDialog(parent, -1, plugin=self.plugin))
-        self.file_dlg = UIProxy(FileDialog(parent, -1, plugin=self.plugin))
+            self.profile_dlg.activate()
+            self.peer_dlg.activate()
+            self.file_dlg.activate()
         self.bind_controls()
 
     def on_change_facade(self):
@@ -153,12 +156,16 @@ class ViewerFrame(wx.Frame):
             style=wx.OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             directory, pseudo = os.path.split(dlg.GetPath()[:-4])
+            blogs = load_blogs(pseudo, directory)
             loader = FileDocument(pseudo, directory)
             loader.load()
-            blogs = load_blogs(pseudo, directory)
-            pseudo = loader.pseudo
             get_facade().fill_data((pseudo, loader))
-            get_facade().get_peer(pseudo).set_blog(blogs)
+            get_facade().fill_blog((pseudo, blogs))
+            get_facade().fill_shared_files((pseudo, loader.get_shared_files()))
+            peer_desc = get_facade().get_peer(pseudo)
+            self.display_profile(peer_desc)
+            self.display_blog(peer_desc)
+            self.display_files(peer_desc)
 
     def on_get_all(self, evt):
         """display peer's blog"""
