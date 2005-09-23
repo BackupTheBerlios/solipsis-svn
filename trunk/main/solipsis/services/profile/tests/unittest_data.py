@@ -327,7 +327,7 @@ class FileTest(unittest.TestCase):
         self.assertEquals(self.container[os.path.join(DATA_DIR, "routage")]._shared, True)
         # expand
         self.container.expand_dir(DATA_DIR)
-        self.container.tag_container(os.path.join(DATA_DIR, "date.txt"), u"yop")
+        self.container[os.path.join(DATA_DIR, "date.txt")].tag(u"yop")
         self.assertEquals(self.container[DATA_DIR]._shared, False)
         self.assertEquals(self.container[os.path.join(DATA_DIR, "subdir1")]._shared, False)
         self.assertEquals(self.container[os.path.join(DATA_DIR, ".svn")]._shared, False)
@@ -338,9 +338,10 @@ class FileTest(unittest.TestCase):
     def test_tagging(self):
         """tag data"""
         self.container.add(DATA_DIR)
-        self.container.tag_container([join(REPO, "data/routage"),
-                                      join(REPO, "data/date.txt"),
-                                      join(REPO, "data/subdir1")], u"tag1")
+        for file_path in [join(REPO, "data/routage"),
+                          join(REPO, "data/date.txt"),
+                          join(REPO, "data/subdir1")]:
+            self.container[file_path].tag(u"tag1")
         self.assertEquals(self.container[join(REPO, "data/routage")]._tag, u"tag1")
         self.assertEquals(self.container[join(REPO, "data/date.txt")]._tag, u"tag1")
         self.assertEquals(self.container[join(REPO, "data/subdir1")]._tag, u"tag1")

@@ -322,7 +322,8 @@ class AbstractSharingData:
         if not isinstance(tag, unicode):
             raise TypeError("tag expected as unicode")
         files = [os.path.join(path, name) for name in names]
-        self._get_sharing_container(path).tag_container(files, tag)
+        for file_path in files:
+            self.get_container(file_path).tag(tag)
         
     def tag_file(self, pair):
         """sets new value for tagged file"""
@@ -331,7 +332,7 @@ class AbstractSharingData:
             raise TypeError("path expected as str")
         if not isinstance(tag, unicode):
             raise TypeError("tag expected as unicode")
-        self._get_sharing_container(path).tag_container(path, tag)
+        self.get_container(path).tag(tag)
 
     def get_shared_files(self):
         """return {repo: shared files}"""
