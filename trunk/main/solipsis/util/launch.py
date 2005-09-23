@@ -64,10 +64,9 @@ class Launcher(object):
         prog_path = abspath(prog_name)
         # We try to keep the same Python interpreter as currently
         if os.path.exists(sys.executable) and re.match(r'.*\.py[cow]?$', prog_name, re.IGNORECASE):
-            # We cannot quote the sys.executable or Windows is confused...
-            return [sys.executable, "'" + prog_path + "'"]
+            return [sys.executable, prog_path]
         else:
-            return ["'" + prog_path+ "'"]
+            return [prog_path]
 
     def Launch(self):
         # First handle the py2app special case
@@ -88,7 +87,9 @@ class Launcher(object):
             args += ['--control-host', '127.0.0.1']
             args += ['--control-port', str(self.control_port)]
         args += self.custom_args
-        cmdline = " ".join(args)
+        executable = args[0]
+        # Quote only if necessary (problems with args[0] under Win ?)
+        cmdline = " ".join([(' ' in arg and '"' + arg + '"' or arg) for arg in args])
         print "Executing '%s'..." % cmdline
 
         # Here we use subprocess for portability, but in case it doesn't exist
@@ -98,7 +99,7 @@ class Launcher(object):
             import subprocess
         except ImportError:
             print "(using os.spawnv)"
-            return os.spawnv(os.P_NOWAIT, args[0], args) > 0
+            return os.spawnv(os.P_NOWAIT, executable, args) > 0
         else:
             print "(using subprocess.Popen)"
             try:
