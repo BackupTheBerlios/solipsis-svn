@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: iso-8859-1 -*-
 """Represents data stored in cache, especially shared file information"""
 
 import unittest
@@ -142,38 +144,39 @@ class FileTest(unittest.TestCase):
     def test_copy(self):
         # file container, no validator
         file_c = FileContainer("data/subdir1/date.doc", tag=u"my file")
-        self.assertEquals(file_c._shared, True)
+        self.assertEquals(file_c._shared, False)
         self.assertEquals(file_c._tag, u"my file")
         self.assertEquals(file_c.name, "date.doc")
+        file_c.share()
         copy_f = file_c.copy()
         self.assertEquals(copy_f._shared, True)
         self.assertEquals(copy_f._tag, u"my file")
         self.assertEquals(copy_f.name, "date.doc")
         # dir container, no validator
         PROFILES_DIR = os.path.join(DATA_DIR, "profiles")
-        dir_c = DirContainer(PROFILES_DIR, share=False, tag=u"my dir")
+        dir_c = DirContainer(PROFILES_DIR, share=True, tag=u"my dir")
         copy_d = dir_c.copy()
-        self.assertEquals(copy_d._shared, False)
+        self.assertEquals(copy_d._shared, True)
         self.assertEquals(copy_d._tag, u"my dir")
         self.assertEquals(copy_d.name, "profiles")
         # validator -> no result
+        not_shared = lambda container: not container._shared
         is_shared = lambda container: container._shared
         copy_d.expand_dir()
-        empty_copy = copy_d.copy(is_shared)
+        empty_copy = copy_d.copy(not_shared)
         self.assertEquals(empty_copy, None)
         # validator -> result
-        copy_d.share(True)
         copy_d.share_container([PROFILES_DIR + "/bruce.prf",
                                 PROFILES_DIR + "/test.blog",
-                                PROFILES_DIR + "/test.prf"], False)
+                                PROFILES_DIR + "/test.prf"], True)
         valid_copy = copy_d.copy(is_shared)
         self.assertEquals(valid_copy._shared, True)
         self.assertEquals(valid_copy._tag, u"my dir")
         self.assertEquals(valid_copy.name, "profiles")
-        self.assertEquals(valid_copy.has_key(PROFILES_DIR + "/bruce.prf"), False)
-        self.assertEquals(valid_copy.has_key(PROFILES_DIR + "/test.blog"), False)
-        self.assertEquals(valid_copy.has_key(PROFILES_DIR + "/test.prf"), False)
-        self.assertEquals(valid_copy.has_key(PROFILES_DIR + "/test.filt"), True)
+        self.assertEquals(valid_copy.has_key(PROFILES_DIR + "/bruce.prf"), True)
+        self.assertEquals(valid_copy.has_key(PROFILES_DIR + "/test.blog"), True)
+        self.assertEquals(valid_copy.has_key(PROFILES_DIR + "/test.prf"), True)
+        self.assertEquals(valid_copy.has_key(PROFILES_DIR + "/test.filt"), False)
 
     def test_setting(self):
         """set data"""
@@ -286,12 +289,12 @@ class FileTest(unittest.TestCase):
     def test_sharing(self):
         # tests/data (containing 3 files & 3 directories
         data_container = self.container[DATA_DIR]
-        self.assertEquals(data_container._shared, True)
+        self.assertEquals(data_container._shared, False)
         self.assertEquals(data_container.nb_shared(), 0)
         data_container.expand_dir()
-        self.assertEquals(data_container.nb_shared(), 3)
+        self.assertEquals(data_container.nb_shared(), 0)
         data_container.share_container(os.path.join(DATA_DIR, "date.txt"), True)
-        self.assertEquals(data_container.nb_shared(), 3)
+        self.assertEquals(data_container.nb_shared(), 1)
         data_container.share(False)
         self.assertEquals(data_container._shared, False)
         self.assertEquals(data_container.nb_shared(), 0)
@@ -300,35 +303,34 @@ class FileTest(unittest.TestCase):
         self.assertEquals(data_container.nb_shared(), 1)
         # dirs
         data_container.expand_dir(os.path.join(DATA_DIR, "subdir1"))
-        self.assertEquals(data_container[os.path.join(DATA_DIR, "subdir1")].nb_shared(), 2)
-        self.assertEquals(data_container.nb_shared(), 3)
-        data_container.expand_dir(os.sep.join([DATA_DIR, "subdir1", "subsubdir"]))
-        self.assertEquals(data_container.nb_shared(), 6)
-        data_container[os.path.join(DATA_DIR, "subdir1")].share(False)
-        self.assertEquals(data_container.nb_shared(), 4)
-        data_container.share_container(os.sep.join([DATA_DIR, "subdir1", "subsubdir"]), False)
+        self.assertEquals(data_container[os.path.join(DATA_DIR, "subdir1")].nb_shared(), 0)
         self.assertEquals(data_container.nb_shared(), 1)
+        data_container.expand_dir(os.sep.join([DATA_DIR, "subdir1", "subsubdir"]))
+        data_container.share_container(os.sep.join([DATA_DIR, "subdir1", "subsubdir"]), True)
+        self.assertEquals(data_container.nb_shared(), 4)
+        data_container[os.path.join(DATA_DIR, "date.txt")].share(False)
+        self.assertEquals(data_container.nb_shared(), 3)
         
     def test_persistency(self):
         self.container.add(DATA_DIR)
         self.container.share_container([os.path.join(DATA_DIR, "date.txt"),
                                         os.path.join(DATA_DIR, "profiles"),
-                                        os.path.join(DATA_DIR, "routage")], False)
-        self.assertEquals(self.container[DATA_DIR]._shared, True)
-        self.assertEquals(self.container[os.path.join(DATA_DIR, "subdir1")]._shared, True)
-        self.assertEquals(self.container[os.path.join(DATA_DIR, ".svn")]._shared, True)
-        self.assertEquals(self.container[os.path.join(DATA_DIR, "date.txt")]._shared, False)
-        self.assertEquals(self.container[os.path.join(DATA_DIR, "profiles")]._shared, False)
-        self.assertEquals(self.container[os.path.join(DATA_DIR, "routage")]._shared, False)
+                                        os.path.join(DATA_DIR, "routage")], True)
+        self.assertEquals(self.container[DATA_DIR]._shared, False)
+        self.assertEquals(self.container[os.path.join(DATA_DIR, "subdir1")]._shared, False)
+        self.assertEquals(self.container[os.path.join(DATA_DIR, ".svn")]._shared, False)
+        self.assertEquals(self.container[os.path.join(DATA_DIR, "date.txt")]._shared, True)
+        self.assertEquals(self.container[os.path.join(DATA_DIR, "profiles")]._shared, True)
+        self.assertEquals(self.container[os.path.join(DATA_DIR, "routage")]._shared, True)
         # expand
         self.container.expand_dir(DATA_DIR)
         self.container.tag_container(os.path.join(DATA_DIR, "date.txt"), u"yop")
-        self.assertEquals(self.container[DATA_DIR]._shared, True)
-        self.assertEquals(self.container[os.path.join(DATA_DIR, "subdir1")]._shared, True)
-        self.assertEquals(self.container[os.path.join(DATA_DIR, ".svn")]._shared, True)
-        self.assertEquals(self.container[os.path.join(DATA_DIR, "date.txt")]._shared, False)
-        self.assertEquals(self.container[os.path.join(DATA_DIR, "profiles")]._shared, False)
-        self.assertEquals(self.container[os.path.join(DATA_DIR, "routage")]._shared, False)
+        self.assertEquals(self.container[DATA_DIR]._shared, False)
+        self.assertEquals(self.container[os.path.join(DATA_DIR, "subdir1")]._shared, False)
+        self.assertEquals(self.container[os.path.join(DATA_DIR, ".svn")]._shared, False)
+        self.assertEquals(self.container[os.path.join(DATA_DIR, "date.txt")]._shared, True)
+        self.assertEquals(self.container[os.path.join(DATA_DIR, "profiles")]._shared, True)
+        self.assertEquals(self.container[os.path.join(DATA_DIR, "routage")]._shared, True)
 
     def test_tagging(self):
         """tag data"""

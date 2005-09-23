@@ -268,7 +268,7 @@ class HtmlView(AbstractView):
         for repo in self._desc.document.get_repositories():
             content = {}
             html_format[unicodeWrapper(repo)] = content
-            for container in self._desc.document.get_shared(repo):
+            for container in self._desc.document.get_shared_files().flatten():
                 content[container.get_path()[len(repo):]] = container._tag
         self.context.addGlobal("files", html_format)
         if self.auto_refresh:

@@ -1,0 +1,14 @@
+#ISO-8859-1
+[Personal]
+lastname = True,breton
+photo = False,/home/emb/svn/FTRD/solipsis/trunk/main/solipsis/services/profile/images/question_mark.gif
+email = False,manu@ft.com
+firstname = True,
+title = True,Mr
+
+[Files]
+MP3 = True,.*\.mp3$
+
+[Custom]
+color = True,BLUE
+

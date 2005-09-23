@@ -302,7 +302,7 @@ class SharedFiles(dict):
 class ContainerMixin:
     """Factorize sharing tools on containers"""
     
-    def __init__(self, path, cb_share=None, share=True, tag=DEFAULT_TAG):
+    def __init__(self, path, cb_share=None, share=False, tag=DEFAULT_TAG):
         assert isinstance(path, str), "path [%s] expected as string"% path
         # init path
         path =  ContainerMixin._validate(self, path)
@@ -314,7 +314,7 @@ class ContainerMixin:
         self._data = None
         # sharing process
         self.on_share = cb_share
-        self._shared = None
+        self._shared = False
         self.share(share)
 
     def copy(self, validator=None):
@@ -358,7 +358,7 @@ class ContainerMixin:
 class FileContainer(ContainerMixin):
     """Structure to store files info in cache"""
 
-    def __init__(self, path, cb_share=None, share=True, tag=DEFAULT_TAG):
+    def __init__(self, path, cb_share=None, share=False, tag=DEFAULT_TAG):
         ContainerMixin.__init__(self, path, cb_share, share, tag)
         assert_file(self.get_path())
         self.size = os.stat(self.get_path())[stat.ST_SIZE]
@@ -382,7 +382,7 @@ class DirContainer(dict, ContainerMixin):
     
     [item, name, #shared, [data to display on right side]"""
 
-    def __init__(self, path, cb_share=None, share=True, tag=DEFAULT_TAG):
+    def __init__(self, path, cb_share=None, share=False, tag=DEFAULT_TAG):
         ContainerMixin.__init__(self, path, cb_share, share, tag)
         assert_dir(self.get_path())
         dict.__init__(self)

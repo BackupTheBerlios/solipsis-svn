@@ -118,7 +118,7 @@ class HtmlTest(unittest.TestCase):
             html.append("""
     <dt>%s</dt>
     <dd>%d shared files</dd>
-"""% (os.path.basename(repo), len(self.document.get_shared(repo))))
+"""% (os.path.basename(repo), len(self.document.get_shared_files())))
         # concatenate all description of directories & return result
         return ''.join(html)
 
@@ -158,7 +158,7 @@ class HtmlTest(unittest.TestCase):
         
     # FILE TAB       
     def test_files(self):
-        self.document.add_file(abspath("."))
+        self.document.add_repository(abspath("."))
         self.document.expand_dir(abspath("data"))
         self.document.share_files((abspath("data"), ["routage"], True))
         self.document.share_file((abspath("data/emptydir"), True))

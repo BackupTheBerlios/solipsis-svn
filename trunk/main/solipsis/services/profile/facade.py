@@ -162,15 +162,15 @@ class Facade(SimpleFacade):
         self.update_blogs()
     
     # FILE TAB
-    def add_file(self, value):
+    def add_repository(self, value):
         """sets new value for repositor"""
         value = value.encode(ENCODING)
-        SimpleFacade.add_file(self, value)
+        SimpleFacade.add_repository(self, value)
 
-    def del_file(self, value):
+    def del_repository(self, value):
         """sets new value for repositor"""
         value = value.encode(ENCODING)
-        SimpleFacade.del_file(self, value)
+        SimpleFacade.del_repository(self, value)
     
     def expand_dir(self, path):
         """update doc when dir expanded"""

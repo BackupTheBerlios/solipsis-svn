@@ -25,16 +25,18 @@ independant from views"""
 import ConfigParser
 import os.path
 import time
-import tempfile
 import sys
-from solipsis.services.profile import ENCODING, QUESTION_MARK
+from solipsis.services.profile import PROFILE_EXT, ENCODING, QUESTION_MARK
 from solipsis.services.profile.prefs import get_prefs
 from solipsis.services.profile.data import DEFAULT_TAG, \
      DirContainer, ContainerMixin, \
      PeerDescriptor, load_blogs
-from solipsis.services.profile.document import CustomConfigParser, SaverMixin, \
+from solipsis.services.profile.filter_document import FilterSaverMixin
+from solipsis.services.profile.document import CustomConfigParser, \
      AbstractPersonalData, AbstractSharingData, AbstractContactsData, \
      SECTION_PERSONAL, SECTION_CUSTOM, SECTION_OTHERS, SECTION_FILE
+
+SHARED_TAG = "shared"
 
 class FilePersonalMixin(AbstractPersonalData):
     """Implements API for all pesonal data in a File oriented context"""
@@ -165,205 +167,71 @@ class FileSharingMixin(AbstractSharingData):
     # FILE TAB
     def reset_files(self):
         """empty all information concerning files"""
-        self._set_repositories([])
         self.config.remove_section(SECTION_FILE)
         self.config.add_section(SECTION_FILE)
-        
-    def add_file(self, value):
-        """create new DirContainer"""
-        AbstractSharingData.add_file(self, value)
-        existing_repos = self.get_repositories()
-        # update list of repositories
-        for existing_repo in existing_repos:
-            if value.startswith(existing_repo):
-                raise ValueError("'%s' part of existing repo %s"\
-                                 %(value, existing_repo))
-            if existing_repo.startswith(value):
-                raise ValueError("'%s' conflicts with existing repo %s"\
-                                 %(value, existing_repo))
-            # else: continue
-        existing_repos.append(value)
-        self._set_repositories(existing_repos)
-        
-    def del_file(self, value):
-        """create new DirContainer"""
-        AbstractSharingData.del_file(self, value)
-        # delete entry
-        values = [repo for repo in self.get_repositories()
-                  if repo != value]
-        # update list of repositories
-        self._set_repositories(values)
+        AbstractSharingData.reset_files(self)
 
     def get_repositories(self):
         """return list of repos"""
+        # lazy initialisation
+        repos = AbstractSharingData.get_repositories(self)
+        if len(repos) > 0:
+            return repos
+        # full init
         try:
-            return  [repo for repo
-                     in  self.config.get(SECTION_PERSONAL, "repositories")\
-                     .split(',')
-                     if repo.strip() != '']
+            repos =  [repo for repo in self.config.get(
+                SECTION_PERSONAL, "repositories").split(',')
+                      if repo.strip() != '']
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-            return []
+            repos = []
+        # update AbstractSharingData
+        for repo in repos:
+            AbstractSharingData.add_repository(self, repo)
+        return repos
         
-    def _set_repositories(self, repos_list):
+    def _set_repositories(self):
         """update list of repos"""
+        repos_list = self.get_repositories()
+        if repos_list == None:
+            print "No repo to set."
+            return 
         self.config.set(SECTION_PERSONAL, "repositories",
                         ",".join(repos_list))
         
-    def add(self, path):
-        """sets new value for files"""
-        AbstractSharingData.add(self, path)
-        self._set_file(path)
-        
-    def remove(self, value):
-        """remove custom value"""
-        AbstractSharingData.remove(self, value)
-        if self.config.has_option(SECTION_CUSTOM, value):
-            self.config.remove_option(SECTION_CUSTOM, value)
-        
-    def expand_dir(self, path):
-        """put into cache new information when dir expanded in tree"""
-        AbstractSharingData.expand_dir(self, path)
-        for file_name in os.listdir(path):
-            file_path = os.path.join(path, file_name)
-            self._set_file(file_path)
-
-    def recursive_share(self, (path, share)):
-        """forward command to cache"""
-        AbstractSharingData.recursive_share(self, (path, share))
-        container = self.get_container(path)
-        self._set_file(path, share=share)
-        for sub_container in container.values():
-            if isinstance(sub_container, DirContainer):
-                self.recursive_share((sub_container.get_path(), share))
-            else:
-                self._set_file(sub_container.get_path(), share=share)
-
-    def share_files(self, triplet):
-        """forward command to cache"""
-        AbstractSharingData.share_files(self, triplet)
-        dir_path, names, share = triplet
-        for name in names:
-            self._set_file(os.path.join(dir_path, name), share=share)
- 
-    def share_file(self, pair):
-        """forward command to cache"""
-        AbstractSharingData.share_file(self, pair)
-        full_path, share = pair
-        self._set_file(full_path, share=share)
-                
-    def tag_files(self, triplet):
-        """sets new value for tagged file"""
-        AbstractSharingData.tag_files(self, triplet)
-        dir_path, names, tag = triplet
-        for name in names:
-            self._set_file(os.path.join(dir_path, name), tag=tag)
-        
-    def tag_file(self, pair):
-        """sets new value for tagged file"""
-        AbstractSharingData.tag_file(self, pair)
-        path, tag = pair
-        self._set_file(path, tag=tag)
-
-    def _set_file(self, path, tag=None, share=None):
-        """write in config"""
-        # check validity
-        if not os.path.exists(path):
-            raise KeyError("%s not a file"% path)
-        # retreive existing values
-        old_share, old_tag = True, DEFAULT_TAG
-        if self.config.has_option(SECTION_FILE, path):
-            try:
-                old_share, old_tag = self.config.get(SECTION_FILE, path)\
-                                     .split(',')
-            except (ValueError, ConfigParser.NoSectionError,
-                    ConfigParser.NoOptionError):
-                old_share, old_tag = True, DEFAULT_TAG
-        # merge old values & new ones
-        if tag is None:
-            tag = old_tag
-        if share is None:
-            share = old_share
-        # store
-        if not share:
-            share = ''
-        else:
-            share = "shared"
-        self.config.set(SECTION_FILE, path, ','.join((share, tag)))
-        
     def get_files(self):
         """returns {root: DirContainer}"""
-        # >> repositories
-        containers = self._get_containers()
-        # >> files
-        if not self.config.has_section(SECTION_FILE):
-            self.config.add_section(SECTION_FILE)
+        # lazy initialisation
+        files = AbstractSharingData.get_files(self)
+        if len(files) > 0:
+            return files
+        # full init
+        self.get_repositories()
         for option in self.config.options(SECTION_FILE):
             try:
                 option_description = self.config.get(SECTION_FILE, option)
                 option_share, option_tag = option_description.split(',')
-                option_share = bool(option_share)
+                option_share =( option_share == SHARED_TAG)
                 if isinstance(option_tag, str):
                     option_tag = unicode(option_tag, ENCODING)
             except (ValueError, ConfigParser.NoSectionError,
                     ConfigParser.NoOptionError):
                 print >> sys.stderr, "option %s not well formated"% option
-                option_share, option_tag = True, DEFAULT_TAG
-            checked_in = False
-            for root_path in dict.keys(containers):
-                if option.startswith(root_path):
-                    try:
-                        containers[root_path].share_container(option,
-                                                              option_share)
-                        containers[root_path].tag_container(option,
-                                                            option_tag)
-                    except AssertionError, error:
-                        print >> sys.stderr, str(error), "Removing from profile"
-                        self.config.remove_option(SECTION_FILE, option)
-                    checked_in = True
-                    break
-                #else not this repo
-            if not checked_in:
-                print "could not check in", option
-        return containers
+                option_share, option_tag = False, DEFAULT_TAG
+            AbstractSharingData.share_file(self, (option, option_share))
+            AbstractSharingData.tag_file(self, (option, option_tag))
+        return AbstractSharingData.get_files(self)
 
-    def get_shared(self, repo_path):
-        """returns  [shared containerMixin]"""
-        result = []
-        for option in self.config.options(SECTION_FILE):
-            if option.startswith(repo_path):
-                try:
-                    option_description = self.config.get(SECTION_FILE, option)
-                    option_share, option_tag = option_description.split(',')
-                    option_share = bool(option_share)
-                    if isinstance(option_tag, str):
-                        option_tag = unicode(option_tag, self.encoding)
-                except (ValueError, ConfigParser.NoSectionError,
-                        ConfigParser.NoOptionError):
-                    option_share, option_tag = True, DEFAULT_TAG
-                if option_share:
-                    result.append(
-                        ContainerMixin(option,
-                                       share=option_share,
-                                       tag=option_tag))
-            else:
-                continue
-        return result
-
-    def get_container(self, full_path):
-        """returns File/DirContainer correspondind to full_path"""
+    def _set_files(self):
+        """write in config"""
         files = self.get_files()
-        for root_path in files:
-            if full_path.startswith(root_path):
-                return files[root_path][full_path]
-        raise KeyError("%s not in %s"% (full_path, str(files.keys())))
-    
-    def _get_containers(self):
-        """return list of repos"""
-        repo_list = self.get_repositories()
-        result = {}
-        for repo in repo_list:
-            result[repo] = DirContainer(repo)
-        return result
+        for repo, dir_container in files.items():
+            file_containers = dir_container.flat()
+            for file_container in file_containers:
+                key = os.path.join(repo, file_container.get_path())
+                if file_container._shared or file_container._tag != DEFAULT_TAG:
+                    value = ','.join((file_container._shared and SHARED_TAG or '',
+                                      file_container._tag))
+                    self.config.set(SECTION_FILE, key, value)
 
 class FileContactMixin(AbstractContactsData):
     """Implements API for all contact data in a File oriented context"""
@@ -473,41 +341,32 @@ class FileContactMixin(AbstractContactsData):
         # nothing to do in FileDocuments when receiving files
         pass
 
-class FileSaverMixin(SaverMixin):
+class FileSaverMixin(FilterSaverMixin):
     """Implements API for saving & loading in a File oriented context"""
 
     def __init__(self, pseudo, directory):
-        SaverMixin.__init__(self, pseudo, directory)
+        FilterSaverMixin.__init__(self, pseudo, directory)
+
+    def get_id(self):
+        """return identifiant of Document"""
+        return os.path.join(self._dir, self.pseudo) + PROFILE_EXT
     
     # MENU
     def save(self):
         """fill document with information from .profile file"""
-        profile_file = open(self.get_id(), 'w')
-        profile_file.write("#%s\n"% self.encoding)
-        self.config.write(profile_file)
-        profile_file.close()
+        self._set_repositories()
+        self._set_files()
+        FilterSaverMixin.save(self)
         
     def load(self,):
         """fill document with information from .profile file"""
-        # load profile
-        if not os.path.exists(self.get_id()):
-            print "profile %s does not exists"% self.get_id()
-            return False
-        else:
-            profile_file = open(self.get_id())
-            self.encoding = profile_file.readline()[1:]
-            self.config = CustomConfigParser(self.encoding)
-            self.config.readfp(profile_file)
-            profile_file.close()
-            return True
+        return self._load_config()
 
     def to_stream(self):
         """returns a file object containing values"""
-        file_obj = tempfile.TemporaryFile()
-        file_obj.write("#%s\n"% self.encoding)
-        self.config.write(file_obj)
-        file_obj.seek(0)
-        return file_obj
+        self._set_repositories()
+        self._set_files()
+        return FilterSaverMixin.to_stream(self)
 
 class FileDocument(FilePersonalMixin, FileSharingMixin,
                    FileContactMixin, FileSaverMixin):

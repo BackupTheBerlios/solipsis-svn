@@ -25,11 +25,12 @@ independant from views"""
 
 import re
 import os.path
+import tempfile
 from solipsis.services.profile import ENCODING, FILTER_EXT
 from solipsis.services.profile.prefs import get_prefs
 from solipsis.services.profile.document import AbstractPersonalData, \
      CustomConfigParser, SECTION_PERSONAL, SECTION_CUSTOM, SECTION_FILE
-from solipsis.services.profile.file_document import FileSaverMixin
+from solipsis.services.profile.document import SaverMixin
 from solipsis.services.profile.cache_document import CacheContactMixin
 
 class FilterValue:
@@ -281,7 +282,7 @@ class FilterSharingMixin:
         try:
             file_filters = other_document.get_files()
             for key, val in file_filters.iteritems():
-                self.add_file((key, val))
+                self.add_repository((key, val))
         except TypeError, error:
             print error, "Using default values for personal data"
         
@@ -290,7 +291,7 @@ class FilterSharingMixin:
         """return true if the key exists"""
         return self.file_filters.has_key(key)
     
-    def add_file(self, (key, filter_value)):
+    def add_repository(self, (key, filter_value)):
         """sets new value for files"""
         value, activate = filter_value.description, filter_value.activated
         self.config.set(SECTION_FILE, key, ",".join((str(activate), value)))
@@ -299,7 +300,7 @@ class FilterSharingMixin:
         else:
             self.file_filters[key].set_value(value, activate)
         
-    def del_file(self, value):
+    def del_repository(self, value):
         """sets new value for files"""
         if self.file_filters.has_key(value):
             self.config.remove_option(SECTION_FILE, value)
@@ -321,17 +322,41 @@ class FilterContactMixin(CacheContactMixin):
         peer_match = PeerMatch(peer_desc)
         self.peers[peer_id] = peer_match
         
-class FilterSaverMixin(FileSaverMixin):
+class FilterSaverMixin(SaverMixin):
     """Implements API for saving & loading in a File oriented context"""
+
+    def __init__(self, pseudo, directory):
+        SaverMixin.__init__(self, pseudo, directory)
 
     def get_id(self):
         """return identifiant of Document"""
         return os.path.join(self._dir, self.pseudo) + FILTER_EXT
+    
+    # MENU
+    def save(self):
+        """fill document with information from .profile file"""
+        profile_file = open(self.get_id(), 'w')
+        profile_file.write("#%s\n"% self.encoding)
+        self.config.write(profile_file)
+        profile_file.close()
+
+    def _load_config(self):
+        if not os.path.exists(self.get_id()):
+            print "profile %s does not exists"% self.get_id()
+            return False
+        else:
+            profile_file = open(self.get_id())
+            self.encoding = profile_file.readline()[1:]
+            self.config = CustomConfigParser(self.encoding)
+            self.config.readfp(profile_file)
+            profile_file.close()
+            return True
         
     def load(self,):
         """fill document with information from .profile file"""
         # load config
-        FileSaverMixin.load(self)
+        if not self._load_config():
+            return False
         # synchronize cache
         for personal_option in self.config.options(SECTION_PERSONAL):
             activate, description = self.config.get(
@@ -359,7 +384,15 @@ class FilterSaverMixin(FileSaverMixin):
             filter_value = FilterValue(
                 value = unicode(description, self.encoding),
                 activate = activate == "True")
-            self.add_file((file_option, filter_value))
+            self.add_repository((file_option, filter_value))
+
+    def to_stream(self):
+        """returns a file object containing values"""
+        file_obj = tempfile.TemporaryFile()
+        file_obj.write("#%s\n"% self.encoding)
+        self.config.write(file_obj)
+        file_obj.seek(0)
+        return file_obj
 
 class FilterDocument(FilterPersonalMixin, FilterSharingMixin,
                      FilterContactMixin, FilterSaverMixin):

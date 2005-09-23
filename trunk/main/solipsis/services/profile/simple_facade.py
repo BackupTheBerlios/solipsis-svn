@@ -165,16 +165,16 @@ class SimpleFacade:
                                "update_custom_attributes")
 
     # FILE TAB
-    def add_file(self, value):
+    def add_repository(self, value):
         """sets new value for repositor"""
         return self._try_change(value,
-                               "add_file",
+                               "add_repository",
                                "update_files")
 
-    def del_file(self, value):
+    def del_repository(self, value):
         """sets new value for repositor"""
         return self._try_change(value,
-                               "del_file",
+                               "del_repository",
                                "update_files")
 
     # OTHERS TAB

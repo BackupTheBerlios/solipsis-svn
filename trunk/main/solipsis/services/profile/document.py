@@ -28,7 +28,7 @@ import re
 import os.path
 import ConfigParser
 from os.path import isfile, isdir
-from solipsis.services.profile import PROFILE_EXT, DEFAULT_INTERESTS, ENCODING
+from solipsis.services.profile import DEFAULT_INTERESTS, ENCODING
 from solipsis.services.profile.prefs import get_prefs
 from solipsis.services.profile.data import  Blogs, retro_compatibility, \
      DirContainer, SharedFiles, PeerDescriptor
@@ -199,7 +199,8 @@ class AbstractSharingData:
     """define API for all file data"""
 
     def __init__(self):
-        pass
+        # {root: DirContainers}
+        self.files = {}
         
     def import_document(self, other_document):
         """copy data from another document into self"""
@@ -207,7 +208,7 @@ class AbstractSharingData:
             # file data
             self.reset_files()
             for repo, sharing_cont in other_document.get_files().iteritems():
-                self.add_file(repo)
+                self.add_repository(repo)
                 for container in sharing_cont.flat():
                     try:
                         self.share_file((container.get_path(),
@@ -218,42 +219,49 @@ class AbstractSharingData:
                         print "Error on file name:", err
         except TypeError, error:
             print error, "Using default values for files"
-        
+
     # FILE TAB
     def reset_files(self):
         """empty all information concerning files"""
-        raise NotImplementedError
+        self.files = {}
         
-    def add_file(self, value):
+    def get_repositories(self):
+        """returns value of files"""
+        return dict.keys(self.files)
+        
+    def add_repository(self, value, share=True):
         """sets new value for repository"""
+        # check type
         if not isinstance(value, str):
             raise TypeError("repository '%s' expected as str"% value)
         if not isdir(value):
-            raise AssertionError("repository %s does not exist"% value)       
+            raise AssertionError("repository %s does not exist"% value)
+        # check path
+        for repo in self.files:
+            if value.startswith(repo):
+                raise ValueError("'%s' part of existing repo %s"\
+                                 %(value, repo))
+            if repo.startswith(value):
+                raise ValueError("'%s' conflicts with existing repo %s"\
+                                 %(value, repo))
+            # else: continue
+        self.files[value] = DirContainer(value, share=share)      
         
-    def del_file(self, value):
+    def del_repository(self, value):
         """remove repository"""
         if not isinstance(value, str):
             raise TypeError("repository to remove expected as str")
+        del self.files[value]
         
     def get_files(self):
-        """returns value of files"""
-        raise NotImplementedError
-        
-    def add(self, value):
-        """add directory into  repository"""
-        if not isinstance(value, str):
-            raise TypeError("dir to expand expected as str")
-        
-    def remove(self, value):
-        """remove custom value"""
-        if not isinstance(value, str):
-            raise TypeError("dir to expand expected as str")
+        """returns {root: DirContainer}"""
+        return self.files
         
     def expand_dir(self, value):
         """update doc when dir expanded"""
         if not isinstance(value, str):
             raise TypeError("dir to expand expected as str")
+        self._get_sharing_container(value).expand_dir(value)
         
     def expand_children(self, value):
         """update doc when dir expanded"""
@@ -263,63 +271,58 @@ class AbstractSharingData:
         for dir_container in [cont for cont in container.values()
                               if isinstance(cont, DirContainer)]:
             self.expand_dir(dir_container.get_path())
+        
+    def share_files(self, triplet):
+        """forward command to cache"""
+        path, names, share = triplet
+        if not isinstance(path, str):
+            raise TypeError("path expected as str")
+        if not isinstance(names, list) \
+               and not isinstance(names, tuple):
+            raise TypeError("names expected as list")
+        if not isinstance(share, bool):
+            raise TypeError("share expected as bool")
+        files = [os.path.join(path, name) for name in names]
+        self._get_sharing_container(path).share_container(files, share)
+
+    def share_file(self, pair):
+        """forward command to cache"""
+        path, share = pair
+        if not isinstance(path, str):
+            raise TypeError("path expected as str")
+        if not isinstance(share, bool):
+            raise TypeError("share expected as bool")
+        self._get_sharing_container(path).share_container(path, share)
             
     def recursive_share(self, (path, share)):
         """forward command to cache"""
         if not isinstance(path, str):
             raise TypeError("path expected as str")
-        
-    def share_files(self, triplet):
-        """forward command to cache"""
-        if not isinstance(triplet, list) and not isinstance(triplet, tuple):
-            raise TypeError("argument expected as list or tuple")
-        elif len(triplet) != 3:
-            raise TypeError("argument of  expected as triplet"
-                            " (dir_path, file_path, share)")
-        if not isinstance(triplet[0], str):
-            raise TypeError("path expected as str")
-        if not isinstance(triplet[1], list) \
-               and not isinstance(triplet[1], tuple):
-            raise TypeError("names expected as list")
-
-    def share_file(self, pair):
-        """forward command to cache"""
-        if not isinstance(pair, list) and not isinstance(pair, tuple):
-            raise TypeError("argument of share_file expected as list or tuple")
-        elif len(pair) != 2:
-            raise TypeError("argument of  expected as couple"
-                            " (file_path, share)")
-        if not isinstance(pair[0], str):
-            raise TypeError("path expected as str")
+        if not isinstance(share, bool):
+            raise TypeError("share expected as bool")
+        self.get_container(path).recursive_share(share)
         
     def tag_files(self, triplet):
         """sets new value for tagged files"""
-        if not isinstance(triplet, list) and not isinstance(triplet, tuple):
-            raise TypeError("argument of tag_file expected as list or tuple")
-        elif len(triplet) != 3:
-            raise TypeError("argument of  expected as couple (file_path, tag)")
-        if not isinstance(triplet[0], str):
+        path, names, tag = triplet
+        if not isinstance(path, str):
             raise TypeError("path expected as str")
-        if not isinstance(triplet[1], list) \
-               and not isinstance(triplet[1], tuple):
-            raise TypeError("name expected as unicode")
-        if not isinstance(triplet[2], unicode):
+        if not isinstance(names, list) \
+               and not isinstance(names, tuple):
+            raise TypeError("names expected as list")
+        if not isinstance(tag, unicode):
             raise TypeError("tag expected as unicode")
+        files = [os.path.join(path, name) for name in names]
+        self._get_sharing_container(path).tag_container(files, tag)
         
     def tag_file(self, pair):
         """sets new value for tagged file"""
-        if not isinstance(pair, list) and not isinstance(pair, tuple):
-            raise TypeError("argument of tag_file expected as list or tuple")
-        elif len(pair) != 2:
-            raise TypeError("argument of  expected as couple (file_path, tag)")
-        if not isinstance(pair[0], str):
+        path, tag = pair
+        if not isinstance(path, str):
             raise TypeError("path expected as str")
-        if not isinstance(pair[1], unicode):
+        if not isinstance(tag, unicode):
             raise TypeError("tag expected as unicode")
-        
-    def get_repositories(self):
-        """returns value of files"""
-        raise NotImplementedError
+        self._get_sharing_container(path).tag_container(path, tag)
 
     def get_shared_files(self):
         """return {repo: shared files}"""
@@ -332,16 +335,13 @@ class AbstractSharingData:
                                              or container._shared))
             shared[repository] = [f_container
                                   for f_container in copied_container.flat()
-                                  if not isinstance(f_container, DirContainer)]
+                                  if not isinstance(f_container, DirContainer)
+                                  and f_container._shared]
         return shared
         
-    def get_shared(self, repo_path):
-        """returns [shared containers]"""
-        raise NotImplementedError
-
     def get_container(self, full_path):
         """returns File/DirContainer correspondind to full_path"""
-        raise NotImplementedError
+        return self._get_sharing_container(full_path)[full_path]
 
     def _get_sharing_container(self, value):
         """return DirContainer which root is value"""
@@ -491,12 +491,13 @@ class SaverMixin:
 
     def get_id(self):
         """return identifiant of Document"""
-        return os.path.join(self._dir, self.pseudo) + PROFILE_EXT
+        raise NotImplementedError(
+            "get_id must be overridden")
         
     def import_document(self, other_document):
         """copy data from another document into self"""
         raise NotImplementedError(
-            "must call import_document on base classes describing data")
+            "import_document must be overridden")
     
     def copy(self):
         """return copy of this document"""

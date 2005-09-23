@@ -144,7 +144,7 @@ class FilePanel(wx.Panel):
         if dlg.ShowModal() == wx.ID_OK:
             # path chosen
             path = dlg.GetPath()
-            get_facade().add_file(path)
+            get_facade().add_repository(path)
             get_facade().recursive_share((path, True))
         dlg.Destroy()
         
@@ -158,7 +158,7 @@ class FilePanel(wx.Panel):
             item = get_facade().get_file_container(file_name)
             self.tree_list.DeleteChildren(item.get_data())
             self.tree_list.Delete(item.get_data())
-            get_facade().del_file(file_name)
+            get_facade().del_repository(file_name)
             self.do_modified(True)
         
     def on_share(self, evt):

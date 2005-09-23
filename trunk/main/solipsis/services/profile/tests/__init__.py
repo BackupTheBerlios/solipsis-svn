@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: iso-8859-1 -*-
 # <copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
 # Copyright (C) 2002-2005 France Telecom R&D

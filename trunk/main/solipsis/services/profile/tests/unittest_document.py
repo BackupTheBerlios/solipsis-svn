@@ -23,9 +23,9 @@ class DocumentTest(unittest.TestCase):
         self.documents = [CacheDocument(PROFILE_TEST, PROFILE_DIRECTORY),
                           FileDocument(PROFILE_TEST, PROFILE_DIRECTORY)]
         for document in self.documents:
-            document.add_file(REPO)
+            document.add_repository(REPO)
         self.abstract_doc = AbstractDocument(PROFILE_TEST, PROFILE_DIRECTORY)
-        self.abstract_doc.add_file(REPO)
+        self.abstract_doc.add_repository(REPO)
 
     def test_config_parser(self):
         writer = CustomConfigParser(ENCODING)
@@ -105,23 +105,14 @@ class DocumentTest(unittest.TestCase):
     def test_reset_files(self):
         """reset files"""
         for document in self.documents:
-            document.add((abspath("data")))
             document.share_file((abspath("data"), True))
             self.assertEquals(document.get_container(abspath("data"))._shared, True)
             document.reset_files()
             self.assertEquals(document.get_files(), {})
         
-    def test_repository(self):
-        """repository valid path"""
-        for document in self.documents:
-            self.assertRaises(TypeError, document.add, abspath(u"data/dummy"))
-            document.add(abspath("data"))
-            document.remove(abspath("data"))
-        
     def test_recursive_share(self):
         """share dir giving unicode name"""
         for document in self.documents:
-            document.add((abspath("data")))
             self.assertRaises(KeyError, document.recursive_share, ("data", True))
             self.assertRaises(TypeError, document.recursive_share, (abspath(u"data"), True))
             document.recursive_share((abspath("data"), True))
@@ -129,11 +120,6 @@ class DocumentTest(unittest.TestCase):
     def test_share_files(self):
         """share files giving root & unicode names"""
         for document in self.documents:
-            document.add((abspath("data")))
-            self.assertRaises(TypeError, document.share_files,
-                              "data, ['.path', 'routage'], True")
-            self.assertRaises(TypeError, document.share_files,
-                              ("data", "['.path', 'routage'], True"))
             self.assertRaises(TypeError, document.share_files,
                               ("data", "['.path', 'routage']", "True"))
             self.assertRaises(TypeError, document.share_files,
@@ -144,11 +130,6 @@ class DocumentTest(unittest.TestCase):
     def test_tag_file(self):
         """tag files giving root & unicode names"""
         for document in self.documents:
-            document.add((abspath("data")))
-            self.assertRaises(TypeError, document.tag_files,
-                              "data, ['.path', 'routage'], tag desc")
-            self.assertRaises(TypeError, document.tag_files,
-                              ("data", "['.path', 'routage'], tag desc"))
             self.assertRaises(TypeError, document.tag_files,
                               ("data", "['.path', 'routage']", "tag desc"))
             self.assertRaises(TypeError, document.tag_files,
@@ -160,11 +141,9 @@ class DocumentTest(unittest.TestCase):
             document.tag_files((abspath("data"), ['.path', 'routage'], u"tag desc"))
             document.tag_files([abspath("data"), ['.path', 'routage'], u"tag desc"])
         
-    def test_add_file(self):
+    def test_add_repository(self):
         """expand dir giving unicode name"""
-        self.assertRaises(NotImplementedError, self.abstract_doc.get_files)
         for document in self.documents:
-            document.add((abspath("data")))
             self.assertRaises(TypeError, document.expand_dir, u"data/dummy")
             self.assertRaises(TypeError, document.expand_dir, u"data")
             document.expand_dir((abspath("data")))
@@ -174,14 +153,14 @@ class DocumentTest(unittest.TestCase):
             document.tag_files((abspath("data/profiles"),
                                ["bruce.prf", ".svn"], u"first"))
             document.share_files((abspath("data/profiles"),
-                                  ["bruce.prf", "demi.prf"], False))
+                                  ["bruce.prf", "demi.prf"], True))
             # check sharing state
             self.assertEquals(document.get_container(
-                abspath("data/profiles/bruce.prf"))._shared, False)
+                abspath("data/profiles/bruce.prf"))._shared, True)
             self.assertEquals(document.get_container(
-                abspath("data/profiles/demi.prf"))._shared, False)
+                abspath("data/profiles/demi.prf"))._shared, True)
             self.assertEquals(document.get_container(
-                abspath("data/profiles/.svn"))._shared, True)
+                abspath("data/profiles/.svn"))._shared, False)
             # check tag
             self.assertEquals(document.get_container(
                 abspath("data/profiles/bruce.prf"))._tag, u"first")
@@ -192,7 +171,7 @@ class DocumentTest(unittest.TestCase):
 
     def test_get_shared_files(self):
         document = CacheDocument(PROFILE_TEST, PROFILE_DIRECTORY)
-        document.add_file(REPO)
+        document.add_repository(REPO)
         document.expand_dir(abspath("data"))
         document.expand_dir(abspath("data/subdir1"))
         document.share_files((abspath("data"),
@@ -226,28 +205,28 @@ class DocumentTest(unittest.TestCase):
         """coherency when several repos in use"""
         document = CacheDocument(PROFILE_TEST, PROFILE_DIRECTORY)
         # create 2 repos
-        document.add_file(REPO + "/data/profiles")
+        document.add_repository(REPO + "/data/profiles")
         document.tag_files((REPO + "/data/profiles", ["bruce.prf", ".svn"], u"first"))
-        document.share_files((REPO + "/data/profiles", ["bruce.prf", "demi.prf"], False))
-        document.add_file(REPO + "/data/subdir1")
+        document.share_files((REPO + "/data/profiles", ["bruce.prf", "demi.prf"], True))
+        document.add_repository(REPO + "/data/subdir1")
         document.tag_files((REPO + "/data/subdir1", ["date.doc", ".svn"], u"second"))
-        document.share_files((REPO + "/data/subdir1", ["date.doc", "subsubdir"], False))
+        document.share_files((REPO + "/data/subdir1", ["date.doc", "subsubdir"], True))
         # check sharing state
         self.assertEquals(document.get_container(
-            abspath("data/profiles/bruce.prf"))._shared, False)
+            abspath("data/profiles/bruce.prf"))._shared, True)
         self.assertEquals(document.get_container(
-            abspath("data/profiles/demi.prf"))._shared, False)
+            abspath("data/profiles/demi.prf"))._shared, True)
         self.assertEquals(document.get_container(
-            abspath("data/profiles/.svn"))._shared, True)
+            abspath("data/profiles/.svn"))._shared, False)
         self.assertEquals(document.get_container(
-            abspath("data/subdir1/date.doc"))._shared, False)
+            abspath("data/subdir1/date.doc"))._shared, True)
         self.assertEquals(document.get_container(
-            abspath("data/subdir1/subsubdir"))._shared, False)
+            abspath("data/subdir1/subsubdir"))._shared, True)
         self.assertEquals(document.get_container(
-            abspath("data/subdir1/.svn"))._shared, True)
+            abspath("data/subdir1/.svn"))._shared, False)
         # check tag
-        self.assertRaises(ValueError, document.add_file, REPO + "/data/subdir1/subsubdir")
-        self.assertRaises(ValueError, document.add_file, REPO + "/data")
+        self.assertRaises(ValueError, document.add_repository, REPO + "/data/subdir1/subsubdir")
+        self.assertRaises(ValueError, document.add_repository, REPO + "/data")
             
     # OTHERS TAB
     def test_reset_peers(self):

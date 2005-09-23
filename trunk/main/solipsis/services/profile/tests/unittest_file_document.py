@@ -18,18 +18,64 @@ from solipsis.services.profile import ENCODING
 from solipsis.services.profile.tests import REPO, PROFILE_UNICODE, \
      PROFILE_DIRECTORY, PROFILE_TEST, PROFILE_BRUCE, PROFILE_TATA
 
+def write_test_profile():
+    document = FileDocument(PROFILE_TEST, PROFILE_DIRECTORY)
+    document.add_repository(REPO)
+    # write bruce blog
+    try:
+        bruce_blog = load_blogs(PROFILE_BRUCE, PROFILE_DIRECTORY)
+    except ValueError:
+        bruce_blog = Blogs(PROFILE_BRUCE, PROFILE_DIRECTORY)
+        bruce_blog.add_blog("Hi Buddy", PROFILE_BRUCE)
+        bruce_blog.save()
+    # write data
+    document.set_title(u"Mr")
+    document.set_firstname(u"manu")
+    document.set_lastname(u"breton")
+    document.set_photo(QUESTION_MARK())
+    document.set_email(u"manu@ft.com")
+    document.load_defaults()
+    document.add_custom_attributes((u"homepage", u"manu.com"))
+    document.add_custom_attributes((u'color', u'blue'))
+    document.remove_custom_attributes(u'Sport')
+    # set files
+    document.expand_dir(abspath("data"))
+    document.expand_dir(abspath("data/subdir1"))
+    document.share_files((abspath("data"),
+                          ["routage", "emptydir", "subdir1"],
+                          True))
+    document.share_files((abspath("data/subdir1/subsubdir"),
+                          ["null", "dummy.txt"],
+                          True))
+    document.tag_files((abspath("data"),
+                        ["date.txt"],
+                        u"tagos"))
+    document.tag_files((abspath("data/subdir1/subsubdir"),
+                        ["null", "dummy.txt"],
+                        u"empty"))
+    # set peers
+    bruce_doc = FileDocument(PROFILE_BRUCE, PROFILE_DIRECTORY)
+    bruce_doc.load()
+    document.fill_data((u"bruce", bruce_doc))
+    document.fill_blog((u"bruce", load_blogs(PROFILE_BRUCE, PROFILE_DIRECTORY)))
+    document.make_friend(u"bruce")
+    # write file
+    document.save()
+
+FILE_TEST = os.path.join(PROFILE_DIRECTORY, PROFILE_TEST + PROFILE_EXT)
 
 class FileTest(unittest.TestCase):
     """test that all fields are correctly validated"""
 
     def setUp(self):
         """override one in unittest.TestCase"""
+        # write test profile
+        if os.path.exists(FILE_TEST):
+            os.remove(FILE_TEST)
+        write_test_profile()
+        # load profile
         self.document = FileDocument(PROFILE_TEST, PROFILE_DIRECTORY)
-        self.document.add_file(REPO)
-        # first test to call must write test file to get correct
-        # execution of the others
-        if not os.path.exists(os.path.join(PROFILE_DIRECTORY, PROFILE_TEST + PROFILE_EXT)):
-            self.test_save()
+        self.document.load()
 
     def _assertContent(self, doc):
         """check validity of content"""
@@ -42,20 +88,10 @@ class FileTest(unittest.TestCase):
                            'Favourite Book': u'', 'homepage': u'manu.com',
                            'Favourite Movie': u'', 'Studies': u''},
                           doc.get_custom_attributes())
-        # assert correct sharing
-        shared_dict = {}
-        for container in  doc.get_shared(REPO):
-            shared_dict[container.get_path()] = container
-        expected_files = {REPO + '/data/subdir1/subsubdir/null': u'empty',
-                          REPO + '/data/subdir1': u'none',
-                          REPO + '/data/subdir1/subsubdir/dummy.txt': u'empty',
-                          REPO + '/data/routage': u'none',
-                          REPO + '/data/emptydir': u'none'}
-        for expected, tag in expected_files.iteritems():
-            self.assert_(shared_dict.has_key(expected))
-            self.assertEquals(shared_dict[expected]._tag, tag)
+        # assert correct file structure
         files = doc.get_files()
         self.assertEquals(files.has_key(REPO), True)
+        self.assertEquals(files[REPO][abspath("data/date.txt")]._tag, "tagos")
         self.assertEquals(files[REPO][abspath("data")]._shared, False)
         self.assertEquals(files[REPO][abspath("data/routage")]._shared, True)
         self.assertEquals(files[REPO][abspath("data/emptydir")]._shared, True)
@@ -71,46 +107,7 @@ class FileTest(unittest.TestCase):
         self.assertEquals(peers[u'bruce'].state, PeerDescriptor.FRIEND)
         self.assertEquals(peers[u'bruce'].connected, False)
 
-    # PERSONAL TAB
     def test_save(self):
-        # write bruce blog
-        try:
-            bruce_blog = load_blogs(PROFILE_BRUCE, PROFILE_DIRECTORY)
-        except ValueError:
-            bruce_blog = Blogs(PROFILE_BRUCE, PROFILE_DIRECTORY)
-            bruce_blog.add_blog("Hi Buddy", PROFILE_BRUCE)
-            bruce_blog.save()
-        # write data
-        self.document.set_title(u"Mr")
-        self.document.set_firstname(u"manu")
-        self.document.set_lastname(u"breton")
-        self.document.set_photo(QUESTION_MARK())
-        self.document.set_email(u"manu@ft.com")
-        self.document.load_defaults()
-        self.document.add_custom_attributes((u"homepage", u"manu.com"))
-        self.document.add_custom_attributes((u'color', u'blue'))
-        self.document.remove_custom_attributes(u'Sport')
-        # set files
-        self.document.add(abspath("data"))
-        self.document.expand_dir(abspath("data"))
-        self.document.expand_dir(abspath("data/subdir1"))
-        self.document.recursive_share((abspath("data"), False))
-        self.assertEquals(self.document.get_files()[REPO][abspath("data")]._shared, False)
-        self.document.share_files((abspath("data"), ["routage", "emptydir", "subdir1"], True))
-        self.document.share_files((abspath("data/subdir1/subsubdir"), ["null", "dummy.txt"], True))
-        self.document.tag_files((abspath("data"), ["date.txt"], u"tagos"))
-        self.document.tag_files((abspath("data/subdir1/subsubdir"), ["null", "dummy.txt"], u"empty"))
-        # set peers
-        bruce_doc = FileDocument(PROFILE_BRUCE, PROFILE_DIRECTORY)
-        bruce_doc.load()
-        self.document.fill_data((u"bruce", bruce_doc))
-        self.document.fill_blog((u"bruce", load_blogs(PROFILE_BRUCE, PROFILE_DIRECTORY)))
-        self.document.make_friend(u"bruce")
-        # write file
-        self.assertEquals(self.document.get_files()[REPO][abspath("data")]._shared, False)
-        self.document.save()
-        # check content
-        self.assertEquals(self.document.get_files()[REPO][abspath("data")]._shared, False)
         self._assertContent(self.document)
 
     def test_unicode(self):
@@ -147,17 +144,14 @@ class FileTest(unittest.TestCase):
                           doc.get_custom_attributes())
 
     def test_load(self):
-        self.document.load()
         self._assertContent(self.document)
 
     def test_import(self):
-        self.document.load()
         new_doc = CacheDocument(PROFILE_TEST, PROFILE_DIRECTORY)
         new_doc.import_document(self.document)
         self._assertContent(new_doc)
 
     def test_save_and_load(self):
-        self.document.load()
         self.document.share_file((REPO+"/data/subdir1/TOtO.txt", True))
         sav_doc = FileDocument(PROFILE_TATA, PROFILE_DIRECTORY)
         sav_doc.import_document(self.document)
@@ -168,13 +162,12 @@ class FileTest(unittest.TestCase):
         self.assert_(dict.has_key(container, "TOtO.txt"))
 
     def test_load_and_save(self):
-        self.document.load()
         new_doc = CacheDocument(PROFILE_TATA, PROFILE_DIRECTORY)
         new_doc.import_document(self.document)
-        new_doc.del_file(REPO)
+        new_doc.del_repository(REPO)
         self.assertEquals(new_doc.get_files(), {})
-        new_doc.add_file(REPO+"/data/profiles")
-        new_doc.add_file(REPO+"/data/subdir1")
+        new_doc.add_repository(REPO+"/data/profiles")
+        new_doc.add_repository(REPO+"/data/subdir1")
         self.assertEquals(new_doc.get_files()[REPO+"/data/profiles"]._shared, True)
         self.assert_(new_doc.get_files()[REPO+"/data/subdir1"] != None)
         new_doc.save()
@@ -189,13 +182,13 @@ class FileTest(unittest.TestCase):
         self.assertEquals(u"", document.get_title())
         self.assertEquals(u"Name", document.get_firstname())
         self.assertEquals(u"Lastname", document.get_lastname())
-        self.assertEquals(u'/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/images/question_mark.gif',
+        self.assertEquals(u'/home/emb/svn/FTRD/solipsis/trunk/main/solipsis/services/profile/images/question_mark.gif',
                           document.get_photo())
         self.assertEquals(u"email", document.get_email())
         self.assertEquals({},
                           document.get_custom_attributes())
         # assert correct sharing
-        self.assertEquals([], document.get_shared(REPO))
+        self.assertEquals({}, document.get_shared_files())
         self.assertEquals({}, document.get_files())
         # peers
         self.assertEquals({}, document.get_peers())
@@ -207,18 +200,22 @@ class FileTest(unittest.TestCase):
                           document.get_custom_attributes())
         
     def test_view(self):
-        self.document.load()
         self.assertEquals(self.document.get_title(), "Mr")
         self.assertEquals(self.document.get_firstname(), "manu")
         self.assertEquals(self.document.get_lastname(), "breton")
         self.assertEquals(self.document.get_photo(), QUESTION_MARK())
         self.assertEquals(self.document.get_email(), "manu@ft.com")
-        self.assertEquals(self.document.get_custom_attributes(), {'City': u'', 'Studies': u'',
-                                                            'color': u'blue', 'Country': u'',
-                                                            'Favourite Book': u'', 'Favourite Movie': u'',
-                                                            'homepage': u'manu.com'})
-        self.assertEquals(str(self.document.get_files()),
-                          "{'/home/emb/svn/solipsis/trunk/main/solipsis/services/profile/tests': {Dc:tests(?Y,'none',#4) : [{Dc:data(?-,'none',#4) : [Fc:.path(?-,'none'), {Dc:profiles(?-,'none',#0) : []}, {Dc:subdir1(?Y,'none',#3) : [Fc:date.doc(?-,'none'), Fc:TOtO.txt(?Y,'none'), {Dc:subsubdir(?-,'none',#2) : [Fc:null(?Y,'empty'), Fc:dummy.txt(?Y,'empty')]}, {Dc:.svn(?-,'none',#0) : []}]}, Fc:routage(?Y,'none'), {Dc:emptydir(?Y,'none',#0) : []}, {Dc:.svn(?-,'none',#0) : []}, Fc:date.txt(?-,'tagos')]}]}}")
+        self.assertEquals(self.document.get_custom_attributes(),
+                          {'City': u'', 'Studies': u'',
+                           'color': u'blue', 'Country': u'',
+                           'Favourite Book': u'', 'Favourite Movie': u'',
+                           'homepage': u'manu.com'})
+        files = [file_container.name for file_container
+                 in self.document.get_files()[REPO].flat()]
+        files.sort()
+        self.assertEquals(files, ['TOtO.txt', 'data', 'date.doc', 'date.txt',
+                                  'dummy.txt', 'emptydir', 'null', 'routage',
+                                  'subdir1', 'subsubdir'])
         self.assertEquals(str(self.document.get_peers()),
                           "{u'bruce': bruce (%s)}"% PeerDescriptor.FRIEND)
         
