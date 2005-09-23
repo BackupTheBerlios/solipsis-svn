@@ -482,7 +482,7 @@ class AbstractContactsData:
                % (peer_id, self.__class__)
         peer_desc = self.get_peer(peer_id)
         # set repositories
-        for repo in files.get_repositories():
+        for repo in files:
             peer_desc.document.add_repository(repo)
         # set files
         for file_container in files.flatten():
