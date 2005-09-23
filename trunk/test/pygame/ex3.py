@@ -48,6 +48,7 @@ class SDLPanel(wx.Panel):
     def OnPaint(self, ev):
         print "EVT_PAINT"
         self.__needsDrawing = 1
+        ev.Skip()
 
     def OnSize(self, ev):
         print "EVT_SIZE"
