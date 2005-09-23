@@ -18,7 +18,9 @@
 # License along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
-"""Specific navigator class which uses wx and display the world on a plan"""
+"""
+Specific navigator class which uses wx and displays the world in a 2D panel.
+"""
 
 import os
 import sys
@@ -195,7 +197,12 @@ class NavigatorApp(BaseNavigatorApp, wx.App, XRCLoader):
                and wx.Platform not in ('__WXMSW__', '__WXMAC__'):
             print "Error: failed to initialize wx.Locale! " \
                 "Please check the LC_MESSAGES " \
-                "or LANG environment variable is properly set."
+                "or LANG environment variable is properly set:"
+            env_vars = os.environ.items()
+            env_vars.sort()
+            for name, value in env_vars:
+                if name.startswith('LC_') or name.startswith('LANG'):
+                    print "%s = %s" % (name, value)
             sys.exit(1)
         try:
             translation_dir = self.params.translation_dir
@@ -208,8 +215,6 @@ class NavigatorApp(BaseNavigatorApp, wx.App, XRCLoader):
         # Workaround for buggy Python behaviour with floats
         system_locale.setlocale(system_locale.LC_NUMERIC, "C")
         # Override languages in config
-#         lang_code = wx.Locale.GetLanguageInfo(
-#             wx.Locale.GetSystemLanguage()).CanonicalName
         lang_code = self.locale.GetCanonicalName()
         if lang_code:
             self.config_data.languages = [str(lang_code.split('_')[0])]

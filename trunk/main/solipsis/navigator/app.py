@@ -79,7 +79,6 @@ class BaseNavigatorApp(UIProxyReceiver):
         self.viewport = None	 #InitResources
         # register exit handler
         self.exiting = False
-        atexit.register(self._OnQuit)
         # This value will be provided by discovery methds (STUN, local)
         self.local_ip = ""
         self.local_port = params.local_port
@@ -187,6 +186,8 @@ class BaseNavigatorApp(UIProxyReceiver):
         self.services.SetNode(self.config_data.GetNode())
         self.services.EnableServices()
         self.config_data.SetServices(self.services.GetServices())
+        # This should be the end of the init procedure
+        atexit.register(self._OnQuit)
 
     def Redraw(self):
         """
