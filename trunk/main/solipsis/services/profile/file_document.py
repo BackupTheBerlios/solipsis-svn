@@ -178,16 +178,18 @@ class FileSharingMixin(AbstractSharingData):
         if len(repos) > 0:
             return repos
         # full init
+        repos = self._init_repos()
+        for repo in repos:
+            AbstractSharingData.add_repository(self, repo)
+        return AbstractSharingData.get_repositories(self)
+
+    def _init_repos(self):
         try:
-            repos =  [repo for repo in self.config.get(
+            return [repo for repo in self.config.get(
                 SECTION_PERSONAL, "repositories").split(',')
                       if repo.strip() != '']
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-            repos = []
-        # update AbstractSharingData
-        for repo in repos:
-            AbstractSharingData.add_repository(self, repo)
-        return repos
+            return []
         
     def _set_repositories(self):
         """update list of repos"""
@@ -201,12 +203,13 @@ class FileSharingMixin(AbstractSharingData):
     def get_files(self):
         """returns {root: DirContainer}"""
         # lazy initialisation
-        files = AbstractSharingData.get_files(self)
-        if len(files) > 0:
-            return files
+        if self.files != {}:
+            return AbstractSharingData.get_files(self)
         # full init
-        self.get_repositories()
+        for repo in self._init_repos():
+            self.files[repo] = DirContainer(repo)
         for option in self.config.options(SECTION_FILE):
+            # get share & tag
             try:
                 option_description = self.config.get(SECTION_FILE, option)
                 option_share, option_tag = option_description.split(',')
@@ -215,10 +218,12 @@ class FileSharingMixin(AbstractSharingData):
                     option_tag = unicode(option_tag, ENCODING)
             except (ValueError, ConfigParser.NoSectionError,
                     ConfigParser.NoOptionError):
-                print >> sys.stderr, "option %s not well formated"% option
+                print >> sys.stderr, "option '%s' not well formated"% option_description
                 option_share, option_tag = False, DEFAULT_TAG
-            AbstractSharingData.share_file(self, (option, option_share))
-            AbstractSharingData.tag_file(self, (option, option_tag))
+            # add container
+            container = self._get_sharing_container(option)
+            container[option].share(option_share)
+            container[option].tag(option_tag)
         return AbstractSharingData.get_files(self)
 
     def _set_files(self):

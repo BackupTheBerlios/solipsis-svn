@@ -352,11 +352,10 @@ class AbstractSharingData:
 
     def _get_sharing_container(self, value):
         """return DirContainer which root is value"""
-        files = self.get_files()
-        for root_path in files:
+        for root_path in self.files:
             if value.startswith(root_path):
-                return files[root_path]
-        raise KeyError("%s not in %s"% (value, str(files.keys())))
+                return self.files[root_path]
+        raise KeyError("%s not in %s"% (value, str(self.files.keys())))
             
 class AbstractContactsData:
     """define API for all contacts' data"""

@@ -168,12 +168,12 @@ class FileTest(unittest.TestCase):
         self.assertEquals(new_doc.get_files(), {})
         new_doc.add_repository(REPO+"/data/profiles")
         new_doc.add_repository(REPO+"/data/subdir1")
-        self.assertEquals(new_doc.get_files()[REPO+"/data/profiles"]._shared, True)
+        self.assert_(new_doc.get_files()[REPO+"/data/profiles"] != None)
         self.assert_(new_doc.get_files()[REPO+"/data/subdir1"] != None)
         new_doc.save()
         check_doc = FileDocument(PROFILE_TATA, PROFILE_DIRECTORY)
         check_doc.load()
-        self.assertEquals(check_doc.get_files()[REPO+"/data/profiles"]._shared, True)
+        self.assertEquals(check_doc.get_files()[REPO+"/data/profiles"]._shared, False)
         self.assert_(check_doc.get_files()[REPO+"/data/subdir1"] != None)
         
         
