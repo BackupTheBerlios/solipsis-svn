@@ -30,8 +30,10 @@ import ConfigParser
 from os.path import isfile, isdir
 from solipsis.services.profile import DEFAULT_INTERESTS, ENCODING
 from solipsis.services.profile.prefs import get_prefs
+from solipsis.services.profile.path_containers import ContainerMixin,  \
+     DirContainer, SharedFiles
 from solipsis.services.profile.data import  Blogs, retro_compatibility, \
-     ContainerMixin, DirContainer, SharedFiles, PeerDescriptor
+     PeerDescriptor
 
 SECTION_PERSONAL = "Personal"
 SECTION_CUSTOM = "Custom"

@@ -8,8 +8,9 @@ import os, os.path
 
 from os.path import abspath, join
 from StringIO import StringIO
-from solipsis.services.profile.data import DEFAULT_TAG, \
-     DirContainer, FileContainer, Blogs, load_blogs, PeerDescriptor
+from solipsis.services.profile.path_containers import DEFAULT_TAG, \
+     DirContainer, FileContainer
+from solipsis.services.profile.data import Blogs, load_blogs, PeerDescriptor
 from solipsis.services.profile.tests import REPO, PSEUDO, PROFILE_010, \
      PROFILE_DIRECTORY, PROFILE_TEST, PROFILE_BRUCE, GENERATED_DIR
 

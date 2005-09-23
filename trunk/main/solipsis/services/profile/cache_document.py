@@ -25,7 +25,7 @@ independant from views"""
 import os.path
 from solipsis.services.profile import QUESTION_MARK, ENCODING
 from solipsis.services.profile.prefs import get_prefs
-from solipsis.services.profile.data import DirContainer
+from solipsis.services.profile.path_containers import DirContainer
 from solipsis.services.profile.document import SaverMixin, \
      AbstractPersonalData, AbstractSharingData, AbstractContactsData
 

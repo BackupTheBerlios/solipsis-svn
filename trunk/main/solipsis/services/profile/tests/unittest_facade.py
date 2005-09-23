@@ -8,7 +8,8 @@ from StringIO import StringIO
 from solipsis.services.profile.document import read_document
 from solipsis.services.profile.file_document import FileDocument
 from solipsis.services.profile.cache_document import CacheDocument
-from solipsis.services.profile.data import DEFAULT_TAG, PeerDescriptor
+from solipsis.services.profile.path_containers import DEFAULT_TAG
+from solipsis.services.profile.data import PeerDescriptor
 from solipsis.services.profile.view import PrintView
 from solipsis.services.profile.facade import create_facade, get_facade, Facade, \
       create_filter_facade, get_filter_facade

@@ -10,10 +10,10 @@ from pprint import pprint
 from os.path import abspath
 from difflib import Differ
 from solipsis.services.profile import QUESTION_MARK, PROFILE_EXT
-from solipsis.services.profile.data import PeerDescriptor, load_blogs
+from solipsis.services.profile.data import PeerDescriptor, Blogs, load_blogs
 from solipsis.services.profile.file_document import FileDocument
 from solipsis.services.profile.cache_document import CacheDocument
-from solipsis.services.profile.data import DirContainer, Blogs
+from solipsis.services.profile.path_containers import DirContainer
 from solipsis.services.profile import ENCODING
 from solipsis.services.profile.tests import REPO, PROFILE_UNICODE, \
      PROFILE_DIRECTORY, PROFILE_TEST, PROFILE_BRUCE, PROFILE_TATA

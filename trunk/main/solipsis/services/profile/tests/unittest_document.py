@@ -11,7 +11,8 @@ from pprint import pprint
 from solipsis.services.profile.document import CustomConfigParser, AbstractDocument
 from solipsis.services.profile.file_document import FileDocument
 from solipsis.services.profile.cache_document import CacheDocument
-from solipsis.services.profile.data import DEFAULT_TAG, PeerDescriptor, FileContainer
+from solipsis.services.profile.path_containers import DEFAULT_TAG, FileContainer
+from solipsis.services.profile.data import PeerDescriptor
 from solipsis.services.profile.tests import PROFILE_DIRECTORY, PROFILE_TEST, \
      REPO, PSEUDO, TEST_DIR
 from solipsis.services.profile import ENCODING

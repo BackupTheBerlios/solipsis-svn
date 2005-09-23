@@ -28,9 +28,9 @@ import time
 import sys
 from solipsis.services.profile import PROFILE_EXT, ENCODING, QUESTION_MARK
 from solipsis.services.profile.prefs import get_prefs
-from solipsis.services.profile.data import DEFAULT_TAG, \
-     DirContainer, ContainerMixin, \
-     PeerDescriptor, load_blogs
+from solipsis.services.profile.path_containers import DEFAULT_TAG, \
+     DirContainer, ContainerMixin
+from solipsis.services.profile.data import PeerDescriptor, load_blogs
 from solipsis.services.profile.filter_document import FilterSaverMixin
 from solipsis.services.profile.document import CustomConfigParser, \
      AbstractPersonalData, AbstractSharingData, AbstractContactsData, \

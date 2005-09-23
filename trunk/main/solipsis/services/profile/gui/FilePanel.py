@@ -9,7 +9,7 @@ from os.path import abspath
 from solipsis.util.wxutils import _
 from solipsis.services.profile.pathutils import formatbytes
 from solipsis.services.profile.facade import get_facade
-from solipsis.services.profile.data import DirContainer, DEFAULT_TAG
+from solipsis.services.profile.path_containers import DirContainer, DEFAULT_TAG
 from solipsis.services.profile import ADD_REPO, DEL_REPO, ENCODING, \
      SHARE, UNSHARE, EDIT, PREVIEW, \
      NAME_COL, SIZE_COL, TAG_COL, SHARED_COL, \
