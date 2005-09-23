@@ -360,7 +360,9 @@ class FileSaverMixin(FilterSaverMixin):
         
     def load(self,):
         """fill document with information from .profile file"""
-        return self._load_config()
+        result = self._load_config()
+        self.get_files()
+        return result
 
     def to_stream(self):
         """returns a file object containing values"""
