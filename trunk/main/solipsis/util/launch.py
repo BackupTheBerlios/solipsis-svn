@@ -64,6 +64,7 @@ class Launcher(object):
         prog_path = abspath(prog_name)
         # We try to keep the same Python interpreter as currently
         if os.path.exists(sys.executable) and re.match(r'.*\.py[cow]?$', prog_name, re.IGNORECASE):
+            # We cannot quote the sys.executable or Windows is confused...
             return [sys.executable, "'" + prog_path + "'"]
         else:
             return ["'" + prog_path+ "'"]

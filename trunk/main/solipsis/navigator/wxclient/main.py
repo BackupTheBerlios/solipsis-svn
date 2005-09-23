@@ -21,6 +21,15 @@ import sys
 import os
 import socket
 
+# Select wx version on multi-version installs
+if not hasattr(sys, 'frozen'):
+    try:
+        import wxversion
+    except ImportError:
+        print "wxversion module not found"
+    else:
+        wxversion.select(['2.6-unicode', '2.5-unicode'])
+
 from solipsis.navigator.main import build_params, detect_stub
 from solipsis.navigator.wxclient.app import NavigatorApp
 
