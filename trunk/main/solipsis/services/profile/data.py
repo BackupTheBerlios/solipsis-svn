@@ -64,7 +64,6 @@ class PeerDescriptor:
         from solipsis.services.profile.cache_document import CacheDocument
         self.document = document or CacheDocument(pseudo)
         self.blog = blog or Blogs(pseudo)
-        self.shared_files = None
         # node_id
         self.node_id = None
 
@@ -107,14 +106,6 @@ class PeerDescriptor:
     def set_document(self, document):
         """set member of type AbstractDocument"""
         self.document = document
-
-    def set_shared_files(self, files=None):
-        """blog is instance Blogs"""
-        if files != None:
-            self.shared_files = files
-        else:
-            assert self.document, "set_shared_files called whereas no document"
-            self.shared_files = self.document.get_shared_files()
 
     def set_node_id(self, node_id):
         """set when peer_desc is assciated with a node"""
@@ -541,7 +532,8 @@ class DirContainer(dict, ContainerMixin):
                 container.recursive_share(share)
             else:
                 container.share(share)
-        
+                
+    # TODO: remove
     def share_container(self, full_path, share=True):
         """wrapps sharing methods matching 'full_path' with list or path"""
         if isinstance(full_path, str):

@@ -50,7 +50,6 @@ class MatchTest(unittest.TestCase):
         peer_document.load()
         peer_document.share_files((REPO, ['data/date.txt', 'data/subdir1'], True))
         self.peer_desc = PeerDescriptor(PROFILE_TEST, document=peer_document)
-        self.peer_desc.set_shared_files()
         # filter
         self.document = FilterDocument(PROFILE_TEST, PROFILE_DIRECTORY)
         self.document.load()

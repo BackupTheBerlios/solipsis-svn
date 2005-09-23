@@ -134,9 +134,10 @@ class PeerMatch:
                     if match:
                         self.customs[c_name] = match
         # files
-        if self.peer_desc.shared_files:
+        shared_files = self.peer_desc.document.get_shared_files()
+        if shared_files:
             for f_name, file_filter in filter_doc.file_filters.iteritems():
-                for file_container in self.peer_desc.shared_files.flatten():
+                for file_container in shared_files.flatten():
                     match = file_filter.does_match(file_container.name)
                     if match:
                         if f_name not in self.files:

@@ -293,6 +293,10 @@ class AbstractSharingData:
         if not isinstance(share, bool):
             raise TypeError("share expected as bool")
         self._get_sharing_container(path).share_container(path, share)
+
+# TODO: define
+#     def share_container(self, container):
+#         pass
             
     def recursive_share(self, (path, share)):
         """forward command to cache"""
@@ -470,7 +474,14 @@ class AbstractContactsData:
         assert self.has_peer(peer_id), "no profile for %s in %s"\
                % (peer_id, self.__class__)
         peer_desc = self.get_peer(peer_id)
-        peer_desc.set_shared_files(files)
+        peer_doc = peer_desc.document
+        for repo, file_containers in files.items():
+            if repo not in peer_doc.get_repositories():
+                peer_doc.add_repositories(repo)
+            shared_files = [file_container.get_path() for file_container
+                            in file_containers]
+            for shared_file in shared_files:
+                peer_desc.document.share_files(repo, shared_files)
         self.last_downloaded_desc = peer_desc
         return peer_desc
 

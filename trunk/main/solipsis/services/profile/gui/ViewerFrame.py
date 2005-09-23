@@ -252,7 +252,7 @@ class ViewerFrame(wx.Frame):
         self.file_dlg.set_desc(peer_desc)
         self.file_dlg.SetTitle()
         # display files {repos: {names:tags}, }
-        self.file_dlg.Show(files=peer_desc.shared_files)
+        self.file_dlg.Show(files=peer_desc.document.get_shared_files())
 
     def __set_properties(self):
         # begin wxGlade: ViewerFrame.__set_properties
