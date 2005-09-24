@@ -1,6 +1,7 @@
 """Design pattern Facade: presents working API for all actions of GUI
 available. This facade will be used both by GUI and unittests."""
 
+import os
 import unittest
 import pickle
 from StringIO import StringIO
@@ -243,11 +244,11 @@ class HighLevelTest(unittest.TestCase):
         self.assertEquals(files.has_key(REPO), True)
         shared_files = [container.get_path() for container in files[REPO]]
         self.assertEquals(shared_files,
-                          [REPO + '/data/routage',
-                           REPO + '/data/subdir1/date.doc',
-                           REPO + '/data/subdir1/TOtO.txt',
-                           REPO + '/data/subdir1/subsubdir/null',
-                           REPO + '/data/subdir1/subsubdir/dummy.txt'])
+                          [os.sep.join([REPO, 'data', 'routage']),
+                           os.sep.join([REPO, 'data', 'subdir1', 'date.doc']),
+                           os.sep.join([REPO, 'data', 'subdir1', 'TOtO.txt']),
+                           os.sep.join([REPO, 'data', 'subdir1', 'subsubdir', 'null']),
+                           os.sep.join([REPO, 'data', 'subdir1', 'subsubdir', 'dummy.txt'])])
 
 if __name__ == '__main__':
     unittest.main()
