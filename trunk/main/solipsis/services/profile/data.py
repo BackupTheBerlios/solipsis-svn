@@ -169,7 +169,7 @@ class Blogs:
     def save(self):
         """use pickle to save to blog_file"""
         # saving
-        blog_file = open(self.get_id(), 'w')
+        blog_file = open(self.get_id(), 'wb')
         pickle.dump(self, file=blog_file, protocol=pickle.HIGHEST_PROTOCOL)
         blog_file.close()
 
