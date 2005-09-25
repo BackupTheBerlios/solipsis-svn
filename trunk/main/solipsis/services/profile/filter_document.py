@@ -353,7 +353,7 @@ class FilterSaverMixin(SaverMixin):
             profile_file.close()
             return True
         
-    def load(self,):
+    def load(self, checked=True):
         """fill document with information from .profile file"""
         # load config
         if not self._load_config():

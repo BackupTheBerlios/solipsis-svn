@@ -72,9 +72,9 @@ class PeerDescriptor:
                               self.state,
                               self.connected)
 
-    def load(self):
+    def load(self, checked=True):
         """load both document & blog"""
-        self.document.load()
+        self.document.load(checked=checked)
         self.set_blog(load_blogs(self.pseudo, self.document._dir))
 
     def save(self):

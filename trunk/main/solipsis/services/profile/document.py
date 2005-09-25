@@ -31,7 +31,7 @@ from os.path import isfile, isdir
 from solipsis.services.profile import DEFAULT_INTERESTS, ENCODING
 from solipsis.services.profile.prefs import get_prefs
 from solipsis.services.profile.path_containers import ContainerMixin,  \
-     DirContainer, SharedFiles
+     create_container, DictContainer, SharedFiles
 from solipsis.services.profile.data import  Blogs, retro_compatibility, \
      PeerDescriptor
 
@@ -59,14 +59,14 @@ def read_document(stream):
     doc.config = config
     return doc
 
-def load_document(pseudo, directory=None):
+def load_document(pseudo, directory=None, checked=True):
     """build FileDocumentn from file"""
     assert isinstance(pseudo, unicode), "pseudo must be a unicode"
     if directory is None:
         directory = get_prefs("profile_dir")
     from solipsis.services.profile.file_document import FileDocument
     doc = FileDocument(pseudo, directory)
-    if not doc.load():
+    if not doc.load(checked=checked):
         print "Could not find document"
     return doc
     
@@ -199,16 +199,16 @@ class AbstractSharingData:
     """define API for all file data"""
 
     def __init__(self):
-        # {root: DirContainers}
+        # {root: Containers}
         self.files = {}
         
-    def import_document(self, other_document):
+    def import_document(self, other_document, checked=True):
         """copy data from another document into self"""
         try:
             # file data
             self.reset_files()
-            for repo, sharing_cont in other_document.get_files().iteritems():
-                self.add_repository(repo)
+            for repo, sharing_cont in other_document.get_files(checked=checked).iteritems():
+                self.add_repository(repo, checked=checked)
                 for container in sharing_cont.flat():
                     try:
                         self.share_file((container.get_path(),
@@ -229,7 +229,7 @@ class AbstractSharingData:
         """returns value of files"""
         return dict.keys(self.files)
         
-    def add_repository(self, value, share=True):
+    def add_repository(self, value, share=True, checked=True):
         """sets new value for repository"""
         # check type
         if not isinstance(value, str):
@@ -246,7 +246,7 @@ class AbstractSharingData:
                 raise ValueError("'%s' conflicts with existing repo %s"\
                                  %(value, repo))
             # else: continue
-        self.files[value] = DirContainer(value, share=share)      
+        self.files[value] = create_container(value, share=share, checked=checked)      
         
     def del_repository(self, value):
         """remove repository"""
@@ -254,8 +254,8 @@ class AbstractSharingData:
             raise TypeError("repository to remove expected as str")
         del self.files[value]
         
-    def get_files(self):
-        """returns {root: DirContainer}"""
+    def get_files(self, checked=True):
+        """returns {root: Container}"""
         return self.files
         
     def expand_dir(self, value):
@@ -270,7 +270,7 @@ class AbstractSharingData:
             raise TypeError("dir to expand expected as str")
         container = self.get_container(value)
         for dir_container in [cont for cont in container.values()
-                              if isinstance(cont, DirContainer)]:
+                              if isinstance(cont, DictContainer)]:
             self.expand_dir(dir_container.get_path())
         
     def share_files(self, triplet):
@@ -327,20 +327,20 @@ class AbstractSharingData:
             # copy containers wich are shared. Copy does not copy
             # callbacks, which allows pickle to work on higher levels
             copied_container = self.get_container(repository).copy(
-                validator=lambda container: (isinstance(container, DirContainer)
+                validator=lambda container: (isinstance(container, DictContainer)
                                              or container._shared))
             shared[repository] = [f_container
                                   for f_container in copied_container.flat()
-                                  if not isinstance(f_container, DirContainer)
+                                  if not isinstance(f_container, DictContainer)
                                   and f_container._shared]
         return shared
         
     def get_container(self, full_path):
-        """returns File/DirContainer correspondind to full_path"""
+        """returns Container correspondind to full_path"""
         return self._get_sharing_container(full_path)[full_path]
 
     def _get_sharing_container(self, value):
-        """return DirContainer which root is value"""
+        """return Container which root is value"""
         for root_path in self.files:
             if value.startswith(root_path):
                 return self.files[root_path]
@@ -471,7 +471,9 @@ class AbstractContactsData:
         peer_desc = self.get_peer(peer_id)
         # set repositories
         for repo in files:
-            peer_desc.document.add_repository(repo)
+            # do not check validity of path since files are located on
+            # remote computer => checked=False
+            peer_desc.document.add_repository(repo, checked=False)
         # set files
         for file_container in files.flatten():
             peer_desc.document.set_container(file_container)
@@ -517,11 +519,11 @@ class SaverMixin:
         doc.import_document(self)
         doc.save()
         
-    def load(self):
+    def load(self, checked=True):
         """fill document with information from .profile file"""
         from solipsis.services.profile.file_document import FileDocument
         doc = FileDocument(self.pseudo, self._dir)
-        result = doc.load()
+        result = doc.load(checked=checked)
         self.import_document(doc)
         return result
         
@@ -552,9 +554,9 @@ class AbstractDocument(AbstractPersonalData, AbstractSharingData,
         AbstractSharingData.import_document(self, other_document)
         AbstractContactsData.import_document(self, other_document)
 
-    def load(self):
+    def load(self, checked=True):
         """load default values if no file"""
-        if not SaverMixin.load(self):
+        if not SaverMixin.load(self, checked=checked):
             AbstractPersonalData.load_defaults(self)
             return False
         else:

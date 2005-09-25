@@ -25,7 +25,6 @@ independant from views"""
 import os.path
 from solipsis.services.profile import QUESTION_MARK, ENCODING
 from solipsis.services.profile.prefs import get_prefs
-from solipsis.services.profile.path_containers import DirContainer
 from solipsis.services.profile.document import SaverMixin, \
      AbstractPersonalData, AbstractSharingData, AbstractContactsData
 
@@ -182,9 +181,9 @@ class CacheDocument(CachePersonalMixin, CacheSharingMixin,
         CacheSharingMixin.import_document(self, other_document)
         CacheContactMixin.import_document(self, other_document)
 
-    def load(self):
+    def load(self, checked=True):
         """load default values if no file"""
-        if not SaverMixin.load(self):
+        if not SaverMixin.load(self, checked=checked):
             CachePersonalMixin.load_defaults(self)
             return False
         else:

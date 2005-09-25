@@ -36,6 +36,24 @@ def assert_dir(path):
     assert os.path.isdir(path), \
            "[%s] not a valid directory"% path
 
+def create_container(path, cb_share=None, checked=True,
+                  share=False, tag=DEFAULT_TAG):
+    """when 'checked' is True, returns asserted Contaienrs, meaning
+    Container which pasth have been checked as bvalid. Otherwise,
+    return simple DictContainers which may represent non existing
+    files"""
+    if checked:
+        if os.path.isdir(path):
+            return DirContainer(path, cb_share=cb_share,
+                                share=share, tag=tag)
+        else:
+            assert_file(path)
+            return FileContainer(path, cb_share=cb_share,
+                                share=share, tag=tag)
+    else:
+        return DictContainer(path, cb_share=cb_share,
+                             share=share, tag=tag)
+
 class SharedFiles(dict):
     """dict wrapper (useless for now)"""
 
@@ -148,7 +166,7 @@ class DictContainer(dict, ContainerMixin):
         return path[len(container_path)+1:]
 
     def _add(self, local_key, value=None):
-        """add File/DirContainer"""
+        """add Container"""
         path = os.path.join(self.get_path(), local_key)
         dict.__setitem__(self, local_key,
                          value or DictContainer(path))
@@ -216,7 +234,7 @@ class DictContainer(dict, ContainerMixin):
                      for key in dict.keys(self)]
         # add children's ones
         for container in [dir_c for dir_c in self.values()
-                          if isinstance(dir_c, DirContainer)]:
+                          if isinstance(dir_c, DictContainer)]:
             all_keys += container.keys()
         return all_keys
 
@@ -230,7 +248,7 @@ class DictContainer(dict, ContainerMixin):
         return result
             
     def add(self, full_path):
-        """add File/DirContainer"""
+        """add Container"""
         # __getitem__ adds path if does not exist
         self[full_path]
 
@@ -281,7 +299,7 @@ class DirContainer(DictContainer):
                  str(self.values()))
 
     def _add(self, local_key, value=None):
-        """add File/DirContainer"""
+        """add Container"""
         path = os.path.join(self.get_path(), local_key)
         if os.path.isdir(path):
             dict.__setitem__(self, local_key,

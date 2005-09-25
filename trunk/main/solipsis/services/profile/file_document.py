@@ -29,7 +29,7 @@ import sys
 from solipsis.services.profile import PROFILE_EXT, ENCODING, QUESTION_MARK
 from solipsis.services.profile.prefs import get_prefs
 from solipsis.services.profile.path_containers import DEFAULT_TAG, \
-     DirContainer, ContainerMixin
+     create_container
 from solipsis.services.profile.data import PeerDescriptor, load_blogs
 from solipsis.services.profile.filter_document import FilterSaverMixin
 from solipsis.services.profile.document import CustomConfigParser, \
@@ -180,7 +180,9 @@ class FileSharingMixin(AbstractSharingData):
         # full init
         repos = self._init_repos()
         for repo in repos:
-            AbstractSharingData.add_repository(self, repo)
+            # create repo with out checking validity of path.
+            # checking might be needed at loading only => checked=False
+            AbstractSharingData.add_repository(self, repo, checked=False)
         return AbstractSharingData.get_repositories(self)
 
     def _init_repos(self):
@@ -200,14 +202,20 @@ class FileSharingMixin(AbstractSharingData):
         self.config.set(SECTION_PERSONAL, "repositories",
                         ",".join(repos_list))
         
-    def get_files(self):
-        """returns {root: DirContainer}"""
+    def get_files(self, checked=True):
+        """returns {root: Container}"""
         # lazy initialisation
         if self.files != {}:
             return AbstractSharingData.get_files(self)
         # full init
         for repo in self._init_repos():
-            self.files[repo] = DirContainer(repo)
+            try:
+                self.files[repo] = create_container(repo, checked=checked)
+            except AssertionError:
+                print "non valid repo '%s'"% repo
+        # if no valid repo foound, does not try any further...
+        if self.files == {}:
+            return self.files
         for option in self.config.options(SECTION_FILE):
             # get share & tag
             try:
@@ -221,9 +229,12 @@ class FileSharingMixin(AbstractSharingData):
                 print >> sys.stderr, "option '%s' not well formated"% option_description
                 option_share, option_tag = False, DEFAULT_TAG
             # add container
-            container = self._get_sharing_container(option)
-            container[option].share(option_share)
-            container[option].tag(option_tag)
+            try:
+                container = self._get_sharing_container(option)
+                container[option].share(option_share)
+                container[option].tag(option_tag)
+            except KeyError:
+                print "non valid file '%s'"% option
         return AbstractSharingData.get_files(self)
 
     def _set_files(self):
@@ -363,10 +374,10 @@ class FileSaverMixin(FilterSaverMixin):
         self._set_files()
         FilterSaverMixin.save(self)
         
-    def load(self,):
+    def load(self, checked=True):
         """fill document with information from .profile file"""
         result = self._load_config()
-        self.get_files()
+        self.get_files(checked=checked)
         return result
 
     def to_stream(self):
@@ -399,9 +410,9 @@ class FileDocument(FilePersonalMixin, FileSharingMixin,
         FileSharingMixin.import_document(self, other_document)
         FileContactMixin.import_document(self, other_document)
 
-    def load(self):
+    def load(self, checked=True):
         """load default values if no file"""
-        if not FileSaverMixin.load(self):
+        if not FileSaverMixin.load(self, checked=checked):
             FilePersonalMixin.load_defaults(self)
             return False
         else:

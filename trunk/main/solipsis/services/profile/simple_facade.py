@@ -110,7 +110,7 @@ class SimpleFacade:
         """load .profile.solipsis"""
         assert self._desc, "no document associated with facade"
         try:
-            self._desc.load()
+            self._desc.load(checked=True)
         except ValueError, err:
             print "Using blank one"
             # BUG: UnicodeEncodeError
