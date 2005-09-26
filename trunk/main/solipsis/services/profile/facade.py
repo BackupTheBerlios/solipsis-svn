@@ -27,7 +27,6 @@ from solipsis.services.profile.prefs import get_prefs
 from solipsis.services.profile.view import HtmlView
 from solipsis.services.profile.data import PeerDescriptor, Blogs
 from solipsis.services.profile.simple_facade import SimpleFacade
-from solipsis.services.profile.cache_document import CacheDocument
 from solipsis.services.profile.filter_document import FilterDocument
 
 def create_facade(pseudo, directory=None):
@@ -85,9 +84,6 @@ class Facade(SimpleFacade):
         if directory is None:
             directory = get_prefs("profile_dir")
         SimpleFacade.__init__(self, pseudo, directory)
-        self._desc = PeerDescriptor(pseudo,
-                                    document=CacheDocument(pseudo, directory),
-                                    blog=Blogs(pseudo, directory))
 
     # views
     def add_view(self, view):
@@ -99,12 +95,12 @@ class Facade(SimpleFacade):
     def add_blog(self, text):
         """store blog in cache as wx.HtmlListBox is virtual.
         return blog's index"""
-        self._desc.blog.add_blog(text, self.pseudo)
+        self._desc.blog.add_blog(text, self._desc.pseudo)
         self.update_blogs()
 
     def remove_blog(self, index):
         """delete blog"""
-        self._desc.blog.remove_blog(index, self.pseudo)
+        self._desc.blog.remove_blog(index, self._desc.pseudo)
         self.update_blogs()
         
     def add_comment(self, (index, text, author)):

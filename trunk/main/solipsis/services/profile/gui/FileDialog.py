@@ -107,7 +107,7 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
         if files is None:
             if get_facade() is None:
                 return
-            files = get_facade().get_document().get_shared_files()
+            files = get_facade()._desc.document.get_shared_files()
         self.peerfiles_list.DeleteAllItems()
         if len(files) > 0:
             # reformat data

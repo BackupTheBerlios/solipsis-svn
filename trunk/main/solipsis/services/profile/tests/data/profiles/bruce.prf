@@ -1,7 +1,7 @@
-#cp1252
+#ISO-8859-1
 
 [Personal]
-photo = D:\svn\solipsis\solipsis\services\profile\images\question_mark.gif
+photo = /home/emb/svn/FTRD/solipsis/trunk/main/solipsis/services/profile/images/question_mark.gif
 firstname = Bruce
 title = Mr
 repositories = 

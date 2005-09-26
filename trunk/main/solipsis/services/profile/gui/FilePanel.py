@@ -151,7 +151,7 @@ class FilePanel(wx.Panel):
     def on_remove(self, evt):
         """remove shared directory from repository"""
         file_name = self.tree_list.GetItemText(self.tree_list.GetSelection(), FULL_PATH_COL)
-        repositories = get_facade().get_document().get_repositories()
+        repositories = get_facade()._desc.document.get_repositories()
         if file_name and os.path.exists(file_name) and file_name in repositories:
             self.dir_list.DeleteAllItems()
             self.tree_list.SelectItem(self.root)
@@ -181,7 +181,7 @@ class FilePanel(wx.Panel):
         
     def on_preview(self, evt):
         """display all shared files in a FileDialog"""
-        self.file_dlg.activate()
+        self.file_dlg._activated = True
         self.file_dlg.Show(do_show=not self.file_dlg.IsShown())
         evt.Skip()
 

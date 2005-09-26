@@ -112,7 +112,7 @@ class FilterFrame(wx.Frame):
     def on_save(self, evt):
         """save .prf"""
         self.do_modified(False)
-        get_filter_facade().save()
+        get_filter_facade()._desc.save()
         
     def on_close(self, evt=None):
         """hide  application"""
@@ -144,7 +144,7 @@ class FilterFrame(wx.Frame):
 
     def on_help(self, evt):
         """display dialog about regular expression"""
-        self.help_dialog.activate()
+        self.help_dialog._activated = True
         self.help_dialog.Show()
         
     def on_about(self, evt):

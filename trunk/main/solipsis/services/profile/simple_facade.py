@@ -21,6 +21,8 @@ available. This facade will be used both by GUI and unittests."""
 
 from sys import stderr
 from solipsis.services.profile import ENCODING
+from solipsis.services.profile.data import PeerDescriptor, Blogs
+from solipsis.services.profile.cache_document import CacheDocument
 from solipsis.services.profile.prefs import get_prefs
 
 class SimpleFacade:
@@ -30,31 +32,21 @@ class SimpleFacade:
         assert isinstance(pseudo, unicode), "pseudo must be a unicode"
         if directory is None:
             directory = get_prefs("profile_dir")
-        self._desc = None
-        self.pseudo = pseudo
+        self._desc = PeerDescriptor(pseudo,
+                                    document=CacheDocument(pseudo, directory),
+                                    blog=Blogs(pseudo, directory))
         self._activated = True
         self.views = {}
-
-    def get_pseudo(self):
-        """return pseudo"""
-        return self.pseudo
 
     # views
     def add_view(self, view):
         """add  a view object to facade"""
-        assert self._desc, "no document associated with facade"
         self.views[view.get_name()] = view
         view.import_desc(self._desc)
 
     # documents
-    def get_document(self):
-        """return document associated with peer"""
-        assert self._desc, "no document associated with facade"
-        return self._desc.document
-
     def import_document(self, document):
         """associate given document with peer"""
-        assert self._desc, "no document associated with facade"
         self._desc.document.import_document(document)
         for view in self.views:
             view.import_desc(self._desc)
@@ -62,7 +54,6 @@ class SimpleFacade:
     # proxy
     def _try_change(self, value, setter, updater):
         """tries to call function doc_set and then, if succeeded, gui_update"""
-        assert self._desc, "no document associated with facade"
         try:
             result = getattr(self._desc.document, setter)(value)
             for view in self.views.values():
@@ -74,48 +65,27 @@ class SimpleFacade:
 
     def get_profile(self):
         """return a file object like on profile"""
-        assert self._desc, "no document associated with facade"
         return self._desc.document.to_stream()
    
     def get_peers(self):
         """returns PeerDescriptor with given id"""
-        assert self._desc, "no document associated with facade"
         return self._desc.document.get_peers()
     
     def get_peer(self, peer_id):
         """returns PeerDescriptor with given id"""
-        assert self._desc, "no document associated with facade"
         return self._desc.document.get_peer(peer_id)
     
     def has_peer(self, peer_id):
         """returns PeerDescriptor with given id"""
-        assert self._desc, "no document associated with facade"
         return self._desc.document.has_peer(peer_id)
     
     # MENU
-    def activate(self, enable=True):
-        """desactivate automatic sharing"""
-        self._activated = enable
-
-    def is_activated(self):
-        """getter for self._activated"""
-        return self._activated
-
-    def save(self):
-        """save .profile.solipsis"""
-        assert self._desc, "no document associated with facade"
-        self._desc.save()
-
     def load(self):
         """load .profile.solipsis"""
-        assert self._desc, "no document associated with facade"
         try:
             self._desc.load(checked=True)
         except ValueError, err:
             print "Using blank one"
-            # BUG: UnicodeEncodeError
-#             print err, "Using blank one"
-            pass
         # update
         for view in self.views.values():
             view.import_desc(self._desc)

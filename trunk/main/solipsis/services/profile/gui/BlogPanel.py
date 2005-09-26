@@ -39,7 +39,7 @@ class MyHtmlListBox(wx.HtmlListBox):
         assert get_facade(), "Facade not initialiazed"
         selected = self.GetSelection()
         if selected != wx.NOT_FOUND:
-            get_facade().add_comment((selected, text, get_facade().get_pseudo()))
+            get_facade().add_comment((selected, text, get_facade()._desc.pseudo))
         else:
             print "none selected"
 

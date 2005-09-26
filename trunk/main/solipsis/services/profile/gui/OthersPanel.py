@@ -103,7 +103,7 @@ class OthersPanel(wx.Panel):
         # get pseudos and sort them out
         for peer_id, peer_desc in self.peers.iteritems():
             # get 'pseudo'
-            pseudo = peer_desc.get_pseudo()
+            pseudo = peer_desc.pseudo
             # create lists
             index = 1
             while self.pseudos.has_key(pseudo):

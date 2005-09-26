@@ -102,14 +102,14 @@ class MatchFrame(wx.Frame, UIProxyReceiver):
         about_dlg.Show()
 
     def set_page(self):
-        document = get_filter_facade().get_document()
+        document = get_filter_facade()._desc.document
         last_added = document.get_last_downloaded_desc()
         if last_added:
             peer_match = get_filter_facade().get_peer(last_added.get_id())
             if peer_match.has_match():
                 self.matched_panel.set_matches(peer_match)
                 self.matched_panel.set_tab(peer_match.peer_desc)
-                if get_filter_facade().is_activated():
+                if get_filter_facade()._activated:
                     self.Show()
             document.reset_last_downloaded_desc()
 

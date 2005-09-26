@@ -42,7 +42,7 @@ class PeerHtmlListBox(wx.HtmlListBox):
         if self.blog:
             selected = self.GetSelection()
             if selected != wx.NOT_FOUND:
-                pseudo = get_facade().get_pseudo()
+                pseudo = get_facade()._desc.pseudo
                 self.blog.get_blog(selected).add_comment(text, pseudo)
                 self.refresh()
             else:

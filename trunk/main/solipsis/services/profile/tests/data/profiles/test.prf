@@ -1,25 +1,25 @@
-#cp1252
+#ISO-8859-1
 [Personal]
-repositories = D:\svn\solipsis\solipsis\services\profile\tests
+repositories = /home/emb/svn/FTRD/solipsis/trunk/main/solipsis/services/profile/tests
 firstname = manu
 title = Mr
 lastname = breton
 pseudo = test
-photo = D:\svn\solipsis\solipsis\services\profile\images\question_mark.gif
+photo = /home/emb/svn/FTRD/solipsis/trunk/main/solipsis/services/profile/images/question_mark.gif
 email = manu@ft.com
 
 [Files]
-D:\svn\solipsis\solipsis\services\profile\tests\data\date.txt = ,tagos
-D:\svn\solipsis\solipsis\services\profile\tests\data\subdir1\subsubdir\null = shared,empty
-D:\svn\solipsis\solipsis\services\profile\tests\data\emptydir = shared,none
-D:\svn\solipsis\solipsis\services\profile\tests\data\routage = shared,none
-D:\svn\solipsis\solipsis\services\profile\tests\data\subdir1\subsubdir\dummy.txt = shared,empty
-D:\svn\solipsis\solipsis\services\profile\tests\data\subdir1\TOtO.txt = shared,none
-D:\svn\solipsis\solipsis\services\profile\tests\data\subdir1 = shared,none
-D:\svn\solipsis\solipsis\services\profile\tests\data\subdir1\date.doc = shared,none
+/home/emb/svn/FTRD/solipsis/trunk/main/solipsis/services/profile/tests/data/date.txt = ,tagos
+/home/emb/svn/FTRD/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/date.doc = shared,none
+/home/emb/svn/FTRD/solipsis/trunk/main/solipsis/services/profile/tests/data/emptydir = shared,none
+/home/emb/svn/FTRD/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/TOtO.txt = shared,none
+/home/emb/svn/FTRD/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/subsubdir/null = shared,empty
+/home/emb/svn/FTRD/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1/subsubdir/dummy.txt = shared,empty
+/home/emb/svn/FTRD/solipsis/trunk/main/solipsis/services/profile/tests/data/routage = shared,none
+/home/emb/svn/FTRD/solipsis/trunk/main/solipsis/services/profile/tests/data/subdir1 = shared,none
 
 [Others]
-bruce = bruce,Friend,bruce,Sun Sep 25 02:35:59 2005
+bruce = bruce,Friend,bruce,Mon Sep 26 18:41:42 2005
 
 [Custom]
 City = 

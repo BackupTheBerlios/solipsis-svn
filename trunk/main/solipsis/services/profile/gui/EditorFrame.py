@@ -131,7 +131,7 @@ class EditorFrame(wx.Frame):
         
     def on_save(self, evt):
         """save .prf"""
-        get_facade().save()
+        get_facade()._desc.save()
         self.do_modified(False)
         
     def on_export(self, evt):
@@ -139,7 +139,7 @@ class EditorFrame(wx.Frame):
         dlg = wx.FileDialog(
             self, message="Export HTML file as ...",
             defaultDir=get_prefs("profile_dir"),
-            defaultFile="%s.html"% get_facade().get_pseudo(),
+            defaultFile="%s.html"% get_facade()._desc.pseudo,
             wildcard="HTML File (*.html)|*.html",
             style=wx.SAVE)
         if dlg.ShowModal() == wx.ID_OK:
@@ -179,7 +179,7 @@ class EditorFrame(wx.Frame):
 
     def on_display_profile(self, evt):
         """display blog in dedicated window"""
-        self.profile_dlg.activate()
+        self.profile_dlg._activated = True
         self.profile_dlg.Show(get_facade()._desc)
 
     def do_modified(self, modified):

@@ -119,7 +119,7 @@ class Plugin(ServicePlugin):
                 'Saving Profile',
                 wx.YES_NO | wx.ICON_INFORMATION)
             if dlg.ShowModal() == wx.ID_YES:
-                get_facade().save()
+                get_facade()._desc.save()
         if self.filter_frame and self.filter_frame.modified:
             self.filter_frame.do_modified(False)
             dlg = wx.MessageDialog(
@@ -128,8 +128,8 @@ class Plugin(ServicePlugin):
                 'Saving Filters',
                 wx.YES_NO | wx.ICON_INFORMATION)
             if dlg.ShowModal() == wx.ID_YES:
-                get_filter_facade().save()
-        self.activate(False)
+                get_filter_facade()._desc.save()
+        self._activated = False
 
     def activate(self, active=True):
         """eable/disable service"""
@@ -194,7 +194,7 @@ class Plugin(ServicePlugin):
     def _on_new_profile(self, document, peer_id):
         """store and display file object corresponding to profile"""
         if self.viewer_frame:
-            self.viewer_frame.profile_dlg.activate()
+            self.viewer_frame.profile_dlg._activated = True
             self.viewer_frame.profile_dlg.Show()
         get_facade().fill_data((peer_id, document))
         return str(document)
@@ -202,14 +202,14 @@ class Plugin(ServicePlugin):
     def _on_new_blog(self, blog, peer_id):
         """store and display file object corresponding to blog"""
         if self.viewer_frame:
-            self.viewer_frame.peer_dlg.activate()
+            self.viewer_frame.peer_dlg._activated = True
         get_facade().fill_blog((peer_id, blog))
         return str(blog)
     
     def _on_shared_files(self, files, peer_id):
         """store and display file object corresponding to blog"""
         if self.viewer_frame:
-            self.viewer_frame.file_dlg.activate()
+            self.viewer_frame.file_dlg._activated = True
         get_facade().fill_shared_files((peer_id, files))
         return str(files)
     
@@ -258,7 +258,7 @@ class Plugin(ServicePlugin):
 
     def DoPointToPointAction(self, it, peer, deferred=None):
         """Called when a point-to-point action is invoked, if available."""
-        if get_facade() and get_facade().is_activated():
+        if get_facade() and get_facade()._activated:
             # retreive corect method
             actions = self.POINT_ACTIONS.values()
             # call method on peer
@@ -273,32 +273,32 @@ class Plugin(ServicePlugin):
     def NewPeer(self, peer, service):
         """delegate to network"""
         self.peer_services[peer.id_] = (peer, service)
-        if get_facade() and get_facade().is_activated():
+        if get_facade() and get_facade()._activated:
             self.network.on_new_peer(peer, service)
 
     def ChangedPeer(self, peer, service):
         """delegate to network"""
         self.peer_services[peer.id_] = (peer, service)
-        if get_facade() and get_facade().is_activated():
+        if get_facade() and get_facade()._activated:
             self.network.on_change_peer(peer, service)
 
     def LostPeer(self, peer_id):
         """delegate to network"""
         del self.peer_services[peer_id]
-        if get_facade() and get_facade().is_activated():
+        if get_facade() and get_facade()._activated:
             self.network.on_lost_peer(peer_id)
             get_facade().set_connected((peer_id, False))
 
     def GotServiceData(self, peer_id, data):
         """delegate to network"""
-        if get_facade() and get_facade().is_activated():
+        if get_facade() and get_facade()._activated:
             self.network.on_service_data(peer_id, data)
 
     def ChangedNode(self, node):
         """need to update node_id"""
         # ChangedNode is call more than one time on change. Thus, be
         # careful not to do the job every time
-        if get_facade() is None or get_facade().get_pseudo() != node.pseudo:
+        if get_facade() is None or get_facade()._desc.pseudo != node.pseudo:
             facade = create_facade(node.pseudo)
             facade.load()
             if self.editor_frame:

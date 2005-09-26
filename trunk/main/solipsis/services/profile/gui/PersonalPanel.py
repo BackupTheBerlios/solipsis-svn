@@ -147,7 +147,7 @@ class PersonalPanel(wx.Panel):
 
     def on_change_facade(self):
         """setter"""
-        self.nickname_value.SetValue(get_facade().get_pseudo())
+        self.nickname_value.SetValue(get_facade()._desc.pseudo)
 
     def __set_properties(self):
         # begin wxGlade: PersonalPanel.__set_properties

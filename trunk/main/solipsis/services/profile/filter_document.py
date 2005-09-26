@@ -115,7 +115,7 @@ class PeerMatch:
         """find matches for all details, attributes and files of given doc"""
         if filter_doc is None:
             from solipsis.services.profile.facade import get_filter_facade
-            filter_doc = get_filter_facade().get_document()
+            filter_doc = get_filter_facade()._desc.document
         if self.peer_desc.document:
             # personal data
             peer_doc = self.peer_desc.document
