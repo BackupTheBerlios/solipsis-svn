@@ -17,8 +17,9 @@ class BouncingBall(object):
     def __init__(self, target):
         self.target = target
         self.image = load_ball()
-#         self.image = self.image.convert_alpha(self.target)
-        print self.target.get_masks(), self.image.get_masks()
+        self.image = self.image.convert_alpha(self.target)
+        self.image.set_alpha(255, pygame.RLEACCEL)
+#         print self.target.get_masks(), self.image.get_masks()
         self.x, self.y = 0, 0
         self.vx, self.vy = [random.uniform(-self.max_speed, self.max_speed) for i in range(2)]
 

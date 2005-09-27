@@ -4,6 +4,8 @@ import wx
 import pygame
 import time
 
+from bouncingball import BouncingBall
+
 class SDLPanel(wx.Panel):
     def __init__(self, parent, id_, size):
         wx.Panel.__init__(self, parent, id_, size=size, style=wx.WS_EX_PROCESS_IDLE)
@@ -58,6 +60,9 @@ class SDLPanel(wx.Panel):
     def draw(self):
         raise NotImplementedError('please define a .draw() method!')
 
+    def on_idle(self):
+        pass
+
     def getSurface(self):
         return self._surface
 
@@ -80,11 +85,37 @@ class CirclePanel(SDLPanel):
             pygame.draw.circle(surface, (250,0,0), (100,100), 50)
             pygame.display.flip()
 
+class BouncingPanel(SDLPanel):
+    """
+    Draw a bouncing ball in a wxPython / PyGame window
+    """
+    def __init__(self, *args, **kargs):
+        SDLPanel.__init__(self, *args, **kargs)
+        self.ball = None
+
+    def draw(self):
+        surface = self.getSurface()
+        if surface is not None:
+            self.ball = self.ball or BouncingBall(surface)
+            self.ball.animate()
+            self.ball.draw()
+            pygame.display.flip()
+            wx.FutureCall(50, self.draw)
+#             topcolor = 5
+#             bottomcolor = 100
+#             pygame.draw.circle(surface, (250,0,0), (100,100), 50)
+#             pygame.display.flip()
+
+    def on_idle(self):
+        self.__needsDrawing = True
+
+
 if __name__ == "__main__":
     app = wx.PySimpleApp()
     size = 640, 480
     frame = MyFrame(None, -1, "SDL Frame", size)
-    panel = CirclePanel(frame, -1, size=size)
+#     panel = CirclePanel(frame, -1, size=size)
+    panel = BouncingPanel(frame, -1, size=size)
     frame.Show()
     panel.Show()
     app.MainLoop()

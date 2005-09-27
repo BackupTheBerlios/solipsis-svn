@@ -30,7 +30,7 @@ class SDLThread(object):
             self.screen.fill((0,0,0))
             self.screen.fill(self.color,self.rect)
             pyGame.display.flip()
-        self.m_bRunning = False;
+        self.m_bRunning = False
 
 class SDLPanel(wx.Panel):
     def __init__(self,parent,ID,tplSize):

@@ -7,7 +7,7 @@ pygame.init()
 
 size = width, height = 400, 300
 black = 0, 0, 0
-nb_balls = 8
+nb_balls = 10
 
 screen = pygame.display.set_mode(size)
 balls = [BouncingBall(screen) for i in range(nb_balls)]
