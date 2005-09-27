@@ -46,7 +46,7 @@ class MyHtmlListBox(wx.HtmlListBox):
     def OnGetItem(self, n):
         """callback to display item"""
         assert get_facade(), "Facade not initialiazed"
-        return get_facade().get_blog(n).html()
+        return get_facade()._desc.blog.get_blog(n).html()
 
     def refresh(self):
         assert get_facade(), "Facade not initialiazed"

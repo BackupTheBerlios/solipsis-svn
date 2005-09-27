@@ -1,15 +1,17 @@
 #ISO-8859-1
 
 [Personal]
-photo = /home/emb/svn/FTRD/solipsis/trunk/main/solipsis/services/profile/images/question_mark.gif
 firstname = Bruce
 title = Mr
-repositories = 
 pseudo = bruce
+repositories = 
 lastname = Willis
+photo = /home/emb/svn/FTRD/solipsis/trunk/main/solipsis/services/profile/images/question_mark.gif
 email = bruce.willis@stars.com
 
 [Files]
+
+[Others]
 
 [Custom]
 City = 
@@ -20,6 +22,4 @@ Favourite Movie =
 Sport = 
 Studies = 
 film = Die Hard
-
-[Others]
 

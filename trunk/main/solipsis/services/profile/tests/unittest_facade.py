@@ -67,12 +67,12 @@ class FacadeTest(unittest.TestCase):
         self.facade.add_blog(u"first blog")
         self.facade.add_blog(u"second blog")
         self.facade.add_comment(0, u'first comment', 'tony')
-        blog = self.facade.get_blog(0)
+        blog = self.facade._desc.blog.get_blog(0)
         self.assertEquals(blog.text, u"first blog")
         self.assertEquals(blog.comments[0].text, u'first comment')
-        self.assertEquals(self.facade.count_blogs(), 2)
+        self.assertEquals(self.facade._desc.blog.count_blogs(), 2)
         self.facade.remove_blog(0)
-        self.assertEquals(self.facade.count_blogs(), 1)
+        self.assertEquals(self.facade._desc.blog.count_blogs(), 1)
         
     # FILE TAB
     def test_repository(self):
@@ -174,16 +174,11 @@ class FacadeTest(unittest.TestCase):
         self.assertEquals(files[abspath("data/routage")]._shared, False)
 
     # OTHERS TAB
-    def test_set_peer(self):
-        self.assertEquals(self.facade.has_peer(u"emb"), False)
-        self.facade.set_peer(u"emb", PeerDescriptor(PSEUDO))
-        self.assertEquals(self.facade.has_peer(u"emb"), True)
-        
     def test_fill_data(self):
         self.facade.fill_data(u"emb", FileDocument(PROFILE_TEST, PROFILE_DIRECTORY))
         self.assert_(self.facade.get_peer(u"emb").document)
         self.facade.remove_peer(u"emb")
-        self.assertEquals(self.facade.has_peer(u"emb"), False)
+        self.assertRaises(KeyError, self.facade.get_peer, u"emb")
     
     def test_status(self):
         self.facade.set_peer(u"emb", PeerDescriptor(PSEUDO))
@@ -217,7 +212,7 @@ class HighLevelTest(unittest.TestCase):
         self.facade.load()
         
     def test_get_profile(self):
-        doc = read_document(self.facade.get_profile())
+        doc = read_document(self.facade._desc.document.to_stream())
         self.assertEquals("Mr", doc.get_title())
         self.assertEquals("manu", doc.get_firstname())
         self.assertEquals("breton", doc.get_lastname())

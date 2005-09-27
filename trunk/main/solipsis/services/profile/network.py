@@ -523,7 +523,7 @@ class PeerClientProtocol(PeerProtocol):
             deferred.addCallback(lambda x: self.transport.loseConnection())
         # donwnload profile
         elif line == ASK_UPLOAD_PROFILE:
-            file_obj = get_facade().get_profile()
+            file_obj = get_facade()._desc.document.to_stream()
             deferred = basic.FileSender().\
                        beginFileTransfer(file_obj, self.transport)
             deferred.addCallback(lambda x: self.transport.loseConnection())
@@ -812,7 +812,7 @@ class PeerServerProtocol(PeerProtocol):
             deferred.addCallback(lambda x: self.transport.loseConnection())
         # donwnload profile
         elif line == ASK_DOWNLOAD_PROFILE:
-            file_obj = get_facade().get_profile()
+            file_obj = get_facade()._desc.document.to_stream()
             deferred = basic.FileSender().\
                        beginFileTransfer(file_obj, self.transport)
             deferred.addCallback(lambda x: self.transport.loseConnection())

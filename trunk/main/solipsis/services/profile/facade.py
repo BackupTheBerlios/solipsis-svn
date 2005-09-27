@@ -97,42 +97,13 @@ class Facade(SimpleFacade):
         SimpleFacade.add_view(self, view)
         view.update_blogs()
 
-    # blog
-    def add_blog(self, text):
-        """store blog in cache as wx.HtmlListBox is virtual.
-        return blog's index"""
-        self._desc.blog.add_blog(text, self._desc.pseudo)
-        self.update_blogs()
-
-    def remove_blog(self, index):
-        """delete blog"""
-        self._desc.blog.remove_blog(index, self._desc.pseudo)
-        self.update_blogs()
-        
-    def add_comment(self, index, text, author):
-        """store blog in cache as wx.HtmlListBox is virtual.
-        return comment's index"""
-        self._desc.blog.add_comment(index, text, author)
-        self.update_blogs()
-
-    def get_blogs(self):
-        """return all blogs along with their comments"""
-        return self._desc.blog
-
-    def get_blog(self, index):
-        """return all blogs along with their comments"""
-        return self._desc.blog.get_blog(index)
-
-    def count_blogs(self):
-        """return number of blogs"""
-        return self._desc.blog.count_blogs()
-
-    def update_blogs(self):
-        """trigger update of views with new blogs"""
-        for view in self.views.values():
-            view.update_blogs()
-
     # proxy
+    def _try_blog_change(self, setter, updater, *args):
+        """tries to call function doc_set and then, if succeeded, gui_update"""
+        return self._try_change(setter, updater,
+                                *args,
+                                **{'document':self._desc.blog})
+    
     def get_blog_file(self):
         """return a file object like on blog"""
         return StringIO(pickle.dumps(self._desc.blog))
@@ -161,18 +132,44 @@ class Facade(SimpleFacade):
     def load(self):
         """load .profile.solipsis"""
         SimpleFacade.load(self)
-        self.update_blogs()
+        for view in self.views.values():
+            view.update_blogs()
+
+    # blog
+    def add_blog(self, text):
+        """store blog in cache as wx.HtmlListBox is virtual.
+        return blog's index"""
+        self._try_blog_change('add_blog',
+                              'update_blogs',
+                              text, self._desc.pseudo)
+
+    def remove_blog(self, index):
+        """delete blog"""
+        self._try_blog_change('remove_blog',
+                              'update_blogs',
+                              index, self._desc.pseudo)
+        
+    def add_comment(self, index, text, author):
+        """store blog in cache as wx.HtmlListBox is virtual.
+        return comment's index"""
+        self._try_blog_change('add_comment',
+                              'update_blogs',
+                              index, text, self._desc.pseudo)
     
     # FILE TAB
-    def add_repository(self, value):
+    def add_repository(self, path):
         """sets new value for repositor"""
-        value = value.encode(ENCODING)
-        SimpleFacade.add_repository(self, value)
+        path = path.encode(ENCODING)
+        return self._try_change("add_repository",
+                                "update_files",
+                                path)
 
-    def del_repository(self, value):
+    def del_repository(self, path):
         """sets new value for repositor"""
-        value = value.encode(ENCODING)
-        SimpleFacade.del_repository(self, value)
+        path = path.encode(ENCODING)
+        return self._try_change("del_repository",
+                                "update_files",
+                                path)
     
     def expand_dir(self, path):
         """update doc when dir expanded"""

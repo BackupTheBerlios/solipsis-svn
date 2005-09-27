@@ -20,7 +20,6 @@
 available. This facade will be used both by GUI and unittests."""
 
 from sys import stderr
-from solipsis.services.profile import ENCODING
 from solipsis.services.profile.data import PeerDescriptor, Blogs
 from solipsis.services.profile.cache_document import CacheDocument
 from solipsis.services.profile.prefs import get_prefs
@@ -52,32 +51,28 @@ class SimpleFacade:
             view.import_desc(self._desc)
 
     # proxy
-    def _try_change(self, setter, updater, *args):
-        """tries to call function doc_set and then, if succeeded, gui_update"""
+    def _try_change(self, setter, updater, *args, **kwargs):
+        """Calls the setting function on a document (wich can be
+        passed in **kwargs with the key 'document'), and calls the
+        getting function on all views linked to the facade.
+
+        returns value returned by setter"""
+        if not 'document' in kwargs:
+            document = self._desc.document
+        else:
+            document = kwargs['document']
         try:
-            result = getattr(self._desc.document, setter)(*args)
+            result = getattr(document, setter)(*args)
             for view in self.views.values():
                 getattr(view, updater)()
             return result
         except TypeError, error:
             print >> stderr, str(error)
             raise
-
-    def get_profile(self):
-        """return a file object like on profile"""
-        return self._desc.document.to_stream()
    
-    def get_peers(self):
-        """returns PeerDescriptor with given id"""
-        return self._desc.document.get_peers()
-    
     def get_peer(self, peer_id):
         """returns PeerDescriptor with given id"""
         return self._desc.document.get_peer(peer_id)
-    
-    def has_peer(self, peer_id):
-        """returns PeerDescriptor with given id"""
-        return self._desc.document.has_peer(peer_id)
     
     # MENU
     def load(self):
