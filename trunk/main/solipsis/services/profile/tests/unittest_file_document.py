@@ -35,29 +35,29 @@ def write_test_profile():
     document.set_photo(QUESTION_MARK())
     document.set_email(u"manu@ft.com")
     document.load_defaults()
-    document.add_custom_attributes((u"homepage", u"manu.com"))
-    document.add_custom_attributes((u'color', u'blue'))
+    document.add_custom_attributes(u"homepage", u"manu.com")
+    document.add_custom_attributes(u'color', u'blue')
     document.remove_custom_attributes(u'Sport')
     # set files
     document.expand_dir(abspath("data"))
     document.expand_dir(os.path.join(abspath("data"), "subdir1"))
-    document.share_files((abspath("data"),
+    document.share_files(abspath("data"),
                           ["routage", "emptydir", "subdir1"],
-                          True))
-    document.share_files((os.sep.join([abspath("data"), "subdir1", "subsubdir"]),
+                          True)
+    document.share_files(os.sep.join([abspath("data"), "subdir1", "subsubdir"]),
                           ["null", "dummy.txt"],
-                          True))
-    document.tag_file((os.path.join(abspath("data"), "date.txt"),
-                       u"tagos"))
-    document.tag_file((os.sep.join([abspath("data"), "subdir1", "subsubdir", "null"]),
-                       u"empty"))
-    document.tag_file((os.sep.join([abspath("data"), "subdir1", "subsubdir", "dummy.txt"]),
-                       u"empty"))
+                          True)
+    document.tag_file(os.path.join(abspath("data"), "date.txt"),
+                       u"tagos")
+    document.tag_file(os.sep.join([abspath("data"), "subdir1", "subsubdir", "null"]),
+                       u"empty")
+    document.tag_file(os.sep.join([abspath("data"), "subdir1", "subsubdir", "dummy.txt"]),
+                       u"empty")
     # set peers
     bruce_doc = FileDocument(PROFILE_BRUCE, PROFILE_DIRECTORY)
     bruce_doc.load()
-    document.fill_data((u"bruce", bruce_doc))
-    document.fill_blog((u"bruce", load_blogs(PROFILE_BRUCE, PROFILE_DIRECTORY)))
+    document.fill_data(u"bruce", bruce_doc)
+    document.fill_blog(u"bruce", load_blogs(PROFILE_BRUCE, PROFILE_DIRECTORY))
     document.make_friend(u"bruce")
     # write file
     document.save()
@@ -124,7 +124,7 @@ class FileTest(unittest.TestCase):
         unicode_doc.set_photo(QUESTION_MARK())
         unicode_doc.set_email(u"manu@ft.com")
         unicode_doc.load_defaults()
-        unicode_doc.add_custom_attributes((u"été", u"chôô"))
+        unicode_doc.add_custom_attributes(u"été", u"chôô")
         unicode_doc.remove_custom_attributes(u'Sport')
         # save
         unicode_doc.save()
@@ -152,7 +152,7 @@ class FileTest(unittest.TestCase):
         self._assertContent(new_doc)
 
     def test_save_and_load(self):
-        self.document.share_file((os.sep.join([REPO, "data", "subdir1", "TOtO.txt"]), True))
+        self.document.share_file(os.sep.join([REPO, "data", "subdir1", "TOtO.txt"]), True)
         sav_doc = FileDocument(PROFILE_TATA, PROFILE_DIRECTORY)
         sav_doc.import_document(self.document)
         sav_doc.save()

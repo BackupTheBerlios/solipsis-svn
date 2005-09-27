@@ -124,8 +124,8 @@ class PersonalPanel(wx.Panel):
     def on_add(self, evt):
         """a custom attribute has been modified"""
         # update cache, facade will refresh window (through GuiView)
-        get_facade().add_custom_attributes((self.key_value.GetValue(),
-                                           self.custom_value.GetValue()))
+        get_facade().add_custom_attributes(self.key_value.GetValue(),
+                                           self.custom_value.GetValue())
         self.do_modified(True)
 
     def on_del(self, evt):

@@ -52,10 +52,10 @@ class SimpleFacade:
             view.import_desc(self._desc)
 
     # proxy
-    def _try_change(self, value, setter, updater):
+    def _try_change(self, setter, updater, *args):
         """tries to call function doc_set and then, if succeeded, gui_update"""
         try:
-            result = getattr(self._desc.document, setter)(value)
+            result = getattr(self._desc.document, setter)(*args)
             for view in self.views.values():
                 getattr(view, updater)()
             return result
@@ -84,7 +84,7 @@ class SimpleFacade:
         """load .profile.solipsis"""
         try:
             self._desc.load(checked=True)
-        except ValueError, err:
+        except ValueError:
             print "Using blank one"
         # update
         for view in self.views.values():
@@ -93,75 +93,75 @@ class SimpleFacade:
     # PERSONAL TAB
     def change_title(self, title):
         """sets new value for title"""
-        return self._try_change(title,
-                                "set_title",
-                                "update_title")
+        return self._try_change("set_title",
+                                "update_title",
+                                title)
 
     def change_firstname(self, firstname):
         """sets new value for firstname"""
-        return self._try_change(firstname,
-                               "set_firstname",
-                               "update_firstname")
+        return self._try_change("set_firstname",
+                                "update_firstname",
+                                firstname)
 
     def change_lastname(self, lastname):
         """sets new value for lastname"""
-        return self._try_change(lastname,
-                               "set_lastname",
-                               "update_lastname")
+        return self._try_change("set_lastname",
+                                "update_lastname",
+                                lastname)
 
     def change_photo(self, path):
         """sets new value for photo"""
-        return self._try_change(path,
-                               "set_photo",
-                               "update_photo")
+        return self._try_change("set_photo",
+                                "update_photo",
+                                path)
 
     def change_email(self, email):
         """sets new value for email"""
-        return self._try_change(email,
-                               "set_email",
-                               "update_email")
+        return self._try_change("set_email",
+                                "update_email",
+                                email)
 
     # CUSTOM TAB
-    def add_custom_attributes(self, (key, value)):
+    def add_custom_attributes(self, key, value):
         """sets new value for custom_attributes"""
-        return self._try_change((key, value),
-                               "add_custom_attributes",
-                               "update_custom_attributes")
+        return self._try_change("add_custom_attributes",
+                                "update_custom_attributes",
+                                key, value)
 
     def del_custom_attributes(self, key):
         """sets new value for custom_attributes"""
-        return self._try_change(key,
-                               "remove_custom_attributes",
-                               "update_custom_attributes")
+        return self._try_change("remove_custom_attributes",
+                                "update_custom_attributes",
+                                key)
 
     # FILE TAB
-    def add_repository(self, value):
-        """sets new value for repositor"""
-        return self._try_change(value,
-                               "add_repository",
-                               "update_files")
+    def add_repository(self, path):
+        """sets new path for repositor"""
+        return self._try_change("add_repository",
+                                "update_files",
+                                path)
 
-    def del_repository(self, value):
-        """sets new value for repositor"""
-        return self._try_change(value,
-                               "del_repository",
-                               "update_files")
+    def del_repository(self, path):
+        """sets new path for repositor"""
+        return self._try_change("del_repository",
+                                "update_files",
+                                path)
 
     # OTHERS TAB
-    def set_peer(self, (peer_id, peer_desc)):
+    def set_peer(self, peer_id, peer_desc):
         """sets peer as friend """
-        return self._try_change((peer_id, peer_desc),
-                                "set_peer",
-                                "update_peers")
+        return self._try_change("set_peer",
+                                "update_peers",
+                                peer_id, peer_desc)
     
-    def remove_peer(self, value):
+    def remove_peer(self, peer_id):
         """sets peer as friend """
-        return self._try_change(value,
-                                "remove_peer",
-                                "update_peers")
+        return self._try_change("remove_peer",
+                                "update_peers",
+                                peer_id)
 
-    def fill_data(self, (peer_id, document)):
+    def fill_data(self, peer_id, document):
         """sets peer as friend """
-        return self._try_change((peer_id, document),
-                                "fill_data",
-                                "update_peers")
+        return self._try_change("fill_data",
+                                "update_peers",
+                                peer_id, document)

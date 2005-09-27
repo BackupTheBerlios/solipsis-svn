@@ -152,38 +152,38 @@ class HtmlTest(unittest.TestCase):
        
     # CUSTOM TAB
     def test_custom(self):
-        self.document.add_custom_attributes([u"zic", u"jazz"])
-        self.document.add_custom_attributes([u"cinema", u"Die Hard"])
+        self.document.add_custom_attributes(u"zic", u"jazz")
+        self.document.add_custom_attributes(u"cinema", u"Die Hard")
         self.assert_template()
         
     # FILE TAB       
     def test_files(self):
         self.document.add_repository(abspath("."))
         self.document.expand_dir(abspath("data"))
-        self.document.share_files((abspath("data"), ["routage"], True))
-        self.document.share_file((abspath("data/emptydir"), True))
+        self.document.share_files(abspath("data"), ["routage"], True)
+        self.document.share_file(abspath("data/emptydir"), True)
         self.assert_template()
             
     # OTHERS TAB
     def test_ordered_peer(self):
-        self.document.set_peer((u"emb", PeerDescriptor(PSEUDO)))
-        self.document.set_peer((u"albert", PeerDescriptor(PSEUDO)))
-        self.document.set_peer((u"star", PeerDescriptor(PSEUDO)))
+        self.document.set_peer(u"emb", PeerDescriptor(PSEUDO))
+        self.document.set_peer(u"albert", PeerDescriptor(PSEUDO))
+        self.document.set_peer(u"star", PeerDescriptor(PSEUDO))
         self.document.make_friend(u"emb")
         self.document.make_friend(u"star")
         self.document.make_friend(u"albert")
         self.assert_template()
         
     def test_adding_peer(self):
-        self.document.set_peer((u"nico", PeerDescriptor(PSEUDO)))
+        self.document.set_peer(u"nico", PeerDescriptor(PSEUDO))
         self.assert_template()
         
     def test_filling_data(self):
-        self.document.fill_data((u"emb", FileDocument(PROFILE_TEST, PROFILE_DIRECTORY)))
+        self.document.fill_data(u"emb", FileDocument(PROFILE_TEST, PROFILE_DIRECTORY))
         self.assert_template()
     
     def test_peers_status(self):
-        self.document.set_peer((u"nico", PeerDescriptor(PSEUDO)))
+        self.document.set_peer(u"nico", PeerDescriptor(PSEUDO))
         self.document.blacklist_peer(u"nico")
         self.assert_template()
 

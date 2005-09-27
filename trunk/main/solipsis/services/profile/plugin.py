@@ -193,17 +193,17 @@ class Plugin(ServicePlugin):
     # callbacks methods
     def _on_new_profile(self, document, peer_id):
         """store and display file object corresponding to profile"""
-        get_facade().fill_data((peer_id, document))
+        get_facade().fill_data(peer_id, document)
         return str(document)
             
     def _on_new_blog(self, blog, peer_id):
         """store and display file object corresponding to blog"""
-        get_facade().fill_blog((peer_id, blog))
+        get_facade().fill_blog(peer_id, blog)
         return str(blog)
     
     def _on_shared_files(self, files, peer_id):
         """store and display file object corresponding to blog"""
-        get_facade().fill_shared_files((peer_id, files))
+        get_facade().fill_shared_files(peer_id, files)
         return str(files)
     
     def _on_all_files(self):
@@ -280,7 +280,7 @@ class Plugin(ServicePlugin):
         del self.peer_services[peer_id]
         if get_facade() and get_facade()._activated:
             self.network.on_lost_peer(peer_id)
-            get_facade().set_connected((peer_id, False))
+            get_facade().set_connected(peer_id, False)
 
     def GotServiceData(self, peer_id, data):
         """delegate to network"""

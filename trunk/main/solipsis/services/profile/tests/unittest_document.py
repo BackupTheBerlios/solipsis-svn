@@ -17,9 +17,9 @@ from solipsis.services.profile.tests import PROFILE_DIRECTORY, PROFILE_TEST, \
      REPO, PSEUDO, TEST_DIR
 from solipsis.services.profile import ENCODING
 
-def tag_files(document, (dir_path, file_paths, tag)):
+def tag_files(document, dir_path, file_paths, tag):
     for file_path in file_paths:
-        document.tag_file((os.path.join(dir_path, file_path), tag))
+        document.tag_file(os.path.join(dir_path, file_path), tag)
 
 class DocumentTest(unittest.TestCase):
     """test that all fields are correctly validated"""
@@ -97,12 +97,8 @@ class DocumentTest(unittest.TestCase):
         self.assertRaises(NotImplementedError, self.abstract_doc.get_custom_attributes)
         for document in self.documents:
             self.assertRaises(TypeError, document.add_custom_attributes,
-                              "homepage: manu.com")
-            self.assertRaises(TypeError, document.add_custom_attributes,
-                              ("homepage", "manu.com", "yo"))
-            self.assertRaises(TypeError, document.add_custom_attributes,
-                              ("homepage", "manu.com"))
-            document.add_custom_attributes((u"homepage", u"manu.com"))
+                              "homepage", "manu.com")
+            document.add_custom_attributes(u"homepage", u"manu.com")
             self.assertRaises(TypeError, document.remove_custom_attributes,
                               "homepage")
             document.remove_custom_attributes(u"homepage")
@@ -111,7 +107,7 @@ class DocumentTest(unittest.TestCase):
     def test_reset_files(self):
         """reset files"""
         for document in self.documents:
-            document.share_file((abspath("data"), True))
+            document.share_file(abspath("data"), True)
             self.assertEquals(document.get_container(abspath("data"))._shared, True)
             document.reset_files()
             self.assertEquals(document.get_files(), {})
@@ -119,15 +115,14 @@ class DocumentTest(unittest.TestCase):
     def test_recursive_share(self):
         """share dir giving unicode name"""
         for document in self.documents:
-            self.assertRaises(KeyError, document.recursive_share, ("data", True))
-            self.assertRaises(TypeError, document.recursive_share, (abspath(u"data"), True))
-            document.recursive_share((abspath("data"), True))
+            self.assertRaises(KeyError, document.recursive_share, "data", True)
+            self.assertRaises(TypeError, document.recursive_share, abspath(u"data"), True)
+            document.recursive_share(abspath("data"), True)
         
     def test_share_files(self):
         """share files giving root & unicode names"""
         for document in self.documents:
-            document.share_files((abspath("data"), [".path", "routage"], True))
-            document.share_files([abspath("data"), [".path", "routage"], True])
+            document.share_files(abspath("data"), [".path", "routage"], True)
         
     def test_set_container(self):
         path = os.path.join(abspath("data"), "date.txt")
@@ -146,14 +141,14 @@ class DocumentTest(unittest.TestCase):
         for document in self.documents:
             self.assertRaises(TypeError, document.expand_dir, os.path.join(u"data", "dummy"))
             self.assertRaises(TypeError, document.expand_dir, u"data")
-            document.expand_dir((abspath("data")))
+            document.expand_dir(abspath("data"))
 
     def test_get_container(self):
         for document in self.documents:
-            tag_files(document, (abspath(os.path.join("data", "profiles")),
-                               ["bruce.prf", ".svn"], u"first"))
-            document.share_files((abspath(os.path.join("data", "profiles")),
-                                  ["bruce.prf", "demi.prf"], True))
+            tag_files(document, abspath(os.path.join("data", "profiles")),
+                               ["bruce.prf", ".svn"], u"first")
+            document.share_files(abspath(os.path.join("data", "profiles")),
+                                  ["bruce.prf", "demi.prf"], True)
             # check sharing state
             self.assertEquals(document.get_container(
                 abspath(os.sep.join(["data", "profiles", "bruce.prf"])))._shared, True)
@@ -174,7 +169,7 @@ class DocumentTest(unittest.TestCase):
         document.add_repository(REPO)
         document.expand_dir(abspath("data"))
         document.expand_dir(abspath(os.path.join("data", "subdir1")))
-        document.share_files((abspath("data"),
+        document.share_files(abspath("data"),
                               [os.sep.join([REPO, "data", ".path"]),
                                os.sep.join([REPO, "data", ".svn"]),
                                os.sep.join([REPO, "data", "date.txt"]),
@@ -182,8 +177,8 @@ class DocumentTest(unittest.TestCase):
                                os.sep.join([REPO, "data", "profiles"]),
                                os.sep.join([REPO, "data", "subdir1", ".svn"]),
                                os.sep.join([REPO, "data", "subdir1", "subsubdir"])],
-                              False))
-        document.share_files((abspath("data"),
+                              False)
+        document.share_files(abspath("data"),
                               [os.sep.join([REPO, "data"]),
                                os.sep.join([REPO, "data", ".path"]),
                                os.sep.join([REPO, "data", "date.txt"]),
@@ -191,7 +186,7 @@ class DocumentTest(unittest.TestCase):
                                os.sep.join([REPO, "data", "subdir1"]),
                                os.sep.join([REPO, "data", "subdir1", "TOtO.txt"]),
                                os.sep.join([REPO, "data", "subdir1", "date.doc"])],
-                              True))
+                              True)
         shared_files = [file_container.get_path() for file_container
                         in document.get_shared_files()[REPO]]
         shared_files.sort()
@@ -206,11 +201,11 @@ class DocumentTest(unittest.TestCase):
         document = CacheDocument(PROFILE_TEST, PROFILE_DIRECTORY)
         # create 2 repos
         document.add_repository(os.sep.join([REPO, "data", "profiles"]))
-        tag_files(document, (os.sep.join([REPO, "data", "profiles"]), ["bruce.prf", ".svn"], u"first"))
-        document.share_files((os.sep.join([REPO, "data", "profiles"]), ["bruce.prf", "demi.prf"], True))
+        tag_files(document, os.sep.join([REPO, "data", "profiles"]), ["bruce.prf", ".svn"], u"first")
+        document.share_files(os.sep.join([REPO, "data", "profiles"]), ["bruce.prf", "demi.prf"], True)
         document.add_repository(os.sep.join([REPO, "data", "subdir1"]))
-        tag_files(document, (os.sep.join([REPO, "data", "subdir1"]), ["date.doc", ".svn"], u"second"))
-        document.share_files((os.sep.join([REPO, "data", "subdir1"]), ["date.doc", "subsubdir"], True))
+        tag_files(document, os.sep.join([REPO, "data", "subdir1"]), ["date.doc", ".svn"], u"second")
+        document.share_files(os.sep.join([REPO, "data", "subdir1"]), ["date.doc", "subsubdir"], True)
         # check sharing state
         self.assertEquals(document.get_container(
             abspath(os.sep.join(["data", "profiles", "bruce.prf"])))._shared, True)
@@ -234,7 +229,7 @@ class DocumentTest(unittest.TestCase):
         self.assertRaises(NotImplementedError, self.abstract_doc.get_peers)
         self.assertRaises(NotImplementedError, self.abstract_doc.reset_peers)
         document = self.documents[0]
-        document.set_peer((u"nico", PeerDescriptor(PSEUDO)))
+        document.set_peer(u"nico", PeerDescriptor(PSEUDO))
         self.assertEquals(document.has_peer(u"nico"), True)
         document.reset_peers()
         self.assertEquals(document.has_peer(u"nico"), False)
@@ -244,7 +239,7 @@ class DocumentTest(unittest.TestCase):
         """get peer"""
         self.assertRaises(NotImplementedError, self.abstract_doc.get_peer, "nico")
         for document in self.documents:
-            document.set_peer((u"nico", PeerDescriptor(PSEUDO)))
+            document.set_peer(u"nico", PeerDescriptor(PSEUDO))
             peer_desc = self.documents[0].get_peer(u"nico")
             self.assertEquals(peer_desc.pseudo, PSEUDO)
             
@@ -252,7 +247,7 @@ class DocumentTest(unittest.TestCase):
         """remove peer"""
         self.assertRaises(NotImplementedError, self.abstract_doc.remove_peer, "nico")
         for document in self.documents:
-            document.set_peer((u"nico", PeerDescriptor(PSEUDO)))
+            document.set_peer(u"nico", PeerDescriptor(PSEUDO))
             self.assertEquals(document.has_peer(u"nico"), True)
             document.remove_peer(u"nico")
             self.assertEquals(document.has_peer(u"nico"), False)
@@ -263,7 +258,7 @@ class DocumentTest(unittest.TestCase):
             self.assertEquals(document.has_peer(u"emb"), False)
             file_doc = FileDocument(PROFILE_TEST, PROFILE_DIRECTORY)
             file_doc.load()
-            document.fill_data((u"emb", file_doc))
+            document.fill_data(u"emb", file_doc)
     
     def test_peers_status(self):
         """change status"""
@@ -271,7 +266,7 @@ class DocumentTest(unittest.TestCase):
             self.assertRaises(AssertionError, document.make_friend, u"nico")
             self.assertRaises(AssertionError, document.blacklist_peer, u"nico")
             self.assertRaises(AssertionError, document.unmark_peer, u"nico")
-            document.set_peer((u"nico", PeerDescriptor(PROFILE_TEST)))
+            document.set_peer(u"nico", PeerDescriptor(PROFILE_TEST))
             # friend
             document.make_friend(u"nico")
             self.assertEquals(PeerDescriptor.FRIEND,

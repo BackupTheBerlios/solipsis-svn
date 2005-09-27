@@ -1,4 +1,5 @@
-# pylint: disable-msg=W0201
+# pylint: disable-msg=W0131
+# Missing docstring
 #
 # <copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
@@ -50,14 +51,12 @@ class FilePersonalMixin(AbstractPersonalData):
         
     # PERSONAL TAB
     def set_title(self, value):
-        """sets new value for title"""
         AbstractPersonalData.set_firstname(self, value)
         self.config.set(SECTION_PERSONAL, "title",
                         value.encode(self.encoding))
         return value.encode(self.encoding)
     
     def get_title(self):
-        """returns value of title"""
         try:
             return unicode(self.config.get(SECTION_PERSONAL, "title"),
                            self.encoding)
@@ -65,14 +64,12 @@ class FilePersonalMixin(AbstractPersonalData):
             return u""
         
     def set_firstname(self, value):
-        """sets new value for firstname"""
         AbstractPersonalData.set_firstname(self, value)
         self.config.set(SECTION_PERSONAL, "firstname",
                         value.encode(self.encoding))
         return value.encode(self.encoding)
     
     def get_firstname(self):
-        """returns value of firstname"""
         try:
             return unicode(self.config.get(SECTION_PERSONAL, "firstname",
                                            "Emmanuel"), self.encoding)
@@ -80,14 +77,12 @@ class FilePersonalMixin(AbstractPersonalData):
             return u"Name"
 
     def set_lastname(self, value):
-        """sets new value for lastname"""
         AbstractPersonalData.set_lastname(self, value)
         self.config.set(SECTION_PERSONAL, "lastname",
                         value.encode(self.encoding))
         return value.encode(self.encoding)
     
     def get_lastname(self):
-        """returns value of lastname"""
         try:
             return unicode(self.config.get(SECTION_PERSONAL, "lastname"),
                            self.encoding)
@@ -95,14 +90,12 @@ class FilePersonalMixin(AbstractPersonalData):
             return u"Lastname"
 
     def set_photo(self, value):
-        """sets new value for photo"""
         AbstractPersonalData.set_photo(self, value)
         self.config.set(SECTION_PERSONAL, "photo",
                         value.encode(self.encoding))
         return value.encode(self.encoding)
     
     def get_photo(self):
-        """returns value of photo"""
         try:
             photo = unicode(self.config.get(SECTION_PERSONAL, "photo"),
                             self.encoding)
@@ -113,14 +106,12 @@ class FilePersonalMixin(AbstractPersonalData):
         return photo
 
     def set_email(self, value):
-        """sets new value for email"""
         AbstractPersonalData.set_email(self, value)
         self.config.set(SECTION_PERSONAL, "email",
                         value.encode(self.encoding))
         return value.encode(self.encoding)
     
     def get_email(self):
-        """returns value of email"""
         try:
             return unicode(self.config.get(SECTION_PERSONAL, "email"),
                            self.encoding)
@@ -132,20 +123,16 @@ class FilePersonalMixin(AbstractPersonalData):
         """return true if the key exists"""
         return self.config.has_option(SECTION_CUSTOM, key)
         
-    def add_custom_attributes(self, pair):
-        """sets new value for custom_attributes"""
-        AbstractPersonalData.add_custom_attributes(self, pair)
-        key, value = pair
+    def add_custom_attributes(self, key, value):
+        AbstractPersonalData.add_custom_attributes(self, key, value)
         self.config.set(SECTION_CUSTOM, key, value.encode(self.encoding))
 
-    def remove_custom_attributes(self, value):
-        """sets new value for custom_attributes"""
-        AbstractPersonalData.remove_custom_attributes(self, value)
-        if self.config.has_option(SECTION_CUSTOM, value):
-            self.config.remove_option(SECTION_CUSTOM, value)
+    def remove_custom_attributes(self, key):
+        AbstractPersonalData.remove_custom_attributes(self, key)
+        if self.config.has_option(SECTION_CUSTOM, key):
+            self.config.remove_option(SECTION_CUSTOM, key)
 
     def get_custom_attributes(self):
-        """returns value of custom_attributes"""
         result = {}
         try:
             options = self.config.options(SECTION_CUSTOM)
@@ -198,7 +185,9 @@ class FileSharingMixin(AbstractSharingData):
         repos_list = self.get_repositories()
         if repos_list == None:
             print "No repo to set."
-            return 
+            return
+        if not self.config.has_section(SECTION_PERSONAL):
+            self.config.add_section(SECTION_PERSONAL)
         self.config.set(SECTION_PERSONAL, "repositories",
                         ",".join(repos_list))
         
@@ -221,12 +210,13 @@ class FileSharingMixin(AbstractSharingData):
             try:
                 option_description = self.config.get(SECTION_FILE, option)
                 option_share, option_tag = option_description.split(',')
-                option_share =( option_share == SHARED_TAG)
+                option_share = (option_share == SHARED_TAG)
                 if isinstance(option_tag, str):
                     option_tag = unicode(option_tag, ENCODING)
             except (ValueError, ConfigParser.NoSectionError,
                     ConfigParser.NoOptionError):
-                print >> sys.stderr, "option '%s' not well formated"% option_description
+                print >> sys.stderr, "option '%s' not well formated"\
+                      % option_description
                 option_share, option_tag = False, DEFAULT_TAG
             # add container
             try:
@@ -262,7 +252,7 @@ class FileContactMixin(AbstractContactsData):
         self.config.remove_section(SECTION_OTHERS)
         self.config.add_section(SECTION_OTHERS)
         
-    def set_peer(self, (peer_id, peer_desc)):
+    def set_peer(self, peer_id, peer_desc):
         """stores Peer object"""
         self._write_peer(peer_id, peer_desc)
         peer_desc.set_node_id(peer_id)
@@ -340,19 +330,23 @@ class FileContactMixin(AbstractContactsData):
         else:
             self.remove_peer(peer_id)
 
-    def fill_data(self, (peer_id, document)):
+    def fill_data(self, peer_id, document, flag_update=False):
         """stores CacheDocument associated with peer"""
-        peer_desc = AbstractContactsData.fill_data(self, (peer_id, document))
+        peer_desc = AbstractContactsData.fill_data(self, peer_id,
+                                                   document,
+                                                   flag_update)
         if peer_desc.state != PeerDescriptor.ANONYMOUS:
             self._write_peer(peer_id, peer_desc)
 
-    def fill_blog(self, (peer_id, blog)):
+    def fill_blog(self, peer_id, blog, flag_update=False):
         """stores CacheDocument associated with peer"""
-        peer_desc = AbstractContactsData.fill_blog(self, (peer_id, blog))
+        peer_desc = AbstractContactsData.fill_blog(self, peer_id,
+                                                   blog,
+                                                   flag_update)
         if peer_desc.state != PeerDescriptor.ANONYMOUS:
             blog.save()
             
-    def fill_shared_files(self, (peer_id, files)):
+    def fill_shared_files(self, peer_id, files, flag_update=False):
         """connect shared files with shared files"""
         # nothing to do in FileDocuments when receiving files
         pass

@@ -53,7 +53,7 @@ class FacadeTest(unittest.TestCase):
 
     # CUSTOM TAB
     def test_add_custom_attributes(self):
-        self.facade.add_custom_attributes(("key", u"value"))
+        self.facade.add_custom_attributes("key", u"value")
         self.assertEquals({'key': u'value'},
                           self.facade._desc.document.get_custom_attributes())
         self.facade.load()
@@ -66,7 +66,7 @@ class FacadeTest(unittest.TestCase):
     def test_blog(self):
         self.facade.add_blog(u"first blog")
         self.facade.add_blog(u"second blog")
-        self.facade.add_comment((0, u'first comment', 'tony'))
+        self.facade.add_comment(0, u'first comment', 'tony')
         blog = self.facade.get_blog(0)
         self.assertEquals(blog.text, u"first blog")
         self.assertEquals(blog.comments[0].text, u'first comment')
@@ -146,13 +146,13 @@ class FacadeTest(unittest.TestCase):
         self.assertEquals(self.facade._desc.document.get_files()[REPO]
                           [abspath("data/subdir1/subsubdir")]._shared, False)
         # unshare deepest dir
-        self.facade.recursive_share((abspath("data/subdir1/subsubdir"), True))
+        self.facade.recursive_share(abspath("data/subdir1/subsubdir"), True)
         self.assertEquals(self.facade._desc.document.get_files()[REPO]
                           [abspath("data/subdir1/subsubdir")]._shared, True)
         self.assertEquals(self.facade._desc.document.get_files()[REPO]
                           [abspath("data/subdir1")]._shared, False)
         # unshare other dir
-        self.facade.recursive_share((abspath("data"), True))
+        self.facade.recursive_share(abspath("data"), True)
         self.assertEquals(self.facade._desc.document.get_files()[REPO]
                           [abspath("data/subdir1")]._shared, True)
         self.assertEquals(self.facade._desc.document.get_files()[REPO]
@@ -161,32 +161,32 @@ class FacadeTest(unittest.TestCase):
     def test_share_files(self):
         files = self.facade._desc.document.get_files()[REPO]
         self.facade.expand_dir(abspath("data"))
-        self.facade.recursive_share((abspath("data"), False))
+        self.facade.recursive_share(abspath("data"), False)
         self.assertEquals(files[abspath("data/routage")]._shared, False)
         self.assertEquals(files[abspath("data")]._shared, False)
-        self.facade.share_files((abspath("data"),
-                                 ["routage", "subdir1"], True))
+        self.facade.share_files(abspath("data"),
+                                 ["routage", "subdir1"], True)
         self.assertEquals(files[abspath("data/routage")]._shared, True)
         self.assertEquals(files[abspath("data/subdir1")]._shared, True)
         self.assertEquals(files[abspath("data")]._shared, False)
-        self.facade.share_files((abspath("data"),
-                                 ["routage"], False))
+        self.facade.share_files(abspath("data"),
+                                 ["routage"], False)
         self.assertEquals(files[abspath("data/routage")]._shared, False)
 
     # OTHERS TAB
     def test_set_peer(self):
         self.assertEquals(self.facade.has_peer(u"emb"), False)
-        self.facade.set_peer((u"emb", PeerDescriptor(PSEUDO)))
+        self.facade.set_peer(u"emb", PeerDescriptor(PSEUDO))
         self.assertEquals(self.facade.has_peer(u"emb"), True)
         
     def test_fill_data(self):
-        self.facade.fill_data((u"emb", FileDocument(PROFILE_TEST, PROFILE_DIRECTORY)))
+        self.facade.fill_data(u"emb", FileDocument(PROFILE_TEST, PROFILE_DIRECTORY))
         self.assert_(self.facade.get_peer(u"emb").document)
         self.facade.remove_peer(u"emb")
         self.assertEquals(self.facade.has_peer(u"emb"), False)
     
     def test_status(self):
-        self.facade.set_peer((u"emb", PeerDescriptor(PSEUDO)))
+        self.facade.set_peer(u"emb", PeerDescriptor(PSEUDO))
         self.facade.make_friend(u"emb")
         self.assertEquals(self.facade.get_peer(u"emb").state,
                           PeerDescriptor.FRIEND)
@@ -204,10 +204,10 @@ class FacadeTest(unittest.TestCase):
         document = FileDocument(PROFILE_TEST, PROFILE_DIRECTORY)
         document.load()
         peer_desc = PeerDescriptor(PROFILE_TEST, document=document)
-        self.facade.fill_data((PROFILE_TEST, peer_desc))
-        filter_facade.set_peer((PROFILE_TEST, peer_desc))
+        self.facade.fill_data(PROFILE_TEST, peer_desc)
+        filter_facade.set_peer(PROFILE_TEST, peer_desc)
         filter_facade._activated = False
-        filter_facade.set_peer((PROFILE_TEST, peer_desc))
+        filter_facade.set_peer(PROFILE_TEST, peer_desc)
 
 class HighLevelTest(unittest.TestCase):
 
@@ -230,7 +230,7 @@ class HighLevelTest(unittest.TestCase):
         
     def test_get_blog_file(self):
         self.facade.add_blog(u"other one")
-        self.facade.add_comment((2, u"whaou", "manu"))
+        self.facade.add_comment(2, u"whaou", "manu")
         blog_pickle = self.facade.get_blog_file()
         blog = pickle.loads(blog_pickle.read())
         self.assertEquals(blog.blogs[0].text, u"first blog")

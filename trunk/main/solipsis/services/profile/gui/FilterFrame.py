@@ -106,8 +106,8 @@ class FilterFrame(wx.Frame):
             loader = FileDocument(path)
             loader.load()
             pseudo = loader.pseudo
-            get_facade().fill_data((pseudo, loader))
-            get_filter_facade().fill_data((pseudo, loader))
+            get_facade().fill_data(pseudo, loader)
+            get_filter_facade().fill_data(pseudo, loader)
         
     def on_save(self, evt):
         """save .prf"""

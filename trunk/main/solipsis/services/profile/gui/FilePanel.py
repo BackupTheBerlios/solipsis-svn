@@ -145,7 +145,7 @@ class FilePanel(wx.Panel):
             # path chosen
             path = dlg.GetPath()
             get_facade().add_repository(path)
-            get_facade().recursive_share((path, True))
+            get_facade().recursive_share(path, True)
         dlg.Destroy()
         
     def on_remove(self, evt):
@@ -371,7 +371,7 @@ class SelectedListState(FilePanelState):
         dir_name = self.owner.tree_list.GetItemText(self.owner.tree_list.GetSelection(), FULL_PATH_COL)
         file_names = [self.owner.dir_list.GetItemText(item)
                       for item in self.owner._get_selected_listitems()]
-        get_facade().share_files((dir_name, file_names, True))
+        get_facade().share_files(dir_name, file_names, True)
         self.owner.do_modified(True)
         
     def on_unshare(self, evt):
@@ -379,7 +379,7 @@ class SelectedListState(FilePanelState):
         dir_name = self.owner.tree_list.GetItemText(self.owner.tree_list.GetSelection(), FULL_PATH_COL)
         file_names = [self.owner.dir_list.GetItemText(item)
                       for item in self.owner._get_selected_listitems()]
-        get_facade().share_files((dir_name, file_names, False))
+        get_facade().share_files(dir_name, file_names, False)
         self.owner.do_modified(True)
         
     def on_tag(self, evt):
@@ -389,7 +389,7 @@ class SelectedListState(FilePanelState):
                       for item in self.owner._get_selected_listitems()]
         tag_value = self.owner.tag_value.GetValue()
         for file_name in file_names:
-            get_facade().tag_file((file_name, tag_value))
+            get_facade().tag_file(file_name, tag_value)
         self.owner.do_modified(True)
 
 class SelectedTreeState(FilePanelState):
@@ -400,19 +400,19 @@ class SelectedTreeState(FilePanelState):
     def on_share(self, evt):
         """share all files in directory"""
         for selection in self.get_selection():
-            get_facade().recursive_share((selection, True))
+            get_facade().recursive_share(selection, True)
         self.owner.do_modified(True)
         
     def on_unshare(self, evt):
         """share all files in directory"""
         for selection in self.get_selection():
-            get_facade().recursive_share((selection, False))
+            get_facade().recursive_share(selection, False)
         self.owner.do_modified(True)
         
     def on_tag(self, evt):
         """tag selected files or directory"""
         for selection in self.get_selection():
-            get_facade().tag_file((selection, self.owner.tag_value.GetValue()))
+            get_facade().tag_file(selection, self.owner.tag_value.GetValue())
         self.owner.do_modified(True)
 
     def get_selection(self):

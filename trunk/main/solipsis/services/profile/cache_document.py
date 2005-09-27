@@ -1,4 +1,5 @@
-# pylint: disable-msg=W0201
+# pylint: disable-msg=W0131
+# Missing docstring
 #
 # <copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
@@ -22,7 +23,6 @@
 gathared in views.py. Documents are to be seen as completely
 independant from views"""
 
-import os.path
 from solipsis.services.profile import QUESTION_MARK, ENCODING
 from solipsis.services.profile.prefs import get_prefs
 from solipsis.services.profile.document import SaverMixin, \
@@ -42,80 +42,66 @@ class CachePersonalMixin(AbstractPersonalData):
         AbstractPersonalData.__init__(self)
         
     # PERSONAL TAB
-    def set_title(self, value):
-        """sets new value for title"""
-        if AbstractPersonalData.set_title(self, value) is False:
+    def set_title(self, title):
+        if AbstractPersonalData.set_title(self, title) is False:
             return False
-        self.title = value
+        self.title = title
         return self.title
     
     def get_title(self):
-        """returns value of title"""
         return self.title
         
-    def set_firstname(self, value):
+    def set_firstname(self, firstname):
         """sets new value for firstname"""
-        if AbstractPersonalData.set_firstname(self, value) is False:
+        if AbstractPersonalData.set_firstname(self, firstname) is False:
             return False
-        self.firstname = value
+        self.firstname = firstname
         return self.firstname
     
     def get_firstname(self):
-        """returns value of firstname"""
         return self.firstname
 
-    def set_lastname(self, value):
-        """sets new value for lastname"""
-        if AbstractPersonalData.set_lastname(self, value) is False:
+    def set_lastname(self, lastname):
+        if AbstractPersonalData.set_lastname(self, lastname) is False:
             return False
-        self.lastname = value
+        self.lastname = lastname
         return self.lastname
     
     def get_lastname(self):
-        """returns value of lastname"""
         return self.lastname
 
-    def set_photo(self, value):
-        """sets new value for photo"""
-        if AbstractPersonalData.set_photo(self, value) is False:
+    def set_photo(self, path):
+        if AbstractPersonalData.set_photo(self, path) is False:
             return False
-        self.photo = value
+        self.photo = path
         return self.photo
     
     def get_photo(self):
-        """returns value of photo"""
         return self.photo
 
-    def set_email(self, value):
-        """sets new value for email"""
-        if AbstractPersonalData.set_email(self, value) is False:
+    def set_email(self, email):
+        if AbstractPersonalData.set_email(self, email) is False:
             return False
-        self.email = value
+        self.email = email
         return self.email
     
     def get_email(self):
-        """returns value of email"""
         return self.email
 
     # CUSTOM TAB
     def has_custom_attribute(self, key):
-        """return true if the key exists"""
         return self.custom_attributes.has_key(key)
     
-    def add_custom_attributes(self, pair):
-        """sets new value for custom_attributes"""
-        AbstractPersonalData.add_custom_attributes(self, pair)
-        key, value = pair
+    def add_custom_attributes(self, key, value):
+        AbstractPersonalData.add_custom_attributes(self, key, value)
         self.custom_attributes[key] = value
         
-    def remove_custom_attributes(self, value):
-        """sets new value for custom_attributes"""
-        AbstractPersonalData.remove_custom_attributes(self, value)
-        if self.custom_attributes.has_key(value):
-            del self.custom_attributes[value]
+    def remove_custom_attributes(self, key):
+        AbstractPersonalData.remove_custom_attributes(self, key)
+        if self.custom_attributes.has_key(key):
+            del self.custom_attributes[key]
             
     def get_custom_attributes(self):
-        """returns value of custom_attributes"""
         return self.custom_attributes
 
 class CacheSharingMixin(AbstractSharingData):
@@ -137,26 +123,21 @@ class CacheContactMixin(AbstractContactsData):
         """empty all information concerning peers"""
         self.peers = {}
         
-    def set_peer(self, (peer_id, peer_desc)):
-        """stores Peer object"""
+    def set_peer(self, peer_id, peer_desc):
         self.peers[peer_id] = peer_desc
         peer_desc.set_node_id(peer_id)
         
     def remove_peer(self, peer_id):
-        """del Peer object"""
         if self.peers.has_key(peer_id):
             del self.peers[peer_id]
 
     def has_peer(self, peer_id):
-        """checks peer exists"""
         return self.peers.has_key(peer_id)
     
     def get_peer(self, peer_id):
-        """returns Peer with given id"""
         return self.peers[peer_id]
     
     def get_peers(self):
-        """returns Peers"""
         return self.peers
 
 class CacheDocument(CachePersonalMixin, CacheSharingMixin,

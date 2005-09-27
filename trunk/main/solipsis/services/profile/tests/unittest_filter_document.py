@@ -48,7 +48,7 @@ class MatchTest(unittest.TestCase):
         # peer
         peer_document = FileDocument(PROFILE_TEST, PROFILE_DIRECTORY)
         peer_document.load()
-        peer_document.share_files((REPO, [os.path.join("data", "date.txt"), os.path.join("data", "subdir1")], True))
+        peer_document.share_files(REPO, [os.path.join("data", "date.txt"), os.path.join("data", "subdir1")], True)
         self.peer_desc = PeerDescriptor(PROFILE_TEST, document=peer_document)
         # filter
         self.document = FilterDocument(PROFILE_TEST, PROFILE_DIRECTORY)
@@ -72,7 +72,7 @@ class MatchTest(unittest.TestCase):
 
     def test_files(self):
         # add filter for dummy.txt
-        self.document.add_repository((u'Any', FilterValue(value=u'.*\..*', activate=True)))
+        self.document.add_repository(u'Any', FilterValue(value=u'.*\..*', activate=True))
         match = PeerMatch(self.peer_desc, self.document)
         match_files = [file_container.match for file_container in match.files[u'Any']]
         match_files.sort()
@@ -87,9 +87,9 @@ def write_test_filter():
     document.set_photo(FilterValue(value=QUESTION_MARK(), activate=False))
     document.set_email(FilterValue(value=u"manu@ft.com", activate=False))
     # set custom interests, working if IGNORECASE set
-    document.add_custom_attributes((u'color', FilterValue(value=u'BLUE', activate=True)))
+    document.add_custom_attributes(u'color', FilterValue(value=u'BLUE', activate=True))
     # set files
-    document.add_repository((u'MP3', FilterValue(value=u'.*\.mp3$', activate=True)))
+    document.add_repository(u'MP3', FilterValue(value=u'.*\.mp3$', activate=True))
     # write file
     document.save()
     
@@ -140,7 +140,7 @@ class FilterTest(unittest.TestCase):
         self.assertEquals(self.document.get_custom_attributes()[u'color']._name, 'color')
         self.assertEquals(self.document.get_custom_attributes()[u'color'].description, 'BLUE')
         self.assertEquals(self.document.get_custom_attributes()[u'color'].activated, True)
-        self.document.add_custom_attributes((u'color', FilterValue(value=u'blue', activate=False)))
+        self.document.add_custom_attributes(u'color', FilterValue(value=u'blue', activate=False))
         self.assertEquals(self.document.get_custom_attributes()[u'color'].activated, False)
         customs = self.document.remove_custom_attributes(u'color')
         self.assertEquals(self.document.has_custom_attribute(u'color'), False)

@@ -1,5 +1,5 @@
-# pylint: disable-msg=W0201
-# -> Attribute '%s' defined outside __init__
+# pylint: disable-msg=W0131,W0201
+# Missing docstring, Attribute '%s' defined outside __init__
 #
 # <copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
@@ -92,13 +92,11 @@ class PeerMatch:
     """contains all matches for given peer"""
 
     def __init__(self, peer_desc, filter_doc=None):
-        """contain result of matching a peer_desc with filters"""
         self.peer_desc = peer_desc
         self.reset()
         self.match(filter_doc)
 
     def reset(self):
-        """reset all matches"""
         self.title = False
         self.firstname = False
         self.lastname = False
@@ -183,67 +181,55 @@ class FilterPersonalMixin(AbstractPersonalData):
         
     # PERSONAL TAB
     def set_title(self, filter_value):
-        """sets new value for title"""
         if self.title == filter_value:
             return False
         else:
             return self._set(self.title, filter_value)
     
     def get_title(self):
-        """returns value of title"""
         return self.title
         
     def set_firstname(self, filter_value):
-        """sets new value for firstname"""
         if self.firstname == filter_value:
             return False
         else:
             return self._set(self.firstname, filter_value)
     
     def get_firstname(self):
-        """returns value of firstname"""
         return self.firstname
 
     def set_lastname(self, filter_value):
-        """sets new value for lastname"""
         if self.lastname == filter_value:
             return False
         else:
             return self._set(self.lastname, filter_value)
     
     def get_lastname(self):
-        """returns value of lastname"""
         return self.lastname
 
     def set_photo(self, filter_value):
-        """sets new value for photo"""
         if self.photo == filter_value:
             return False
         else:
             return self._set(self.photo, filter_value)
     
     def get_photo(self):
-        """returns value of photo"""
         return self.photo
 
     def set_email(self, filter_value):
-        """sets new value for email"""
         if self.email == filter_value:
             return False
         else:
             return self._set(self.email, filter_value)
     
     def get_email(self):
-        """returns value of email"""
         return self.email
     
     # CUSTOM TAB
     def has_custom_attribute(self, key):
-        """return true if the key exists"""
         return self.custom_attributes.has_key(key)
     
-    def add_custom_attributes(self, (key, filter_value)):
-        """sets new value for custom_attributes"""
+    def add_custom_attributes(self, key, filter_value):
         value, activate = filter_value.description, filter_value.activated
         self.config.set(SECTION_CUSTOM, key, ",".join((str(activate), value)))
         if not self.has_custom_attribute(key):
@@ -251,15 +237,13 @@ class FilterPersonalMixin(AbstractPersonalData):
         else:
             self.custom_attributes[key].set_value(value, activate)
         
-    def remove_custom_attributes(self, value):
-        """sets new value for custom_attributes"""
-        AbstractPersonalData.remove_custom_attributes(self, value)
-        if self.custom_attributes.has_key(value):
-            self.config.remove_option(SECTION_CUSTOM, value)
-            del self.custom_attributes[value]
+    def remove_custom_attributes(self, key):
+        AbstractPersonalData.remove_custom_attributes(self, key)
+        if self.custom_attributes.has_key(key):
+            self.config.remove_option(SECTION_CUSTOM, key)
+            del self.custom_attributes[key]
             
     def get_custom_attributes(self):
-        """returns value of custom_attributes"""
         return self.custom_attributes
 
 class FilterSharingMixin:
@@ -279,17 +263,15 @@ class FilterSharingMixin:
         try:
             file_filters = other_document.get_files()
             for key, val in file_filters.iteritems():
-                self.add_repository((key, val))
+                self.add_repository(key, val)
         except TypeError, error:
             print error, "Using default values for personal data"
         
     # FILE TAB
     def has_file(self, key):
-        """return true if the key exists"""
         return self.file_filters.has_key(key)
     
-    def add_repository(self, (key, filter_value)):
-        """sets new value for files"""
+    def add_repository(self, key, filter_value):
         value, activate = filter_value.description, filter_value.activated
         self.config.set(SECTION_FILE, key, ",".join((str(activate), value)))
         if not self.has_file(key):
@@ -298,13 +280,11 @@ class FilterSharingMixin:
             self.file_filters[key].set_value(value, activate)
         
     def del_repository(self, value):
-        """sets new value for files"""
         if self.file_filters.has_key(value):
             self.config.remove_option(SECTION_FILE, value)
             del self.file_filters[value]
             
     def get_files(self):
-        """returns value of files"""
         return self.file_filters
 
 class FilterContactMixin(CacheContactMixin):
@@ -313,8 +293,7 @@ class FilterContactMixin(CacheContactMixin):
     def __init__(self):
         CacheContactMixin.__init__(self)
         
-    def set_peer(self, (peer_id, peer_desc)):
-        """stores Peer object"""
+    def set_peer(self, peer_id, peer_desc):
         peer_desc.set_node_id(peer_id)
         peer_match = PeerMatch(peer_desc)
         self.peers[peer_id] = peer_match
@@ -373,7 +352,7 @@ class FilterSaverMixin(SaverMixin):
             filter_value = FilterValue(
                 value = unicode(description, self.encoding),
                 activate = activate == "True")
-            self.add_custom_attributes((custom_option, filter_value))
+            self.add_custom_attributes(custom_option, filter_value)
         # sync files
         for file_option in self.config.options(SECTION_FILE):
             activate, description = self.config.get(
@@ -381,7 +360,7 @@ class FilterSaverMixin(SaverMixin):
             filter_value = FilterValue(
                 value = unicode(description, self.encoding),
                 activate = activate == "True")
-            self.add_repository((file_option, filter_value))
+            self.add_repository(file_option, filter_value)
 
     def to_stream(self):
         """returns a file object containing values"""
@@ -417,12 +396,10 @@ class FilterDocument(FilterPersonalMixin, FilterSharingMixin,
         FilterContactMixin.import_document(self, other_document)
         
     def set_filtered_pseudo(self, filter_value):
-        """sets new value for title"""
         if self.filtered_pseudo == filter_value:
             return False
         else:
             return self._set(self.filtered_pseudo, filter_value)
     
     def get_filtered_pseudo(self):
-        """returns value of title"""
         return self.filtered_pseudo

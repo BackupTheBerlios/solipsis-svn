@@ -86,7 +86,7 @@ class PersonalFilterPanel(wx.Panel):
             # update cache, facade will refresh window (through FilterView)
             filter_value = FilterValue(value=self.p_filter_value.GetValue(),
                                        activate=True)
-            get_filter_facade().add_custom_attributes((self.p_key_value.GetValue(), filter_value))
+            get_filter_facade().add_custom_attributes(self.p_key_value.GetValue(), filter_value)
             self.do_modified(True)
         except Exception:
             self._regex_not_valid("attribute", self.p_filter_value.GetValue())

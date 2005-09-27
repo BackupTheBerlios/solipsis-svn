@@ -25,7 +25,7 @@ from StringIO import StringIO
 from solipsis.services.profile import ENCODING
 from solipsis.services.profile.prefs import get_prefs
 from solipsis.services.profile.view import HtmlView
-from solipsis.services.profile.data import PeerDescriptor, Blogs
+from solipsis.services.profile.data import PeerDescriptor
 from solipsis.services.profile.simple_facade import SimpleFacade
 from solipsis.services.profile.filter_document import FilterDocument
 
@@ -69,11 +69,17 @@ class FilterFacade(SimpleFacade):
         self._desc = PeerDescriptor(pseudo,
                                     document=FilterDocument(pseudo, directory))
     
-    def change_pseudo(self, value):
+    def change_pseudo(self, pseudo):
         """sets peer as friend """
-        return self._try_change(value,
-                                "set_filtered_pseudo",
-                                "update_pseudo")
+        return self._try_change("set_filtered_pseudo",
+                                "update_pseudo",
+                                pseudo)
+    
+    def add_repository(self, key, filter_value):
+        """sets new value for repositor"""
+        return self._try_change("add_repository",
+                                "update_files",
+                                key, filter_value)
 
 class Facade(SimpleFacade):
     """manages user's actions & connects document and view"""
@@ -103,7 +109,7 @@ class Facade(SimpleFacade):
         self._desc.blog.remove_blog(index, self._desc.pseudo)
         self.update_blogs()
         
-    def add_comment(self, (index, text, author)):
+    def add_comment(self, index, text, author):
         """store blog in cache as wx.HtmlListBox is virtual.
         return comment's index"""
         self._desc.blog.add_comment(index, text, author)
@@ -141,9 +147,9 @@ class Facade(SimpleFacade):
             name = name.encode(ENCODING)
         return self._desc.document.get_container(name)
 
-    def set_data(self, (peer_id, document), flag_update=True):
+    def set_data(self, peer_id, document, flag_update=True):
         """sets peer as friend """
-        self._desc.document.fill_data((peer_id, document), flag_update)
+        self._desc.document.fill_data(peer_id, document, flag_update)
     
     # MENU
     def export_profile(self, path):
@@ -171,79 +177,79 @@ class Facade(SimpleFacade):
     def expand_dir(self, path):
         """update doc when dir expanded"""
         path = path.encode(ENCODING)
-        return self._try_change(path,
-                               "expand_dir",
-                               "update_files")
+        return self._try_change("expand_dir",
+                                "update_files",
+                                path)
         
     def expand_children(self, path):
         """update doc when dir expanded"""
         path = path.encode(ENCODING)
-        return self._try_change(path,
-                               "expand_children",
-                               "update_files")
+        return self._try_change("expand_children",
+                               "update_files",
+                                path)
     
-    def recursive_share(self, (path, share)):
+    def recursive_share(self, path, share):
         """forward command to cache"""
         path = path.encode(ENCODING)
-        return self._try_change((path, share),
-                               "recursive_share",
-                               "update_files")
+        return self._try_change("recursive_share",
+                                "update_files",
+                                path, share)
 
-    def share_files(self, (path, names, share)):
+    def share_files(self, path, names, share):
         """forward command to cache"""
         path = path.encode(ENCODING)
         names = [name.encode(ENCODING) for name in names]
-        return self._try_change((path, names, share),
-                               "share_files",
-                               "update_files")
+        return self._try_change("share_files",
+                                "update_files",
+                                path, names, share)
 
-    def share_file(self, (path, share)):
+    def share_file(self, path, share):
         """forward command to cache"""
         path = path.encode(ENCODING)
-        return self._try_change((path, share),
-                               "share_file",
-                               "update_files")
+        return self._try_change("share_file",
+                                "update_files",
+                                path, share)
 
-    def tag_file(self, (path, tag)):
+    def tag_file(self, path, tag):
         """forward command to cache"""
         path = path.encode(ENCODING)
-        return self._try_change((path, tag),
-                               "tag_file",
-                               "update_files")
+        return self._try_change("tag_file",
+                                "update_files",
+                                path, tag)
 
     # OTHERS TAB    
-    def set_connected(self, (peer_id, connected)):
+    def set_connected(self, peer_id, connected):
         """change connected status of given peer and updates views"""
-        return self._try_change((peer_id, connected),
-                                "set_connected",
-                                "update_peers")
+        return self._try_change("set_connected",
+                                "update_peers",
+                                peer_id, connected)
 
-    def fill_blog(self, (peer_id, blog)):
+    def fill_blog(self, peer_id, blog):
         """sets peer as friend """
-        return self._try_change((peer_id, blog),
-                                "fill_blog",
-                                "update_blogs")
+        return self._try_change("fill_blog",
+                                "update_blogs",
+                                peer_id, blog)
     
-    def fill_shared_files(self, (peer_id, files)):
+    def fill_shared_files(self, peer_id, files):
         """sets peer as friend """
-        return self._try_change((peer_id, files),
-                                "fill_shared_files",
-                                "update_files")
+        return self._try_change("fill_shared_files",
+                                "update_files",
+                                peer_id, files)
 
     def make_friend(self, peer_id):
         """sets peer as friend """
-        return self._try_change(peer_id,
-                               "make_friend",
-                               "update_peers")
+        return self._try_change("make_friend",
+                                "update_peers",
+                                peer_id)
 
     def blacklist_peer(self, peer_id):
         """black list peer"""
-        return self._try_change(peer_id,
-                               "blacklist_peer",
-                               "update_peers")
+        return self._try_change("blacklist_peer",
+                                "update_peers",
+                                peer_id)
 
     def unmark_peer(self, peer_id):
         """black list peer"""
-        return self._try_change(peer_id,
-                               "unmark_peer",
-                               "update_peers")
+        return self._try_change("unmark_peer",
+                                "update_peers",
+                                peer_id)

@@ -38,7 +38,7 @@ class ProfileTest(unittest.TestCase):
 
     def test_peer_status(self):
         self.assertEquals(self.demi_doc.has_peer(self.bruce_doc.pseudo), False)
-        self.demi_doc.fill_data((self.bruce_doc.pseudo, self.bruce_doc))
+        self.demi_doc.fill_data(self.bruce_doc.pseudo, self.bruce_doc)
         self.assertEquals(self.demi_doc.has_peer(self.bruce_doc.pseudo), True)
         self.demi_doc.make_friend(self.bruce_doc.pseudo)
         self.assertEquals(self.demi_doc.has_peer(self.bruce_doc.pseudo), True)
