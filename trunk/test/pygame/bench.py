@@ -18,8 +18,7 @@ def time_function(func, n=100):
     print "%f s." % dt
 
 
-# image_path = "ball.gif"
-image_path = "toucan.png"
+image_path = len(sys.argv) > 1 and sys.argv[1] or "toucan.png"
 sizes = [(400, 300), (640, 480)]
 
 
@@ -56,7 +55,7 @@ pil_image = pil_image.convert('RGBA')
 wx_bitmap = wx.Bitmap(image_path)
 
 for size in sizes:
-    print "... %s ..." % (size,)
+    print "... %s bitmap to a %s surface..." % (pil_image.size, size, )
     pygame.display.set_mode(size)
 
     # pygame
@@ -76,7 +75,7 @@ for size in sizes:
 
     time_function(pygame_draw_ball, 1e4)
     time_function(pil_draw_ball, 1e3)
-    time_function(wx_draw_ball, 1e3)
+    time_function(wx_draw_ball, 3e3)
     time_function(pil_to_raw, 1e3)
     time_function(raw_to_wx, 1e2)
 
