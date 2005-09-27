@@ -141,9 +141,9 @@ class Facade(SimpleFacade):
             name = name.encode(ENCODING)
         return self._desc.document.get_container(name)
 
-    def set_data(self, (peer_id, document)):
+    def set_data(self, (peer_id, document), flag_update=True):
         """sets peer as friend """
-        self._desc.document.fill_data((peer_id, document))
+        self._desc.document.fill_data((peer_id, document), flag_update)
     
     # MENU
     def export_profile(self, path):

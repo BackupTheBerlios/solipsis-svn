@@ -433,7 +433,7 @@ class AbstractContactsData:
         peer_desc.state = status
         return peer_desc
 
-    def fill_data(self, (peer_id, document)):
+    def fill_data(self, (peer_id, document), flag_update=True):
         """stores CacheDocument associated with peer"""
         # set peer_desc
         if not self.has_peer(peer_id):
@@ -443,10 +443,13 @@ class AbstractContactsData:
             peer_desc = self.get_peer(peer_id)
         # set data
         peer_desc.set_document(document)
-        self.last_downloaded_desc = peer_desc
+        if flag_update:
+            self.last_downloaded_desc = peer_desc
+        else:
+            self.reset_last_downloaded_desc()
         return peer_desc
 
-    def fill_blog(self, (peer_id, blog)):
+    def fill_blog(self, (peer_id, blog), flag_update=True):
         """stores CacheDocument associated with peer"""
         blog = retro_compatibility(blog)
         if not isinstance(blog, Blogs):
@@ -459,10 +462,13 @@ class AbstractContactsData:
             peer_desc = self.get_peer(peer_id)
         # set blog
         peer_desc.set_blog(blog)
-        self.last_downloaded_desc = peer_desc
+        if flag_update:
+            self.last_downloaded_desc = peer_desc
+        else:
+            self.reset_last_downloaded_desc()
         return peer_desc
             
-    def fill_shared_files(self, (peer_id, files)):
+    def fill_shared_files(self, (peer_id, files), flag_update=True):
         """connect shared files with shared files"""
         if not isinstance(files, SharedFiles):
             raise TypeError("data expected as SharedFiles")
@@ -477,7 +483,10 @@ class AbstractContactsData:
         # set files
         for file_container in files.flatten():
             peer_desc.document.set_container(file_container)
-        self.last_downloaded_desc = peer_desc
+        if flag_update:
+            self.last_downloaded_desc = peer_desc
+        else:
+            self.reset_last_downloaded_desc()
         return peer_desc
 
 class SaverMixin:

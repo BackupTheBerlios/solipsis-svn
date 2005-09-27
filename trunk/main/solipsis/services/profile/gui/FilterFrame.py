@@ -70,7 +70,7 @@ class FilterFrame(wx.Frame):
 
     def on_change_facade(self):
         """called when user changes identity (facade chanegd)"""
-        get_filter_facade().activate(self.activate_item.IsChecked())
+        get_filter_facade()._activated = self.activate_item.IsChecked()
         
     # EVENTS
     
@@ -91,7 +91,7 @@ class FilterFrame(wx.Frame):
         """activate service"""
         print self.activate_item.IsChecked() and "Activating..." \
               or "Disactivated"
-        get_filter_facade().activate(self.activate_item.IsChecked())
+        get_filter_facade()._activated = self.activate_item.IsChecked()
 
     def on_import(self, evt):
         """match current filter with given profile"""

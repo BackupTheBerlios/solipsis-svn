@@ -23,7 +23,6 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
         self.data = {}
         self.plugin = plugin
         self.peer_desc = None
-        self.active = False
         args = (parent, id)
         # begin wxGlade: FileDialog.__init__
         kwds["style"] = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.THICK_FRAME
@@ -47,9 +46,6 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
         self.peerfiles_list.SetColumnWidth(TAG_COL, wx.LIST_AUTOSIZE_USEHEADER)
         self.bind_controls()
 
-    def activate(self):
-        self.active = True
-
     # EVENTS
     
     def bind_controls(self):
@@ -61,7 +57,6 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
 
     def on_close(self, evt):
         """hiding instead of closing"""
-        self.active = False
         wx.Dialog.Show(self, False)
         evt.Skip()
 
@@ -138,11 +133,7 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
         """overrides Show, files is {repos: {names:tags}, }"""
         if do_show:
             self.refresh(files)
-            if self.active:
-                wx.Dialog.Show(self, True)
-        else:
-            self.active = False
-            wx.Dialog.Show(self, False)
+        wx.Dialog.Show(self, do_show)
 
     def SetTitle(self, title=None):
         if not title:

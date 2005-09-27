@@ -31,7 +31,7 @@ class ValueTest(unittest.TestCase):
         self.title.set_value(".*men.?")
         self.assertEquals(self.title.does_match("Good Omens").get_match(), "Good Omens")
         self.assertEquals(self.title.does_match("women").get_match(), "women")
-        self.title.activate(False)
+        self.title.activated = False
         self.assertEquals(self.title.does_match("Good Omens"), False)
         self.assertEquals(self.title.does_match("women"), False)
 
@@ -66,7 +66,7 @@ class MatchTest(unittest.TestCase):
 
     def test_activated(self):
         # activate
-        self.document.get_email().activate()
+        self.document.get_email().activated = True
         match = PeerMatch(self.peer_desc, self.document)
         self.assertEquals(match.email.get_match(), u'manu@ft.com')
 

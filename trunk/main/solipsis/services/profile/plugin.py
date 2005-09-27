@@ -129,7 +129,7 @@ class Plugin(ServicePlugin):
                 wx.YES_NO | wx.ICON_INFORMATION)
             if dlg.ShowModal() == wx.ID_YES:
                 get_filter_facade()._desc.save()
-        self._activated = False
+        self.activate(False)
 
     def activate(self, active=True):
         """eable/disable service"""
@@ -193,23 +193,16 @@ class Plugin(ServicePlugin):
     # callbacks methods
     def _on_new_profile(self, document, peer_id):
         """store and display file object corresponding to profile"""
-        if self.viewer_frame:
-            self.viewer_frame.profile_dlg._activated = True
-            self.viewer_frame.profile_dlg.Show()
         get_facade().fill_data((peer_id, document))
         return str(document)
             
     def _on_new_blog(self, blog, peer_id):
         """store and display file object corresponding to blog"""
-        if self.viewer_frame:
-            self.viewer_frame.peer_dlg._activated = True
         get_facade().fill_blog((peer_id, blog))
         return str(blog)
     
     def _on_shared_files(self, files, peer_id):
         """store and display file object corresponding to blog"""
-        if self.viewer_frame:
-            self.viewer_frame.file_dlg._activated = True
         get_facade().fill_shared_files((peer_id, files))
         return str(files)
     

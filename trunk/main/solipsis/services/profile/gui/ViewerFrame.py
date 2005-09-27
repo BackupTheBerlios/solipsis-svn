@@ -87,9 +87,6 @@ class ViewerFrame(wx.Frame):
         if self.options["standalone"]:
             self.import_item = wx.MenuItem(self.action_item, wx.NewId(), _("Import...\tCtrl+I"), _("Load a profile and add it in contact list"), wx.ITEM_NORMAL)
             self.action_item.AppendItem(self.import_item)
-            self.profile_dlg._activated = True
-            self.peer_dlg._activated = True
-            self.file_dlg._activated = True
         self.bind_controls()
 
     def on_change_facade(self):

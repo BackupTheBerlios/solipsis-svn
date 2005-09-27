@@ -57,10 +57,6 @@ class FilterValue:
         self.description = value
         self.regex = re.compile(value, re.IGNORECASE)
         self.activated = activate
-
-    def activate(self, activate=True):
-        """change state"""
-        self.activated = activate
         
     def does_match(self, data):
         """apply regex on data and returns self if there is any match"""

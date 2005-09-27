@@ -15,7 +15,6 @@ class ProfileDialog(wx.Dialog, UIProxyReceiver):
     def __init__(self, parent, id, plugin=None, **kwds):
         UIProxyReceiver.__init__(self)
         self.plugin = plugin
-        self.active = False
         args = (parent, id)
         # begin wxGlade: ProfileDialog.__init__
         kwds["style"] = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.THICK_FRAME
@@ -28,18 +27,13 @@ class ProfileDialog(wx.Dialog, UIProxyReceiver):
         
         self.Bind(wx.EVT_CLOSE, self.on_close)
 
-    def activate(self):
-        self.active = True
-
     def Show(self, peer_desc=None, do_show=True):
         """overrides Show, files is {repos: {names:tags}, }"""
         if do_show:
             if peer_desc:
                 self.set_page(peer_desc)
-            if self.active:
                 wx.Dialog.Show(self, True)
         else:
-            self.active = False
             wx.Dialog.Show(self, False)
         
     def set_page(self, peer_desc):
@@ -55,7 +49,6 @@ class ProfileDialog(wx.Dialog, UIProxyReceiver):
 
     def on_close(self, evt):
         """hiding instead of closing"""
-        self.active = False
         wx.Dialog.Show(self, False)
         evt.Skip()
     

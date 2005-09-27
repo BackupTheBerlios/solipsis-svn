@@ -62,7 +62,6 @@ class BlogDialog(wx.Dialog, UIProxyReceiver):
     def __init__(self, parent, id, plugin=None, **kwds):
         UIProxyReceiver.__init__(self)
         self.peer_desc = None
-        self.active = False
         args = (parent, id)
         # begin wxGlade: BlogDialog.__init__
         kwds["style"] = wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER|wx.THICK_FRAME
@@ -82,19 +81,12 @@ class BlogDialog(wx.Dialog, UIProxyReceiver):
         self.plugin = plugin
         self.bind_controls()
 
-    def activate(self):
-        self.active = True
-
     def Show(self, blog, do_show=True):
         """overrides Show"""
         if do_show:
             self.peerblog_list.blog = blog
             self.peerblog_list.refresh()
-            if self.active:
-                wx.Dialog.Show(self, True)
-        else:
-            self.active = False
-            wx.Dialog.Show(self, False)
+        wx.Dialog.Show(self, do_show)
 
     def SetTitle(self, peer_desc=None):
         if isinstance(peer_desc, unicode) or isinstance(peer_desc, str):
@@ -128,7 +120,6 @@ class BlogDialog(wx.Dialog, UIProxyReceiver):
 
     def on_close(self, evt):
         """hiding instead of closing"""
-        self.active = False
         wx.Dialog.Show(self, False)
         evt.Skip()
 

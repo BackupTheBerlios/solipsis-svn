@@ -124,10 +124,10 @@ class EditorFrame(wx.Frame):
 
     def on_activate(self, evt):
         """activate service"""
-        print self.activate_item.IsChecked() and "Activating..." \
+        activate = self.activate_item.IsChecked()
+        print activate and "Activating..." \
               or "Disactivated"
-        active = self.activate_item.IsChecked()
-        get_facade().activate(active)
+        get_facade()._activated = activate
         
     def on_save(self, evt):
         """save .prf"""
@@ -179,7 +179,6 @@ class EditorFrame(wx.Frame):
 
     def on_display_profile(self, evt):
         """display blog in dedicated window"""
-        self.profile_dlg._activated = True
         self.profile_dlg.Show(get_facade()._desc)
 
     def do_modified(self, modified):
