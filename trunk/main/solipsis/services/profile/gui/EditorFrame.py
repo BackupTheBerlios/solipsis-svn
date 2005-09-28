@@ -7,7 +7,6 @@ import sys
 from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxy
 from solipsis.services.profile.facade import get_facade
-from solipsis.services.profile.data import PeerDescriptor
 from solipsis.services.profile.prefs import get_prefs, set_prefs
 
 from solipsis.services.profile.gui.FileDialog import FileDialog
@@ -137,10 +136,10 @@ class EditorFrame(wx.Frame):
     def on_export(self, evt):
         """export .html"""
         dlg = wx.FileDialog(
-            self, message="Export HTML file as ...",
+            self, message=_("Export HTML file as ..."),
             defaultDir=get_prefs("profile_dir"),
-            defaultFile="%s.html"% get_facade()._desc.pseudo,
-            wildcard="HTML File (*.html)|*.html",
+            defaultFile="%s.html"% get_facade()._desc.document.get_pseudo(),
+            wildcard=_("HTML File (*.html)|*.html"),
             style=wx.SAVE)
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
@@ -153,8 +152,8 @@ class EditorFrame(wx.Frame):
             self.do_modified(False)
             dlg = wx.MessageDialog(
                 self,
-                'Your profile has been modified. Do you want to change it?',
-                'Saving Dialog',
+                _('Your profile has been modified. Do you want to change it?'),
+                _('Saving Dialog'),
                 wx.YES_NO | wx.ICON_INFORMATION)
             if dlg.ShowModal() == wx.ID_YES:
                 self.on_save(evt)

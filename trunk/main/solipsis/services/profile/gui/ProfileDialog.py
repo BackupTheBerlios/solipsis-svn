@@ -39,7 +39,7 @@ class ProfileDialog(wx.Dialog, UIProxyReceiver):
     def set_page(self, peer_desc):
         view = HtmlView(peer_desc)
         self.profile_window.SetPage(view.get_view())
-        self.SetTitle("%s's %s"% (peer_desc.pseudo, _("Profile")))
+        self.SetTitle("%s's %s"% (peer_desc.document.get_pseudo(), _("Profile")))
 
     def on_change_facade(self, auto_refresh):
         view = HtmlView(get_facade()._desc,

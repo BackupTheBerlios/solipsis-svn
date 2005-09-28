@@ -42,7 +42,7 @@ class PeerHtmlListBox(wx.HtmlListBox):
         if self.blog:
             selected = self.GetSelection()
             if selected != wx.NOT_FOUND:
-                pseudo = get_facade()._desc.pseudo
+                pseudo = get_facade()._desc.document.get_pseudo()
                 self.blog.get_blog(selected).add_comment(text, pseudo)
                 self.refresh()
             else:
@@ -94,7 +94,7 @@ class BlogDialog(wx.Dialog, UIProxyReceiver):
             return
         if peer_desc:
             self.peer_desc = peer_desc
-            pseudo = peer_desc.pseudo
+            pseudo = peer_desc.document.get_pseudo()
         else:
             pseudo = u"Anonymous"
         wx.Dialog.SetTitle(self, "%s's %s"% (pseudo, _("Blog")))

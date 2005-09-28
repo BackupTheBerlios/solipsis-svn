@@ -63,7 +63,8 @@ class FileFilterPanel(wx.Panel):
             # update cache, facade will refresh window (through FilterView)
             filter_value = FilterValue(value=self.f_filter_value.GetValue(),
                                        activate=True)
-            get_filter_facade().add_repository(self.f_key_value.GetValue(), filter_value)
+            get_filter_facade().add_repository(self.f_key_value.GetValue(),
+                                               filter_value)
             self.do_modified(True)
         except Exception:
             import traceback

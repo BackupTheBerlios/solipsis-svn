@@ -19,23 +19,21 @@
 """Design pattern Facade: presents working API for all actions of GUI
 available. This facade will be used both by GUI and unittests."""
 
+__revision__ = "$Id: $"
+
 from sys import stderr
 from solipsis.services.profile.data import PeerDescriptor, Blogs
 from solipsis.services.profile.cache_document import CacheDocument
-from solipsis.services.profile.prefs import get_prefs
 
 class SimpleFacade:
     """manages user's actions & connects document and view"""
     
-    def __init__(self, pseudo, directory=None):
-        assert isinstance(pseudo, unicode), "pseudo must be a unicode"
-        if directory is None:
-            directory = get_prefs("profile_dir")
-        self._desc = PeerDescriptor(pseudo,
-                                    document=CacheDocument(pseudo, directory),
-                                    blog=Blogs(pseudo, directory))
-        self._activated = True
+    def __init__(self, node_id):
+        self._desc = PeerDescriptor(node_id,
+                                    document=CacheDocument(),
+                                    blog=Blogs())
         self.views = {}
+        self._activated = True
 
     # views
     def add_view(self, view):
@@ -75,17 +73,29 @@ class SimpleFacade:
         return self._desc.document.get_peer(peer_id)
     
     # MENU
-    def load(self):
+    def save(self, doc_extension, directory=None):
+        """save .profile.solipsis"""
+        self._desc.save(directory=directory,
+                        doc_extension=doc_extension)
+            
+    def load(self, doc_extension, directory=None):
         """load .profile.solipsis"""
         try:
-            self._desc.load(checked=True)
-        except ValueError:
-            print "Using blank one"
+            self._desc.load(directory=directory,
+                            doc_extension=doc_extension)
+        except ValueError, err:
+            print err, ": Using blank one"
         # update
         for view in self.views.values():
             view.import_desc(self._desc)
 
     # PERSONAL TAB
+    def change_pseudo(self, pseudo):
+        """sets peer as friend """
+        return self._try_change("set_pseudo",
+                                "update_pseudo",
+                                pseudo)
+    
     def change_title(self, title):
         """sets new value for title"""
         return self._try_change("set_title",
@@ -142,13 +152,7 @@ class SimpleFacade:
                                 "update_files",
                                 path)
 
-    # OTHERS TAB
-    def set_peer(self, peer_id, peer_desc):
-        """sets peer as friend """
-        return self._try_change("set_peer",
-                                "update_peers",
-                                peer_id, peer_desc)
-    
+    # PEER MANAGEMENT
     def remove_peer(self, peer_id):
         """sets peer as friend """
         return self._try_change("remove_peer",
@@ -160,3 +164,7 @@ class SimpleFacade:
         return self._try_change("fill_data",
                                 "update_peers",
                                 peer_id, document)
+
+    def set_data(self, peer_id, document, flag_update=True):
+        """same as fill data but without updating views"""
+        self._desc.document.fill_data(peer_id, document, flag_update)

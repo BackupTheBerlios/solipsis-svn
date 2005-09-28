@@ -138,7 +138,7 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
     def SetTitle(self, title=None):
         if not title:
             if self.peer_desc:
-                title = self.peer_desc.pseudo + "'s files"
+                title = self.peer_desc.document.get_pseudo() + "'s files"
             else:
                 title = unicode("your files going into " + \
                                 get_prefs("download_repo"), ENCODING)

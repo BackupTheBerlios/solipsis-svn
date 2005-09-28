@@ -23,8 +23,9 @@
 gathared in views.py. Documents are to be seen as completely
 independant from views"""
 
-from solipsis.services.profile import QUESTION_MARK, ENCODING
-from solipsis.services.profile.prefs import get_prefs
+__revision__ = "$Id: $"
+
+from solipsis.services.profile import QUESTION_MARK
 from solipsis.services.profile.document import SaverMixin, \
      AbstractPersonalData, AbstractSharingData, AbstractContactsData
 
@@ -32,6 +33,7 @@ class CachePersonalMixin(AbstractPersonalData):
     """Implements API for all pesonal data in cache"""
 
     def __init__(self):
+        self.pseudo = u""
         self.title = u""
         self.firstname = u"Name"
         self.lastname = u"Lastname"
@@ -42,6 +44,15 @@ class CachePersonalMixin(AbstractPersonalData):
         AbstractPersonalData.__init__(self)
         
     # PERSONAL TAB
+    def set_pseudo(self, pseudo):
+        if AbstractPersonalData.set_pseudo(self, pseudo) is False:
+            return False
+        self.pseudo = pseudo
+        return self.pseudo
+    
+    def get_pseudo(self):
+        return self.pseudo
+    
     def set_title(self, title):
         if AbstractPersonalData.set_title(self, title) is False:
             return False
@@ -125,7 +136,7 @@ class CacheContactMixin(AbstractContactsData):
         
     def set_peer(self, peer_id, peer_desc):
         self.peers[peer_id] = peer_desc
-        peer_desc.set_node_id(peer_id)
+        peer_desc.node_id = peer_id
         
     def remove_peer(self, peer_id):
         if self.peers.has_key(peer_id):
@@ -144,17 +155,11 @@ class CacheDocument(CachePersonalMixin, CacheSharingMixin,
                    CacheContactMixin, SaverMixin):
     """Describes all data needed in profile in a file"""
 
-    def __init__(self, pseudo, directory=None):
-        assert isinstance(pseudo, unicode), "pseudo must be a unicode"
-        if directory is None:
-            directory = get_prefs("profile_dir")
+    def __init__(self):
         CachePersonalMixin.__init__(self)
         CacheSharingMixin.__init__(self)
         CacheContactMixin.__init__(self)
-        SaverMixin.__init__(self, pseudo, directory)
-
-    def __str__(self):
-        return "Cache document for %s"% self.pseudo.encode(ENCODING)
+        SaverMixin.__init__(self)
         
     def import_document(self, other_document):
         """copy data from another document into self"""
@@ -162,9 +167,9 @@ class CacheDocument(CachePersonalMixin, CacheSharingMixin,
         CacheSharingMixin.import_document(self, other_document)
         CacheContactMixin.import_document(self, other_document)
 
-    def load(self, checked=True):
+    def load(self, path):
         """load default values if no file"""
-        if not SaverMixin.load(self, checked=checked):
+        if not SaverMixin.load(self, path):
             CachePersonalMixin.load_defaults(self)
             return False
         else:

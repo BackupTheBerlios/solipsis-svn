@@ -1,21 +1,28 @@
+#!/usr/bin/python
+# -*- coding: iso-8859-1 -*-
+# pylint: disable-msg=W0131,C0301,C0103
+# Missing docstring, Line too long, Invalid name
 """Represents data used in model. It has been split from Views
 gathared in views.py. Documents are to be seen as completely
 independant from views"""
+
+__revision__ = "$Id: $"
 
 import unittest
 import os, os.path
 from ConfigParser import ConfigParser
 from os.path import abspath
-from pprint import pprint
 
+from solipsis.services.profile import ENCODING
+from solipsis.services.profile.prefs import get_prefs, set_prefs
 from solipsis.services.profile.document import CustomConfigParser, AbstractDocument
 from solipsis.services.profile.file_document import FileDocument
 from solipsis.services.profile.cache_document import CacheDocument
 from solipsis.services.profile.path_containers import DEFAULT_TAG, FileContainer
 from solipsis.services.profile.data import PeerDescriptor
-from solipsis.services.profile.tests import PROFILE_DIRECTORY, PROFILE_TEST, \
-     REPO, PSEUDO, TEST_DIR
-from solipsis.services.profile import ENCODING
+from solipsis.services.profile.tests import PROFILE_DIR, PROFILE_TEST, PROFILE_BRUCE, \
+     TEST_DIR, TEST_DIR
+from solipsis.services.profile.tests import get_bruce_profile, write_test_profile
 
 def tag_files(document, dir_path, file_paths, tag):
     for file_path in file_paths:
@@ -26,12 +33,13 @@ class DocumentTest(unittest.TestCase):
 
     def setUp(self):
         """override one in unittest.TestCase"""
-        self.documents = [CacheDocument(PROFILE_TEST, PROFILE_DIRECTORY),
-                          FileDocument(PROFILE_TEST, PROFILE_DIRECTORY)]
+        write_test_profile()
+        self.documents = [CacheDocument(),
+                          FileDocument()]
         for document in self.documents:
-            document.add_repository(REPO)
-        self.abstract_doc = AbstractDocument(PROFILE_TEST, PROFILE_DIRECTORY)
-        self.abstract_doc.add_repository(REPO)
+            document.add_repository(TEST_DIR)
+        self.abstract_doc = AbstractDocument()
+        self.abstract_doc.add_repository(TEST_DIR)
 
     def test_config_parser(self):
         writer = CustomConfigParser(ENCODING)
@@ -52,6 +60,14 @@ class DocumentTest(unittest.TestCase):
         self.assertEquals(reader.get("TEST", "Windows:path"), "not a valid linux:path!")
 
     # PERSONAL TAB
+    def test_pseudo(self):
+        """pseudo as unicode"""
+        self.assertRaises(NotImplementedError, self.abstract_doc.get_pseudo)
+        for document in self.documents:
+            self.assertRaises(TypeError, document.set_pseudo, "atao")
+            self.assertRaises(TypeError, document.set_pseudo, [u"atao", ])
+            document.set_pseudo(u"atao")
+            
     def test_title(self):
         """title as unicode"""
         self.assertRaises(NotImplementedError, self.abstract_doc.get_title)
@@ -165,47 +181,47 @@ class DocumentTest(unittest.TestCase):
                 abspath(os.sep.join(["data", "profiles", ".svn"])))._tag, u"first")
 
     def test_get_shared_files(self):
-        document = CacheDocument(PROFILE_TEST, PROFILE_DIRECTORY)
-        document.add_repository(REPO)
+        document = CacheDocument()
+        document.add_repository(TEST_DIR)
         document.expand_dir(abspath("data"))
         document.expand_dir(abspath(os.path.join("data", "subdir1")))
         document.share_files(abspath("data"),
-                              [os.sep.join([REPO, "data", ".path"]),
-                               os.sep.join([REPO, "data", ".svn"]),
-                               os.sep.join([REPO, "data", "date.txt"]),
-                               os.sep.join([REPO, "data", "emptydir"]),
-                               os.sep.join([REPO, "data", "profiles"]),
-                               os.sep.join([REPO, "data", "subdir1", ".svn"]),
-                               os.sep.join([REPO, "data", "subdir1", "subsubdir"])],
+                              [os.sep.join([TEST_DIR, "data", ".path"]),
+                               os.sep.join([TEST_DIR, "data", ".svn"]),
+                               os.sep.join([TEST_DIR, "data", "date.txt"]),
+                               os.sep.join([TEST_DIR, "data", "emptydir"]),
+                               os.sep.join([TEST_DIR, "data", "profiles"]),
+                               os.sep.join([TEST_DIR, "data", "subdir1", ".svn"]),
+                               os.sep.join([TEST_DIR, "data", "subdir1", "subsubdir"])],
                               False)
         document.share_files(abspath("data"),
-                              [os.sep.join([REPO, "data"]),
-                               os.sep.join([REPO, "data", ".path"]),
-                               os.sep.join([REPO, "data", "date.txt"]),
-                               os.sep.join([REPO, "data", "routage"]),
-                               os.sep.join([REPO, "data", "subdir1"]),
-                               os.sep.join([REPO, "data", "subdir1", "TOtO.txt"]),
-                               os.sep.join([REPO, "data", "subdir1", "date.doc"])],
+                              [os.sep.join([TEST_DIR, "data"]),
+                               os.sep.join([TEST_DIR, "data", ".path"]),
+                               os.sep.join([TEST_DIR, "data", "date.txt"]),
+                               os.sep.join([TEST_DIR, "data", "routage"]),
+                               os.sep.join([TEST_DIR, "data", "subdir1"]),
+                               os.sep.join([TEST_DIR, "data", "subdir1", "TOtO.txt"]),
+                               os.sep.join([TEST_DIR, "data", "subdir1", "date.doc"])],
                               True)
         shared_files = [file_container.get_path() for file_container
-                        in document.get_shared_files()[REPO]]
+                        in document.get_shared_files()[TEST_DIR]]
         shared_files.sort()
-        self.assertEquals(shared_files, [os.sep.join([REPO, "data", ".path"]),
-                                         os.sep.join([REPO, "data", "date.txt"]),
-                                         os.sep.join([REPO, "data", "routage"]),
-                                         os.sep.join([REPO, "data", "subdir1", "TOtO.txt"]),
-                                         os.sep.join([REPO, "data", "subdir1", "date.doc"])])
+        self.assertEquals(shared_files, [os.sep.join([TEST_DIR, "data", ".path"]),
+                                         os.sep.join([TEST_DIR, "data", "date.txt"]),
+                                         os.sep.join([TEST_DIR, "data", "routage"]),
+                                         os.sep.join([TEST_DIR, "data", "subdir1", "TOtO.txt"]),
+                                         os.sep.join([TEST_DIR, "data", "subdir1", "date.doc"])])
         
     def test_multiple_repos(self):
         """coherency when several repos in use"""
-        document = CacheDocument(PROFILE_TEST, PROFILE_DIRECTORY)
+        document = CacheDocument()
         # create 2 repos
-        document.add_repository(os.sep.join([REPO, "data", "profiles"]))
-        tag_files(document, os.sep.join([REPO, "data", "profiles"]), ["bruce.prf", ".svn"], u"first")
-        document.share_files(os.sep.join([REPO, "data", "profiles"]), ["bruce.prf", "demi.prf"], True)
-        document.add_repository(os.sep.join([REPO, "data", "subdir1"]))
-        tag_files(document, os.sep.join([REPO, "data", "subdir1"]), ["date.doc", ".svn"], u"second")
-        document.share_files(os.sep.join([REPO, "data", "subdir1"]), ["date.doc", "subsubdir"], True)
+        document.add_repository(os.sep.join([TEST_DIR, "data", "profiles"]))
+        tag_files(document, os.sep.join([TEST_DIR, "data", "profiles"]), ["bruce.prf", ".svn"], u"first")
+        document.share_files(os.sep.join([TEST_DIR, "data", "profiles"]), ["bruce.prf", "demi.prf"], True)
+        document.add_repository(os.sep.join([TEST_DIR, "data", "subdir1"]))
+        tag_files(document, os.sep.join([TEST_DIR, "data", "subdir1"]), ["date.doc", ".svn"], u"second")
+        document.share_files(os.sep.join([TEST_DIR, "data", "subdir1"]), ["date.doc", "subsubdir"], True)
         # check sharing state
         self.assertEquals(document.get_container(
             abspath(os.sep.join(["data", "profiles", "bruce.prf"])))._shared, True)
@@ -220,8 +236,8 @@ class DocumentTest(unittest.TestCase):
         self.assertEquals(document.get_container(
             abspath(os.sep.join(["data", "subdir1", ".svn"])))._shared, False)
         # check tag
-        self.assertRaises(ValueError, document.add_repository, os.sep.join([REPO, "data", "subdir1", "subsubdir"]))
-        self.assertRaises(ValueError, document.add_repository, os.sep.join([REPO, "data"]))
+        self.assertRaises(ValueError, document.add_repository, os.sep.join([TEST_DIR, "data", "subdir1", "subsubdir"]))
+        self.assertRaises(ValueError, document.add_repository, os.sep.join([TEST_DIR, "data"]))
             
     # OTHERS TAB
     def test_reset_peers(self):
@@ -229,7 +245,7 @@ class DocumentTest(unittest.TestCase):
         self.assertRaises(NotImplementedError, self.abstract_doc.get_peers)
         self.assertRaises(NotImplementedError, self.abstract_doc.reset_peers)
         document = self.documents[0]
-        document.set_peer(u"nico", PeerDescriptor(PSEUDO))
+        document.set_peer(u"nico", PeerDescriptor(PROFILE_TEST))
         self.assertEquals(document.has_peer(u"nico"), True)
         document.reset_peers()
         self.assertEquals(document.has_peer(u"nico"), False)
@@ -237,48 +253,49 @@ class DocumentTest(unittest.TestCase):
             
     def test_getting_peer(self):
         """get peer"""
-        self.assertRaises(NotImplementedError, self.abstract_doc.get_peer, "nico")
+        self.assertRaises(NotImplementedError, self.abstract_doc.get_peer, PROFILE_BRUCE)
         for document in self.documents:
-            document.set_peer(u"nico", PeerDescriptor(PSEUDO))
-            peer_desc = self.documents[0].get_peer(u"nico")
-            self.assertEquals(peer_desc.pseudo, PSEUDO)
+            document.set_peer(PROFILE_BRUCE, PeerDescriptor(PROFILE_BRUCE))
+            peer_desc = self.documents[0].get_peer(PROFILE_BRUCE)
+            self.assertEquals(peer_desc.node_id, PROFILE_BRUCE)
             
     def test_removing_peer(self):
         """remove peer"""
         self.assertRaises(NotImplementedError, self.abstract_doc.remove_peer, "nico")
         for document in self.documents:
-            document.set_peer(u"nico", PeerDescriptor(PSEUDO))
+            document.set_peer(u"nico", PeerDescriptor(PROFILE_TEST))
             self.assertEquals(document.has_peer(u"nico"), True)
             document.remove_peer(u"nico")
             self.assertEquals(document.has_peer(u"nico"), False)
         
-    def test_filling_data(self):
+    def test_filling(self):
         """fill data"""
         for document in self.documents:
             self.assertEquals(document.has_peer(u"emb"), False)
-            file_doc = FileDocument(PROFILE_TEST, PROFILE_DIRECTORY)
-            file_doc.load()
-            document.fill_data(u"emb", file_doc)
+            bruce = get_bruce_profile()
+            document.fill_data(u"emb", bruce.document)
+            document.fill_blog(u"emb", bruce.blog)
     
     def test_peers_status(self):
         """change status"""
+        bruce = get_bruce_profile()
         for document in self.documents:
-            self.assertRaises(AssertionError, document.make_friend, u"nico")
-            self.assertRaises(AssertionError, document.blacklist_peer, u"nico")
-            self.assertRaises(AssertionError, document.unmark_peer, u"nico")
-            document.set_peer(u"nico", PeerDescriptor(PROFILE_TEST))
+            self.assertRaises(AssertionError, document.make_friend, bruce.node_id)
+            self.assertRaises(AssertionError, document.blacklist_peer, bruce.node_id)
+            self.assertRaises(AssertionError, document.unmark_peer, bruce.node_id)
+            document.set_peer(bruce.node_id, bruce)
             # friend
-            document.make_friend(u"nico")
+            document.make_friend(bruce.node_id)
             self.assertEquals(PeerDescriptor.FRIEND,
-                              document.get_peer(u"nico").state)
+                              document.get_peer(bruce.node_id).state)
             # blacklist
-            document.blacklist_peer(u"nico")
+            document.blacklist_peer(bruce.node_id)
             self.assertEquals(PeerDescriptor.BLACKLISTED,
-                              document.get_peer(u"nico").state)
+                              document.get_peer(bruce.node_id).state)
             # anonmyous
-            document.unmark_peer(u"nico")
+            document.unmark_peer(bruce.node_id)
             self.assertEquals(PeerDescriptor.ANONYMOUS,
-                              document.get_peer(u"nico").state)
+                              document.get_peer(bruce.node_id).state)
 
 if __name__ == "__main__":
     unittest.main()

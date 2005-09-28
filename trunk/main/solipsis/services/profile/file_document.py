@@ -23,12 +23,13 @@
 gathared in views.py. Documents are to be seen as completely
 independant from views"""
 
+__revision__ = "$Id: $"
+
 import ConfigParser
 import os.path
 import time
 import sys
-from solipsis.services.profile import PROFILE_EXT, ENCODING, QUESTION_MARK
-from solipsis.services.profile.prefs import get_prefs
+from solipsis.services.profile import ENCODING, QUESTION_MARK
 from solipsis.services.profile.path_containers import DEFAULT_TAG, \
      create_container
 from solipsis.services.profile.data import PeerDescriptor, load_blogs
@@ -42,16 +43,27 @@ SHARED_TAG = "shared"
 class FilePersonalMixin(AbstractPersonalData):
     """Implements API for all pesonal data in a File oriented context"""
 
-    def __init__(self, pseudo):
+    def __init__(self):
         self.config.add_section(SECTION_PERSONAL)
-        self.config.set(SECTION_PERSONAL, "pseudo",
-                        pseudo.encode(self.encoding))
         self.config.add_section(SECTION_CUSTOM)
         AbstractPersonalData.__init__(self)
         
     # PERSONAL TAB
+    def set_pseudo(self, pseudo):
+        AbstractPersonalData.set_pseudo(self, pseudo)
+        self.config.set(SECTION_PERSONAL, "pseudo",
+                        pseudo.encode(self.encoding))
+        return pseudo.encode(self.encoding)
+    
+    def get_pseudo(self):
+        try:
+            return unicode(self.config.get(SECTION_PERSONAL, "pseudo"),
+                           self.encoding)
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+            return u""
+        
     def set_title(self, value):
-        AbstractPersonalData.set_firstname(self, value)
+        AbstractPersonalData.set_title(self, value)
         self.config.set(SECTION_PERSONAL, "title",
                         value.encode(self.encoding))
         return value.encode(self.encoding)
@@ -158,6 +170,14 @@ class FileSharingMixin(AbstractSharingData):
         self.config.add_section(SECTION_FILE)
         AbstractSharingData.reset_files(self)
 
+    def _init_repos(self):
+        try:
+            return [repo for repo in self.config.get(
+                SECTION_PERSONAL, "repositories").split(',')
+                      if repo.strip() != '']
+        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+            return []
+
     def get_repositories(self):
         """return list of repos"""
         # lazy initialisation
@@ -171,27 +191,8 @@ class FileSharingMixin(AbstractSharingData):
             # checking might be needed at loading only => checked=False
             AbstractSharingData.add_repository(self, repo, checked=False)
         return AbstractSharingData.get_repositories(self)
-
-    def _init_repos(self):
-        try:
-            return [repo for repo in self.config.get(
-                SECTION_PERSONAL, "repositories").split(',')
-                      if repo.strip() != '']
-        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-            return []
         
-    def _set_repositories(self):
-        """update list of repos"""
-        repos_list = self.get_repositories()
-        if repos_list == None:
-            print "No repo to set."
-            return
-        if not self.config.has_section(SECTION_PERSONAL):
-            self.config.add_section(SECTION_PERSONAL)
-        self.config.set(SECTION_PERSONAL, "repositories",
-                        ",".join(repos_list))
-        
-    def get_files(self, checked=True):
+    def get_files(self):
         """returns {root: Container}"""
         # lazy initialisation
         if self.files != {}:
@@ -199,7 +200,7 @@ class FileSharingMixin(AbstractSharingData):
         # full init
         for repo in self._init_repos():
             try:
-                self.files[repo] = create_container(repo, checked=checked)
+                self.files[repo] = create_container(repo, checked=False)
             except AssertionError:
                 print "non valid repo '%s'"% repo
         # if no valid repo foound, does not try any further...
@@ -226,17 +227,28 @@ class FileSharingMixin(AbstractSharingData):
             except KeyError:
                 print "non valid file '%s'"% option
         return AbstractSharingData.get_files(self)
+        
+    def _set_repositories(self):
+        """update list of repos"""
+        repos_list = self.get_repositories()
+        if repos_list == None:
+            print "No repo to set."
+            return
+        if not self.config.has_section(SECTION_PERSONAL):
+            self.config.add_section(SECTION_PERSONAL)
+        self.config.set(SECTION_PERSONAL, "repositories",
+                        ",".join(repos_list))
 
     def _set_files(self):
         """write in config"""
         files = self.get_files()
         for repo, dir_container in files.items():
-            file_containers = dir_container.flat()
-            for file_container in file_containers:
-                key = os.path.join(repo, file_container.get_path())
-                if file_container._shared or file_container._tag != DEFAULT_TAG:
-                    value = ','.join((file_container._shared and SHARED_TAG or '',
-                                      file_container._tag))
+            f_containers = dir_container.flat()
+            for f_container in f_containers:
+                key = os.path.join(repo, f_container.get_path())
+                if f_container._shared or f_container._tag != DEFAULT_TAG:
+                    value = ','.join((f_container._shared and SHARED_TAG or '',
+                                      f_container._tag))
                     self.config.set(SECTION_FILE, key, value)
 
 class FileContactMixin(AbstractContactsData):
@@ -255,14 +267,14 @@ class FileContactMixin(AbstractContactsData):
     def set_peer(self, peer_id, peer_desc):
         """stores Peer object"""
         self._write_peer(peer_id, peer_desc)
-        peer_desc.set_node_id(peer_id)
+        peer_desc.node_id = peer_id
         
     def _write_peer(self, peer_id, peer_desc):
         """stores Peer object"""
         # extract name of files saved on HD
-        if peer_desc.document:
-            peer_desc.document.save()
-        description = ",".join([peer_desc.pseudo.encode(self.encoding),
+        peer_desc.save()
+        pseudo = peer_desc.document and peer_desc.document.get_pseudo() or "Anonymous"
+        description = ",".join([pseudo,
                                 peer_desc.state,
                                 peer_id,
                                 time.asctime()])
@@ -282,27 +294,12 @@ class FileContactMixin(AbstractContactsData):
         try:
             infos = self.config.get(SECTION_OTHERS, peer_id).split(",")
             pseudo, state, p_id, creation_date = infos
-            if not isinstance(pseudo, unicode):
-                pseudo = unicode(pseudo, self.encoding)
-            if p_id != peer_id:
-                print "file corrupted: %s (%s) != %s" \
-                      % (p_id, creation_date, peer_id)
-                return PeerDescriptor(pseudo)
-            file_doc = None
-            blogs = None
-            file_doc = FileDocument(pseudo, self._dir)
-            if file_doc.load():
-                try: 
-                    blogs = load_blogs(pseudo, file_doc._dir)
-                except ValueError, err:
-                    print str(err)
-            return PeerDescriptor(pseudo,
-                                  document=file_doc,
-                                  blog=blogs,
-                                  state=state,
-                                  connected=False)
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-            return  PeerDescriptor(u"Anonymous")
+            state = PeerDescriptor.ANONYMOUS
+        peer_desc = PeerDescriptor(peer_id, document=FileDocument(),
+                                   state=state, connected=False)
+        peer_desc.load()
+        return peer_desc
     
     def get_peers(self):
         """returns Peers"""
@@ -344,7 +341,7 @@ class FileContactMixin(AbstractContactsData):
                                                    blog,
                                                    flag_update)
         if peer_desc.state != PeerDescriptor.ANONYMOUS:
-            blog.save()
+            peer_desc.save()
             
     def fill_shared_files(self, peer_id, files, flag_update=False):
         """connect shared files with shared files"""
@@ -354,24 +351,20 @@ class FileContactMixin(AbstractContactsData):
 class FileSaverMixin(FilterSaverMixin):
     """Implements API for saving & loading in a File oriented context"""
 
-    def __init__(self, pseudo, directory):
-        FilterSaverMixin.__init__(self, pseudo, directory)
-
-    def get_id(self):
-        """return identifiant of Document"""
-        return os.path.join(self._dir, self.pseudo) + PROFILE_EXT
+    def __init__(self):
+        FilterSaverMixin.__init__(self)
     
     # MENU
-    def save(self):
+    def save(self, path):
         """fill document with information from .profile file"""
         self._set_repositories()
         self._set_files()
-        FilterSaverMixin.save(self)
+        FilterSaverMixin.save(self, path)
         
-    def load(self, checked=True):
+    def load(self, path):
         """fill document with information from .profile file"""
-        result = self._load_config()
-        self.get_files(checked=checked)
+        result = self._load_config(path)
+        self.get_files()
         return result
 
     def to_stream(self):
@@ -384,19 +377,13 @@ class FileDocument(FilePersonalMixin, FileSharingMixin,
                    FileContactMixin, FileSaverMixin):
     """Describes all data needed in profile in a file"""
 
-    def __init__(self, pseudo, directory=None):
-        assert isinstance(pseudo, unicode), "pseudo must be a unicode"
-        if directory is None:
-            directory = get_prefs("profile_dir")
+    def __init__(self):
         self.encoding = ENCODING
         self.config = CustomConfigParser(ENCODING)
-        FilePersonalMixin.__init__(self, pseudo)
+        FilePersonalMixin.__init__(self)
         FileSharingMixin.__init__(self)
         FileContactMixin.__init__(self)
-        FileSaverMixin.__init__(self, pseudo, directory)
-
-    def __str__(self):
-        return "File document for %s"% self.pseudo.encode(self.encoding)
+        FileSaverMixin.__init__(self)
         
     def import_document(self, other_document):
         """copy data from another document into self"""
@@ -404,9 +391,9 @@ class FileDocument(FilePersonalMixin, FileSharingMixin,
         FileSharingMixin.import_document(self, other_document)
         FileContactMixin.import_document(self, other_document)
 
-    def load(self, checked=True):
+    def load(self, path):
         """load default values if no file"""
-        if not FileSaverMixin.load(self, checked=checked):
+        if not FileSaverMixin.load(self, path):
             FilePersonalMixin.load_defaults(self)
             return False
         else:

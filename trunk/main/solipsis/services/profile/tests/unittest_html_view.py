@@ -1,16 +1,20 @@
+#!/usr/bin/python
+# -*- coding: iso-8859-1 -*-
+# pylint: disable-msg=W0131,C0301,C0103
+# Missing docstring, Line too long, Invalid name
 """Represents data used in model. It has been split from Views
 gathared in views.py. Documents are to be seen as completely
 independant from views"""
+
+__revision__ = "$Id: $"
 
 import unittest
 import difflib
 import os
 from os.path import abspath
 from solipsis.services.profile.data import PeerDescriptor
-from solipsis.services.profile.file_document import FileDocument
-from solipsis.services.profile.cache_document import CacheDocument
 from solipsis.services.profile.view import HtmlView
-from solipsis.services.profile.tests import PROFILE_DIRECTORY, PROFILE_TEST, PSEUDO
+from solipsis.services.profile.tests import PROFILE_TEST, PSEUDO
 from solipsis.services.profile import images_dir
 
 TEMPLATE = """<html>
@@ -75,8 +79,8 @@ class HtmlTest(unittest.TestCase):
 
     def setUp(self):
         """override one in unittest.TestCase"""
-        self.document = CacheDocument(PROFILE_TEST, PROFILE_DIRECTORY)
-        self.desc = PeerDescriptor(PROFILE_TEST, document=self.document)
+        self.desc = PeerDescriptor(PROFILE_TEST)
+        self.document = self.desc.document
         self.view = HtmlView(self.desc)
 
     def assert_template(self):
@@ -96,7 +100,7 @@ class HtmlTest(unittest.TestCase):
     def print_template(self):
         """fill template with values"""
         return TEMPLATE % (self.document.get_photo(),
-                           self.document.pseudo,
+                           self.document.get_pseudo(),
                            self.document.get_title(),
                            self.document.get_firstname(),
                            self.document.get_lastname(),
@@ -106,7 +110,7 @@ class HtmlTest(unittest.TestCase):
                            self.print_peers())
 
     def print_custom(self):
-        html = ["<div><b>%s</b>: <span>%s</span></div>"% (key, value)
+        html = ["<div><b>%s</b>: <span>%s</span></div>" % (key, value)
                 for key, value in self.document.get_custom_attributes().iteritems()]
         return ''.join(html)
 
@@ -134,7 +138,7 @@ class HtmlTest(unittest.TestCase):
       <td>%s</td>
       <td>%s</td>
       <td>%s</td>
-    </tr>"""% (peers_desc.pseudo,
+    </tr>"""% (doc.get_pseudo(),
                peers_desc.state,
                doc and doc.get_email() or "--"))
         return ''.join(html)
@@ -179,7 +183,7 @@ class HtmlTest(unittest.TestCase):
         self.assert_template()
         
     def test_filling_data(self):
-        self.document.fill_data(u"emb", FileDocument(PROFILE_TEST, PROFILE_DIRECTORY))
+        self.document.fill_data(u"emb", PeerDescriptor(PROFILE_TEST).document)
         self.assert_template()
     
     def test_peers_status(self):

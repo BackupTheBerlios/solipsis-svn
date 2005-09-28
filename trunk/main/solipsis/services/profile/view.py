@@ -71,6 +71,10 @@ class AbstractView:
         self.update_peers()
         
     # PERSONAL TAB
+    def update_pseudo(self):
+        """display title in view"""
+        raise NotImplementedError
+    
     def update_title(self):
         """display title in view"""
         raise NotImplementedError
@@ -188,7 +192,7 @@ class HtmlView(AbstractView):
         self.template = simpleTAL.compileHTMLTemplate(template_file,
                                                       inputEncoding=ENCODING)
         template_file.close()
-        self.context.addGlobal("pseudo", desc.pseudo)
+        self.context.addGlobal("pseudo", desc.document.get_pseudo())
         # init view
         AbstractView.__init__(self, desc, do_import, name)
         self._update_view()
@@ -447,10 +451,10 @@ class FilterView(AbstractView):
     def update_pseudo(self):
         """email"""
         tab = self.frame.personal_filter_tab
-        filter_filtered_pseudo = self._desc.document.get_filtered_pseudo()
-        tab.pseudo_checkbox.SetValue(filter_filtered_pseudo.activated)
-        tab.pseudo_value.Enable(filter_filtered_pseudo.activated)
-        tab.pseudo_value.SetValue(filter_filtered_pseudo.description)
+        filter_pseudo = self._desc.document.get_pseudo()
+        tab.pseudo_checkbox.SetValue(filter_pseudo.activated)
+        tab.pseudo_value.Enable(filter_pseudo.activated)
+        tab.pseudo_value.SetValue(filter_pseudo.description)
 
     def update_email(self):
         """email"""

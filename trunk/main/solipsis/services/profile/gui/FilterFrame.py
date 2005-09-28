@@ -5,7 +5,7 @@ import wx
 import sys
 from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxy
-from solipsis.services.profile import REGEX_HTML
+from solipsis.services.profile import REGEX_HTML, PROFILE_EXT
 from solipsis.services.profile.prefs import get_prefs, set_prefs
 from solipsis.services.profile.facade import get_filter_facade, get_facade
 from solipsis.services.profile.file_document import FileDocument
@@ -103,11 +103,10 @@ class FilterFrame(wx.Frame):
             style=wx.OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()[:-4]
-            loader = FileDocument(path)
-            loader.load()
-            pseudo = loader.pseudo
-            get_facade().fill_data(pseudo, loader)
-            get_filter_facade().fill_data(pseudo, loader)
+            loader = FileDocument()
+            loader.load(path + PROFILE_EXT)
+            get_facade().fill_data(loader.get_pseudo(), loader)
+            get_filter_facade().fill_data(loader.get_pseudo(), loader)
         
     def on_save(self, evt):
         """save .prf"""
@@ -144,8 +143,7 @@ class FilterFrame(wx.Frame):
 
     def on_help(self, evt):
         """display dialog about regular expression"""
-        self.help_dialog._activated = True
-        self.help_dialog.Show()
+        wx.Dialog.Show(self.help_dialog)
         
     def on_about(self, evt):
         """display about"""

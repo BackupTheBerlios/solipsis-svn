@@ -19,11 +19,13 @@
 # </copyright>
 """Define cache structures used in profile and rendered in list widgets"""
 
+__revision__ = "$Id: $"
+
 import os, os.path
 import pickle
 import time
 
-from solipsis.services.profile import ENCODING, \
+from solipsis.services.profile import ENCODING, PROFILE_EXT, \
      BLOG_EXT, BULB_ON_IMG, BULB_OFF_IMG, VERSION
 from solipsis.services.profile.prefs import get_prefs
 
@@ -40,104 +42,78 @@ class PeerDescriptor:
               FRIEND:'blue',
               BLACKLISTED:'red'}
     
-    def __init__(self, pseudo, document=None, blog=None,
+    def __init__(self, node_id, document=None, blog=None,
                  state=ANONYMOUS, connected=False):
-        assert isinstance(pseudo, unicode), "pseudo must be a unicode"
         # status
-        self.pseudo = pseudo
+        self.node_id = node_id
         self.state = state
         self.connected = connected
         # data
         from solipsis.services.profile.cache_document import CacheDocument
-        self.document = document or CacheDocument(pseudo)
-        self.blog = blog or Blogs(pseudo)
-        # node_id
-        self.node_id = None
-
-    def __str__(self):
-        return "PeerDescriptor %s"% self.pseudo.encode(ENCODING)
-
-    def __repr__(self):
-        return "%s (%s)"% (self.pseudo, self.state)
-
-    def get_id(self):
-        """return id associated with peer (id of node)"""
-        return self.node_id
+        self.document = document or CacheDocument()
+        self.blog = blog or Blogs()
 
     def copy(self):
         """return copied instance of PeerDescriptor"""
-        return PeerDescriptor(self.pseudo,
+        return PeerDescriptor(self.node_id,
                               self.document.copy(),
                               self.blog.copy(),
                               self.state,
                               self.connected)
 
-    def load(self, checked=True):
+    def load(self, directory=None, doc_extension=PROFILE_EXT):
         """load both document & blog"""
-        self.document.load(checked=checked)
-        self.set_blog(load_blogs(self.pseudo, self.document._dir))
+        if directory is None:
+            directory = get_prefs("profile_dir")
+        file_path = os.path.join(directory, self.node_id)
+        self.document.load(file_path + doc_extension)
+        self.blog = load_blogs(file_path + BLOG_EXT)
 
-    def save(self):
+    def save(self, directory=None, doc_extension=PROFILE_EXT):
         """save both document & blog"""
-        self.document.save()
-        self.blog.save()
-
-    def set_connected(self, enable):
-        """change user's connected status"""
-        self.connected = enable
-
-    def set_blog(self, blog):
-        """blog is instance Blogs"""
-        self.blog = blog
-
-    def set_document(self, document):
-        """set member of type AbstractDocument"""
-        self.document = document
-
-    def set_node_id(self, node_id):
-        """set when peer_desc is assciated with a node"""
-        self.node_id = node_id
+        if directory is None:
+            directory = get_prefs("profile_dir")
+        file_path = os.path.join(directory, self.node_id)
+        self.document.save(file_path + doc_extension)
+        self.blog.save(file_path + BLOG_EXT)
         
     def html(self):
         """render peer in HTML"""
+        from solipsis.services.profile.facade import get_facade
         return "<img src='%s'/><font color=%s>%s</font>"\
                % (self.connected and BULB_ON_IMG() or BULB_OFF_IMG(),
                   PeerDescriptor.COLORS[self.state],
-                  self.pseudo)
+                  get_facade()._desc.document.get_pseudo())
     
 # BLOGS
 #######
 
-def load_blogs(pseudo, directory=None):
+def load_blogs(path):
     """use pickle to loas blogs. file name given without extension
     (same model as profile"""
-    if directory is None:
-        directory = get_prefs("profile_dir")
-    # reformating name
-    file_name =  os.path.join(directory, pseudo)
-    file_name += BLOG_EXT
     # loading
-    if os.path.exists(file_name):
-        blog_file = open(file_name, "rb")
+    if os.path.exists(path):
+        blog_file = open(path, "rb")
         blogs = pickle.load(blog_file)
         blog_file.close()
         return retro_compatibility(blogs)
     else:
-        raise ValueError("blog file %s not found"% file_name)
+        raise ValueError("blog file %s not found"% path)
 
 def retro_compatibility(blogs):
     """make sure that downloaded version is the good one"""
     if not hasattr(blogs, "version"):
-        # v 0.1.0: owner only
-        blogs.pseudo = blogs.owner
-        blogs._dir = get_prefs("profile_dir")
-        return blogs.copy()
+        # v 0.1.0: self.owner & self.blogs only
+        return Blogs(blogs.blogs)
     elif blogs.version == "0.2.0":
-        # v 0.2.0: path derived from _id & _dir. owner becomes pseudo
-        blogs.pseudo = blogs._id
-        return blogs.copy()
+        # v 0.2.0: + self._id & self._dir added
+        #            self.owner becomes self.pseudo
+        return Blogs(blogs.blogs)
     elif blogs.version in ["0.2.1", "0.2.2"]:
-        # v 0.2.1: path derived from pseudo & dir. _id removed
+        # v 0.2.1: - self._id removed
+        return Blogs(blogs.blogs)
+    elif blogs.version == "0.3.0":
+        # v 0.3.0: - self.pseudo & self._dir removed 
         return blogs
     else:
         raise ValueError("blog format not recognized.")
@@ -146,13 +122,11 @@ def retro_compatibility(blogs):
 class Blogs:
     """container for all blogs, responsible for authentification"""
 
-    def __init__(self, pseudo, directory=None):
-        assert isinstance(pseudo, unicode), "pseudo must be a unicode"
-        if directory is None:
-            directory = get_prefs("profile_dir")
-        self.pseudo = pseudo 
-        self._dir = directory
-        self.blogs = []
+    def __init__(self, blogs=None):
+        if blogs is None:
+            self.blogs = []
+        else:
+            self.blogs = blogs
         # tag class to be enable retro-compatibility
         self.version = VERSION
 
@@ -162,20 +136,16 @@ class Blogs:
     def __getitem__(self, index):
         return self.blogs[index]
 
-    def get_id(self):
-        """return file name of blog"""
-        return os.path.join(self._dir, self.pseudo) + BLOG_EXT
-
-    def save(self):
+    def save(self, path):
         """use pickle to save to blog_file"""
         # saving
-        blog_file = open(self.get_id(), 'wb')
+        blog_file = open(path, 'wb')
         pickle.dump(self, file=blog_file, protocol=pickle.HIGHEST_PROTOCOL)
         blog_file.close()
 
     def copy(self):
         """return new instance of Blogs with same attributes"""
-        copied = Blogs(self.pseudo, self._dir)
+        copied = Blogs()
         for index, blog in enumerate(self.blogs):
             copied.add_blog(blog.text, blog.author, blog.date)
             for comment in blog.comments:
@@ -185,10 +155,7 @@ class Blogs:
     def add_blog(self, text, author, date=None):
         """store blog in cache as wx.HtmlListBox is virtual.
         return blog's id"""
-        if author != self.pseudo:
-            raise AssertionError("not authorized")
-        else:
-            self.blogs.append(Blog(text, author, date))
+        self.blogs.append(Blog(text, author, date))
 
     def add_comment(self, index, text, author=None, date=None):
         """get blog at given index and delegate add_comment to it"""
@@ -197,13 +164,10 @@ class Blogs:
 
     def remove_blog(self, index, pseudo):
         """delete blog"""
-        if pseudo != self.pseudo:
-            raise AssertionError("not authorized")
+        if index < len(self.blogs):
+            del self.blogs[index]
         else:
-            if index < len(self.blogs):
-                del self.blogs[index]
-            else:
-                raise AssertionError('blog id %s not valid'% index)
+            raise AssertionError('blog id %s not valid'% index)
         
     def get_blog(self, index):
         """return all blogs along with their comments"""

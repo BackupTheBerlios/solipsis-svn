@@ -25,12 +25,13 @@
  - file data
  - contacts' data"""
 
+__revision__ = "$Id: $"
+
 import re
 import os.path
 import ConfigParser
 from os.path import isfile
-from solipsis.services.profile import PROFILE_EXT, DEFAULT_INTERESTS, ENCODING
-from solipsis.services.profile.prefs import get_prefs
+from solipsis.services.profile import DEFAULT_INTERESTS
 from solipsis.services.profile.path_containers import ContainerMixin,  \
      create_container, DictContainer, SharedFiles
 from solipsis.services.profile.data import  Blogs, retro_compatibility, \
@@ -48,27 +49,9 @@ def read_document(stream):
     config = CustomConfigParser(encoding)
     config.readfp(stream)
     stream.close()
-    try:
-        pseudo = unicode(config.get(SECTION_PERSONAL,
-                                    "pseudo", "Anonymous"),
-                         ENCODING)
-    except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-        print "Could not retreive pseudo"
-        pseudo = u"Anonymous"
-    doc = FileDocument(pseudo)
+    doc = FileDocument()
     doc.encoding = encoding
     doc.config = config
-    return doc
-
-def load_document(pseudo, directory=None, checked=True):
-    """build FileDocumentn from file"""
-    assert isinstance(pseudo, unicode), "pseudo must be a unicode"
-    if directory is None:
-        directory = get_prefs("profile_dir")
-    from solipsis.services.profile.file_document import FileDocument
-    doc = FileDocument(pseudo, directory)
-    if not doc.load(checked=checked):
-        print "Could not find document"
     return doc
     
 class CustomConfigParser(ConfigParser.ConfigParser):
@@ -105,6 +88,7 @@ class AbstractPersonalData:
         """copy data from another document into self"""
         try:
             # personal data (unicode)
+            self.set_pseudo(other_document.get_pseudo())
             self.set_title(other_document.get_title())
             self.set_firstname(other_document.get_firstname())
             self.set_lastname(other_document.get_lastname())
@@ -124,6 +108,15 @@ class AbstractPersonalData:
                 self.add_custom_attributes(custom_interest, u"")
             
     # PERSONAL TAB    
+    def set_pseudo(self, pseudo):
+        if pseudo == self.get_pseudo():
+            return False
+        if not isinstance(pseudo, unicode):
+            raise TypeError("pseudo '%s' expected as unicode"% pseudo)
+        
+    def get_pseudo(self):
+        raise NotImplementedError
+    
     def set_title(self, title):
         if title == self.get_title():
             return False
@@ -195,14 +188,14 @@ class AbstractSharingData:
         # {root: Containers}
         self.files = {}
         
-    def import_document(self, other_document, checked=True):
+    def import_document(self, other_document):
         """copy data from another document into self"""
         try:
             # file data
             self.reset_files()
             for repo, sharing_cont in \
-                    other_document.get_files(checked=checked).iteritems():
-                self.add_repository(repo, checked=checked)
+                    other_document.get_files().iteritems():
+                self.add_repository(repo)
                 for container in sharing_cont.flat():
                     try:
                         self.share_file(container.get_path(), container._shared)
@@ -246,7 +239,7 @@ class AbstractSharingData:
             raise TypeError("repository to remove expected as str")
         del self.files[path]
         
-    def get_files(self, checked=True):
+    def get_files(self):
         """returns {root: Container}"""
         return self.files
         
@@ -263,7 +256,7 @@ class AbstractSharingData:
                               if isinstance(cont, DictContainer)]:
             self.expand_dir(dir_container.get_path())
         
-    def share_files(self, path, names, share):
+    def share_files(self, path, names, share=True):
         if not isinstance(path, str):
             raise TypeError("path expected as str")
         if not isinstance(names, list) \
@@ -276,7 +269,7 @@ class AbstractSharingData:
             container = self.get_container(file_name)
             container.share(share)
 
-    def share_file(self, path, share):
+    def share_file(self, path, share=True):
         if not isinstance(path, str):
             raise TypeError("path expected as str")
         if not isinstance(share, bool):
@@ -333,7 +326,6 @@ class AbstractContactsData:
     """define API for all contacts' data"""
 
     def __init__(self):
-        # memory
         self.last_downloaded_desc = None
 
     def get_last_downloaded_desc(self):
@@ -352,7 +344,7 @@ class AbstractContactsData:
             peers = other_document.get_peers()
             for peer_id, peer_desc in peers.iteritems():
                 self.set_peer(peer_id,
-                              PeerDescriptor(peer_desc.pseudo,
+                              PeerDescriptor(peer_id,
                                              document=peer_desc.document,
                                              blog=peer_desc.blog,
                                              state=peer_desc.state))
@@ -395,7 +387,7 @@ class AbstractContactsData:
         """change connected status of given peer and updates views"""
         if self.has_peer(peer_id):
             peer_desc = self.get_peer(peer_id)
-            peer_desc.set_connected(connected)
+            peer_desc.connected = connected
     
     def make_friend(self, peer_id):
         """sets peer as friend """
@@ -420,12 +412,12 @@ class AbstractContactsData:
         """stores CacheDocument associated with peer"""
         # set peer_desc
         if not self.has_peer(peer_id):
-            peer_desc = PeerDescriptor(document.pseudo, document=document)
+            peer_desc = PeerDescriptor(peer_id, document=document)
             self.set_peer(peer_id, peer_desc)
         else:
             peer_desc = self.get_peer(peer_id)
         # set data
-        peer_desc.set_document(document)
+        peer_desc.document = document
         if flag_update:
             self.last_downloaded_desc = peer_desc
         else:
@@ -439,12 +431,12 @@ class AbstractContactsData:
             raise TypeError("data expected as AbstractDocument")
         # set peer_desc
         if not self.has_peer(peer_id):
-            peer_desc = PeerDescriptor(blog.pseudo, blog=blog)
+            peer_desc = PeerDescriptor(peer_id, blog=blog)
             self.set_peer(peer_id, peer_desc)
         else:
             peer_desc = self.get_peer(peer_id)
         # set blog
-        peer_desc.set_blog(blog)
+        peer_desc.blog = blog
         if flag_update:
             self.last_downloaded_desc = peer_desc
         else:
@@ -476,21 +468,9 @@ class SaverMixin:
     """Take in charge saving & loading of document. Leave funciton
     import_document to be redefined."""
 
-    def __init__(self, pseudo, directory):
-        # point out file where document is saved
-        self.pseudo = pseudo
-        self._dir = directory
+    def __init__(self):
+        pass
 
-    def __repr__(self):
-        return self.pseudo
-
-    def __str__(self):
-        return self.pseudo
-
-    def get_id(self):
-        """return identifiant of Document"""
-        return self.pseudo + PROFILE_EXT
-        
     def import_document(self, other_document):
         """copy data from another document into self"""
         raise NotImplementedError(
@@ -498,30 +478,30 @@ class SaverMixin:
     
     def copy(self):
         """return copy of this document"""
-        copied_doc = self.__class__(self.pseudo, self._dir)
+        copied_doc = self.__class__()
         copied_doc.import_document(self)
         return copied_doc
 
     # MENU
-    def save(self):
+    def save(self, path):
         """fill document with information from .profile file"""
         from solipsis.services.profile.file_document import FileDocument
-        doc = FileDocument(self.pseudo, self._dir)
+        doc = FileDocument()
         doc.import_document(self)
-        doc.save()
+        doc.save(path)
         
-    def load(self, checked=True):
+    def load(self, path):
         """fill document with information from .profile file"""
         from solipsis.services.profile.file_document import FileDocument
-        doc = FileDocument(self.pseudo, self._dir)
-        result = doc.load(checked=checked)
+        doc = FileDocument()
+        result = doc.load(path)
         self.import_document(doc)
         return result
         
     def to_stream(self):
         """fill document with information from .profile file"""
         from solipsis.services.profile.file_document import FileDocument
-        doc = FileDocument(self.pseudo, self._dir)
+        doc = FileDocument()
         doc.import_document(self)
         return doc.to_stream()
 
@@ -530,14 +510,11 @@ class AbstractDocument(AbstractPersonalData, AbstractSharingData,
                        AbstractContactsData, SaverMixin):
     """data container on file"""
 
-    def __init__(self, pseudo, directory=None):
-        assert isinstance(pseudo, unicode), "pseudo must be a unicode"
-        if directory is None:
-            directory = get_prefs("profile_dir")
+    def __init__(self):
         AbstractPersonalData.__init__(self)
         AbstractSharingData.__init__(self)
         AbstractContactsData.__init__(self)
-        SaverMixin.__init__(self, pseudo, directory)
+        SaverMixin.__init__(self)
         
     def import_document(self, other_document):
         """copy data from another document into self"""
@@ -545,9 +522,9 @@ class AbstractDocument(AbstractPersonalData, AbstractSharingData,
         AbstractSharingData.import_document(self, other_document)
         AbstractContactsData.import_document(self, other_document)
 
-    def load(self, checked=True):
+    def load(self, path):
         """load default values if no file"""
-        if not SaverMixin.load(self, checked=checked):
+        if not SaverMixin.load(self, path):
             AbstractPersonalData.load_defaults(self)
             return False
         else:

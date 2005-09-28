@@ -103,10 +103,10 @@ class PersonalPanel(wx.Panel):
             self, message=_("Choose your picture"),
             defaultDir=os.getcwd(), 
             defaultFile="",
-            wildcard= "Image GIF (*.gif)|*.gif|" \
+            wildcard= _("Image GIF (*.gif)|*.gif|" \
             "Image JPEG (*.jpg)|*.jpg|" \
             "Image PNG (*.png)|*.png|" \
-            "All files (*.*)|*.*",
+            "All files (*.*)|*.*"),
             style=wx.OPEN | wx.CHANGE_DIR )
         
         if dlg.ShowModal() == wx.ID_OK:
@@ -147,7 +147,7 @@ class PersonalPanel(wx.Panel):
 
     def on_change_facade(self):
         """setter"""
-        self.nickname_value.SetValue(get_facade()._desc.pseudo)
+        self.nickname_value.SetValue(get_facade()._desc.document.get_pseudo())
 
     def __set_properties(self):
         # begin wxGlade: PersonalPanel.__set_properties

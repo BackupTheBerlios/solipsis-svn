@@ -19,6 +19,8 @@
 # </copyright>
 """Define cache structures used in profile and rendered in list widgets"""
 
+__revision__ = "$Id: $"
+
 import os, os.path
 import stat
 
@@ -132,8 +134,10 @@ class DictContainer(dict, ContainerMixin):
     """Tree Structure to store data in cache in the way the explorater
     of file_system does"""
 
-    def __init__(self, path, cb_share=None, share=False, tag=DEFAULT_TAG):
-        ContainerMixin.__init__(self, path, cb_share=cb_share, share=share, tag=tag)
+    def __init__(self, path, cb_share=None,
+                 share=False, tag=DEFAULT_TAG):
+        ContainerMixin.__init__(self, path, cb_share=cb_share,
+                                share=share, tag=tag)
         dict.__init__(self)
         
     def __str__(self):

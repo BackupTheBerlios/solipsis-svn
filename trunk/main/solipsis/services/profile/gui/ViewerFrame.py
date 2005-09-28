@@ -9,9 +9,8 @@ from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxy
 from solipsis.services.profile import PROFILE_FILE
 from solipsis.services.profile.prefs import get_prefs
+from solipsis.services.profile.data import PeerDescriptor
 from solipsis.services.profile.file_document import FileDocument
-from solipsis.services.profile.view import HtmlView
-from solipsis.services.profile.data import PeerDescriptor, load_blogs
 from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile.gui.PreviewPanel import MyHtmlWindow
 from solipsis.services.profile.gui.BlogPanel import BlogPanel
@@ -144,7 +143,6 @@ class ViewerFrame(wx.Frame):
         sys.exit()
         
     def on_add(self, evt):
-        """save profile .prf"""
         dlg = wx.FileDialog(
             self, message="Add profile ...",
             defaultDir=get_prefs("profile_dir"),
@@ -152,14 +150,14 @@ class ViewerFrame(wx.Frame):
             wildcard="Solipsis file (*.prf)|*.prf",
             style=wx.OPEN)
         if dlg.ShowModal() == wx.ID_OK:
-            directory, pseudo = os.path.split(dlg.GetPath()[:-4])
-            blogs = load_blogs(pseudo, directory)
-            loader = FileDocument(pseudo, directory)
-            loader.load()
-            get_facade().fill_data(pseudo, loader)
-            get_facade().fill_blog(pseudo, blogs)
-            get_facade().fill_shared_files(pseudo, loader.get_shared_files())
-            peer_desc = get_facade().get_peer(pseudo)
+            directory, file_name = os.path.split(dlg.GetPath()[:-4])
+            peer_desc = PeerDescriptor(file_name, document=FileDocument())
+            peer_desc.load(directory=directory)
+            blogs = peer_desc.blog
+            loader = peer_desc.document
+            get_facade().fill_data(peer_desc.node_id, loader)
+            get_facade().fill_blog(peer_desc.node_id, blogs)
+            get_facade().fill_shared_files(peer_desc.node_id, loader.get_shared_files())
             self.display_profile(peer_desc)
             self.display_blog(peer_desc)
             self.display_files(peer_desc)
@@ -209,25 +207,25 @@ class ViewerFrame(wx.Frame):
 
     def on_make_friend(self, evt):
         """end application"""
-        pseudo = self.other_tab.get_peer_selected()
-        if pseudo:
-            get_facade().make_friend(pseudo)
+        peer_id = self.other_tab.get_peer_selected()
+        if peer_id:
+            get_facade().make_friend(peer_id)
         else:
             print "no peer selected"
 
     def on_blacklist(self, evt):
         """end application"""
-        pseudo = self.other_tab.get_peer_selected()
-        if pseudo:
-            get_facade().blacklist_peer(pseudo)
+        peer_id = self.other_tab.get_peer_selected()
+        if peer_id:
+            get_facade().blacklist_peer(peer_id)
         else:
             print "no peer selected"
 
     def on_anonymous(self, evt):
         """end application"""
-        pseudo = self.other_tab.get_peer_selected()
-        if pseudo:
-            get_facade().unmark_peer(pseudo)
+        peer_id = self.other_tab.get_peer_selected()
+        if peer_id:
+            get_facade().unmark_peer(peer_id)
         else:
             print "no peer selected"
 

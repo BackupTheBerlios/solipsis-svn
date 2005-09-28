@@ -62,7 +62,7 @@
   <h2 class="header">Known Neighbors</h2>
   <table>
     <tr tal:repeat="info ordered_peers">
-      <td tal:content="python:info.pseudo">pseudo</td>
+      <td tal:content="python:info.document.get_pseudo()">pseudo</td>
       <td tal:content="python:info.state">state</td>
       <td tal:content="python:info.document and info.document.get_email() or '--'">email</td>
     </tr>

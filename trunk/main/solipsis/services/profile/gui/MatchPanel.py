@@ -98,7 +98,7 @@ class MatchPanel(wx.Panel):
         preview_tab.SetSizer(tab_sizer)
         tab_sizer.Fit(preview_tab)
         tab_sizer.SetSizeHints(preview_tab)
-        self.preview_notebook.AddPage(preview_tab, peer_desc.pseudo)
+        self.preview_notebook.AddPage(preview_tab, peer_desc.document.get_pseudo())
         self.tabs[peer_desc.node_id] = preview_tab
         self._update_tab(peer_desc)
 

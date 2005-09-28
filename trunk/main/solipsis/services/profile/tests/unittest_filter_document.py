@@ -1,18 +1,23 @@
+#!/usr/bin/python
+# -*- coding: iso-8859-1 -*-
+# pylint: disable-msg=W0131,C0301,C0103
+# Missing docstring, Line too long, Invalid name
 """Represents data used in model. It has been split from Views
 gathared in views.py. Documents are to be seen as completely
 independant from views"""
 
+__revision__ = "$Id: $"
+
 import unittest
 import os.path
-from ConfigParser import ConfigParser
-
 
 from solipsis.services.profile import FILTER_EXT, QUESTION_MARK
+from solipsis.services.profile.prefs import get_prefs, set_prefs
 from solipsis.services.profile.data import PeerDescriptor
-from solipsis.services.profile.filter_document import FilterValue, PeerMatch, FilterDocument
-from solipsis.services.profile.file_document import FileDocument
-from solipsis.services.profile.tests import PROFILE_DIRECTORY, PROFILE_TEST, REPO
-from solipsis.services.profile.tests.unittest_file_document import write_test_profile, FILE_TEST
+from solipsis.services.profile.filter_document import FilterValue, PeerMatch, \
+     FilterDocument
+from solipsis.services.profile.tests import PROFILE_DIR, PROFILE_TEST, TEST_DIR
+from solipsis.services.profile.tests import write_test_profile, FILE_TEST
 
 class ValueTest(unittest.TestCase):
 
@@ -45,14 +50,17 @@ class ValueTest(unittest.TestCase):
 class MatchTest(unittest.TestCase):
 
     def setUp(self):
+        write_test_profile()
         # peer
-        peer_document = FileDocument(PROFILE_TEST, PROFILE_DIRECTORY)
-        peer_document.load()
-        peer_document.share_files(REPO, [os.path.join("data", "date.txt"), os.path.join("data", "subdir1")], True)
-        self.peer_desc = PeerDescriptor(PROFILE_TEST, document=peer_document)
+        self.peer_desc = PeerDescriptor(PROFILE_TEST)
+        self.peer_desc.load(directory=PROFILE_DIR)
+        self.peer_desc.document.share_files(TEST_DIR,
+                                            [os.path.join("data", "date.txt"),
+                                             os.path.join("data", "subdir1")],
+                                            True)
         # filter
-        self.document = FilterDocument(PROFILE_TEST, PROFILE_DIRECTORY)
-        self.document.load()
+        self.document = FilterDocument()
+        self.document.load(FILTER_TEST)
 
     def test_creation(self):
         match = PeerMatch(self.peer_desc, self.document)
@@ -68,7 +76,7 @@ class MatchTest(unittest.TestCase):
         # activate
         self.document.get_email().activated = True
         match = PeerMatch(self.peer_desc, self.document)
-        self.assertEquals(match.email.get_match(), u'manu@ft.com')
+        self.assertEquals(match.lastname.get_match(), u'breton')
 
     def test_files(self):
         # add filter for dummy.txt
@@ -79,7 +87,7 @@ class MatchTest(unittest.TestCase):
         self.assertEquals(match_files, ['TOtO.txt', 'date.doc', 'date.txt', "dummy.txt"])
 
 def write_test_filter():
-    document = FilterDocument(PROFILE_TEST, PROFILE_DIRECTORY)
+    document = FilterDocument()
     # set personal data
     document.set_title(FilterValue(value=u"Mr", activate=True))
     document.set_firstname(FilterValue(value=u"", activate=True))
@@ -91,9 +99,9 @@ def write_test_filter():
     # set files
     document.add_repository(u'MP3', FilterValue(value=u'.*\.mp3$', activate=True))
     # write file
-    document.save()
+    document.save(FILTER_TEST)
     
-FILTER_TEST = os.path.join(PROFILE_DIRECTORY, PROFILE_TEST + FILTER_EXT)
+FILTER_TEST = os.path.join(PROFILE_DIR, PROFILE_TEST + FILTER_EXT)
 
 class FilterTest(unittest.TestCase):
     """test that all fields are correctly validated"""
@@ -109,19 +117,19 @@ class FilterTest(unittest.TestCase):
             os.remove(FILE_TEST)
         write_test_profile()
         # load profile
-        self.document = FilterDocument(PROFILE_TEST, PROFILE_DIRECTORY)
-        self.document.load()
+        self.document = FilterDocument()
+        self.document.load(FILTER_TEST)
 
     def assert_content(self, document):
         self.assertEquals(document.get_title().description, u"Mr")
         self.assertEquals(document.get_title().activated, True)
         self.assertEquals(document.get_firstname().description, u"")
-        self.assertEquals(document.get_firstname().activated, True)
-        self.assertEquals(document.get_lastname().description, u"breton")
+        self.assertEquals(document.get_firstname().activated, False)
+        self.assertEquals(document.get_lastname().description, u"b.*")
         self.assertEquals(document.get_lastname().activated, True)
-        self.assertEquals(document.get_photo().description, QUESTION_MARK())
+        self.assertEquals(document.get_photo().description, u"")
         self.assertEquals(document.get_photo().activated, False)
-        self.assertEquals(document.get_email().description, u"manu@ft.com")
+        self.assertEquals(document.get_email().description, u"")
         self.assertEquals(document.get_email().activated, False)
         self.assertEquals(document.has_custom_attribute(u'color'), True)
         self.assertEquals(document.has_file(u'MP3'), True)
@@ -130,19 +138,18 @@ class FilterTest(unittest.TestCase):
         self.assert_content(self.document)
 
     def test_import(self):
-        doc = FilterDocument(PROFILE_TEST, PROFILE_DIRECTORY)
+        doc = FilterDocument()
         doc.import_document(self.document)
         self.assert_content(doc)
 
     def test_customs(self):
-        customs = self.document.get_custom_attributes()
         self.assertEquals(self.document.has_custom_attribute(u'color'), True)
         self.assertEquals(self.document.get_custom_attributes()[u'color']._name, 'color')
-        self.assertEquals(self.document.get_custom_attributes()[u'color'].description, 'BLUE')
+        self.assertEquals(self.document.get_custom_attributes()[u'color'].description, 'blue')
         self.assertEquals(self.document.get_custom_attributes()[u'color'].activated, True)
         self.document.add_custom_attributes(u'color', FilterValue(value=u'blue', activate=False))
         self.assertEquals(self.document.get_custom_attributes()[u'color'].activated, False)
-        customs = self.document.remove_custom_attributes(u'color')
+        self.document.remove_custom_attributes(u'color')
         self.assertEquals(self.document.has_custom_attribute(u'color'), False)
 
 if __name__ == '__main__':

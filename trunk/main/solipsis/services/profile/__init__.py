@@ -19,13 +19,15 @@
 """Plugin profile: allow users to define a set of personal information
 and exchange it with other peers"""
 
+__revision__ = "$Id: $"
+
 import os, os.path
 import gettext
 import locale
 _ = gettext.gettext
 
 ENCODING = locale.getpreferredencoding()
-VERSION = "0.2.2"
+VERSION = "0.3.0"
 DISCLAIMER = "All data in profiles are shared within Solipsis communauty"
 
 DOWNLOAD_REPO = os.sep.join([os.path.expanduser("~"), ".solipsis", "download"])

@@ -18,6 +18,8 @@
 # </copyright>
 """Contains preferences for profile"""
 
+__revision__ = "$Id: $"
+
 import os.path
 
 import ConfigParser

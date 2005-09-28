@@ -291,9 +291,11 @@ class Plugin(ServicePlugin):
         """need to update node_id"""
         # ChangedNode is call more than one time on change. Thus, be
         # careful not to do the job every time
-        if get_facade() is None or get_facade()._desc.pseudo != node.pseudo:
-            facade = create_facade(node.pseudo)
+        if get_facade() is None or get_facade()._desc.document.get_pseudo() != node.pseudo:
+            # profile
+            facade = create_facade(node.id_)
             facade.load()
+            facade.change_pseudo(node.pseudo)
             if self.editor_frame:
                 facade.add_view(EditorView(facade._desc,
                                            self.editor_frame))
@@ -301,7 +303,8 @@ class Plugin(ServicePlugin):
                 facade.add_view(ViewerView(facade._desc,
                                            self.viewer_frame))
                 self.viewer_frame.on_change_facade()
-            filter_facade = create_filter_facade(node.pseudo)
+            # filter
+            filter_facade = create_filter_facade(node.id_)
             filter_facade.load()
             if self.filter_frame:
                 filter_facade.add_view(FilterView(filter_facade._desc,

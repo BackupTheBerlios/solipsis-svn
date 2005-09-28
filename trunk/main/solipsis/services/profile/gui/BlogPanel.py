@@ -50,7 +50,7 @@ class MyHtmlListBox(wx.HtmlListBox):
 
     def refresh(self):
         assert get_facade(), "Facade not initialiazed"
-        self.SetItemCount(get_facade().count_blogs())
+        self.SetItemCount(get_facade()._desc.blog.count_blogs())
         self.RefreshAll()
 
 class BlogPanel(wx.Panel):

@@ -23,11 +23,12 @@
 gathared in views.py. Documents are to be seen as completely
 independant from views"""
 
+__revision__ = "$Id: $"
+
 import re
 import os.path
 import tempfile
-from solipsis.services.profile import ENCODING, FILTER_EXT
-from solipsis.services.profile.prefs import get_prefs
+from solipsis.services.profile import ENCODING
 from solipsis.services.profile.document import AbstractPersonalData, \
      CustomConfigParser, SECTION_PERSONAL, SECTION_CUSTOM, SECTION_FILE
 from solipsis.services.profile.document import SaverMixin
@@ -148,12 +149,6 @@ class PeerMatch:
                or self.photo or self.email \
                or self.customs or self.files
 
-    def set_document(self, document):
-        """update filters according to new doc"""
-        self.peer_desc.set_document(document)
-        self.reset()
-        self.match()
-
 class FilterPersonalMixin(AbstractPersonalData):
     """Implements API for all pesonal data in cache"""
 
@@ -162,6 +157,7 @@ class FilterPersonalMixin(AbstractPersonalData):
         self.config.add_section(SECTION_PERSONAL)
         self.config.add_section(SECTION_CUSTOM)
         # cache
+        self.pseudo = FilterValue("pseudo")
         self.title = FilterValue("title")
         self.firstname = FilterValue("firstname")
         self.lastname = FilterValue("lastname")
@@ -180,6 +176,15 @@ class FilterPersonalMixin(AbstractPersonalData):
         return member
         
     # PERSONAL TAB
+    def set_pseudo(self, filter_value):
+        if self.pseudo == filter_value:
+            return False
+        else:
+            return self._set(self.pseudo, filter_value)
+    
+    def get_pseudo(self):
+        return self.pseudo
+    
     def set_title(self, filter_value):
         if self.title == filter_value:
             return False
@@ -294,44 +299,40 @@ class FilterContactMixin(CacheContactMixin):
         CacheContactMixin.__init__(self)
         
     def set_peer(self, peer_id, peer_desc):
-        peer_desc.set_node_id(peer_id)
+        peer_desc.node_id = peer_id
         peer_match = PeerMatch(peer_desc)
         self.peers[peer_id] = peer_match
         
 class FilterSaverMixin(SaverMixin):
     """Implements API for saving & loading in a File oriented context"""
 
-    def __init__(self, pseudo, directory):
-        SaverMixin.__init__(self, pseudo, directory)
+    def __init__(self):
+        SaverMixin.__init__(self)
 
-    def get_id(self):
-        """return identifiant of Document"""
-        return os.path.join(self._dir, self.pseudo) + FILTER_EXT
-    
     # MENU
-    def save(self):
+    def save(self, path):
         """fill document with information from .profile file"""
-        profile_file = open(self.get_id(), 'w')
+        profile_file = open(path, 'w')
         profile_file.write("#%s\n"% self.encoding)
         self.config.write(profile_file)
         profile_file.close()
 
-    def _load_config(self):
-        if not os.path.exists(self.get_id()):
-            print "profile %s does not exists"% self.get_id()
+    def _load_config(self, path):
+        if not os.path.exists(path):
+            print "profile %s does not exists"% path
             return False
         else:
-            profile_file = open(self.get_id())
+            profile_file = open(path)
             self.encoding = profile_file.readline()[1:]
             self.config = CustomConfigParser(self.encoding)
             self.config.readfp(profile_file)
             profile_file.close()
             return True
         
-    def load(self, checked=True):
+    def load(self, path):
         """fill document with information from .profile file"""
         # load config
-        if not self._load_config():
+        if not self._load_config(path):
             return False
         # synchronize cache
         for personal_option in self.config.options(SECTION_PERSONAL):
@@ -374,20 +375,13 @@ class FilterDocument(FilterPersonalMixin, FilterSharingMixin,
                      FilterContactMixin, FilterSaverMixin):
     """Describes all data needed in profile in a file"""
 
-    def __init__(self, pseudo, directory=None):
-        assert isinstance(pseudo, unicode), "pseudo must be a unicode"
-        if directory is None:
-            directory = get_prefs("profile_dir")
+    def __init__(self):
         self.encoding = ENCODING
         self.config = CustomConfigParser(self.encoding)
-        self.filtered_pseudo = FilterValue("filtered_pseudo")
         FilterPersonalMixin.__init__(self)
         FilterSharingMixin.__init__(self)
         FilterContactMixin.__init__(self)
-        FilterSaverMixin.__init__(self, pseudo, directory)
-
-    def __str__(self):
-        return "Filter document for %s"% self.pseudo.encode(self.encoding)
+        FilterSaverMixin.__init__(self)
         
     def import_document(self, other_document):
         """copy data from another document into self"""
@@ -395,11 +389,3 @@ class FilterDocument(FilterPersonalMixin, FilterSharingMixin,
         FilterSharingMixin.import_document(self, other_document)
         FilterContactMixin.import_document(self, other_document)
         
-    def set_filtered_pseudo(self, filter_value):
-        if self.filtered_pseudo == filter_value:
-            return False
-        else:
-            return self._set(self.filtered_pseudo, filter_value)
-    
-    def get_filtered_pseudo(self):
-        return self.filtered_pseudo
