@@ -15,9 +15,12 @@ def load_ball():
 class BouncingBall(object):
     max_speed = 2
 
-    def __init__(self, target):
+    def __init__(self, target, image_path=None):
         self.target = target
-        self.image = load_ball()
+        if image_path is None:
+            self.image = load_ball()
+        else:
+            self.image = pygame.image.load(image_path)
         self.image = self.image.convert_alpha(self.target)
         self.image.set_alpha(255, pygame.RLEACCEL)
 #         print self.target.get_masks(), self.image.get_masks()

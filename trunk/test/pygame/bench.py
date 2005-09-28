@@ -64,7 +64,7 @@ for size in sizes:
 
     # pygame
     pyg_surface = pygame.Surface(size)
-    ball = BouncingBall(pyg_surface)
+    ball = BouncingBall(pyg_surface, image_path=image_path)
 
     # PIL
     pil_surface = Image.new('RGB', size, black)
