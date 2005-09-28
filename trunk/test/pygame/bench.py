@@ -42,8 +42,8 @@ def pil_to_raw():
     pil_surface.tostring()
 
 def raw_to_wx():
-    wxim = wx.EmptyImage(*size)
-    wxim.SetData(raw_rgb_data)
+    wxim = wx.ImageFromData(size[0], size[1], raw_rgb_data)
+#     wxim.SetData(raw_rgb_data)
     wx.BitmapFromImage(wxim)
 
 
