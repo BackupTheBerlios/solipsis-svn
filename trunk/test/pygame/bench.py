@@ -19,7 +19,8 @@ def time_function(func, n=100):
 
 
 image_path = len(sys.argv) > 1 and sys.argv[1] or "toucan.png"
-sizes = [(400, 300), (640, 480)]
+sizes = [(400, 300), (800, 600)]
+# sizes = [(640, 480)]
 
 
 # Test functions
@@ -33,6 +34,9 @@ def pil_draw_ball():
 
 def wx_draw_ball():
     wx_dc.DrawBitmapPoint(wx_bitmap, (3, 1), True)
+
+def pygame_to_raw():
+    pygame.image.tostring(pyg_surface, 'RGB')
 
 def pil_to_raw():
     pil_surface.tostring()
@@ -59,8 +63,8 @@ for size in sizes:
     pygame.display.set_mode(size)
 
     # pygame
-    surface = pygame.Surface(size)
-    ball = BouncingBall(surface)
+    pyg_surface = pygame.Surface(size)
+    ball = BouncingBall(pyg_surface)
 
     # PIL
     pil_surface = Image.new('RGB', size, black)
@@ -73,9 +77,10 @@ for size in sizes:
     wx_dc.BeginDrawing()
     wx_dc.Clear()
 
-    time_function(pygame_draw_ball, 1e4)
+    time_function(pygame_draw_ball, 3e4)
     time_function(pil_draw_ball, 1e3)
-    time_function(wx_draw_ball, 3e3)
+    time_function(wx_draw_ball, 1e3)
+    time_function(pygame_to_raw, 1e3)
     time_function(pil_to_raw, 1e3)
     time_function(raw_to_wx, 1e2)
 

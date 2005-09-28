@@ -8,6 +8,7 @@ def load_ball():
     global ball_image
     if ball_image is None:
         ball_image = pygame.image.load("ball.gif")
+#         ball_image = pygame.image.load("toucan.png")
     return ball_image
 
 
