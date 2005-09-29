@@ -346,6 +346,9 @@ class FileDocument(FilePersonalMixin, FileFilesharingMixin,
         FileFilesharingMixin.__init__(self)
         FileContactMixin.__init__(self)
         FileSaverMixin.__init__(self)
+
+    def __str__(self):
+        return "File document for %s"% self.get_pseudo()
         
     def import_document(self, other_document):
         """copy data from another document into self"""

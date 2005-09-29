@@ -83,14 +83,36 @@ def get_bruce_profile():
     bruce_doc.add_custom_attributes(u'Movie', u'6th Sense')
     bruce_doc.add_custom_attributes(u'Actor', u'Robin Williams')
     bruce_doc.add_repository(TEST_DIR)
-    bruce_doc.share_file(os.path.join(os.path.abspath("data"), "date.txt"))
-    bruce_doc.share_file(os.sep.join([os.path.abspath("data"),
+    bruce_doc.share_file(os.path.join(DATA_DIR, "date.txt"))
+    bruce_doc.share_file(os.sep.join([DATA_DIR,
                                       "subdir1",
                                       "date.doc"]))
     return PeerDescriptor(PROFILE_BRUCE, document=bruce_doc, blog=bruce_blog)
 
 def write_test_profile():
-    """write testing profile & blogs into test.prf & test.blog"""
+    """write testing profile & blogs into test.prf & test.blog
+    
+    node_id = PROFILE_BRUCE
+    
+    Blog:
+    `````
+      'This is a test'
+
+    Files:
+    ``````
+      data/
+      |-- date.txt                  - tagos
+      |-- emptydir           Shared
+      |-- profiles
+      |   `-- ...
+      |-- routage            Shared
+      `-- subdir1            Shared
+          |-- TOtO.txt
+          |-- date.doc
+          `-- subsubdir
+              |-- dummy.txt  Shared - tag2
+              |-- null       Shared - tag1
+              `-- ..."""
     # write filter
     filter_document = FilterDocument()
     filter_document.set_pseudo(FilterValue(value=".*", activate=True))
@@ -119,40 +141,25 @@ def write_test_profile():
     document.add_custom_attributes(u"homepage", u"manu.com")
     document.add_custom_attributes(u'color', u'blue')
     document.remove_custom_attributes(u'Sport')
-    # set files
-    # `````````
-    # data/
-    # |-- date.txt                  - tagos
-    # |-- emptydir           Shared
-    # |-- profiles
-    # |   `-- ...
-    # |-- routage            Shared
-    # `-- subdir1            Shared
-    #     |-- TOtO.txt
-    #     |-- date.doc
-    #     `-- subsubdir
-    #         |-- dummy.txt  Shared - tag2
-    #         |-- null       Shared - tag1
-    #         `-- ...
     document.add_repository(TEST_DIR)
-    document.expand_dir(os.path.abspath("data"))
-    document.expand_dir(os.path.join(os.path.abspath("data"),
+    document.expand_dir(DATA_DIR)
+    document.expand_dir(os.path.join(DATA_DIR,
                                      "subdir1"))
-    document.share_files(os.path.abspath("data"),
+    document.share_files(DATA_DIR,
                          ["routage", "emptydir", "subdir1"])
-    document.share_files(os.sep.join([os.path.abspath("data"),
+    document.share_files(os.sep.join([DATA_DIR,
                                       "subdir1",
                                       "subsubdir"]),
                          ["null", "dummy.txt"])
-    document.tag_file(os.path.join(os.path.abspath("data"),
+    document.tag_file(os.path.join(DATA_DIR,
                                    "date.txt"),
                       u"tagos")
-    document.tag_file(os.sep.join([os.path.abspath("data"),
+    document.tag_file(os.sep.join([DATA_DIR,
                                    "subdir1",
                                    "subsubdir",
                                    "null"]),
                       u"tag1")
-    document.tag_file(os.sep.join([os.path.abspath("data"),
+    document.tag_file(os.sep.join([DATA_DIR,
                                    "subdir1",
                                    "subsubdir",
                                    "dummy.txt"]),

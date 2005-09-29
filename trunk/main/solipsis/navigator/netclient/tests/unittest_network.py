@@ -2,6 +2,7 @@
 
 import sys
 import time
+import os, os.path
 import twisted.scripts.trial as trial
     
 from Queue import Queue
@@ -11,6 +12,9 @@ from twisted.internet.protocol import ReconnectingClientFactory
 from twisted.protocols.basic import LineReceiver
 
 from solipsis.navigator.netclient.tests import LOCAL_PORT
+from solipsis.services.profile.tests import PROFILE_DIR, FILE_BRUCE, FILE_TEST, \
+     write_test_profile, get_bruce_profile
+from solipsis.services.profile.prefs import get_prefs
         
 
 ##### WATCH OUT !!! ###################################################################
@@ -63,6 +67,13 @@ class NetworkTest(unittest.TestCase):
         factory.sendLine(cmd)
         return deferred
 
+    def useResponse(self, cmd, action, factory, *args):
+        deferred = Deferred()
+        factory.deferred.put(deferred)
+        deferred.addCallback(action, *args)
+        factory.sendLine(cmd)
+        return deferred
+
     def assertPosition(self, response, rounding=0.03, factory=None):
         if factory is None:
             factory = self.factory
@@ -92,7 +103,7 @@ class DisconnectedTest(NetworkTest):
     """Test good completion of basic commands"""
 
     def test_about(self):
-        return self.assertResponse("about", """About...: Solipsis Navigator 0.9.4svn
+        return self.assertResponse("about", """About...: Solipsis Navigator 0.9.5svn
 
 Licensed under the GNU LGPL
 (c) France Telecom R&D""")
@@ -157,36 +168,26 @@ class ConnectedTest(NetworkTest):
 
 # this test uses a remote hard coded profile
 
-# it will work properly with a profile 'zoé' created on the remote machine WINDOWS_IP
-# and running an instance of the netNavigator (launch.py on remote machine).
-# WINDOWS_ID will also depends on the remote machine and you will need to coordinate zoé's
-# profile with hard coded vars ZOE_BLOG & ZOE_FILES
+# it will work properly with ./launch.py executed on the remote
+# machine OTHER_IP. 
     
 class ProfileTest(NetworkTest):
     """Test good completion of basic commands"""
 
-    WINDOWS_IP = "10.193.171.41"
-    WINDOWS_ID = "6000_5_34e59f3a65f4555fdab1761a6aeb65c7b228bec7"
-    WINDOWS_NODE = "bots.netofpeers.net:8555"
-    ZOE_BLOG = "[bzz bzz I am a bee! (0)]"
-    ZOE_FILES = """pscp.exe
-PIL-1.1.5.win32-py2.4.exe
-GoogleEarth.exe
-Firefox Setup 1.0.6.exe
-putty.exe
-TwistedWeb-0.5.0.tar.bz2
-python-2.4.1.msi
-wrar342fr.exe
-sc32r238.exe
-dxwebsetup.exe
-TortoiseSVN-1.2.1.3895-svn-1.2.1.msi
-aeack01.exe
-LanguagePack_1.2.1_fr.exe
-GenuineCheck.exe
-Twisted_NoDocs-2.0.1.win32-py2.4.exe
-wxPython2.6-win32-unicode-2.6.1.0-py24.exe
-psftp.exe
-pageant.exe"""
+    OTHER_IP = "172.17.1.68" # "10.193.171.41"
+    FIRST_NODE = "bots.netofpeers.net:8553"
+    OTHER_NODE = "bots.netofpeers.net:8554"
+    first_id = None
+    second_id = None
+
+    def __init__(self):
+        NetworkTest.__init__(self)
+        # create profiles used for tests
+        write_test_profile() 
+        bruce = get_bruce_profile()
+        bruce.save(directory=PROFILE_DIR) 
+        # call setUp once to set first_id & second_id
+        self.setUp()
 
     def assertOtherMessage(self, message):
         return NetworkTest.assertMessage(self, message,
@@ -196,25 +197,48 @@ pageant.exe"""
         return NetworkTest.assertResponse(self, cmd, response,
                                             factory=self.other_factory)
 
+    def useResponse(self, cmd, response, *args):
+        return NetworkTest.useResponse(self, cmd, response, self.factory, *args)
+
+    def useOtherResponse(self, cmd, response, *args):
+        return NetworkTest.useResponse(self, cmd, response, self.other_factory, *args)
+
     def assertOtherPosition(self, position):
         return NetworkTest.assertPosition(self, position,
                                             factory=self.other_factory)
 
+    def _rename_files(self, node_id, old_name):
+        # function called only twice
+        if self.first_id != None and self.second_id != None:
+            return
+        if old_name == FILE_TEST:
+            self.first_id = node_id
+        else:
+            self.second_id = node_id
+        # update files
+        new_name = os.path.join(get_prefs('profile_dir'), node_id)
+        for extension in ['.prf', '.blog']:
+            print "mv", old_name + extension, new_name + extension
+            os.rename(old_name + extension,
+                      new_name + extension)
+
     def setUp(self):
         # launch fisrt navigator
         util.wait(NetworkTest.setUp(self))
-        util.wait(self.assertResponse("connect bots.netofpeers.net:8553", "Connected"))
+        util.wait(self.assertResponse("connect %s"% self.FIRST_NODE, "Connected"))
         util.wait(self.assertResponse("go 0.1 0.3", "ok"))
+        util.wait(self.useResponse("id", self._rename_files, FILE_TEST))
         # launch 'telnet' on second navigator
         from twisted.internet import reactor
         self.other_factory = ReconnectingFactory()
-        self.other_connector = reactor.connectTCP(self.WINDOWS_IP,
+        self.other_connector = reactor.connectTCP(self.OTHER_IP,
                                                   LOCAL_PORT,
                                                   self.other_factory)
         # wait for connection to app establisehd
         util.wait(self.assertOtherMessage("Ready"))
-        util.wait(self.assertOtherResponse("connect %s"% self.WINDOWS_NODE, "Connected"))
+        util.wait(self.assertOtherResponse("connect %s"% self.OTHER_NODE, "Connected"))
         util.wait(self.assertOtherResponse("go 0.11 0.31", "ok"))
+        util.wait(self.useOtherResponse("id", self._rename_files, FILE_BRUCE))
         # wait until both navigators have received meta data (no message usable from node)
         self.wait(2)
     setUp.timeout = 8
@@ -236,23 +260,26 @@ pageant.exe"""
     test_where.timeout = 2
 
     def test_who(self):
-        return self.assertResponse("who profile", self.WINDOWS_ID)
+        return self.assertResponse("who profile", self.second_id)
     test_who.timeout = 2
 
     def test_view_profile(self):
-        util.wait(self.assertResponse("who profile", self.WINDOWS_ID))
-        return self.assertResponse("menu %s View profile..."% self.WINDOWS_ID,
-                                   "File document for zoé")
+        util.wait(self.assertResponse("who profile", self.second_id))
+        return self.assertResponse("menu %s View profile..."% self.second_id,
+                                   "File document for bruce")
     test_view_profile.timeout = 4
 
     def test_view_blog(self):
-        util.wait(self.assertResponse("who profile", self.WINDOWS_ID))
-        return self.assertResponse("menu %s View blog..."% self.WINDOWS_ID, self.ZOE_BLOG)
+        util.wait(self.assertResponse("who profile", self.second_id))
+        return self.assertResponse("menu %s View blog..."% self.second_id,
+                                   "Hi Buddy")
     test_view_blog.timeout = 4
     
     def test_view_files(self):
-        util.wait(self.assertResponse("who profile", self.WINDOWS_ID))
-        return self.assertResponse("menu %s Get files..."% self.WINDOWS_ID, self.ZOE_FILES)
+        util.wait(self.assertResponse("who profile", self.second_id))
+        return self.assertResponse("menu %s Get files..."% self.second_id,
+                                    """date.txt
+date.doc""")
     test_view_files.timeout = 4
 
 # Network classes

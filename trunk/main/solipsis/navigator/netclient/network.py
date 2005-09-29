@@ -110,6 +110,7 @@ COMMANDS = {"about":   Commands("about", "display general information"),
                                 converter=address_converter),
             "disconnect": Commands("disconnect", "disconnect from current node"),
             "display": Commands("display", "display current address"),
+            "id":      Commands("id", "display node_id"),
             "jump":    Commands("jump", "jump to node",
                                 "192.33.178.29:5010"),
             "go":      Commands("go", "go to position",
@@ -191,6 +192,9 @@ class SolipsisUiFactory(protocol.ServerFactory):
 
     def do_display(self, deferred):
         return self.app._OnDisplayAddress()
+
+    def do_id(self, deferred):
+        return self.app.world.node_id
 
     def do_jump(self, deferred, adress):
         self.app._OnJumpNear(adress)
