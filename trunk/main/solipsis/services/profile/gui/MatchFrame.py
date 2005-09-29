@@ -103,7 +103,7 @@ class MatchFrame(wx.Frame, UIProxyReceiver):
 
     def set_page(self):
         document = get_filter_facade()._desc.document
-        last_added = document.get_last_downloaded_desc()
+        last_added = document.last_downloaded_desc
         if last_added:
             peer_match = get_filter_facade().get_peer(last_added.get_id())
             if peer_match.has_match():
@@ -111,7 +111,7 @@ class MatchFrame(wx.Frame, UIProxyReceiver):
                 self.matched_panel.set_tab(peer_match.peer_desc)
                 if get_filter_facade()._activated:
                     self.Show()
-            document.reset_last_downloaded_desc()
+            document.last_downloaded_desc = None
 
     def __set_properties(self):
         # begin wxGlade: MatchFrame.__set_properties

@@ -63,6 +63,11 @@ class PersonalPanel(wx.Panel):
     
     def bind_controls(self):
         """bind all controls with facade"""
+        # set modified on focus by default (usefull when closing frame)
+        self.firstname_value.Bind(wx.EVT_SET_FOCUS, self.on_focus)
+        self.lastname_value.Bind(wx.EVT_SET_FOCUS, self.on_focus)
+        self.email_value.Bind(wx.EVT_SET_FOCUS, self.on_focus)
+        # set value and check is really modified when losing focus
         self.title_value.Bind(wx.EVT_COMBOBOX, self.on_title)
         self.firstname_value.Bind(wx.EVT_KILL_FOCUS, self.on_firstname)
         self.lastname_value.Bind(wx.EVT_KILL_FOCUS, self.on_lastname)
@@ -72,6 +77,9 @@ class PersonalPanel(wx.Panel):
         self.custom_list.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_selected)
         self.add_custom_button.Bind(wx.EVT_BUTTON, self.on_add)
         self.del_custom_button.Bind(wx.EVT_BUTTON, self.on_del)
+
+    def on_focus(self, evt):
+        self.do_modified(True)
         
     def on_title(self, evt):
         """language loses focus"""
