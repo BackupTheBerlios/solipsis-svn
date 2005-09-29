@@ -67,9 +67,22 @@ class FileTest(unittest.TestCase):
         self._assertContent(self.document)
 
     def test_import(self):
+        # file -> cache
         new_doc = CacheDocument()
         new_doc.import_document(self.document)
         self._assertContent(new_doc)
+        # cache -> cache
+        cache_doc = CacheDocument()
+        cache_doc.import_document(new_doc)
+        self._assertContent(cache_doc)
+        # cache -> file
+        file_doc = FileDocument()
+        file_doc.import_document(cache_doc)
+        self._assertContent(file_doc)
+        # file -> file
+        other_doc = FileDocument()
+        other_doc.import_document(file_doc)
+        self._assertContent(other_doc)
         
     def test_default(self):
         document = FileDocument()

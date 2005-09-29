@@ -32,10 +32,9 @@ import sys
 from solipsis.services.profile import ENCODING, QUESTION_MARK
 from solipsis.services.profile.path_containers import DEFAULT_TAG, \
      create_container
-from solipsis.services.profile.data import PeerDescriptor, load_blogs
-from solipsis.services.profile.filter_document import FilterSaverMixin
+from solipsis.services.profile.data import PeerDescriptor
 from solipsis.services.profile.document import CustomConfigParser, \
-     AbstractPersonalData, AbstractSharingData, AbstractContactsData, \
+     AbstractPersonalData, FileSharingMixin, ContactsMixin, DocSaverMixin, \
      SECTION_PERSONAL, SECTION_CUSTOM, SECTION_OTHERS, SECTION_FILE
 
 SHARED_TAG = "shared"
@@ -156,49 +155,49 @@ class FilePersonalMixin(AbstractPersonalData):
         finally:
             return result
 
-class FileSharingMixin(AbstractSharingData):
+class FileFilesharingMixin(FileSharingMixin):
     """Implements API for all file data in a File oriented context"""
 
     def __init__(self):
         self.config.add_section(SECTION_FILE)
-        AbstractSharingData.__init__(self)
+        FileSharingMixin.__init__(self)
 
     # FILE TAB
-    def reset_files(self):
-        """empty all information concerning files"""
-        self.config.remove_section(SECTION_FILE)
-        self.config.add_section(SECTION_FILE)
-        AbstractSharingData.reset_files(self)
-
-    def _init_repos(self):
+    def init_repos(self):
         try:
             return [repo for repo in self.config.get(
                 SECTION_PERSONAL, "repositories").split(',')
                       if repo.strip() != '']
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
             return []
+        
+    def reset_files(self):
+        """empty all information concerning files"""
+        FileSharingMixin.reset_files(self)
+        self.config.remove_section(SECTION_FILE)
+        self.config.add_section(SECTION_FILE)
 
     def get_repositories(self):
         """return list of repos"""
         # lazy initialisation
-        repos = AbstractSharingData.get_repositories(self)
+        repos = FileSharingMixin.get_repositories(self)
         if len(repos) > 0:
             return repos
         # full init
-        repos = self._init_repos()
+        repos = self.init_repos()
         for repo in repos:
             # create repo with out checking validity of path.
             # checking might be needed at loading only => checked=False
-            AbstractSharingData.add_repository(self, repo, checked=False)
-        return AbstractSharingData.get_repositories(self)
+            FileSharingMixin.add_repository(self, repo, checked=False)
+        return FileSharingMixin.get_repositories(self)
         
     def get_files(self):
         """returns {root: Container}"""
         # lazy initialisation
         if self.files != {}:
-            return AbstractSharingData.get_files(self)
+            return FileSharingMixin.get_files(self)
         # full init
-        for repo in self._init_repos():
+        for repo in self.init_repos():
             try:
                 self.files[repo] = create_container(repo, checked=False)
             except AssertionError:
@@ -226,7 +225,7 @@ class FileSharingMixin(AbstractSharingData):
                 container[option].tag(option_tag)
             except KeyError:
                 print "non valid file '%s'"% option
-        return AbstractSharingData.get_files(self)
+        return FileSharingMixin.get_files(self)
         
     def _set_repositories(self):
         """update list of repos"""
@@ -251,129 +250,92 @@ class FileSharingMixin(AbstractSharingData):
                                       f_container._tag))
                     self.config.set(SECTION_FILE, key, value)
 
-class FileContactMixin(AbstractContactsData):
+class FileContactMixin(ContactsMixin):
     """Implements API for all contact data in a File oriented context"""
 
     def __init__(self):
         self.config.add_section(SECTION_OTHERS)
-        AbstractContactsData.__init__(self)
+        ContactsMixin.__init__(self)
         
     # OTHERS TAB
     def reset_peers(self):
         """empty all information concerning peers"""
+        ContactsMixin.reset_peers(self)
         self.config.remove_section(SECTION_OTHERS)
         self.config.add_section(SECTION_OTHERS)
-        
-    def set_peer(self, peer_id, peer_desc):
-        """stores Peer object"""
-        self._write_peer(peer_id, peer_desc)
-        peer_desc.node_id = peer_id
-        
-    def _write_peer(self, peer_id, peer_desc):
-        """stores Peer object"""
-        # extract name of files saved on HD
-        peer_desc.save()
-        pseudo = peer_desc.document and peer_desc.document.get_pseudo() or "Anonymous"
-        description = ",".join([pseudo,
-                                peer_desc.state,
-                                peer_id,
-                                time.asctime()])
-        self.config.set(SECTION_OTHERS, peer_id, description)
-        
-    def remove_peer(self, peer_id):
-        """del Peer object"""
-        if self.config.has_option(SECTION_OTHERS, peer_id):
-            self.config.remove_option(SECTION_OTHERS, peer_id)
-
-    def has_peer(self, peer_id):
-        """checks peer exists"""
-        return self.config.has_option(SECTION_OTHERS, peer_id)
-        
-    def get_peer(self, peer_id):
-        """retreive stored value (friendship, path) for peer_id"""
-        try:
-            infos = self.config.get(SECTION_OTHERS, peer_id).split(",")
-            pseudo, state, p_id, creation_date = infos
-        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-            state = PeerDescriptor.ANONYMOUS
-        peer_desc = PeerDescriptor(peer_id, document=FileDocument(),
-                                   state=state, connected=False)
-        peer_desc.load()
-        return peer_desc
     
     def get_peers(self):
         """returns Peers"""
-        result = {}
-        if self.config.has_section(SECTION_OTHERS):
-            options = self.config.options(SECTION_OTHERS)
-            for peer_id in options:
-                # check unicode
-                if isinstance(peer_id, str):
-                    peer_id = unicode(peer_id, self.encoding)
-                # get info
-                try:
-                    peer_desc = self.get_peer(peer_id)
-                    result[peer_id] = peer_desc
-                except ValueError, error:
-                    print error
-        #else return default value
-        return result
+        # lazy initialisation
+        if self.peers != {}:
+            return ContactsMixin.get_peers(self)
+        # full init
+        if not self.config.has_section(SECTION_OTHERS):
+            self.config.add_section(SECTION_OTHERS)
+        options = self.config.options(SECTION_OTHERS)
+        for peer_id in options:
+            # check unicode
+            if isinstance(peer_id, str):
+                peer_id = unicode(peer_id, self.encoding)
+            # get info
+            description = self.config.get(SECTION_OTHERS, peer_id)
+            try:
+                pseudo, state, timestamp = description.split(',')
+                peer_desc =  PeerDescriptor(peer_id,
+                                            state=state)
+                ContactsMixin.set_peer(self, peer_id, peer_desc)
+                peer_desc.load()
+                # TODO: use timestamp
+            except Exception, error:
+                print error, ": peer %s not retreived"% description
+        return ContactsMixin.get_peers(self)
+        
+    def _set_peers(self):
+        """stores Peer object"""
+        if not self.config.has_section(SECTION_OTHERS):
+            self.config.add_section(SECTION_OTHERS)
+        for peer_id, peer_desc in self.get_peers().items():
+            if peer_desc.state == PeerDescriptor.ANONYMOUS:
+                continue
+            elif peer_desc.state == PeerDescriptor.FRIEND:
+                peer_desc.save()
+            pseudo = peer_desc.document and peer_desc.document.get_pseudo() \
+                     or "Anonymous"
+            description = ",".join([pseudo,
+                                    peer_desc.state,
+                                    time.asctime()])
+            # TODO: create timestamp on peer_desc
+            self.config.set(SECTION_OTHERS, peer_id, description)
 
-    def _change_status(self, peer_id, status):
-        """mark given peer as Friend, Blacklisted or Anonymous"""
-        peer_desc = AbstractContactsData._change_status(self, peer_id, status)
-        if status != PeerDescriptor.ANONYMOUS:
-            self._write_peer(peer_id, peer_desc)
-        else:
-            self.remove_peer(peer_id)
-
-    def fill_data(self, peer_id, document, flag_update=False):
-        """stores CacheDocument associated with peer"""
-        peer_desc = AbstractContactsData.fill_data(self, peer_id,
-                                                   document,
-                                                   flag_update)
-        if peer_desc.state != PeerDescriptor.ANONYMOUS:
-            self._write_peer(peer_id, peer_desc)
-
-    def fill_blog(self, peer_id, blog, flag_update=False):
-        """stores CacheDocument associated with peer"""
-        peer_desc = AbstractContactsData.fill_blog(self, peer_id,
-                                                   blog,
-                                                   flag_update)
-        if peer_desc.state != PeerDescriptor.ANONYMOUS:
-            peer_desc.save()
-            
-    def fill_shared_files(self, peer_id, files, flag_update=False):
-        """connect shared files with shared files"""
-        # nothing to do in FileDocuments when receiving files
-        pass
-
-class FileSaverMixin(FilterSaverMixin):
+class FileSaverMixin(DocSaverMixin):
     """Implements API for saving & loading in a File oriented context"""
 
     def __init__(self):
-        FilterSaverMixin.__init__(self)
+        DocSaverMixin.__init__(self)
     
     # MENU
     def save(self, path):
         """fill document with information from .profile file"""
         self._set_repositories()
         self._set_files()
-        FilterSaverMixin.save(self, path)
+        self._set_peers()
+        DocSaverMixin.save(self, path)
         
     def load(self, path):
         """fill document with information from .profile file"""
-        result = self._load_config(path)
+        result = DocSaverMixin.load(self, path)
         self.get_files()
+        self.get_peers()
         return result
 
     def to_stream(self):
         """returns a file object containing values"""
         self._set_repositories()
         self._set_files()
-        return FilterSaverMixin.to_stream(self)
+        self._set_peers()
+        return DocSaverMixin.to_stream(self)
 
-class FileDocument(FilePersonalMixin, FileSharingMixin,
+class FileDocument(FilePersonalMixin, FileFilesharingMixin,
                    FileContactMixin, FileSaverMixin):
     """Describes all data needed in profile in a file"""
 
@@ -381,14 +343,14 @@ class FileDocument(FilePersonalMixin, FileSharingMixin,
         self.encoding = ENCODING
         self.config = CustomConfigParser(ENCODING)
         FilePersonalMixin.__init__(self)
-        FileSharingMixin.__init__(self)
+        FileFilesharingMixin.__init__(self)
         FileContactMixin.__init__(self)
         FileSaverMixin.__init__(self)
         
     def import_document(self, other_document):
         """copy data from another document into self"""
         FilePersonalMixin.import_document(self, other_document)
-        FileSharingMixin.import_document(self, other_document)
+        FileFilesharingMixin.import_document(self, other_document)
         FileContactMixin.import_document(self, other_document)
 
     def load(self, path):

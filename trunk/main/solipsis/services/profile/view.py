@@ -391,21 +391,21 @@ class ViewerView(AbstractView):
     # BLOG TAB
     def update_blogs(self):
         """display blog"""
-        peer_desc = self._desc.document.get_last_downloaded_desc()
+        peer_desc = self._desc.document.last_downloaded_desc
         if peer_desc != None:
             self.frame.display_blog(peer_desc)
         
     # FILE TAB : frame.file_tab
     def update_files(self):
         """display shared files"""
-        peer_desc = self._desc.document.get_last_downloaded_desc()
+        peer_desc = self._desc.document.last_downloaded_desc
         if peer_desc != None:
             self.frame.display_files(peer_desc)
         
     # OTHERS TAB
     def update_peers(self):
         """peer"""
-        peer_desc = self._desc.document.get_last_downloaded_desc()
+        peer_desc = self._desc.document.last_downloaded_desc
         if peer_desc != None:
             self.frame.display_profile(peer_desc)
 

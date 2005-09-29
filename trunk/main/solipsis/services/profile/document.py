@@ -30,6 +30,8 @@ __revision__ = "$Id: $"
 import re
 import os.path
 import ConfigParser
+import tempfile
+
 from os.path import isfile
 from solipsis.services.profile import DEFAULT_INTERESTS
 from solipsis.services.profile.path_containers import ContainerMixin,  \
@@ -181,7 +183,7 @@ class AbstractPersonalData:
     def get_custom_attributes(self):
         raise NotImplementedError
 
-class AbstractSharingData:
+class FileSharingMixin:
     """define API for all file data"""
 
     def __init__(self):
@@ -213,6 +215,10 @@ class AbstractSharingData:
     def get_repositories(self):
         return dict.keys(self.files)
         
+    def get_files(self):
+        """returns {root: Container}"""
+        return self.files
+        
     def add_repository(self, path, share=True, checked=True):
         """create a Container pointing to 'path' to directory"""
         # check type
@@ -238,10 +244,6 @@ class AbstractSharingData:
         if not isinstance(path, str):
             raise TypeError("repository to remove expected as str")
         del self.files[path]
-        
-    def get_files(self):
-        """returns {root: Container}"""
-        return self.files
         
     def expand_dir(self, path):
         if not isinstance(path, str):
@@ -322,18 +324,13 @@ class AbstractSharingData:
                 return self.files[root_path]
         raise KeyError("%s not in %s"% (path, str(self.files.keys())))
             
-class AbstractContactsData:
+class ContactsMixin:
     """define API for all contacts' data"""
 
     def __init__(self):
-        self.last_downloaded_desc = None
-
-    def get_last_downloaded_desc(self):
-        """return identifiant of Document"""
-        return self.last_downloaded_desc
-
-    def reset_last_downloaded_desc(self):
-        """return identifiant of Document"""
+        # dictionary of peers. {pseudo : PeerDescriptor}
+        self.peers = {}
+        # set when needing to display popups
         self.last_downloaded_desc = None
         
     def import_document(self, other_document):
@@ -354,27 +351,29 @@ class AbstractContactsData:
     # OTHERS TAB
     def reset_peers(self):
         """empty all information concerning peers"""
-        raise NotImplementedError
+        self.peers = {}
         
     def set_peer(self, peer_id, peer_desc):
         """stores Peer object"""
-        raise NotImplementedError
+        self.peers[peer_id] = peer_desc
+        peer_desc.node_id = peer_id
         
     def remove_peer(self, peer_id):
         """del Peer object"""
-        raise NotImplementedError
+        if self.peers.has_key(peer_id):
+            del self.peers[peer_id]
 
     def has_peer(self, peer_id):
         """checks peer exists"""
-        raise NotImplementedError
+        return self.peers.has_key(peer_id)
     
     def get_peer(self, peer_id):
         """returns PeerDescriptor with given id"""
-        raise NotImplementedError
+        return self.peers[peer_id]
     
     def get_peers(self):
         """returns Peers"""
-        raise NotImplementedError
+        return self.peers
     
     def get_ordered_peers(self):
         """returns Peers"""
@@ -418,10 +417,7 @@ class AbstractContactsData:
             peer_desc = self.get_peer(peer_id)
         # set data
         peer_desc.document = document
-        if flag_update:
-            self.last_downloaded_desc = peer_desc
-        else:
-            self.reset_last_downloaded_desc()
+        self.last_downloaded_desc = flag_update and peer_desc or None
         return peer_desc
 
     def fill_blog(self, peer_id, blog, flag_update=True):
@@ -437,10 +433,7 @@ class AbstractContactsData:
             peer_desc = self.get_peer(peer_id)
         # set blog
         peer_desc.blog = blog
-        if flag_update:
-            self.last_downloaded_desc = peer_desc
-        else:
-            self.reset_last_downloaded_desc()
+        self.last_downloaded_desc = flag_update and peer_desc or None
         return peer_desc
             
     def fill_shared_files(self, peer_id, files, flag_update=True):
@@ -458,10 +451,7 @@ class AbstractContactsData:
         # set files
         for file_container in files.flatten():
             peer_desc.document.set_container(file_container)
-        if flag_update:
-            self.last_downloaded_desc = peer_desc
-        else:
-            self.reset_last_downloaded_desc()
+        self.last_downloaded_desc = flag_update and peer_desc or None
         return peer_desc
 
 class SaverMixin:
@@ -504,23 +494,56 @@ class SaverMixin:
         doc = FileDocument()
         doc.import_document(self)
         return doc.to_stream()
-
         
-class AbstractDocument(AbstractPersonalData, AbstractSharingData,
-                       AbstractContactsData, SaverMixin):
+class DocSaverMixin(SaverMixin):
+    """Implements API for saving & loading in a File oriented context"""
+
+    def __init__(self):
+        SaverMixin.__init__(self)
+
+    # MENU
+    def save(self, path):
+        """fill document with information from .profile file"""
+        profile_file = open(path, 'w')
+        profile_file.write("#%s\n"% self.encoding)
+        self.config.write(profile_file)
+        profile_file.close()
+        
+    def load(self, path):
+        if not os.path.exists(path):
+            print "profile %s does not exists"% path
+            return False
+        else:
+            profile_file = open(path)
+            self.encoding = profile_file.readline()[1:]
+            self.config = CustomConfigParser(self.encoding)
+            self.config.readfp(profile_file)
+            profile_file.close()
+            return True
+
+    def to_stream(self):
+        """returns a file object containing values"""
+        file_obj = tempfile.TemporaryFile()
+        file_obj.write("#%s\n"% self.encoding)
+        self.config.write(file_obj)
+        file_obj.seek(0)
+        return file_obj
+        
+class AbstractDocument(AbstractPersonalData, FileSharingMixin,
+                       ContactsMixin, SaverMixin):
     """data container on file"""
 
     def __init__(self):
         AbstractPersonalData.__init__(self)
-        AbstractSharingData.__init__(self)
-        AbstractContactsData.__init__(self)
+        FileSharingMixin.__init__(self)
+        ContactsMixin.__init__(self)
         SaverMixin.__init__(self)
         
     def import_document(self, other_document):
         """copy data from another document into self"""
         AbstractPersonalData.import_document(self, other_document)
-        AbstractSharingData.import_document(self, other_document)
-        AbstractContactsData.import_document(self, other_document)
+        FileSharingMixin.import_document(self, other_document)
+        ContactsMixin.import_document(self, other_document)
 
     def load(self, path):
         """load default values if no file"""

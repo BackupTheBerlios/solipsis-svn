@@ -27,7 +27,7 @@ __revision__ = "$Id: $"
 
 from solipsis.services.profile import QUESTION_MARK
 from solipsis.services.profile.document import SaverMixin, \
-     AbstractPersonalData, AbstractSharingData, AbstractContactsData
+     AbstractPersonalData, FileSharingMixin, ContactsMixin
 
 class CachePersonalMixin(AbstractPersonalData):
     """Implements API for all pesonal data in cache"""
@@ -115,57 +115,21 @@ class CachePersonalMixin(AbstractPersonalData):
     def get_custom_attributes(self):
         return self.custom_attributes
 
-class CacheSharingMixin(AbstractSharingData):
-    """Implements API for all file data in cache"""
-
-    def __init__(self):
-        AbstractSharingData.__init__(self)
-
-class CacheContactMixin(AbstractContactsData):
-    """Implements API for all contact data in cache"""
-
-    def __init__(self):
-        # dictionary of peers. {pseudo : PeerDescriptor}
-        self.peers = {}
-        AbstractContactsData.__init__(self)
-        
-    # OTHERS TAB
-    def reset_peers(self):
-        """empty all information concerning peers"""
-        self.peers = {}
-        
-    def set_peer(self, peer_id, peer_desc):
-        self.peers[peer_id] = peer_desc
-        peer_desc.node_id = peer_id
-        
-    def remove_peer(self, peer_id):
-        if self.peers.has_key(peer_id):
-            del self.peers[peer_id]
-
-    def has_peer(self, peer_id):
-        return self.peers.has_key(peer_id)
-    
-    def get_peer(self, peer_id):
-        return self.peers[peer_id]
-    
-    def get_peers(self):
-        return self.peers
-
-class CacheDocument(CachePersonalMixin, CacheSharingMixin,
-                   CacheContactMixin, SaverMixin):
+class CacheDocument(CachePersonalMixin, FileSharingMixin,
+                   ContactsMixin, SaverMixin):
     """Describes all data needed in profile in a file"""
 
     def __init__(self):
         CachePersonalMixin.__init__(self)
-        CacheSharingMixin.__init__(self)
-        CacheContactMixin.__init__(self)
+        FileSharingMixin.__init__(self)
+        ContactsMixin.__init__(self)
         SaverMixin.__init__(self)
         
     def import_document(self, other_document):
         """copy data from another document into self"""
         CachePersonalMixin.import_document(self, other_document)
-        CacheSharingMixin.import_document(self, other_document)
-        CacheContactMixin.import_document(self, other_document)
+        FileSharingMixin.import_document(self, other_document)
+        ContactsMixin.import_document(self, other_document)
 
     def load(self, path):
         """load default values if no file"""

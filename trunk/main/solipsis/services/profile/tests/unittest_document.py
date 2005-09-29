@@ -242,8 +242,6 @@ class DocumentTest(unittest.TestCase):
     # OTHERS TAB
     def test_reset_peers(self):
         """reset peers"""
-        self.assertRaises(NotImplementedError, self.abstract_doc.get_peers)
-        self.assertRaises(NotImplementedError, self.abstract_doc.reset_peers)
         document = self.documents[0]
         document.set_peer(u"nico", PeerDescriptor(PROFILE_TEST))
         self.assertEquals(document.has_peer(u"nico"), True)
@@ -253,7 +251,6 @@ class DocumentTest(unittest.TestCase):
             
     def test_getting_peer(self):
         """get peer"""
-        self.assertRaises(NotImplementedError, self.abstract_doc.get_peer, PROFILE_BRUCE)
         for document in self.documents:
             document.set_peer(PROFILE_BRUCE, PeerDescriptor(PROFILE_BRUCE))
             peer_desc = self.documents[0].get_peer(PROFILE_BRUCE)
@@ -261,7 +258,6 @@ class DocumentTest(unittest.TestCase):
             
     def test_removing_peer(self):
         """remove peer"""
-        self.assertRaises(NotImplementedError, self.abstract_doc.remove_peer, "nico")
         for document in self.documents:
             document.set_peer(u"nico", PeerDescriptor(PROFILE_TEST))
             self.assertEquals(document.has_peer(u"nico"), True)

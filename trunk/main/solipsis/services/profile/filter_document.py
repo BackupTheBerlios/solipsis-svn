@@ -26,13 +26,11 @@ independant from views"""
 __revision__ = "$Id: $"
 
 import re
-import os.path
-import tempfile
 from solipsis.services.profile import ENCODING
-from solipsis.services.profile.document import AbstractPersonalData, \
-     CustomConfigParser, SECTION_PERSONAL, SECTION_CUSTOM, SECTION_FILE
-from solipsis.services.profile.document import SaverMixin
-from solipsis.services.profile.cache_document import CacheContactMixin
+from solipsis.services.profile.document import CustomConfigParser, \
+     ContactsMixin, AbstractPersonalData, \
+     SECTION_PERSONAL, SECTION_CUSTOM, SECTION_FILE
+from solipsis.services.profile.document import DocSaverMixin
 
 class FilterValue:
     """wrapper for filter: regex, description ans state"""
@@ -292,47 +290,29 @@ class FilterSharingMixin:
     def get_files(self):
         return self.file_filters
 
-class FilterContactMixin(CacheContactMixin):
+class FilterContactMixin(ContactsMixin):
     """Implements API for all contact data in cache"""
 
     def __init__(self):
-        CacheContactMixin.__init__(self)
+        ContactsMixin.__init__(self)
         
     def set_peer(self, peer_id, peer_desc):
         peer_desc.node_id = peer_id
         peer_match = PeerMatch(peer_desc)
         self.peers[peer_id] = peer_match
         
-class FilterSaverMixin(SaverMixin):
+class FilterSaverMixin(DocSaverMixin):
     """Implements API for saving & loading in a File oriented context"""
 
     def __init__(self):
-        SaverMixin.__init__(self)
+        DocSaverMixin.__init__(self)
 
     # MENU
-    def save(self, path):
-        """fill document with information from .profile file"""
-        profile_file = open(path, 'w')
-        profile_file.write("#%s\n"% self.encoding)
-        self.config.write(profile_file)
-        profile_file.close()
-
-    def _load_config(self, path):
-        if not os.path.exists(path):
-            print "profile %s does not exists"% path
-            return False
-        else:
-            profile_file = open(path)
-            self.encoding = profile_file.readline()[1:]
-            self.config = CustomConfigParser(self.encoding)
-            self.config.readfp(profile_file)
-            profile_file.close()
-            return True
         
     def load(self, path):
         """fill document with information from .profile file"""
         # load config
-        if not self._load_config(path):
+        if not DocSaverMixin.load(self, path):
             return False
         # synchronize cache
         for personal_option in self.config.options(SECTION_PERSONAL):
@@ -362,14 +342,6 @@ class FilterSaverMixin(SaverMixin):
                 value = unicode(description, self.encoding),
                 activate = activate == "True")
             self.add_repository(file_option, filter_value)
-
-    def to_stream(self):
-        """returns a file object containing values"""
-        file_obj = tempfile.TemporaryFile()
-        file_obj.write("#%s\n"% self.encoding)
-        self.config.write(file_obj)
-        file_obj.seek(0)
-        return file_obj
 
 class FilterDocument(FilterPersonalMixin, FilterSharingMixin,
                      FilterContactMixin, FilterSaverMixin):
