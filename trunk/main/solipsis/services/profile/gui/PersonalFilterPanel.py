@@ -67,12 +67,21 @@ class PersonalFilterPanel(wx.Panel):
         self.lastname_checkbox.Bind(wx.EVT_CHECKBOX, self.on_check_lastname)
         self.pseudo_checkbox.Bind(wx.EVT_CHECKBOX, self.on_check_pseudo)
         self.email_checkbox.Bind(wx.EVT_CHECKBOX, self.on_check_email)
-        # focus
+        # set focus
+        self.title_value.Bind(wx.EVT_SET_FOCUS, self.on_focus)
+        self.firstname_value.Bind(wx.EVT_SET_FOCUS, self.on_focus)
+        self.lastname_value.Bind(wx.EVT_SET_FOCUS, self.on_focus)
+        self.pseudo_value.Bind(wx.EVT_SET_FOCUS, self.on_focus)
+        self.email_value.Bind(wx.EVT_SET_FOCUS, self.on_focus)
+        # kill focus
         self.title_value.Bind(wx.EVT_KILL_FOCUS, self.on_check_title)
         self.firstname_value.Bind(wx.EVT_KILL_FOCUS, self.on_check_firstname)
         self.lastname_value.Bind(wx.EVT_KILL_FOCUS, self.on_check_lastname)
         self.pseudo_value.Bind(wx.EVT_KILL_FOCUS, self.on_check_pseudo)
         self.email_value.Bind(wx.EVT_KILL_FOCUS, self.on_check_email)
+
+    def on_focus(self, evt):
+        self.do_modified(True)
 
     def on_selected(self, evt):
         """meta data"""
