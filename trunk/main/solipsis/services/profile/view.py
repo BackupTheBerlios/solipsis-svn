@@ -20,6 +20,8 @@
 (document.py) even if its independant from the structure and the inner
 workings of documents"""
 
+__revision__ = "$Id$"
+
 import wx
 import sys
 import os, os.path

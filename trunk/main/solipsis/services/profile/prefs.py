@@ -18,7 +18,7 @@
 # </copyright>
 """Contains preferences for profile"""
 
-__revision__ = "$Id: $"
+__revision__ = "$Id$"
 
 import os.path
 
@@ -104,7 +104,7 @@ class Preferences:
         if not self.config:
             return "not initialized"
         else:
-            return ", ".join(params.keys())
+            return ", ".join(self.params.keys())
 
     def load(self):
         """load params from file"""

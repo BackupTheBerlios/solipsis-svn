@@ -1,3 +1,5 @@
+# pylint: disable-msg=C0301,C0101
+# Line too long, Too short name
 # 2005/06/01
 # Version 0.2.0
 # pathutils.py
@@ -20,9 +22,10 @@ This module contains convenience functions for working with files and paths.
 Most of the functions are quite straightforward - all have useful docstrings.
 """
 
+__revision__ = "$Id$"
+
 from __future__ import generators
 import os
-import sys
 
 ######################################
 # Functions to read and write files in text and binary mode.

@@ -54,7 +54,7 @@ class PeerDescriptor:
         self.blog = blog or Blogs()
 
     def get_id(self):
-        # NEEDEED to be compliant with PeerMatch API
+        """NEEDEED to be compliant with PeerMatch API"""
         return self.node_id
 
     def copy(self):

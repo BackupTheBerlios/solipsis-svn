@@ -19,7 +19,7 @@
 # </copyright>
 """Define cache structures used in profile and rendered in list widgets"""
 
-__revision__ = "$Id: $"
+__revision__ = "$Id$"
 
 import os, os.path
 import stat
@@ -322,7 +322,7 @@ class DirContainer(DictContainer):
             if isinstance(container, FileContainer):
                 container.share(share)
 
-    def recursive_share(self, share):
+    def recursive_share(self, share=True):
         """set sharing status of content recursively"""
         ContainerMixin.share(self, share)
         self.expand_dir()
