@@ -53,6 +53,10 @@ class PeerDescriptor:
         self.document = document or CacheDocument()
         self.blog = blog or Blogs()
 
+    def get_id(self):
+        # NEEDEED to be compliant with PeerMatch API
+        return self.node_id
+
     def copy(self):
         """return copied instance of PeerDescriptor"""
         return PeerDescriptor(self.node_id,
