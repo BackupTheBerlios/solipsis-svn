@@ -6,7 +6,7 @@
 gathared in views.py. Documents are to be seen as completely
 independant from views"""
 
-__revision__ = "$Id: $"
+__revision__ = "$Id$"
 
 import unittest
 import os, os.path
