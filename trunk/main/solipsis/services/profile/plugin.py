@@ -115,8 +115,7 @@ class Plugin(ServicePlugin):
         # launch network
         self.network = NetworkManager(self.host,
                                       random.randrange(7100, 7200),
-                                      self.service_api,
-                                      self.editor_frame.download_dlg)
+                                      download_dlg=self.editor_frame.download_dlg)
         self.activate(True)
     
     def Disable(self):
