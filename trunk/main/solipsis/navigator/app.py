@@ -209,15 +209,15 @@ class BaseNavigatorApp(UIProxyReceiver):
         """call function after delay (milli sec)"""
         raise NotImplementedError
 
-    def display_message(self, title, msg):
+    def display_message(self, msg, title=None):
         """Display message to user, using for instance a dialog"""
         raise NotImplementedError
 
-    def display_warning(self, title, msg):
+    def display_warning(self, msg, title=None):
         """Display message to user, using for instance a dialog"""
         raise NotImplementedError
 
-    def display_error(self, title, msg):
+    def display_error(self, msg, title=None):
         """Report error to user"""
         raise NotImplementedError
 
@@ -253,9 +253,9 @@ class BaseNavigatorApp(UIProxyReceiver):
         """
         Displays a dialog warning that a function is not implemented.
         """
-        self.display_message(_("Not implemented"),
-                             _("This function is not yet implemented.\n "
-                                "Sorry! Please come back later..."))
+        self.display_message(_("This function is not yet implemented.\n "
+                                "Sorry! Please come back later..."),
+                             title=_("Not implemented"))
 
     def _UpdateURLPort(self, url_port):
         """
@@ -275,9 +275,9 @@ class BaseNavigatorApp(UIProxyReceiver):
             return True
         else:
             if display_error:
-                self.display_message(_("Not connected"),
-                                     _("This action cannot be performed, \n"
-                                       "because you are not connected."))
+                self.display_message(_("This action cannot be performed, \n"
+                                       "because you are not connected."),
+                                     title=_("Not connected"))
             return False
 
     def _MemDebug(self):
@@ -364,7 +364,7 @@ class BaseNavigatorApp(UIProxyReceiver):
             self.viewport.Disable()
             msg = _("Node creation failed. \n"
                     "Please check you have sufficient rights.")
-            self.display_message(_("Kill refused"), msg)
+            self.display_message(msg, title=_("Kill refused"))
             return
         # Then connect using its XMLRPC daemon
         # Hack so that the node has the time to launch
@@ -422,7 +422,7 @@ class BaseNavigatorApp(UIProxyReceiver):
         msg = _("Solipsis Navigator") + " " \
               + self.version + "\n\n" \
               + _("Licensed under the GNU LGPL") + "\n(c) France Telecom R&D"
-        return self.display_message(_("About..."), msg)
+        return self.display_message(msg, title=_("About..."))
 
     def _OnConnect(self, evt=None, deferred=None):
         """
@@ -460,7 +460,8 @@ class BaseNavigatorApp(UIProxyReceiver):
         returns address of the node.
         """
         if self._CheckNodeProxy():
-            return self.display_message("Address", self.world.GetNode().address.ToString())
+            return self.display_message(self.world.GetNode().address.ToString(),
+                                        title=_("Address"))
         else:
             return "Not connected"
 
@@ -578,7 +579,7 @@ class BaseNavigatorApp(UIProxyReceiver):
         msg = _("The peer you asked for seems to have changed identity. \n"
                 "It may mean that someone else is running a node \n"
                 "at the same address.")
-        self.display_warning(title, msg)
+        self.display_warning(msg, title)
 
     def UpdateNode(self, *args, **kargs):
         """
@@ -655,7 +656,7 @@ class BaseNavigatorApp(UIProxyReceiver):
         self.display_status(_("Not connected"))
         msg = _("Connection to the node has failed. \n"
             "Please the check the node is running, then retry.")
-        self.display_error(_("Connection error"), msg)
+        self.display_error(msg, title=_("Connection error"))
 
     def NodeKillSucceeded(self):
         """
@@ -682,7 +683,7 @@ class BaseNavigatorApp(UIProxyReceiver):
             self._SetWaiting(False)
             self.viewport.Disable()
             msg = _("You cannot kill this node.")
-            self.display_error(_("Kill refused"), msg)
+            self.display_error(msg, title=_("Kill refused"))
         else:
             # If not alive, then we are in the quit phase
             self._Quit2()

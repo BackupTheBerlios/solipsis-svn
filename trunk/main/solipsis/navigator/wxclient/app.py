@@ -272,19 +272,19 @@ class NavigatorApp(BaseNavigatorApp, wx.App, XRCLoader):
         """call function after delay (milli sec)"""
         wx.FutureCall(delay, function)
 
-    def display_message(self, title, msg):
+    def display_message(self, msg, title="Solipsis"):
         """Way of communicta with user"""
         dialog = wx.MessageDialog(None, msg, caption=title,
                                   style=wx.OK | wx.ICON_EXCLAMATION)
         dialog.ShowModal()
 
-    def display_warning(self, title, msg):
+    def display_warning(self, msg, title="Solipsis"):
         """Way of communicta with user"""
         dialog = wx.MessageDialog(None, msg, caption=title,
                                   style=wx.OK | wx.ICON_WARNING)
         dialog.ShowModal()
 
-    def display_error(self, title, msg):
+    def display_error(self, msg, title="Solipsis"):
         """Way of communicta with user"""
         dialog = wx.MessageDialog(None, msg, caption=title,
                                   style=wx.OK | wx.ICON_ERROR)

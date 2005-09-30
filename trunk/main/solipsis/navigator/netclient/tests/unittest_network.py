@@ -123,7 +123,7 @@ Licensed under the GNU LGPL
     test_menu.timeout = 2
 
     def test_help(self):
-        return self.assertResponse("help", "available commands are: ['quit', 'about', 'disconnect', 'help', 'launch', 'menu', 'who', 'jump', 'kill', 'connect', 'go', 'where', 'display']\n")
+        return self.assertResponse("help", "available commands are: ['quit', 'about', 'disconnect', 'help', 'launch', 'menu', 'who', 'display', 'jump', 'kill', 'connect', 'go', 'where', 'id']\n")
     test_help.timeout = 2
 
 class ConnectedTest(NetworkTest):
@@ -218,7 +218,6 @@ class ProfileTest(NetworkTest):
         # update files
         new_name = os.path.join(get_prefs('profile_dir'), node_id)
         for extension in ['.prf', '.blog']:
-            print "mv", old_name + extension, new_name + extension
             os.rename(old_name + extension,
                       new_name + extension)
 

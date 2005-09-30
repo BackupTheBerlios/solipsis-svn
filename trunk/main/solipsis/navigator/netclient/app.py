@@ -137,13 +137,14 @@ class NavigatorApp(BaseNavigatorApp):
         """call function after delay (milli sec)"""
         threading.Timer(delay/1000, function).start()
 
-    def display_message(self, title, msg):
+    def display_message(self, msg, title=None):
         """Display message to user, using for instance a dialog"""
-        return "%s: %s"% (title, msg)
+	return title and "%s: %s"% (title, msg) or msg
 
-    def display_error(self, title, msg):
+    def display_error(self, msg, title=None):
         """Report error to user"""
-        print >> sys.stderr, title, ":", msg
+        msg = title and "%s: %s"% (title, msg) or msg
+        print >> sys.stderr, msg
 
     def display_status(self, msg):
         """report a status"""
