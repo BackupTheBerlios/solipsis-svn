@@ -76,15 +76,14 @@ def parse_message(message):
 class NetworkManager:
     """high level class managing clients and servers for each peer"""
 
-    def __init__(self, host, known_port, service_api, download_dlg=None):
+    def __init__(self, host, known_port, download_dlg=None):
         # service socket
         self.host = host
         self.port = known_port
-        self.service_api = service_api
         self.download_dlg = download_dlg
         # server and client manager (listening to known port and
         # spawing dedicated servers / clients
-        self.client = ProfileClientFactory(self, service_api)
+        self.client = ProfileClientFactory(self)
         self.server = ProfileServerFactory(self, host, known_port)
         # {peer_id: remote_ip}
         self.remote_ips = {}
@@ -122,7 +121,8 @@ class NetworkManager:
         if not self.remote_ips.has_key(peer_id):
             self.remote_ips[peer_id] = None
             message = self.make_message(MESSAGE_HELLO, self.port)
-            self.service_api.SendData(peer_id, message)
+            from solipsis.services.profile.plugin import Plugin
+            Plugin.service_api.SendData(peer_id, message)
 
     def on_lost_peer(self, peer_id):
         """tries to connect to new peer"""
@@ -192,7 +192,8 @@ class NetworkManager:
     def _upload_impossible(self, peer_id, remote_ip, remote_port):
         """notify via udp that upload is not possible"""
         message = self.make_message(MESSAGE_ERROR, remote_port)
-        self.service_api.SendData(peer_id, message)
+        from solipsis.services.profile.plugin import Plugin
+        Plugin.service_api.SendData(peer_id, message)
 
     def update_download(self, size):
         if self.download_dlg:
@@ -315,10 +316,9 @@ class ProfileClientFactory(ClientFactory):
 
     protocol = ProfileClientProtocol
 
-    def __init__(self, manager, service_api):
+    def __init__(self, manager):
         # service api (UDP transports)
         self.manager = manager
-        self.service_api = service_api
         # remote info: {ips: client}
         self.connectors = {}
         self.dedicated_clients = {}
@@ -887,7 +887,8 @@ class PeerServerFactory(ServerFactory):
         # store deferred and ask client
         self.deferreds[remote_ip] = deferred
         message = self.manager.make_message(action, self.port)
-        self.manager.service_api.SendData(peer_id, message)
+        from solipsis.services.profile.plugin import Plugin
+        Plugin.service_api.SendData(peer_id, message)
         return deferred
         
     def _next_file(self, file_obj, peer_id, action, remote_ip):
@@ -902,7 +903,8 @@ class PeerServerFactory(ServerFactory):
             # store deferred and ask client
             self.deferreds[remote_ip] = deferred
             message = self.manager.make_message(action, self.port)
-            self.manager.service_api.SendData(peer_id, message)
+            from solipsis.services.profile.plugin import Plugin
+            plugin.service_api.SendData(peer_id, message)
         else:
             self.manager._on_all_files()
         # flag this one

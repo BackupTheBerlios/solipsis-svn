@@ -25,9 +25,8 @@ import sys
 
 from solipsis.util.wxutils import _
 from solipsis.services.plugin import ServicePlugin
-from solipsis.services.profile import ENCODING
+from solipsis.services.profile import set_solipsis_dir, ENCODING
 from solipsis.services.profile.prefs import get_prefs
-from solipsis.services.profile import set_solipsis_dir
 from solipsis.services.profile.facade import create_facade, get_facade, \
      create_filter_facade, get_filter_facade
 from solipsis.services.profile.network import NetworkManager
@@ -35,9 +34,24 @@ from solipsis.services.profile.view import EditorView, ViewerView, FilterView
 from solipsis.services.profile.gui.EditorFrame import EditorFrame
 from solipsis.services.profile.gui.ViewerFrame import ViewerFrame
 from solipsis.services.profile.gui.FilterFrame import FilterFrame
-      
+
+
+class ClassAttribute(object):
+    """Make a class attribute"""
+    def __init__(self):
+        self.value = None
+        
+    def __get__(self, inst, objtype):
+        return self.value
+        
+    def __set__(self, inst, value):
+        self.value = value
+        
 class Plugin(ServicePlugin):
     """This the working class for services plugins."""
+    
+    # Define 'service_api' as a CLASS attribute
+    service_api = ClassAttribute()
     
     def Init(self, local_ip):
         """
@@ -71,8 +85,7 @@ class Plugin(ServicePlugin):
         """enable non graphic part"""
         set_solipsis_dir(self.service_api.GetDirectory())
         self.network = NetworkManager(self.host,
-                                      random.randrange(7100, 7200),
-                                      self.service_api)
+                                      random.randrange(7100, 7200))
         self.activate(True)
         
     def Enable(self):

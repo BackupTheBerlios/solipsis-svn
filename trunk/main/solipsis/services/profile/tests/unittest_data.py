@@ -4,7 +4,7 @@
 # Missing docstring, Line too long, Invalid name
 """Represents data stored in cache, especially shared file information"""
 
-__revision__ = "$Id: $"
+__revision__ = "$Id$"
 
 import unittest
 import os, os.path
@@ -20,7 +20,6 @@ SAMPLE_FILE = os.path.join(DATA_DIR, "été.txt")
 SAVE_FILE = os.path.join(DATA_DIR, "sav.txt")
         
 class PeerTest(unittest.TestCase):
-    """Test PeerDescriptor behaviour"""
 
     def setUp(self):
         write_test_profile()

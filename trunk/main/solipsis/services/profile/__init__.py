@@ -26,6 +26,8 @@ import gettext
 import locale
 _ = gettext.gettext
 
+from solipsis.services.profile.message import display_error, display_status
+
 ENCODING = locale.getpreferredencoding()
 VERSION = "0.3.0"
 DISCLAIMER = "All data in profiles are shared within Solipsis communauty"
@@ -41,24 +43,28 @@ def set_solipsis_dir(new_dir):
     conf (and passed to the application through params"""
     global solipsis_dir
     solipsis_dir = new_dir
-
+    
 # Encoding not saved in preferences because it must be attached within
 # the profile file (to be sent through network)
 def save_encoding(file_obj, encoding):
+    """write into profile document its encoding"""
     file_obj.write("# profile-encoding::%s\n"% encoding)
 
 def load_encoding(file_obj):
+    """load from profile document its encoding"""
     encoding_tag = file_obj.readline()
     if not encoding_tag.startswith("# profile-encoding::"):
         # wrong format
         # first line has been wastes: rewind
         file_obj.seek(0)
         # return default
-        print "could not read encoding from profile file. Using", ENCODING
+        display_error("could not read encoding from profile file. "
+                      "Using %s"% ENCODING,
+                      title="Corrupted profile file")
         return ENCODING
     else:
         encoding = encoding_tag.split("::")[-1].strip()
-        print "Profile read with encoding", encoding
+        display_status("Profile read with encoding %s"% encoding)
         return encoding
 
 set_solipsis_dir(os.path.dirname(__file__))
@@ -96,7 +102,6 @@ DEFAULT_INTERESTS = [_("City"), _("Country"),
                      _("Sport"), _("Studies"),
                      _("Favourite Book"), _("Favourite Movie"),
                      ]
-
 # GUI
 NB_SHARED_COL = 1
 FULL_PATH_COL = 2
