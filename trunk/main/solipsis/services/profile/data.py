@@ -19,7 +19,7 @@
 # </copyright>
 """Define cache structures used in profile and rendered in list widgets"""
 
-__revision__ = "$Id: $"
+__revision__ = "$Id$"
 
 import os, os.path
 import pickle
@@ -162,7 +162,7 @@ class Blogs:
         blog = self.get_blog(index)
         blog.add_comment(text, author, date)
 
-    def remove_blog(self, index, pseudo):
+    def remove_blog(self, index):
         """delete blog"""
         if index < len(self.blogs):
             del self.blogs[index]

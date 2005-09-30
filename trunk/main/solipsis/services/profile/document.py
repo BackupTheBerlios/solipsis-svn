@@ -25,7 +25,7 @@
  - file data
  - contacts' data"""
 
-__revision__ = "$Id: $"
+__revision__ = "$Id$"
 
 import re
 import os.path
@@ -33,7 +33,8 @@ import ConfigParser
 import tempfile
 
 from os.path import isfile
-from solipsis.services.profile import DEFAULT_INTERESTS
+from solipsis.services.profile import DEFAULT_INTERESTS, ENCODING, \
+     save_encoding, load_encoding
 from solipsis.services.profile.path_containers import ContainerMixin,  \
      create_container, DictContainer, SharedFiles
 from solipsis.services.profile.data import  Blogs, retro_compatibility, \
@@ -44,13 +45,13 @@ SECTION_CUSTOM = "Custom"
 SECTION_OTHERS = "Others"
 SECTION_FILE = "Files"
 
-def read_document(stream):
-    """use FileDocument to load document"""
+def read_document(file_obj):
+    """use FileDocument to load document from 'file_obj'"""
     from solipsis.services.profile.file_document import FileDocument
-    encoding = stream.readline()[1:]
+    encoding = load_encoding(file_obj)
     config = CustomConfigParser(encoding)
-    config.readfp(stream)
-    stream.close()
+    config.readfp(file_obj)
+    file_obj.close()
     doc = FileDocument()
     doc.encoding = encoding
     doc.config = config
@@ -498,14 +499,20 @@ class SaverMixin:
 class DocSaverMixin(SaverMixin):
     """Implements API for saving & loading in a File oriented context"""
 
-    def __init__(self):
+    def __init__(self, encoding=ENCODING):
         SaverMixin.__init__(self)
+        self.encoding = encoding
+        self.config = CustomConfigParser(self.encoding)
+
+    def import_document(self, other_document):
+        """copy data from another document into self"""
+        self.encoding = other_document.encoding
 
     # MENU
     def save(self, path):
         """fill document with information from .profile file"""
         profile_file = open(path, 'w')
-        profile_file.write("#%s\n"% self.encoding)
+        save_encoding(profile_file, self.encoding)
         self.config.write(profile_file)
         profile_file.close()
         
@@ -515,7 +522,7 @@ class DocSaverMixin(SaverMixin):
             return False
         else:
             profile_file = open(path)
-            self.encoding = profile_file.readline()[1:]
+            self.encoding = load_encoding(profile_file)
             self.config = CustomConfigParser(self.encoding)
             self.config.readfp(profile_file)
             profile_file.close()
@@ -524,7 +531,7 @@ class DocSaverMixin(SaverMixin):
     def to_stream(self):
         """returns a file object containing values"""
         file_obj = tempfile.TemporaryFile()
-        file_obj.write("#%s\n"% self.encoding)
+        save_encoding(file_obj, self.encoding)
         self.config.write(file_obj)
         file_obj.seek(0)
         return file_obj

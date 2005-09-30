@@ -23,13 +23,13 @@
 gathared in views.py. Documents are to be seen as completely
 independant from views"""
 
-__revision__ = "$Id: $"
+__revision__ = "$Id$"
 
 import re
 from solipsis.services.profile import ENCODING
-from solipsis.services.profile.document import CustomConfigParser, \
-     ContactsMixin, AbstractPersonalData, \
-     SECTION_PERSONAL, SECTION_CUSTOM, SECTION_FILE
+from solipsis.services.profile.document import ContactsMixin, \
+     SECTION_PERSONAL, SECTION_CUSTOM, SECTION_FILE, \
+     AbstractPersonalData
 from solipsis.services.profile.document import DocSaverMixin
 
 class FilterValue:
@@ -304,8 +304,8 @@ class FilterContactMixin(ContactsMixin):
 class FilterSaverMixin(DocSaverMixin):
     """Implements API for saving & loading in a File oriented context"""
 
-    def __init__(self):
-        DocSaverMixin.__init__(self)
+    def __init__(self, encoding=ENCODING):
+        DocSaverMixin.__init__(self, encoding)
 
     # MENU
         
@@ -348,12 +348,10 @@ class FilterDocument(FilterPersonalMixin, FilterSharingMixin,
     """Describes all data needed in profile in a file"""
 
     def __init__(self):
-        self.encoding = ENCODING
-        self.config = CustomConfigParser(self.encoding)
+        FilterSaverMixin.__init__(self)
         FilterPersonalMixin.__init__(self)
         FilterSharingMixin.__init__(self)
         FilterContactMixin.__init__(self)
-        FilterSaverMixin.__init__(self)
         
     def import_document(self, other_document):
         """copy data from another document into self"""

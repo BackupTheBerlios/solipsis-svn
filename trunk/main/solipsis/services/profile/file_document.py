@@ -33,7 +33,7 @@ from solipsis.services.profile import ENCODING, QUESTION_MARK
 from solipsis.services.profile.path_containers import DEFAULT_TAG, \
      create_container
 from solipsis.services.profile.data import PeerDescriptor
-from solipsis.services.profile.document import CustomConfigParser, \
+from solipsis.services.profile.document import \
      AbstractPersonalData, FileSharingMixin, ContactsMixin, DocSaverMixin, \
      SECTION_PERSONAL, SECTION_CUSTOM, SECTION_OTHERS, SECTION_FILE
 
@@ -310,8 +310,8 @@ class FileContactMixin(ContactsMixin):
 class FileSaverMixin(DocSaverMixin):
     """Implements API for saving & loading in a File oriented context"""
 
-    def __init__(self):
-        DocSaverMixin.__init__(self)
+    def __init__(self, encoding=ENCODING):
+        DocSaverMixin.__init__(self, encoding)
     
     # MENU
     def save(self, path):
@@ -340,12 +340,10 @@ class FileDocument(FilePersonalMixin, FileFilesharingMixin,
     """Describes all data needed in profile in a file"""
 
     def __init__(self):
-        self.encoding = ENCODING
-        self.config = CustomConfigParser(ENCODING)
+        FileSaverMixin.__init__(self)
         FilePersonalMixin.__init__(self)
         FileFilesharingMixin.__init__(self)
         FileContactMixin.__init__(self)
-        FileSaverMixin.__init__(self)
 
     def __str__(self):
         return "File document for %s"% self.get_pseudo()

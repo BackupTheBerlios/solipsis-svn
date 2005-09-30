@@ -19,7 +19,7 @@
 """Design pattern Facade: presents working API for all actions of GUI
 available. This facade will be used both by GUI and unittests."""
 
-__revision__ = "$Id: $"
+__revision__ = "$Id$"
 
 import pickle
 
@@ -138,7 +138,7 @@ class Facade(SimpleFacade):
         """delete blog"""
         self._try_blog_change('remove_blog',
                               'update_blogs',
-                              index, self._desc.document.get_pseudo())
+                              index)
         
     def add_comment(self, index, text, author):
         """store blog in cache as wx.HtmlListBox is virtual.

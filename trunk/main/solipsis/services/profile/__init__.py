@@ -19,7 +19,7 @@
 """Plugin profile: allow users to define a set of personal information
 and exchange it with other peers"""
 
-__revision__ = "$Id: $"
+__revision__ = "$Id$"
 
 import os, os.path
 import gettext
@@ -41,6 +41,25 @@ def set_solipsis_dir(new_dir):
     conf (and passed to the application through params"""
     global solipsis_dir
     solipsis_dir = new_dir
+
+# Encoding not saved in preferences because it must be attached within
+# the profile file (to be sent through network)
+def save_encoding(file_obj, encoding):
+    file_obj.write("# profile-encoding::%s\n"% encoding)
+
+def load_encoding(file_obj):
+    encoding_tag = file_obj.readline()
+    if not encoding_tag.startswith("# profile-encoding::"):
+        # wrong format
+        # first line has been wastes: rewind
+        file_obj.seek(0)
+        # return default
+        print "could not read encoding from profile file. Using", ENCODING
+        return ENCODING
+    else:
+        encoding = encoding_tag.split("::")[-1].strip()
+        print "Profile read with encoding", encoding
+        return encoding
 
 set_solipsis_dir(os.path.dirname(__file__))
 
