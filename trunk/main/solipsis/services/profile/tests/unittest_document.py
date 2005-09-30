@@ -18,7 +18,7 @@ from solipsis.services.profile.prefs import get_prefs, set_prefs
 from solipsis.services.profile.document import CustomConfigParser, AbstractDocument
 from solipsis.services.profile.file_document import FileDocument
 from solipsis.services.profile.cache_document import CacheDocument
-from solipsis.services.profile.path_containers import DEFAULT_TAG, FileContainer
+from solipsis.services.profile.path_containers import DEFAULT_TAG, FileContainer, ContainerException
 from solipsis.services.profile.data import PeerDescriptor
 from solipsis.services.profile.tests import PROFILE_DIR, PROFILE_TEST, PROFILE_BRUCE, \
      TEST_DIR, TEST_DIR
@@ -131,9 +131,9 @@ class DocumentTest(unittest.TestCase):
     def test_recursive_share(self):
         """share dir giving unicode name"""
         for document in self.documents:
-            self.assertRaises(KeyError, document.recursive_share, "data", True)
             self.assertRaises(TypeError, document.recursive_share, abspath(u"data"), True)
-            document.recursive_share(abspath("data"), True)
+            self.assertEquals(1, len(document.recursive_share("data", True)))
+            self.assertEquals([], document.recursive_share(abspath("data"), True))
         
     def test_share_files(self):
         """share files giving root & unicode names"""
@@ -236,8 +236,8 @@ class DocumentTest(unittest.TestCase):
         self.assertEquals(document.get_container(
             abspath(os.sep.join(["data", "subdir1", ".svn"])))._shared, False)
         # check tag
-        self.assertRaises(ValueError, document.add_repository, os.sep.join([TEST_DIR, "data", "subdir1", "subsubdir"]))
-        self.assertRaises(ValueError, document.add_repository, os.sep.join([TEST_DIR, "data"]))
+        self.assertRaises(ContainerException, document.add_repository, os.sep.join([TEST_DIR, "data", "subdir1", "subsubdir"]))
+        self.assertRaises(ContainerException, document.add_repository, os.sep.join([TEST_DIR, "data"]))
             
     # OTHERS TAB
     def test_reset_peers(self):

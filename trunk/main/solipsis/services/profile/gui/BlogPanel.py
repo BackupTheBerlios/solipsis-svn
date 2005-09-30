@@ -5,6 +5,7 @@ import wx
 import sys
 from solipsis.util.wxutils import _
 from solipsis.services.profile.facade import get_facade
+from solipsis.services.profile.message import display_error
 from solipsis.services.profile import ADD_BLOG, DEL_BLOG, ADD_COMMENT
 
 
@@ -46,7 +47,11 @@ class MyHtmlListBox(wx.HtmlListBox):
     def OnGetItem(self, n):
         """callback to display item"""
         assert get_facade(), "Facade not initialiazed"
-        return get_facade()._desc.blog.get_blog(n).html()
+        try:
+            return get_facade()._desc.blog.get_blog(n).html()
+        except IndexError, err:
+            display_error(_('Could not get blog.'), error=err)
+            return "<p>Corrupted Blog</p>"
 
     def refresh(self):
         assert get_facade(), "Facade not initialiazed"

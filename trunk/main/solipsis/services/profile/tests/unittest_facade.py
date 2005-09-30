@@ -5,7 +5,7 @@
 """Design pattern Facade: presents working API for all actions of GUI
 available. This facade will be used both by GUI and unittests."""
 
-__revision__ = "$Id: $"
+__revision__ = "$Id$"
 
 import os
 import unittest
@@ -19,6 +19,7 @@ from solipsis.services.profile.facade import Facade, \
 from solipsis.services.profile.tests import PROFILE_DIR, PROFILE_TEST, \
      write_test_profile, TEST_DIR, PSEUDO
 from solipsis.services.profile import ENCODING, QUESTION_MARK
+from solipsis.services.profile.path_containers import ContainerException
 from os.path import abspath
 
 class FacadeTest(unittest.TestCase):
@@ -83,7 +84,7 @@ class FacadeTest(unittest.TestCase):
         facade = Facade(PROFILE_TEST)
         facade.add_repository(abspath("data/profiles"))
         self.assertRaises(KeyError, facade.del_repository, abspath("data"))
-        self.assertRaises(ValueError, facade.add_repository, abspath("data"))
+        self.assertRaises(ContainerException, facade.add_repository, abspath("data"))
         facade.add_repository(abspath("data/emptydir"))
         facade.del_repository(abspath("data/emptydir"))
 
@@ -100,8 +101,6 @@ class FacadeTest(unittest.TestCase):
                            abspath(u'data/subdir1'): u'none',
                            abspath(u'data/profiles'): u'none',
                            abspath(u'data/emptydir'): u'none'})
-        self.assertRaises(AssertionError, self.facade.expand_dir,
-                          abspath("data/routage"))
         self.facade.expand_dir(abspath("data/emptydir"))
         self.assertEquals(self._build_check_dict(self.facade._desc.document, TEST_DIR),
                           {abspath(u'data'): u'none',

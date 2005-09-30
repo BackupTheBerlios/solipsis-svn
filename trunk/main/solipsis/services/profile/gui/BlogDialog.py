@@ -5,6 +5,7 @@ import wx
 import os
 from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxyReceiver
+from solipsis.services.profile.message import display_error
 from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile import ADD_COMMENT, DEL_BLOG, UPLOAD_BLOG
 
@@ -43,7 +44,7 @@ class PeerHtmlListBox(wx.HtmlListBox):
             selected = self.GetSelection()
             if selected != wx.NOT_FOUND:
                 pseudo = get_facade()._desc.document.get_pseudo()
-                self.blog.get_blog(selected).add_comment(text, pseudo)
+                self.blog.add_comment(selected, text, pseudo)
                 self.refresh()
             else:
                 print "none selected"
@@ -52,7 +53,11 @@ class PeerHtmlListBox(wx.HtmlListBox):
 
     def OnGetItem(self, n):
         """callback to display item"""
-        return self.blog.get_blog(n).html()
+        try:
+            return self.blog.get_blog(n).html()
+        except IndexError, err:
+            display_error(_('Could not get blog.'), error=err)
+            return "<p>Corrupted Blog</p>"
 
     def refresh(self):
         self.SetItemCount(self.blog.count_blogs())

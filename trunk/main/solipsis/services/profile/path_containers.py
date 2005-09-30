@@ -1,4 +1,7 @@
 # -*- coding: iso-8859-1 -*-
+# pylint: disable-msg=W0131
+# Missing docstring
+#
 # <copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
 # Copyright (C) 2002-2005 France Telecom R&D
@@ -29,14 +32,12 @@ from solipsis.services.profile import ENCODING
 DEFAULT_TAG = u"none"
 
 def assert_file(path):
-    """raise ValueError if not a file"""
-    assert os.path.isfile(path), \
-           "[%s] not a valid file"% path
+    if not os.path.isfile(path):
+        raise ContainerException("[%s] not a valid file"% path)
 
 def assert_dir(path):
-    """raise ValueError if not a file"""
-    assert os.path.isdir(path), \
-           "[%s] not a valid directory"% path
+    if not os.path.isdir(path):
+        raise ContainerException("[%s] not a valid directory"% path)
 
 def create_container(path, cb_share=None, checked=True,
                   share=False, tag=DEFAULT_TAG):
@@ -56,6 +57,9 @@ def create_container(path, cb_share=None, checked=True,
         return DictContainer(path, cb_share=cb_share,
                              share=share, tag=tag)
 
+class ContainerException(Exception):
+    pass
+    
 class SharedFiles(dict):
     """dict wrapper (useless for now)"""
 
@@ -74,7 +78,8 @@ class ContainerMixin:
     """Factorize sharing tools on containers"""
     
     def __init__(self, path, cb_share=None, share=False, tag=DEFAULT_TAG):
-        assert isinstance(path, str), "path [%s] expected as string"% path
+        if not isinstance(path, str):
+            raise ContainerException("path [%s] expected as string"% path)
         # init path
         path =  ContainerMixin._validate(self, path)
         self._paths = path.split(os.sep)
@@ -164,8 +169,9 @@ class DictContainer(dict, ContainerMixin):
         """assert path exists and is a file"""
         container_path = self.get_path()
         # check included in path
-        assert path.startswith(container_path), "'%s' not in container '%s'"\
-               % (path, container_path)
+        if not path.startswith(container_path):
+            raise ContainerException("'%s' not in container '%s'"\
+                                     % (path, container_path))
         # make path relative
         return path[len(container_path)+1:]
 
@@ -191,11 +197,12 @@ class DictContainer(dict, ContainerMixin):
 
     def __setitem__(self, full_path, value):
         full_path = ContainerMixin._validate(self, full_path)
-        assert isinstance(value, ContainerMixin), \
-               "Added value '%s' must be a sharable object" % value
-        assert value.get_path().startswith(full_path), \
-               "Added value '%s' not coherent with path '%s'"\
-               % (value, full_path)
+        if not isinstance(value, ContainerMixin):
+            raise ContainerException("Added value '%s' must be a sharable" \
+                                     % value)
+        if not value.get_path().startswith(full_path):
+            raise ContainerException("Added value '%s' not coherent with '%s'"\
+                                     % (value, full_path))
         container = self
         local_path = self._format_path(full_path)
         local_keys = [path for path in local_path.split(os.path.sep) if path]
@@ -261,6 +268,9 @@ class DictContainer(dict, ContainerMixin):
         ContainerMixin.share(self, share)
         for container in self.values():
             container.share(share)
+        # recursive_share must returns errors which occured during
+        # sharing. Which is to say: none
+        return []
 
 class FileContainer(ContainerMixin):
     """Structure to store files info in cache"""
@@ -312,7 +322,7 @@ class DirContainer(DictContainer):
             dict.__setitem__(self, local_key,
                              value or FileContainer(path, self.add_shared))
         else:
-            raise AssertionError("%s not a valid file/dir" % path)
+            raise ContainerException("%s not a valid file/dir" % path)
         return dict.__getitem__(self, local_key)
 
     def share(self, share=True):
@@ -325,13 +335,14 @@ class DirContainer(DictContainer):
     def recursive_share(self, share=True):
         """set sharing status of content recursively"""
         ContainerMixin.share(self, share)
-        self.expand_dir()
+        errors = self.expand_dir()
         for container in self.values():
             if isinstance(container, DirContainer):
-                container.expand_dir()
-                container.recursive_share(share)
+                errors += container.expand_dir()
+                errors += container.recursive_share(share)
             else:
                 container.share(share)
+        return errors
                 
     def add_shared(self, addition=True):
         """update number of shared element"""
@@ -345,6 +356,7 @@ class DirContainer(DictContainer):
         
     def expand_dir(self, full_path=None):
         """put into cache new information when dir expanded in tree"""
+        errors = []
         if full_path:
             assert isinstance(full_path, str), "expand_dir expects a string"
             assert_dir(full_path)
@@ -354,4 +366,8 @@ class DirContainer(DictContainer):
         container_path = container.get_path()
         for file_name in os.listdir(container_path):
             path = os.path.join(container_path, file_name)
-            container.add(path)
+            try:
+                container.add(path)
+            except ContainerException, err:
+                errors.append(str(err))
+        return errors

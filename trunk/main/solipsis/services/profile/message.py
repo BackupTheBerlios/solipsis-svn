@@ -24,12 +24,12 @@ do not do anything if no navigator is defined (in tests for instance)"""
 
 __revision__ = "$Id: __init__.py 865 2005-09-30 08:28:36Z emb $"
 
-def _display(msg, msg_type, title=None):
+def _display(msg, msg_type, title="Solipsis Profile", error=None):
     from solipsis.services.profile.plugin import Plugin
     service_api = Plugin.service_api
     if service_api != None:
         if msg_type == "ERR":
-            service_api.display_error(msg, title)
+            service_api.display_error(msg, title, error)
         elif msg_type == "WARN":
             service_api.display_warning(msg, title)
         elif msg_type == "MSG":
@@ -38,17 +38,15 @@ def _display(msg, msg_type, title=None):
             service_api.display_status(msg)
         else:
             print "message type %s not valid"
-    else:
-        if msg_type == "ERR":
-            print msg
+    #else: does not print anything if no service_api (no navigator)
     
-def display_error(msg, title=None):
-    _display(msg, "ERR", title)
+def display_error(msg, title="Profile Error", error=None):
+    _display(msg, "ERR", title, error)
 
-def display_warning(msg, title=None):
+def display_warning(msg, title="Profile Warning"):
     _display(msg, "WARN", title)
 
-def display_message(msg, title=None):
+def display_message(msg, title="Profile Information"):
     _display(msg, "MSG", title)
     
 def display_status(msg):

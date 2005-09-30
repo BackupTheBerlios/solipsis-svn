@@ -22,8 +22,8 @@ and exchange it with other peers"""
 __revision__ = "$Id$"
 
 import os, os.path
-import gettext
 import locale
+import gettext
 _ = gettext.gettext
 
 from solipsis.services.profile.message import display_error, display_status

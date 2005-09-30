@@ -217,7 +217,7 @@ class BaseNavigatorApp(UIProxyReceiver):
         """Display message to user, using for instance a dialog"""
         raise NotImplementedError
 
-    def display_error(self, msg, title=None):
+    def display_error(self, msg, title=None, error=None):
         """Report error to user"""
         raise NotImplementedError
 

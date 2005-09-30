@@ -173,8 +173,9 @@ class ConnectedTest(NetworkTest):
     
 class ProfileTest(NetworkTest):
     """Test good completion of basic commands"""
-
-    OTHER_IP = "172.17.1.68" # "10.193.171.41"
+    # "172.17.1.68"  #sagittarius
+    # "10.193.171.41"#portable_win
+    OTHER_IP = "172.17.1.79"#octans
     FIRST_NODE = "bots.netofpeers.net:8553"
     OTHER_NODE = "bots.netofpeers.net:8554"
     first_id = None

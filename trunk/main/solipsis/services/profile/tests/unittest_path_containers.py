@@ -8,7 +8,7 @@ import unittest
 import os, os.path
 
 from solipsis.services.profile.path_containers import \
-     DirContainer, FileContainer
+     DirContainer, FileContainer, ContainerException
 from solipsis.services.profile.tests import TEST_DIR
 
 DATA_DIR = os.path.join(TEST_DIR, "data")
@@ -115,20 +115,20 @@ class FileTest(unittest.TestCase):
     def test_setting(self):
         """set data"""
         # setting bad values
-        self.assertRaises(AssertionError, self.container.__setitem__, \
+        self.assertRaises(ContainerException, self.container.__setitem__, \
                           *(TEST_DIR, "youpi"))
-        self.assertRaises(AssertionError, self.container.__setitem__, \
+        self.assertRaises(ContainerException, self.container.__setitem__, \
                           *(TEST_DIR, None))
-        self.assertRaises(AssertionError, self.container.__setitem__, \
+        self.assertRaises(ContainerException, self.container.__setitem__, \
                           *(TEST_DIR, 1))
-        self.assertRaises(AssertionError, DirContainer, u"data/emptydir")
+        self.assertRaises(ContainerException, DirContainer, u"data/emptydir")
         dir_c = DirContainer("data/emptydir")
         file_c = FileContainer("data/subdir1/date.doc", dir_c.add_shared)
-        self.assertRaises(AssertionError, self.container.__setitem__, \
+        self.assertRaises(ContainerException, self.container.__setitem__, \
                           *(TEST_DIR, dir_c))
-        self.assertRaises(AssertionError, self.container.__setitem__, \
+        self.assertRaises(ContainerException, self.container.__setitem__, \
                           *(TEST_DIR, file_c))
-        self.assertRaises(AssertionError, self.container.__setitem__, \
+        self.assertRaises(ContainerException, self.container.__setitem__, \
                           *(TEST_DIR, dir_c))
         # simple sets
         self.container[DATA_DIR] = DirContainer(DATA_DIR + os.sep)
@@ -191,9 +191,9 @@ class FileTest(unittest.TestCase):
     def test_adding(self):
         """add data"""
         # dir
-        self.assertRaises(AssertionError, self.container.add, os.sep.join([TEST_DIR, "data", "dummy"]))
-        self.assertRaises(AssertionError, self.container.add, os.sep.join([TEST_DIR, "data", "dummy.txt"]))
-        self.assertRaises(AssertionError, self.container.add, "data")
+        self.assertRaises(ContainerException, self.container.add, os.sep.join([TEST_DIR, "data", "dummy"]))
+        self.assertRaises(ContainerException, self.container.add, os.sep.join([TEST_DIR, "data", "dummy.txt"]))
+        self.assertRaises(ContainerException, self.container.add, "data")
         self.container.add(DATA_DIR)
         self.container.add(os.sep.join([TEST_DIR, "data", "subdir1", "subsubdir"]))
         self.container.add(os.sep.join([TEST_DIR, "data", "subdir1", "date.doc"]))
@@ -278,7 +278,7 @@ class FileTest(unittest.TestCase):
         self.assertEquals(self.container[os.sep.join([TEST_DIR, "data", "routage"])]._tag, u"tag1")
         self.assertEquals(self.container[os.sep.join([TEST_DIR, "data", "date.txt"])]._tag, u"tag1")
         self.assertEquals(self.container[os.sep.join([TEST_DIR, "data", "subdir1"])]._tag, u"tag1")
-        self.assertRaises(AssertionError, self.container[DATA_DIR].__getitem__, ".path")
+        self.assertRaises(ContainerException, self.container[DATA_DIR].__getitem__, ".path")
 
 if __name__ == '__main__':
     unittest.main()

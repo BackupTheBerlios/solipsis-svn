@@ -31,12 +31,15 @@ import re
 import os.path
 import ConfigParser
 import tempfile
+import gettext
+_ = gettext.gettext
 
 from os.path import isfile
 from solipsis.services.profile import DEFAULT_INTERESTS, ENCODING, \
      save_encoding, load_encoding
+from solipsis.services.profile.message import display_warning, display_error
 from solipsis.services.profile.path_containers import ContainerMixin,  \
-     create_container, DictContainer, SharedFiles
+     create_container, DictContainer, SharedFiles, ContainerException
 from solipsis.services.profile.data import  Blogs, retro_compatibility, \
      PeerDescriptor
 
@@ -101,8 +104,11 @@ class AbstractPersonalData:
             attributes = other_document.get_custom_attributes()
             for key, val in attributes.iteritems():
                 self.add_custom_attributes(key, val)
-        except TypeError, error:
-            print error, "Using default values for personal data"
+        except TypeError, err:
+            display_error(_("Could not import Profile: "
+                            "using default values for personal data"),
+                            title=_("Profile Corrupted"),
+                            error=err)
 
     def load_defaults(self):
         """set sample of default custom attributes"""
@@ -193,20 +199,23 @@ class FileSharingMixin:
         
     def import_document(self, other_document):
         """copy data from another document into self"""
-        try:
-            # file data
-            self.reset_files()
-            for repo, sharing_cont in \
-                    other_document.get_files().iteritems():
+        errors = []
+        self.reset_files()
+        for repo, sharing_cont in \
+                other_document.get_files().iteritems():
+            try: 
                 self.add_repository(repo)
                 for container in sharing_cont.flat():
                     try:
                         self.share_file(container.get_path(), container._shared)
                         self.tag_file(container.get_path(), container._tag)
-                    except KeyError, err:
-                        print "Error on file name:", err
-        except TypeError, error:
-            print error, "Using default values for files"
+                    except ContainerException, err:
+                        errors.append(str(err))
+            except ContainerException, err:
+                errors.append(str(err))
+        if errors:
+            display_error("\n".join(errors),
+                          title="Errors on shared files")
 
     # FILE TAB
     def reset_files(self):
@@ -219,27 +228,47 @@ class FileSharingMixin:
     def get_files(self):
         """returns {root: Container}"""
         return self.files
+
+    def share_file(self, path, share=True):
+        """raise ContainerException"""
+        if not isinstance(path, str):
+            raise TypeError("path expected as str")
+        if not isinstance(share, bool):
+            raise TypeError("share expected as bool")
+        self.get_container(path).share(share)
         
+    def tag_file(self, path, tag):
+        """raise ContainerException"""
+        if not isinstance(path, str):
+            raise TypeError("path expected as str")
+        if not isinstance(tag, unicode):
+            raise TypeError("tag expected as unicode")
+        self.get_container(path).tag(tag)   
+
     def add_repository(self, path, share=True, checked=True):
-        """create a Container pointing to 'path' to directory"""
-        # check type
+        """create a Container pointing to 'path' to directory
+
+        raise ContainerException"""
+        # check type & format
         if not isinstance(path, str):
             raise TypeError("repository '%s' expected as str"% path)
+        if path.endswith(os.sep):
+            path = path[:-1]
         # already added?
         if path in self.files:
             return
         # included or including existing path?
         for repo in self.files:
             if path.startswith(repo):
-                raise ValueError("'%s' part of existing repo %s"\
-                                 %(path, repo))
+                raise ContainerException("'%s' part of existing repo %s"\
+                                         %(path, repo))
             if repo.startswith(path):
-                raise ValueError("'%s' conflicts with existing repo %s"\
-                                 %(path, repo))
+                raise ContainerException("'%s' conflicts with existing repo %s"\
+                                         %(path, repo))
             # else: continue
         self.files[path] = create_container(path,
                                             share=share,
-                                            checked=checked)      
+                                            checked=checked)   
         
     def del_repository(self, path):
         if not isinstance(path, str):
@@ -249,15 +278,31 @@ class FileSharingMixin:
     def expand_dir(self, path):
         if not isinstance(path, str):
             raise TypeError("dir to expand expected as str")
-        self._get_sharing_container(path).expand_dir(path)
-        
+        errors = []
+        try:
+            errors += self._get_sharing_container(path).expand_dir(path)
+        except ContainerException, err:
+            errors.append(str(err))
+        if errors:
+            display_error("\n".join(errors),
+                          title="Errors on shared files")
+        return errors
+
     def expand_children(self, path):
         if not isinstance(path, str):
             raise TypeError("dir to expand expected as str")
-        container = self.get_container(path)
-        for dir_container in [cont for cont in container.values()
-                              if isinstance(cont, DictContainer)]:
-            self.expand_dir(dir_container.get_path())
+        errors = []
+        try:
+            container = self.get_container(path)
+            for dir_container in [cont for cont in container.values()
+                                  if isinstance(cont, DictContainer)]:
+                errors += self.expand_dir(dir_container.get_path())
+        except ContainerException, err:
+            errors.append(str(err))
+        if errors:
+            display_error("\n".join(errors),
+                          title="Errors on shared files")
+        return errors
         
     def share_files(self, path, names, share=True):
         if not isinstance(path, str):
@@ -268,16 +313,16 @@ class FileSharingMixin:
         if not isinstance(share, bool):
             raise TypeError("share expected as bool")
         files = [os.path.join(path, name) for name in names]
+        errors = []
         for file_name in files:
-            container = self.get_container(file_name)
-            container.share(share)
-
-    def share_file(self, path, share=True):
-        if not isinstance(path, str):
-            raise TypeError("path expected as str")
-        if not isinstance(share, bool):
-            raise TypeError("share expected as bool")
-        self.get_container(path).share(share)
+            try:
+                container = self.get_container(file_name)
+                container.share(share)
+            except ContainerException, err:
+                errors.append(str(err))
+        if errors:
+            display_error("\n".join(errors),
+                          title="Errors while sharing files")
 
     def set_container(self, container):
         assert isinstance(container, ContainerMixin)
@@ -290,14 +335,15 @@ class FileSharingMixin:
             raise TypeError("path expected as str")
         if not isinstance(share, bool):
             raise TypeError("share expected as bool")
-        self.get_container(path).recursive_share(share)
-        
-    def tag_file(self, path, tag):
-        if not isinstance(path, str):
-            raise TypeError("path expected as str")
-        if not isinstance(tag, unicode):
-            raise TypeError("tag expected as unicode")
-        self.get_container(path).tag(tag)
+        errors = []
+        try:
+            errors += self.get_container(path).recursive_share(share)
+        except ContainerException, err:
+            errors.append(str(err))
+        if errors:
+            display_error("\n".join(errors),
+                          title="Errors while sharing recursively")
+        return errors
 
     def get_shared_files(self):
         """return {repo: shared files}"""
@@ -320,10 +366,12 @@ class FileSharingMixin:
 
     def _get_sharing_container(self, path):
         """return Container which root is path"""
+        if path.endswith(os.sep):
+            path = path[:-1]
         for root_path in self.files:
             if path.startswith(root_path):
                 return self.files[root_path]
-        raise KeyError("%s not in %s"% (path, str(self.files.keys())))
+        raise ContainerException("%s not in %s"% (path, str(self.files.keys())))
             
 class ContactsMixin:
     """define API for all contacts' data"""
@@ -346,8 +394,11 @@ class ContactsMixin:
                                              document=peer_desc.document,
                                              blog=peer_desc.blog,
                                              state=peer_desc.state))
-        except TypeError, error:
-            print error, "Using default values for contacts"
+        except TypeError, err:
+            display_error(_("Could not import Profile: "
+                            "no contacts impmorted"),
+                          title=_("Profile Corrupted"),
+                          error=err)
 
     # OTHERS TAB
     def reset_peers(self):
@@ -448,7 +499,12 @@ class ContactsMixin:
         for repo in files:
             # do not check validity of path since files are located on
             # remote computer => checked=False
-            peer_desc.document.add_repository(repo, checked=False)
+            try:
+                peer_desc.document.add_repository(repo, checked=False)
+            except ContainerException, err:
+                display_error(_("Could not import directory %s"% repo),
+                              title=_("Partial import"),
+                              error=err)
         # set files
         for file_container in files.flatten():
             peer_desc.document.set_container(file_container)
@@ -518,7 +574,8 @@ class DocSaverMixin(SaverMixin):
         
     def load(self, path):
         if not os.path.exists(path):
-            print "profile %s does not exists"% path
+            display_warning(_("profile %s does not exists"% path),
+                            title=_("Missing file"))
             return False
         else:
             profile_file = open(path)

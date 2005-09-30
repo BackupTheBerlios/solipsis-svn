@@ -24,7 +24,10 @@ __revision__ = "$Id$"
 import os, os.path
 import pickle
 import time
+import gettext
+_ = gettext.gettext
 
+from solipsis.services.profile.message import display_warning, display_error
 from solipsis.services.profile import ENCODING, PROFILE_EXT, \
      BLOG_EXT, BULB_ON_IMG, BULB_OFF_IMG, VERSION
 from solipsis.services.profile.prefs import get_prefs
@@ -54,7 +57,7 @@ class PeerDescriptor:
         self.blog = blog or Blogs()
 
     def get_id(self):
-        """NEEDEED to be compliant with PeerMatch API"""
+        """NEEDED to be compliant with PeerMatch API"""
         return self.node_id
 
     def copy(self):
@@ -93,7 +96,7 @@ class PeerDescriptor:
 #######
 
 def load_blogs(path):
-    """use pickle to loas blogs. file name given without extension
+    """use pickle to load blogs. file name given without extension
     (same model as profile"""
     # loading
     if os.path.exists(path):
@@ -102,7 +105,7 @@ def load_blogs(path):
         blog_file.close()
         return retro_compatibility(blogs)
     else:
-        raise ValueError("blog file %s not found"% path)
+        return Blogs()
 
 def retro_compatibility(blogs):
     """make sure that downloaded version is the good one"""
@@ -120,7 +123,7 @@ def retro_compatibility(blogs):
         # v 0.3.0: - self.pseudo & self._dir removed 
         return blogs
     else:
-        raise ValueError("blog format not recognized.")
+        display_warning(_("Could not read blog file. Using a blank one."))
         
     
 class Blogs:
@@ -163,22 +166,24 @@ class Blogs:
 
     def add_comment(self, index, text, author=None, date=None):
         """get blog at given index and delegate add_comment to it"""
-        blog = self.get_blog(index)
-        blog.add_comment(text, author, date)
+        try:
+            blog = self.get_blog(index)
+            blog.add_comment(text, author, date)
+        except IndexError, err:
+            display_error('Could not add comment: blog not valid',
+                          error=err)
 
     def remove_blog(self, index):
         """delete blog"""
-        if index < len(self.blogs):
+        try:
             del self.blogs[index]
-        else:
-            raise AssertionError('blog id %s not valid'% index)
+        except IndexError, err:
+            display_warning('Blog already deleted.',
+                            error=err)
         
     def get_blog(self, index):
         """return all blogs along with their comments"""
-        if index < len(self.blogs):
-            return self.blogs[index]
-        else:
-            raise AssertionError('blog id %s not valid'% index)
+        return self.blogs[index]
 
     def count_blogs(self):
         """return number of blogs"""
