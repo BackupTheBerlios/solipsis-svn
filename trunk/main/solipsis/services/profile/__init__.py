@@ -28,13 +28,17 @@ _ = gettext.gettext
 
 from solipsis.services.profile.message import display_error, display_status
 
-ENCODING = locale.getpreferredencoding()
 VERSION = "0.3.0"
 DISCLAIMER = "All data in profiles are shared within Solipsis communauty"
 
 DOWNLOAD_REPO = os.sep.join([os.path.expanduser("~"), ".solipsis", "download"])
 PROFILE_DIR = os.sep.join([os.path.expanduser("~"), ".solipsis", "profiles"])
 PREFS_FILE = os.path.join(PROFILE_DIR, ".preferences")
+
+ENCODING = locale.getpreferredencoding()
+KNOWN_ENCODINGS = [ENCODING, "utf-8", "utf-16",
+                   "ISO-8859-1", "ISO-8859-15"
+                   "cp1252", "cp437", "cp850"]
 
 global solipsis_dir
 
@@ -43,6 +47,18 @@ def set_solipsis_dir(new_dir):
     conf (and passed to the application through params"""
     global solipsis_dir
     solipsis_dir = new_dir
+
+def force_unicode(chars):
+    """return unicode string trying different encodings if locale one
+    failed"""
+    if isinstance(chars, unicode):
+        return chars
+    for encoding in KNOWN_ENCODINGS:
+        try:
+            return unicode(chars, encoding)
+        except UnicodeDecodeError:
+            print encoding, "does not apply on", chars
+                
     
 # Encoding not saved in preferences because it must be attached within
 # the profile file (to be sent through network)
@@ -58,9 +74,8 @@ def load_encoding(file_obj):
         # first line has been wastes: rewind
         file_obj.seek(0)
         # return default
-        display_error("could not read encoding from profile file. "
-                      "Using %s"% ENCODING,
-                      title="Corrupted profile file")
+        display_status("could not read encoding from profile file. "
+                      "Using %s"% ENCODING)
         return ENCODING
     else:
         encoding = encoding_tag.split("::")[-1].strip()

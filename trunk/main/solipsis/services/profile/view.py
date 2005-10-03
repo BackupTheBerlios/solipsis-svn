@@ -28,7 +28,7 @@ import os, os.path
 import pickle
 from StringIO import StringIO
 
-from solipsis. services.profile import PREVIEW_PT
+from solipsis. services.profile import PREVIEW_PT, ENCODING
 
 # Search first in system directory, fall back to bundled version if necessary
 try:
@@ -39,7 +39,7 @@ except ImportError:
     sys.path.append(_simpletal_path)
     from simpletal import simpleTAL, simpleTALES
     sys.path.remove(_simpletal_path)
-from solipsis.services.profile import ENCODING
+from solipsis.services.profile import force_unicode
 from solipsis.util.uiproxy import UIProxy
 
 
@@ -108,8 +108,12 @@ class AbstractView:
         raise NotImplementedError
 
     # FILE TAB  
+    def build_files(self):
+        """structure changes (repository)"""
+        raise NotImplementedError
+        
     def update_files(self):
-        """file"""
+        """properties of files changes (tag...)"""
         raise NotImplementedError
 
     # OTHERS TAB
@@ -139,6 +143,10 @@ class PrintView(AbstractView):
         self.output.flush()
 
     # PERSONAL TAB
+    def update_pseudo(self):
+        """display title in view"""
+        self.println(self._desc.document.get_pseudo())
+    
     def update_title(self):
         """title"""
         self.println(self._desc.document.get_title())
@@ -170,9 +178,13 @@ class PrintView(AbstractView):
         self.println(pickle.dumps(self._desc.blog))
         
     # FILE TAB
-    def update_files(self):
-        """file"""
+    def build_files(self):
+        """structure changes (repository)"""
         self.println(self._desc.document.get_files())
+        
+    def update_files(self):
+        """properties of files changes (tag...)"""
+        self.build_files()
         
     # OTHERS TAB        
     def update_peers(self):
@@ -210,13 +222,19 @@ class HtmlView(AbstractView):
         """returns HTML String"""
         if update:
             self._update_view()
-        return unicode(self.view.getvalue(), ENCODING)
+        return force_unicode(self.view.getvalue())
 
     def set_auto_refresh(self, enable):
         """change mode of refresh"""
         self.auto_refresh = enable
 
     # PERSONAL TAB: frame.personal_tab
+    def update_pseudo(self):
+        """display title in view"""
+        self.context.addGlobal("pseudo", self._desc.document.get_pseudo())
+        if self.auto_refresh:
+            self._update_view()
+    
     def update_title(self):
         """title"""
         self.context.addGlobal("title", self._desc.document.get_title())
@@ -262,23 +280,15 @@ class HtmlView(AbstractView):
             self._update_view()
         
     # FILE TAB : frame.file_tab
-    def update_files(self):
-        """file"""
-        class unicodeWrapper(unicode):
-            """wrapper which adds 'basemane'"""
-            def __init__(self, *args):
-                unicode.__init__(self, *args)
-                self.basename = os.path.basename(self)
-        # create object for context
-        html_format = {}
-        for repo in self._desc.document.get_repositories():
-            content = {}
-            html_format[unicodeWrapper(repo)] = content
-            for container in self._desc.document.get_shared_files().flatten():
-                content[container.get_path()[len(repo):]] = container._tag
-        self.context.addGlobal("files", html_format)
+    def build_files(self):
+        """structure changes (repository)"""
+        self.context.addGlobal("files", self._desc.document.get_shared_files())
         if self.auto_refresh:
             self._update_view()
+        
+    def update_files(self):
+        """properties of files changes (tag...)"""
+        self.build_files()
         
     # OTHERS TAB
     def update_peers(self):
@@ -300,6 +310,11 @@ class EditorView(AbstractView):
         AbstractView.__init__(self, desc, do_import, name)
 
     # PERSONAL TAB: frame.personal_tab
+    def update_pseudo(self):
+        """title"""
+        self.frame.personal_tab.nickname_value.SetValue(
+            self._desc.document.get_pseudo())
+        
     def update_title(self):
         """title"""
         self.frame.personal_tab.title_value.SetValue(
@@ -339,14 +354,11 @@ class EditorView(AbstractView):
         self.frame.blog_tab.on_update()
         
     # FILE TAB : frame.file_tab
+    def build_files(self):
+        self.frame.file_tab.cb_build_tree(self._desc.document.get_files())
+        
     def update_files(self):
-        """file"""
-        if self.frame.file_tab.dir_list.GetItemCount()>0:
-            self.frame.file_tab.dir_list.DeleteAllItems()
-        for sharing_container in self._desc.document.get_files().values():
-            self.frame.file_tab.cb_update_tree(sharing_container)
-        if self.frame.file_tab.file_dlg.IsShown():
-            self.frame.file_tab.file_dlg.refresh()
+        self.frame.file_tab.cb_update_tree(self._desc.document.get_files())
         
     # OTHERS TAB
     def update_peers(self):
@@ -365,6 +377,10 @@ class ViewerView(AbstractView):
         AbstractView.__init__(self, desc, do_import, name)
         
     # PERSONAL TAB
+    def update_pseudo(self):
+        """display title in view"""
+        pass
+    
     def update_title(self):
         """display title in view"""
         pass
@@ -398,11 +414,15 @@ class ViewerView(AbstractView):
             self.frame.display_blog(peer_desc)
         
     # FILE TAB : frame.file_tab
-    def update_files(self):
-        """display shared files"""
+    def build_files(self):
+        """structure changes (repository)"""
         peer_desc = self._desc.document.last_downloaded_desc
         if peer_desc != None:
             self.frame.display_files(peer_desc)
+        
+    def update_files(self):
+        """properties of files changes (tag...)"""
+        self.build_files()
         
     # OTHERS TAB
     def update_peers(self):
@@ -422,6 +442,14 @@ class FilterView(AbstractView):
         AbstractView.__init__(self, desc, do_import, name)
         
     # PERSONAL TAB
+    def update_pseudo(self):
+        """email"""
+        tab = self.frame.personal_filter_tab
+        filter_pseudo = self._desc.document.get_pseudo()
+        tab.pseudo_checkbox.SetValue(filter_pseudo.activated)
+        tab.pseudo_value.Enable(filter_pseudo.activated)
+        tab.pseudo_value.SetValue(filter_pseudo.description)
+        
     def update_title(self):
         """display title in view"""
         tab = self.frame.personal_filter_tab
@@ -450,14 +478,6 @@ class FilterView(AbstractView):
         """photo"""
         pass
 
-    def update_pseudo(self):
-        """email"""
-        tab = self.frame.personal_filter_tab
-        filter_pseudo = self._desc.document.get_pseudo()
-        tab.pseudo_checkbox.SetValue(filter_pseudo.activated)
-        tab.pseudo_value.Enable(filter_pseudo.activated)
-        tab.pseudo_value.SetValue(filter_pseudo.description)
-
     def update_email(self):
         """email"""
         tab = self.frame.personal_filter_tab
@@ -477,13 +497,17 @@ class FilterView(AbstractView):
             filters_list.SetStringItem(index, 1, filter_value.description)
         
     # FILE TAB : frame.file_tab
-    def update_files(self):
-        """display shared files"""
+    def build_files(self):
+        """structure changes (repository)"""
         filters_list = self.frame.file_filter_tab.f_filters_list
         filters_list.DeleteAllItems()
         for key, filter_value in self._desc.document.get_files().iteritems():
             index = filters_list.InsertStringItem(sys.maxint, key)
             filters_list.SetStringItem(index, 1, filter_value.description)
+        
+    def update_files(self):
+        """properties of files changes (tag...)"""
+        self.build_files()
         
     # OTHERS TAB
     def update_peers(self):

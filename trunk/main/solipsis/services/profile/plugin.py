@@ -153,24 +153,20 @@ class Plugin(ServicePlugin):
                 self.NewPeer(*self.peer_services[peer_id])
 
     # Service methods
-    def modify_profile(self, deferred=None):
+    def modify_profile(self, evt):
         """display profile once loaded"""
         if not self.editor_frame is None:
             self.editor_frame.Show()
-        if not deferred is None:
-            deferred.callback(str(get_facade()._desc))
             
-    def filter_profile(self, deferred=None):
+    def filter_profile(self, evt):
         """display profile once loaded"""
         if self.filter_frame:
             self.filter_frame.Show()
-        if not deferred is None:
-            deferred.callback(str(get_filter_facade()._desc))
             
-#     def show_profile(self, peer_id):
+#     def show_profile(self, evt):
 #         """display profile once loaded"""
 #         if self.viewer_frame:
-#             self.viewer_frame.Show(peer_id)
+#             self.viewer_frame.Show()
 
     def get_profile(self, peer_id, deferred=None):
         """request downwload of profile"""
@@ -303,10 +299,13 @@ class Plugin(ServicePlugin):
         # ChangedNode is call more than one time on change. Thus, be
         # careful not to do the job every time
         if get_facade() is None or get_facade()._desc.document.get_pseudo() != node.pseudo:
-            # profile
+            # creation
             facade = create_facade(node.id_)
+            filter_facade = create_filter_facade(node.id_)
             facade.load()
+            filter_facade.load()
             facade.change_pseudo(node.pseudo)
+            # updating views
             if self.editor_frame:
                 facade.add_view(EditorView(facade._desc,
                                            self.editor_frame))
@@ -314,9 +313,6 @@ class Plugin(ServicePlugin):
                 facade.add_view(ViewerView(facade._desc,
                                            self.viewer_frame))
                 self.viewer_frame.on_change_facade()
-            # filter
-            filter_facade = create_filter_facade(node.id_)
-            filter_facade.load()
             if self.filter_frame:
                 filter_facade.add_view(FilterView(filter_facade._desc,
                                                   self.filter_frame))

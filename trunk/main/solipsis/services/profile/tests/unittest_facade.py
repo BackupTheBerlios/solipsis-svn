@@ -18,7 +18,7 @@ from solipsis.services.profile.facade import Facade, \
       create_facade, create_filter_facade
 from solipsis.services.profile.tests import PROFILE_DIR, PROFILE_TEST, \
      write_test_profile, TEST_DIR, PSEUDO
-from solipsis.services.profile import ENCODING, QUESTION_MARK
+from solipsis.services.profile import ENCODING, QUESTION_MARK, force_unicode
 from solipsis.services.profile.path_containers import ContainerException
 from os.path import abspath
 
@@ -49,7 +49,7 @@ class FacadeTest(unittest.TestCase):
         self.assertEquals(u"breton", self.facade._desc.document.get_lastname())
 
     def test_change_photo(self):
-        self.facade.change_photo(unicode(unittest.__file__, ENCODING))
+        self.facade.change_photo(force_unicode(unittest.__file__))
         self.assertEquals(u"%s"% unittest.__file__, self.facade._desc.document.get_photo())
 
     def test_change_email(self):

@@ -10,7 +10,7 @@ from solipsis.services.profile.prefs import get_prefs, set_prefs
 from solipsis.services.profile.pathutils import formatbytes
 from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile import DOWNLOAD, DOWNLOAD_DIR, \
-     ENCODING, NAME_COL, SIZE_COL
+     force_unicode, NAME_COL, SIZE_COL
 
 TAG_COL = 2
 
@@ -74,7 +74,7 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
         """select download directory in DirDialog"""
         # pop up to choose repository
         dlg = wx.DirDialog(self, message=_("Choose location to download files into"),
-                           defaultPath = unicode(get_prefs("download_repo"), ENCODING),
+                           defaultPath = force_unicode(get_prefs("download_repo")),
                            style=wx.DD_DEFAULT_STYLE|wx.DD_NEW_DIR_BUTTON)
         if dlg.ShowModal() == wx.ID_OK:
             # path chosen
@@ -99,49 +99,44 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
 
     def refresh(self, files=None):
         """overrides Show, files is {repos: [FileDescriptors], }"""
+        if not self.IsShown():
+            return
         if files is None:
             if get_facade() is None:
                 return
             files = get_facade()._desc.document.get_shared_files()
+        # clear previous data
         self.peerfiles_list.DeleteAllItems()
-        if len(files) > 0:
-            # reformat data
-            file_data = []
-            for file_descs in files.values():
-                for file_desc in file_descs:
-                    file_data.append([file_desc.get_path(),
-                                      file_desc.name,
-                                      file_desc._tag,
-                                      file_desc.size])
-            # clear previous data
-            for key in self.data.keys():
-                del self.data[key]
-            # fill list
-            for path, name, tag, size in file_data:
-                index = self.peerfiles_list.InsertStringItem(sys.maxint,
-                                                             unicode(name, ENCODING))
-                self.peerfiles_list.SetStringItem(index, TAG_COL, tag)
-                self.peerfiles_list.SetStringItem(index, SIZE_COL, formatbytes(size,
-                                                                        kiloname="Ko",
-                                                                        meganame="Mo",
-                                                                        bytename="o"))
-                self.data[index] = (path.split(os.sep), size)
+        for key in self.data.keys():
+            del self.data[key]
+        # fill new data
+        for file_container in files.flatten():
+            path = file_container.get_path()
+            index = self.peerfiles_list.InsertStringItem(
+                sys.maxint, force_unicode(file_container.name))
+            self.peerfiles_list.SetStringItem(index, TAG_COL, file_container._tag)
+            self.peerfiles_list.SetStringItem(index, SIZE_COL,
+                                              formatbytes(file_container.size,
+                                                          kiloname="Ko",
+                                                          meganame="Mo",
+                                                          bytename="o"))
+            self.data[index] = (path.split(os.sep), file_container.size)
         # show result
         self.peerfiles_list.SetColumnWidth(TAG_COL, wx.LIST_AUTOSIZE)
 
     def Show(self, files=None, do_show=True):
         """overrides Show, files is {repos: {names:tags}, }"""
+        wx.Dialog.Show(self, do_show)
         if do_show:
             self.refresh(files)
-        wx.Dialog.Show(self, do_show)
 
     def SetTitle(self, title=None):
         if not title:
             if self.peer_desc:
                 title = self.peer_desc.document.get_pseudo() + "'s files"
             else:
-                title = unicode("your files going into " + \
-                                get_prefs("download_repo"), ENCODING)
+                title = force_unicode("your files going into " + \
+                                get_prefs("download_repo"))
         wx.Dialog.SetTitle(self, title)
 
     def set_desc(self, value):
@@ -162,7 +157,7 @@ class FileDialog(wx.Dialog, UIProxyReceiver):
         self.download_button.SetToolTipString(_("Download selected files"))
         self.download_button.SetSize(self.download_button.GetBestSize())
         # end wxGlade
-        self.repo_value.SetValue(unicode(get_prefs("download_repo"), ENCODING))
+        self.repo_value.SetValue(force_unicode(get_prefs("download_repo")))
         if not self.plugin:
             self.download_button.Enable(False)
 

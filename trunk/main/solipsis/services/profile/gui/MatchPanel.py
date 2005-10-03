@@ -77,8 +77,9 @@ class MatchPanel(wx.Panel):
         index, node_ids = self.matches[filter_result.get_name()]
         node_ids.append(node_id)
         previous = self.matches_list.GetItem(index, 2).GetText().split(',')
+        # display value only if not exists
         if not filter_result.get_match() in previous:
-            self.matches_list.SetStringItem(index, 2, ', '.join(previous, + [filter_result.get_match()]))
+            self.matches_list.SetStringItem(index, 2, ', '.join(previous + [filter_result.get_match()]))
     
     def set_tab(self, peer_desc):
         """add or update tab with preview of given peer"""

@@ -48,6 +48,8 @@ def create_filter_facade(node_id):
 
 def get_filter_facade():
     """implements pattern singleton on FilterFacade"""
+    if FilterFacade.filter_facade == None and get_facade() != None:
+        create_filter_facade(get_facade()._desc.node_id)
     return FilterFacade.filter_facade
 
 class FilterFacade(SimpleFacade):
@@ -71,7 +73,7 @@ class FilterFacade(SimpleFacade):
     def add_repository(self, key, filter_value):
         """sets new value for repositor"""
         return self._try_change("add_repository",
-                                "update_files",
+                                "build_files",
                                 key, filter_value)
 
 class Facade(SimpleFacade):
@@ -152,28 +154,36 @@ class Facade(SimpleFacade):
         """sets new value for repositor"""
         path = path.encode(ENCODING)
         return self._try_change("add_repository",
-                                "update_files",
+                                "build_files",
                                 path)
 
     def del_repository(self, path):
         """sets new value for repositor"""
         path = path.encode(ENCODING)
         return self._try_change("del_repository",
-                                "update_files",
+                                "build_files",
                                 path)
     
     def expand_dir(self, path):
         """update doc when dir expanded"""
         path = path.encode(ENCODING)
         return self._try_change("expand_dir",
-                                "update_files",
+                                "build_files",
                                 path)
         
     def expand_children(self, path):
         """update doc when dir expanded"""
         path = path.encode(ENCODING)
         return self._try_change("expand_children",
-                               "update_files",
+                               "build_files",
+                                path)
+        
+    def recursive_expand(self, path):
+        """update doc when dir expanded"""
+        print "***2"
+        path = path.encode(ENCODING)
+        return self._try_change("recursive_expand",
+                                "update_files",
                                 path)
     
     def recursive_share(self, path, share):
@@ -221,7 +231,7 @@ class Facade(SimpleFacade):
     def fill_shared_files(self, peer_id, files):
         """sets peer as friend """
         return self._try_change("fill_shared_files",
-                                "update_files",
+                                "build_files",
                                 peer_id, files)
 
     def make_friend(self, peer_id):

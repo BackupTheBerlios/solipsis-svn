@@ -2,7 +2,6 @@
 #
 """client server module for file sharing"""
 
-import socket
 import random
 import tempfile
 import pickle
@@ -904,7 +903,7 @@ class PeerServerFactory(ServerFactory):
             self.deferreds[remote_ip] = deferred
             message = self.manager.make_message(action, self.port)
             from solipsis.services.profile.plugin import Plugin
-            plugin.service_api.SendData(peer_id, message)
+            Plugin.service_api.SendData(peer_id, message)
         else:
             self.manager._on_all_files()
         # flag this one

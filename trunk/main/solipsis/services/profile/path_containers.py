@@ -77,17 +77,19 @@ class SharedFiles(dict):
 class ContainerMixin:
     """Factorize sharing tools on containers"""
     
-    def __init__(self, path, cb_share=None, share=False, tag=DEFAULT_TAG):
+    def __init__(self, path, cb_share=None, share=False,
+                 tag=DEFAULT_TAG, size=0):
         if not isinstance(path, str):
             raise ContainerException("path [%s] expected as string"% path)
         # init path
         path =  ContainerMixin._validate(self, path)
         self._paths = path.split(os.sep)
         self.name = self._paths[-1]
+        self.size = size
         # init other members
         self._tag = None
         self.tag(tag)
-        self._data = None
+        self.data = None
         # sharing process
         self.on_share = cb_share
         self._shared = False
@@ -98,9 +100,17 @@ class ContainerMixin:
         if (not validator) or validator(self):
             return self.__class__(self.get_path(),
                                   share=self._shared,
-                                  tag=self._tag)
+                                  tag=self._tag,
+                                  size=self.size)
         else:
             return None
+
+    def uncheck(self):
+        """returns a container which does not make any assertion on
+        path and does not implements callbacks on insertion. For
+        instance, a DictContainer instead of a DirContainer, a
+        ContainerMixin instead of a FileContainer"""
+        return self
 
     def tag(self, tag):
         """set tag"""
@@ -111,15 +121,6 @@ class ContainerMixin:
         """set sharing status"""
         assert isinstance(share, bool), "share '%s' must be bool"% share
         self._shared = share
-
-    def set_data(self, data):
-        """used by GUI"""
-        assert data, "data associated is None"
-        self._data = data
-
-    def get_data(self):
-        """used by GUI"""
-        return self._data
 
     def get_path(self):
         """return well formated path correspondinf to file"""
@@ -140,9 +141,9 @@ class DictContainer(dict, ContainerMixin):
     of file_system does"""
 
     def __init__(self, path, cb_share=None,
-                 share=False, tag=DEFAULT_TAG):
+                 share=False, tag=DEFAULT_TAG, size=0):
         ContainerMixin.__init__(self, path, cb_share=cb_share,
-                                share=share, tag=tag)
+                                share=share, tag=tag, size=size)
         dict.__init__(self)
         
     def __str__(self):
@@ -275,10 +276,13 @@ class DictContainer(dict, ContainerMixin):
 class FileContainer(ContainerMixin):
     """Structure to store files info in cache"""
 
-    def __init__(self, path, cb_share=None, share=False, tag=DEFAULT_TAG):
-        ContainerMixin.__init__(self, path, cb_share, share, tag)
+    def __init__(self, path, cb_share=None, share=False,
+                 tag=DEFAULT_TAG, size=0):
+        ContainerMixin.__init__(self, path, cb_share=cb_share, share=share,
+                               tag=tag, size=size)
         assert_file(self.get_path())
-        self.size = os.stat(self.get_path())[stat.ST_SIZE]
+        if self.size == 0:
+            self.size = os.stat(self.get_path())[stat.ST_SIZE]
         
     def __str__(self):
         return "Fc:%s(?%s,'%s')"% (self.name,
@@ -286,6 +290,16 @@ class FileContainer(ContainerMixin):
                                    self._tag.encode(ENCODING)  or "-")
     def __repr__(self):
         return str(self)
+
+    def uncheck(self):
+        """returns a container which does not make any assertion on
+        path and does not implements callbacks on insertion. For
+        instance, a DictContainer instead of a DirContainer, a
+        ContainerMixin instead of a FileContainer"""
+        return ContainerMixin(path=self.get_path(),
+                              share=self._shared,
+                              tag=self._tag,
+                              size=self.size)
     
     def share(self, share=True):
         """set sharing status"""
@@ -298,11 +312,14 @@ class DirContainer(DictContainer):
     """Enrich DictContainer with call back on sharing (counting nb
     shared) and validation of paths."""
 
-    def __init__(self, path, cb_share=None, share=False, tag=DEFAULT_TAG):
-        DictContainer.__init__(self, path, cb_share=cb_share,
-                               share=share, tag=tag)
+    def __init__(self, path, cb_share=None, share=False,
+                 tag=DEFAULT_TAG, size=0):
+        DictContainer.__init__(self, path, cb_share=cb_share, share=share,
+                               tag=tag, size=size)
         assert_dir(self.get_path())
         self._nb_shared = 0
+        if self.size == 0:
+            self.size = os.stat(self.get_path())[stat.ST_SIZE]
         
     def __str__(self):
         return "{Dc:%s(?%s,'%s',#%d) : %s}"\
@@ -311,6 +328,15 @@ class DirContainer(DictContainer):
                  self._tag.encode(ENCODING)  or "-",
                  self.nb_shared(),
                  str(self.values()))
+
+    def uncheck(self):
+        """returns a container which does not make any assertion on
+        path and does not implements callbacks on insertion. For
+        instance, a DictContainer instead of a DirContainer, a
+        ContainerMixin instead of a FileContainer"""
+        return DictContainer(path=self.get_path(),
+                             share=self._shared,
+                             tag=self._tag)
 
     def _add(self, local_key, value=None):
         """add Container"""
@@ -370,4 +396,14 @@ class DirContainer(DictContainer):
                 container.add(path)
             except ContainerException, err:
                 errors.append(str(err))
+        return errors
+
+    def recursive_expand(self):
+        print "***4"
+        errors = self.expand_dir()
+        container_path = container.get_path()
+        for file_name in os.listdir(container_path):
+            child = self[file_name]
+            if isinstance(child, DictContainer):
+                errors += child.recursive_expand()
         return errors

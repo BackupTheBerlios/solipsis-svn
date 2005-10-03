@@ -42,7 +42,10 @@ def run():
     options["standalone"] = True
     # launch gui
     editor = EditorApp(options, 0)
-    editor.MainLoop()
+    try:
+        editor.MainLoop()
+    except:
+        print "UNCAUGHT EXCEPTION"
 
     
 if __name__ == "__main__":

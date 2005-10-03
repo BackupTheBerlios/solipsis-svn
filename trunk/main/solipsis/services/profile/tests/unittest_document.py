@@ -13,7 +13,7 @@ import os, os.path
 from ConfigParser import ConfigParser
 from os.path import abspath
 
-from solipsis.services.profile import ENCODING
+from solipsis.services.profile import ENCODING, force_unicode
 from solipsis.services.profile.prefs import get_prefs, set_prefs
 from solipsis.services.profile.document import CustomConfigParser, AbstractDocument
 from solipsis.services.profile.file_document import FileDocument
@@ -97,7 +97,7 @@ class DocumentTest(unittest.TestCase):
         self.assertRaises(NotImplementedError, self.abstract_doc.get_photo)
         for document in self.documents:
             self.assertRaises(TypeError, document.set_photo, "./dummy/dummy.jpg")
-            document.set_photo(unicode(unittest.__file__, ENCODING))
+            document.set_photo(force_unicode(unittest.__file__))
         
     def test_email(self):
         """email as unicode"""

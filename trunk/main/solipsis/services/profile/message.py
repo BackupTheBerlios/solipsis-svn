@@ -38,7 +38,12 @@ def _display(msg, msg_type, title="Solipsis Profile", error=None):
             service_api.display_status(msg)
         else:
             print "message type %s not valid"
-    #else: does not print anything if no service_api (no navigator)
+    else:
+        print msg
+        if not error is None:
+            print error
+            import traceback
+            traceback.print_exc()
     
 def display_error(msg, title="Profile Error", error=None):
     _display(msg, "ERR", title, error)

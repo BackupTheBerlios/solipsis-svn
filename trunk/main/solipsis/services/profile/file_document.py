@@ -29,9 +29,9 @@ import ConfigParser
 import os.path
 import time
 import sys
-from solipsis.services.profile import ENCODING, QUESTION_MARK
+from solipsis.services.profile import force_unicode, ENCODING, QUESTION_MARK
 from solipsis.services.profile.path_containers import DEFAULT_TAG, \
-     create_container
+     create_container, DictContainer
 from solipsis.services.profile.data import PeerDescriptor
 from solipsis.services.profile.document import \
      AbstractPersonalData, FileSharingMixin, ContactsMixin, DocSaverMixin, \
@@ -202,27 +202,30 @@ class FileFilesharingMixin(FileSharingMixin):
                 self.files[repo] = create_container(repo, checked=False)
             except AssertionError:
                 print "non valid repo '%s'"% repo
-        # if no valid repo foound, does not try any further...
+        # if no valid repo found, does not try any further...
         if self.files == {}:
             return self.files
         for option in self.config.options(SECTION_FILE):
             # get share & tag
             try:
-                option_description = self.config.get(SECTION_FILE, option)
-                option_share, option_tag = option_description.split(',')
-                option_share = (option_share == SHARED_TAG)
-                if isinstance(option_tag, str):
-                    option_tag = unicode(option_tag, ENCODING)
+                o_description = self.config.get(SECTION_FILE, option)
+                o_file, o_share, o_size, o_tag = o_description.split(',', 3)
+                o_file = (o_file == 'F') and True or False
+                o_share = (o_share == SHARED_TAG)
+                o_tag = force_unicode(o_tag)
+                o_size = int(o_size)
             except (ValueError, ConfigParser.NoSectionError,
-                    ConfigParser.NoOptionError):
-                print >> sys.stderr, "option '%s' not well formated"\
-                      % option_description
-                option_share, option_tag = False, DEFAULT_TAG
+                    ConfigParser.NoOptionError), err:
+                print >> sys.stderr, "option '%s' not well formated: %s"\
+                      % (o_description, err)
+                o_file, o_share, o_tag, o_size = False, False, DEFAULT_TAG, 0
             # add container
             try:
-                container = self._get_sharing_container(option)
-                container[option].share(option_share)
-                container[option].tag(option_tag)
+                file_container = o_file and self.get_file(option) \
+                                 or self.get_container(option)
+                file_container.share(o_share)
+                file_container.tag(o_tag)
+                file_container.size = o_size
             except KeyError:
                 print "non valid file '%s'"% option
         return FileSharingMixin.get_files(self)
@@ -246,8 +249,11 @@ class FileFilesharingMixin(FileSharingMixin):
             for f_container in f_containers:
                 key = os.path.join(repo, f_container.get_path())
                 if f_container._shared or f_container._tag != DEFAULT_TAG:
-                    value = ','.join((f_container._shared and SHARED_TAG or '',
-                                      f_container._tag))
+                    value = ','.join([isinstance(f_container, DictContainer) \
+                                      and 'D' or 'F',
+                                      f_container._shared and SHARED_TAG or '',
+                                      str(f_container.size),
+                                      f_container._tag])
                     self.config.set(SECTION_FILE, key, value)
 
 class FileContactMixin(ContactsMixin):

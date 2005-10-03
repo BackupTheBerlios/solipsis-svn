@@ -304,6 +304,20 @@ class FileSharingMixin:
                           title="Errors on shared files")
         return errors
         
+    def recursive_expand(self, path):
+        print "***3"
+        if not isinstance(path, str):
+            raise TypeError("dir to expand expected as str")
+        errors = []
+        try:
+            errors += self.get_container(path).recursive_expand()
+        except ContainerException, err:
+            errors.append(str(err))
+        if errors:
+            display_error("\n".join(errors),
+                          title="Errors on shared files")
+        return errors
+        
     def share_files(self, path, names, share=True):
         if not isinstance(path, str):
             raise TypeError("path expected as str")
@@ -349,13 +363,9 @@ class FileSharingMixin:
         """return {repo: shared files}"""
         shared = SharedFiles()
         for repository in self.get_repositories():
-            # copy containers wich are shared. Copy does not copy
-            # callbacks, which allows pickle to work on higher levels
-            copied_container = self.get_container(repository).copy(
-                validator=lambda container: (isinstance(container, DictContainer)
-                                             or container._shared))
-            shared[repository] = [f_container
-                                  for f_container in copied_container.flat()
+            flatten = self.get_container(repository).flat()
+            shared[repository] = [f_container.uncheck()
+                                  for f_container in flatten
                                   if not isinstance(f_container, DictContainer)
                                   and f_container._shared]
         return shared
@@ -363,6 +373,16 @@ class FileSharingMixin:
     def get_container(self, full_path):
         """returns Container correspondind to full_path"""
         return self._get_sharing_container(full_path)[full_path]
+
+    def get_file(self, full_path):
+        """return Container which root is path"""
+        if full_path.endswith(os.sep):
+            full_path = full_path[:-1]
+        path = os.path.dirname(full_path)
+        container = self.get_container(path)
+        file_container = ContainerMixin(full_path)
+        container[full_path] = file_container
+        return file_container
 
     def _get_sharing_container(self, path):
         """return Container which root is path"""

@@ -5,7 +5,7 @@ import wx
 import sys
 from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxy
-from solipsis.services.profile import REGEX_HTML, PROFILE_EXT
+from solipsis.services.profile import REGEX_HTML, PROFILE_EXT, FILTER_EXT
 from solipsis.services.profile.prefs import get_prefs, set_prefs
 from solipsis.services.profile.facade import get_filter_facade, get_facade
 from solipsis.services.profile.file_document import FileDocument
@@ -111,7 +111,7 @@ class FilterFrame(wx.Frame):
     def on_save(self, evt):
         """save .prf"""
         self.do_modified(False)
-        get_filter_facade()._desc.save()
+        get_filter_facade()._desc.save(doc_extension=FILTER_EXT)
         
     def on_close(self, evt=None):
         """hide  application"""

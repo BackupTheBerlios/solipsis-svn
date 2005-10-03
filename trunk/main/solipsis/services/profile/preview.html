@@ -47,13 +47,13 @@
 
   <h2 class="header">Personal Files</h2>
   <dl>
-    <div tal:define="os.path pyth"
+    <div tal:define="os python:__import__('os')"
 	 tal:repeat ="repository files/keys" 
 	 tal:omit-tag="">
-      <dt tal:content="python: repository.basename">
+      <dt tal:content="python: repository.split(os.sep)[-1]">
 	repository
       </dt>
-      <dd tal:content="python:'%d shared files'% len(files[repository].keys())">
+      <dd tal:content="python:'%d shared files'% len(files[repository])">
 	number of files
       </dd>
     </div>
