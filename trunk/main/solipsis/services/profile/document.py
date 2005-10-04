@@ -37,7 +37,7 @@ _ = gettext.gettext
 from os.path import isfile
 from solipsis.services.profile import DEFAULT_INTERESTS, ENCODING, \
      save_encoding, load_encoding
-from solipsis.services.profile.message import display_warning, display_error
+from solipsis.services.profile.message import display_status, display_error
 from solipsis.services.profile.path_containers import ContainerMixin,  \
      create_container, DictContainer, SharedFiles, ContainerException
 from solipsis.services.profile.data import  Blogs, retro_compatibility, \
@@ -594,8 +594,8 @@ class DocSaverMixin(SaverMixin):
         
     def load(self, path):
         if not os.path.exists(path):
-            display_warning(_("profile %s does not exists"% path),
-                            title=_("Missing file"))
+            display_status(_("profile %s does not exists"\
+                             % os.path.basename(path)))
             return False
         else:
             profile_file = open(path)

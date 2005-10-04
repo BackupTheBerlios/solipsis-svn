@@ -25,6 +25,7 @@ import wx
 from solipsis.util.wxutils import _
 from solipsis.services.plugin import ServicePlugin
 from solipsis.services.profile import set_solipsis_dir
+from solipsis.services.profile.message import display_message
 from solipsis.services.profile.prefs import get_prefs
 from solipsis.services.profile.facade import create_facade, get_facade, \
      create_filter_facade, get_filter_facade
@@ -302,8 +303,20 @@ class Plugin(ServicePlugin):
             # creation
             facade = create_facade(node.id_)
             filter_facade = create_filter_facade(node.id_)
-            facade.load()
-            filter_facade.load()
+            if not facade.load():
+                display_message(
+                    _("You have no profile yet.\n\n "
+                      "You may create one clicking on the menu Profile, "
+                      "and selecting 'Modify Profile'"),
+                    title=_("New profile"))
+            if not filter_facade.load():
+                display_message(
+                    _("You have no filters defined yet.\n\n Filters are used "
+                      "to match your neighbors' profile and alert you if they "
+                      "match with your criteria.\n\n"
+                      "You may create your filters by clicking on the menu 'Profile', "
+                      "and selecting 'Filter Profiles'"),
+                    title=_("New filters"))
             facade.change_pseudo(node.pseudo)
             # updating views
             if self.editor_frame:
