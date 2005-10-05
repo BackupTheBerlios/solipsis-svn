@@ -30,7 +30,7 @@ class PeerHtmlListBox(wx.HtmlListBox):
             self.blog.remove_blog(selected)
             self.refresh()
         else:
-            display_warning("none selected")
+            display_warning(_("none selected"))
         
     def add_comment(self, text):
         """store blog in cache as wx.HtmlListBox is virtual"""
@@ -40,7 +40,7 @@ class PeerHtmlListBox(wx.HtmlListBox):
             self.blog.add_comment(selected, text, pseudo)
             self.refresh()
         else:
-            display_warning("none selected")
+            display_warning(_("none selected"))
 
     def OnGetItem(self, n):
         """callback to display item"""

@@ -170,7 +170,7 @@ class Blogs:
             blog = self.get_blog(index)
             blog.add_comment(text, author, date)
         except IndexError, err:
-            display_error('Could not add comment: blog not valid',
+            display_error(_("Could not add comment: blog not valid"),
                           error=err)
 
     def remove_blog(self, index):
@@ -178,7 +178,7 @@ class Blogs:
         try:
             del self.blogs[index]
         except IndexError, err:
-            display_warning('Blog already deleted.',
+            display_warning(_("Blog already deleted."),
                             error=err)
         
     def get_blog(self, index):

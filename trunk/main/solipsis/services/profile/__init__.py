@@ -74,12 +74,12 @@ def load_encoding(file_obj):
         # first line has been wastes: rewind
         file_obj.seek(0)
         # return default
-        display_status("could not read encoding from profile file. "
-                      "Using %s"% ENCODING)
+        display_status(_("could not read encoding from profile file. "
+                         "Using %s"% ENCODING))
         return ENCODING
     else:
         encoding = encoding_tag.split("::")[-1].strip()
-        display_status("Profile read with encoding %s"% encoding)
+        display_status(_("Profile read with encoding %s"% encoding))
         return encoding
 
 set_solipsis_dir(os.path.dirname(__file__))

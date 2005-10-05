@@ -33,7 +33,7 @@ class MyHtmlListBox(wx.HtmlListBox):
         if selected != wx.NOT_FOUND:
             get_facade().remove_blog(selected)
         else:
-            display_warning("none selected")
+            display_warning(_("none selected"))
         
     def add_comment(self, text):
         """store blog in cache as wx.HtmlListBox is virtual"""
@@ -42,7 +42,7 @@ class MyHtmlListBox(wx.HtmlListBox):
         if selected != wx.NOT_FOUND:
             get_facade().add_comment(selected, text, get_facade()._desc.document.get_pseudo())
         else:
-            display_warning("none selected")
+            display_warning(_("none selected"))
 
     def OnGetItem(self, n):
         """callback to display item"""

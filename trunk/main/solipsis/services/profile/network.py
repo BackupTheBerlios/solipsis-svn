@@ -642,9 +642,9 @@ class PeerClientFactory(ClientFactory):
             obj_str = file_obj.getvalue()
             return pickle.loads(obj_str)
         except Exception, err:
-            display_error("Your version of Solipsis is not compatible with the one "
-                          "of the peer you wish to download from. "
-                          "Make sure you both use the latest (%s)"% VERSION,
+            display_error(_("Your version of Solipsis is not compatible with the one "
+                            "of the peer you wish to download from. "
+                            "Make sure you both use the latest (%s)"% VERSION),
                           title="Download error", error=err)
 
     def _on_complete_file(self, file_obj):
