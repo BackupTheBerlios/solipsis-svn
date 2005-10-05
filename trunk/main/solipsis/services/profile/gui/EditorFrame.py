@@ -68,7 +68,7 @@ class EditorFrame(wx.Frame):
         self.help_menu.AppendItem(self.about_item)
         self.profile_menu.Append(self.help_menu, _("Info"))
         # Menu Bar end
-        self.profile_statusbar = self.CreateStatusBar(1, 0)
+        self.statusbar = self.CreateStatusBar(1, 0)
         self.personal_tab = PersonalPanel(self.profile_book, -1)
         self.blog_tab = BlogPanel(self.profile_book, -1)
         self.file_tab = FilePanel(self.profile_book, -1)
@@ -193,11 +193,11 @@ class EditorFrame(wx.Frame):
         # begin wxGlade: EditorFrame.__set_properties
         self.SetTitle(_("Profile Editor"))
         self.SetSize((460, 600))
-        self.profile_statusbar.SetStatusWidths([-1])
+        self.statusbar.SetStatusWidths([-1])
         # statusbar fields
-        profile_statusbar_fields = [_("status")]
-        for i in range(len(profile_statusbar_fields)):
-            self.profile_statusbar.SetStatusText(profile_statusbar_fields[i], i)
+        statusbar_fields = [_("status")]
+        for i in range(len(statusbar_fields)):
+            self.statusbar.SetStatusText(statusbar_fields[i], i)
         # end wxGlade
         # set previous size
         width = get_prefs("profile_width")

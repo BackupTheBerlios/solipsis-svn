@@ -168,19 +168,18 @@ class Facade(SimpleFacade):
         """update doc when dir expanded"""
         path = path.encode(ENCODING)
         return self._try_change("expand_dir",
-                                "build_files",
+                                "update_files",
                                 path)
         
     def expand_children(self, path):
         """update doc when dir expanded"""
         path = path.encode(ENCODING)
         return self._try_change("expand_children",
-                               "build_files",
+                               "update_files",
                                 path)
         
     def recursive_expand(self, path):
         """update doc when dir expanded"""
-        print "***2"
         path = path.encode(ENCODING)
         return self._try_change("recursive_expand",
                                 "update_files",

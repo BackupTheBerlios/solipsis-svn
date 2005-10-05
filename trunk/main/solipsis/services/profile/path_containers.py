@@ -27,6 +27,8 @@ __revision__ = "$Id$"
 import os, os.path
 import stat
 
+from traceback import extract_stack
+
 from solipsis.services.profile import ENCODING
 
 DEFAULT_TAG = u"none"
@@ -58,7 +60,10 @@ def create_container(path, cb_share=None, checked=True,
                              share=share, tag=tag)
 
 class ContainerException(Exception):
-    pass
+
+    def __init__(self, *args):
+        Exception.__init__(self, *args)
+        self.stack = extract_stack()[:-1]
     
 class SharedFiles(dict):
     """dict wrapper (useless for now)"""
@@ -399,11 +404,11 @@ class DirContainer(DictContainer):
         return errors
 
     def recursive_expand(self):
-        print "***4"
         errors = self.expand_dir()
-        container_path = container.get_path()
+        container_path = self.get_path()
         for file_name in os.listdir(container_path):
-            child = self[file_name]
+            path = os.path.join(container_path, file_name)
+            child = self[path]
             if isinstance(child, DictContainer):
                 errors += child.recursive_expand()
         return errors

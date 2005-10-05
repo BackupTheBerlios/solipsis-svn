@@ -298,8 +298,10 @@ class ServiceCollector(object):
         """
         self.ui.SendServiceData(peer_id, service_id, data)
 
-    def service_display_error(self, service_id, msg, title=None, error=None):
-        self.ui.display_error(service_id + ": " + msg, title=title, error=error)
+    def service_display_error(self, service_id, msg, title=None,
+                              error=None, trace=None):
+        self.ui.display_error(service_id + ": " + msg, title=title,
+                              error=error, trace=trace)
 
     def service_display_warning(self, service_id, msg, title=None):
         self.ui.display_warning(service_id + ": " + msg, title=title)

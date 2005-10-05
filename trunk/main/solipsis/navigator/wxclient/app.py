@@ -284,7 +284,7 @@ class NavigatorApp(BaseNavigatorApp, wx.App, XRCLoader):
                                   style=wx.OK | wx.ICON_WARNING)
         dialog.ShowModal()
 
-    def display_error(self, msg, title="Solipsis", error=None):
+    def display_error(self, msg, title="Solipsis", error=None, trace=None):
         """Way of communicta with user"""
         dialog = wx.MessageDialog(None, msg, caption=title,
                                   style=wx.OK | wx.ICON_ERROR)

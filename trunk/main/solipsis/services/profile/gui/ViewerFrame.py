@@ -70,7 +70,7 @@ class ViewerFrame(wx.Frame):
         self.help_menu.AppendItem(self.about_item)
         self.viewer_menu.Append(self.help_menu, _("Help"))
         # Menu Bar end
-        self.viewer_statusbar = self.CreateStatusBar(1, 0)
+        self.statusbar = self.CreateStatusBar(1, 0)
         self.html_view = MyHtmlWindow(self.view_tab, -1)
         self.blog_panel = BlogPanel(self.blog_tab, -1)
         self.file_panel = FilePanel(self.file_tab, -1)
@@ -259,12 +259,12 @@ class ViewerFrame(wx.Frame):
     def __set_properties(self):
         # begin wxGlade: ViewerFrame.__set_properties
         self.SetTitle(_("Profile Viewer"))
-        self.SetSize((460, 600))
-        self.viewer_statusbar.SetStatusWidths([-1])
+        self.SetSize((460, 500))
+        self.statusbar.SetStatusWidths([-1])
         # statusbar fields
-        viewer_statusbar_fields = [_("status")]
-        for i in range(len(viewer_statusbar_fields)):
-            self.viewer_statusbar.SetStatusText(viewer_statusbar_fields[i], i)
+        statusbar_fields = [_("status")]
+        for i in range(len(statusbar_fields)):
+            self.statusbar.SetStatusText(statusbar_fields[i], i)
         # end wxGlade
 
         self.r_all_item.Enable(False)

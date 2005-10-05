@@ -141,7 +141,7 @@ class NavigatorApp(BaseNavigatorApp):
         """Display message to user, using for instance a dialog"""
 	return title and "%s: %s"% (title, msg) or msg
 
-    def display_error(self, msg, title=None, error=None):
+    def display_error(self, msg, title=None, error=None, trace=None):
         """Report error to user"""
         msg == title and "%s: %s"% (title, msg) or msg
         print >> sys.stderr, msg

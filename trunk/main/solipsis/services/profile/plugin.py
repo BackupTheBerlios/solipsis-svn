@@ -305,17 +305,17 @@ class Plugin(ServicePlugin):
             filter_facade = create_filter_facade(node.id_)
             if not facade.load():
                 display_message(
-                    _("You have no profile yet.\n\n "
+                    _("You have no profile yet for pseudo %s.\n\n "
                       "You may create one clicking on the menu Profile, "
-                      "and selecting 'Modify Profile'"),
+                      "and selecting 'Modify Profile'"% node.pseudo),
                     title=_("New profile"))
             if not filter_facade.load():
                 display_message(
-                    _("You have no filters defined yet.\n\n Filters are used "
+                    _("You have no filters defined yet for pseudo %s.\n\n Filters are used "
                       "to match your neighbors' profile and alert you if they "
                       "match with your criteria.\n\n"
                       "You may create your filters by clicking on the menu 'Profile', "
-                      "and selecting 'Filter Profiles'"),
+                      "and selecting 'Filter Profiles'"% node.pseudo),
                     title=_("New filters"))
             facade.change_pseudo(node.pseudo)
             # updating views

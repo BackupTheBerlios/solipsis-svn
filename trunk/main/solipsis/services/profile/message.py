@@ -29,7 +29,10 @@ def _display(msg, msg_type, title="Solipsis Profile", error=None):
     service_api = Plugin.service_api
     if service_api != None:
         if msg_type == "ERR":
-            service_api.display_error(msg, title, error)
+            from traceback import extract_stack
+            service_api.display_error(msg, title,
+                                      error=error,
+                                      trace=extract_stack()[:-2])
         elif msg_type == "WARN":
             service_api.display_warning(msg, title)
         elif msg_type == "MSG":
@@ -38,14 +41,14 @@ def _display(msg, msg_type, title="Solipsis Profile", error=None):
             service_api.display_status(msg)
         else:
             print "message type %s not valid"
-    else:
-        print msg
-        if not error is None:
-            print error
-            import traceback
-            traceback.print_exc()
+#     else:
+#         print "MSG: " + msg
+#         if not error is None:
+#             print "ERR: "error
+#             import traceback
+#             traceback.print_exc()
     
-def display_error(msg, title="Profile Error", error=None):
+def display_error(msg, title="Profile Error", error=None, trace=None):
     _display(msg, "ERR", title, error)
 
 def display_warning(msg, title="Profile Warning"):
@@ -56,3 +59,4 @@ def display_message(msg, title="Profile Information"):
     
 def display_status(msg):
     _display(msg, "STATE")
+    

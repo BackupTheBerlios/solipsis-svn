@@ -7,11 +7,14 @@ import wx, wx.gizmos
 import sys
 from os.path import abspath
 from solipsis.util.wxutils import _
+
+from solipsis.services.profile.message import display_error
 from solipsis.services.profile.pathutils import formatbytes
 from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile.path_containers import DEFAULT_TAG, \
      DirContainer, ContainerException
-from solipsis.services.profile import ADD_REPO, DEL_REPO, force_unicode, \
+from solipsis.services.profile import ADD_REPO, DEL_REPO, \
+     force_unicode, ENCODING, \
      SHARE, UNSHARE, EDIT, PREVIEW, \
      NAME_COL, SIZE_COL, TAG_COL, SHARED_COL, \
      NB_SHARED_COL, FULL_PATH_COL
@@ -60,7 +63,7 @@ class FilePanel(wx.Panel):
         self.unshare_all_item = wx.MenuItem(self.tree_menu, wx.NewId(), _('Unshare recursively'))
         self.tree_menu.AppendItem(self.unshare_all_item)
         self.refresh_item = wx.MenuItem(self.tree_menu, wx.NewId(), _('Refresh'))
-#         self.tree_menu.AppendItem(self.refresh_item)
+        self.tree_menu.AppendItem(self.refresh_item)
         
         self.list_menu = wx.Menu()
         self.tag_item = wx.MenuItem(self.list_menu, wx.NewId(), _('Tag'))
@@ -152,7 +155,7 @@ class FilePanel(wx.Panel):
                 get_facade().add_repository(path)
                 get_facade().recursive_share(path, True)
             except ContainerException, err:
-                display_error(_("Could not add directory %s: %s"% (repo, str(err))),
+                display_error(_("Could not add directory %s: %s"% (path, str(err))),
                                 title=_("Existing directory"),
                                 error=err)
         dlg.Destroy()
@@ -197,10 +200,8 @@ class FilePanel(wx.Panel):
     def on_refresh(self, evt):
         """put into cache new information when dir expanded in tree"""
         self.current_state = self.tree_state
-        print "***1"
         file_name = self.tree_list.GetItemText(self.tree_list.GetSelection(), FULL_PATH_COL)
-        if evt.GetItem() != self.root:
-            print "***1", file_name
+        if self.tree_list.GetSelection() != self.root:
             get_facade().recursive_expand(abspath(file_name))
         evt.Skip()
 
@@ -209,7 +210,7 @@ class FilePanel(wx.Panel):
         self.current_state = self.tree_state
         file_name = self.tree_list.GetItemText(evt.GetItem(), FULL_PATH_COL)
         if evt.GetItem() != self.root:
-            get_facade()._desc.document.expand_dir(abspath(file_name))
+            get_facade()._desc.document.expand_dir(abspath(file_name).encode(ENCODING))
             get_facade().expand_children(abspath(file_name))
         evt.Skip()
 
@@ -359,7 +360,7 @@ class FilePanel(wx.Panel):
         self.window_1_pane_2.SetSizer(sizer_2)
         sizer_2.Fit(self.window_1_pane_2)
         sizer_2.SetSizeHints(self.window_1_pane_2)
-        self.window_1.SplitVertically(self.window_1_pane_1, self.window_1_pane_2, 180)
+        self.window_1.SplitVertically(self.window_1_pane_1, self.window_1_pane_2, 66)
         file_sizer.Add(self.window_1, 1, wx.EXPAND, 0)
         self.SetAutoLayout(True)
         self.SetSizer(file_sizer)

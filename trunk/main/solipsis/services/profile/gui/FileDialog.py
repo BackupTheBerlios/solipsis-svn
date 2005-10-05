@@ -10,7 +10,7 @@ from solipsis.services.profile.prefs import get_prefs, set_prefs
 from solipsis.services.profile.pathutils import formatbytes
 from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile import DOWNLOAD, DOWNLOAD_DIR, \
-     force_unicode, NAME_COL, SIZE_COL
+     force_unicode, ENCODING, NAME_COL, SIZE_COL
 
 TAG_COL = 2
 

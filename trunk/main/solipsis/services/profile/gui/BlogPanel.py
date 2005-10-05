@@ -5,7 +5,7 @@ import wx
 import sys
 from solipsis.util.wxutils import _
 from solipsis.services.profile.facade import get_facade
-from solipsis.services.profile.message import display_error
+from solipsis.services.profile.message import display_error, display_warning
 from solipsis.services.profile import ADD_BLOG, DEL_BLOG, ADD_COMMENT
 
 
@@ -33,16 +33,16 @@ class MyHtmlListBox(wx.HtmlListBox):
         if selected != wx.NOT_FOUND:
             get_facade().remove_blog(selected)
         else:
-            print "none selected"
+            display_warning("none selected")
         
     def add_comment(self, text):
         """store blog in cache as wx.HtmlListBox is virtual"""
         assert get_facade(), "Facade not initialiazed"
         selected = self.GetSelection()
         if selected != wx.NOT_FOUND:
-            get_facade().add_comment(selected, text, get_facade()._desc.pseudo)
+            get_facade().add_comment(selected, text, get_facade()._desc.document.get_pseudo())
         else:
-            print "none selected"
+            display_warning("none selected")
 
     def OnGetItem(self, n):
         """callback to display item"""

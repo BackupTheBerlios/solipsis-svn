@@ -35,6 +35,8 @@ import gettext
 _ = gettext.gettext
 
 from os.path import isfile
+from traceback import format_list
+
 from solipsis.services.profile import DEFAULT_INTERESTS, ENCODING, \
      save_encoding, load_encoding
 from solipsis.services.profile.message import display_status, display_error
@@ -215,7 +217,7 @@ class FileSharingMixin:
                 errors.append(str(err))
         if errors:
             display_error("\n".join(errors),
-                          title="Errors on shared files")
+                          title="Errors on stored shared files")
 
     # FILE TAB
     def reset_files(self):
@@ -285,7 +287,7 @@ class FileSharingMixin:
             errors.append(str(err))
         if errors:
             display_error("\n".join(errors),
-                          title="Errors on shared files")
+                          title="Errors when expanding")
         return errors
 
     def expand_children(self, path):
@@ -301,21 +303,24 @@ class FileSharingMixin:
             errors.append(str(err))
         if errors:
             display_error("\n".join(errors),
-                          title="Errors on shared files")
+                          title="Errors while expanding")
         return errors
         
     def recursive_expand(self, path):
-        print "***3"
         if not isinstance(path, str):
             raise TypeError("dir to expand expected as str")
         errors = []
         try:
             errors += self.get_container(path).recursive_expand()
         except ContainerException, err:
+            errors.append("######")
             errors.append(str(err))
+            errors.append("Exception caught here:")
+            errors.append(''.join(format_list(err.stack)))
+            errors.append("######")
         if errors:
             display_error("\n".join(errors),
-                          title="Errors on shared files")
+                          title="Errors while expanding recursively")
         return errors
         
     def share_files(self, path, names, share=True):

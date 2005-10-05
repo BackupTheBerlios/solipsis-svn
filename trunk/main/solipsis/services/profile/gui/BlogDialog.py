@@ -5,7 +5,7 @@ import wx
 import os
 from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxyReceiver
-from solipsis.services.profile.message import display_error
+from solipsis.services.profile.message import display_error, display_warning
 from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile import ADD_COMMENT, DEL_BLOG, UPLOAD_BLOG
 
@@ -21,35 +21,26 @@ class PeerHtmlListBox(wx.HtmlListBox):
         
     def add_blog(self, text):
         """store blog in cache as wx.HtmlListBox is virtual"""
-        if self.blog:
-            self.blog.add_blog(text)
-            self.refresh()
-        else:
-            print "no blog set"
+        self.blog.add_blog(text)
+        self.refresh()
 
     def remove_blog(self):
-        if self.blog:
-            selected = self.GetSelection()
-            if selected != wx.NOT_FOUND:
-                self.blog.remove_blog(selected)
-                self.refresh()
-            else:
-                print "none selected"
+        selected = self.GetSelection()
+        if selected != wx.NOT_FOUND:
+            self.blog.remove_blog(selected)
+            self.refresh()
         else:
-            print "no blog set"
+            display_warning("none selected")
         
     def add_comment(self, text):
         """store blog in cache as wx.HtmlListBox is virtual"""
-        if self.blog:
-            selected = self.GetSelection()
-            if selected != wx.NOT_FOUND:
-                pseudo = get_facade()._desc.document.get_pseudo()
-                self.blog.add_comment(selected, text, pseudo)
-                self.refresh()
-            else:
-                print "none selected"
+        selected = self.GetSelection()
+        if selected != wx.NOT_FOUND:
+            pseudo = get_facade()._desc.document.get_pseudo()
+            self.blog.add_comment(selected, text, pseudo)
+            self.refresh()
         else:
-            print "no blog set"
+            display_warning("none selected")
 
     def OnGetItem(self, n):
         """callback to display item"""

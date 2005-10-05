@@ -49,7 +49,7 @@ class FilterFrame(wx.Frame):
         self.help_menu.AppendItem(self.about_item)
         self.filter_menu.Append(self.help_menu, _("Info"))
         # Menu Bar end
-        self.filter_statusbar = self.CreateStatusBar(1, 0)
+        self.statusbar = self.CreateStatusBar(1, 0)
         self.personal_filter_tab = PersonalFilterPanel(self.filter_book, -1)
         self.file_filter_tab = FileFilterPanel(self.filter_book, -1)
 
@@ -164,11 +164,11 @@ class FilterFrame(wx.Frame):
         # begin wxGlade: FilterFrame.__set_properties
         self.SetTitle(_("Profile Filters"))
         self.SetSize((460, 600))
-        self.filter_statusbar.SetStatusWidths([-1])
+        self.statusbar.SetStatusWidths([-1])
         # statusbar fields
-        filter_statusbar_fields = [_("status")]
-        for i in range(len(filter_statusbar_fields)):
-            self.filter_statusbar.SetStatusText(filter_statusbar_fields[i], i)
+        statusbar_fields = [_("status")]
+        for i in range(len(statusbar_fields)):
+            self.statusbar.SetStatusText(statusbar_fields[i], i)
         # end wxGlade
         width = get_prefs("filter_width")
         height = get_prefs("filter_height")
