@@ -25,7 +25,7 @@ import wx
 from solipsis.util.wxutils import _
 from solipsis.services.plugin import ServicePlugin
 from solipsis.services.profile import set_solipsis_dir
-from solipsis.services.profile.message import display_message
+from solipsis.services.profile.message import display_message, display_status
 from solipsis.services.profile.prefs import get_prefs
 from solipsis.services.profile.facade import create_facade, get_facade, \
      create_filter_facade, get_filter_facade
@@ -304,19 +304,25 @@ class Plugin(ServicePlugin):
             facade = create_facade(node.id_)
             filter_facade = create_filter_facade(node.id_)
             if not facade.load():
-                display_message(
-                    _("You have no profile yet for pseudo %s.\n\n "
-                      "You may create one clicking on the menu Profile, "
-                      "and selecting 'Modify Profile'"% node.pseudo),
-                    title=_("New profile"))
+                display_status("You have no profile yet for pseudo %s"% node.pseudo)
+# ChangedNode called too many times at startup and make this popup appear several times => bother
+# Replace by display_status for now
+#                 display_message(
+#                     _("You have no profile yet for pseudo %s.\n\n "
+#                       "You may create one clicking on the menu Profile, "
+#                       "and selecting 'Modify Profile'"% node.pseudo),
+#                     title=_("New profile"))
             if not filter_facade.load():
-                display_message(
-                    _("You have no filters defined yet for pseudo %s.\n\n Filters are used "
-                      "to match your neighbors' profile and alert you if they "
-                      "match with your criteria.\n\n"
-                      "You may create your filters by clicking on the menu 'Profile', "
-                      "and selecting 'Filter Profiles'"% node.pseudo),
-                    title=_("New filters"))
+                display_status("You have no filters defined yet for pseudo %s"% node.pseudo)
+# ChangedNode called too many times at startup and make this popup appear several times => bother
+# Replace by display_status for now
+#                 display_message(
+#                     _("You have no filters defined yet for pseudo %s.\n\n Filters are used "
+#                       "to match your neighbors' profile and alert you if they "
+#                       "match with your criteria.\n\n"
+#                       "You may create your filters by clicking on the menu 'Profile', "
+#                       "and selecting 'Filter Profiles'"% node.pseudo),
+#                     title=_("New filters"))
             facade.change_pseudo(node.pseudo)
             # updating views
             if self.editor_frame:
