@@ -14,8 +14,10 @@ from twisted.internet import error
 from twisted.protocols import basic
 from StringIO import StringIO
 
+from solipsis import VERSION
 from solipsis.util.network import parse_address, get_free_port, release_port
 from solipsis.services.profile import UNIVERSAL_SEP
+from solipsis.services.profile.message import display_error
 from solipsis.services.profile.prefs import get_prefs
 from solipsis.services.profile.document import read_document
 from solipsis.services.profile.facade import get_facade, get_filter_facade
@@ -636,11 +638,14 @@ class PeerClientFactory(ClientFactory):
 
     def _on_complete_pickle(self, file_obj):
         """callback when finished downloading blog"""
-        obj_str = file_obj.getvalue()
-        if len(obj_str):
+        try:
+            obj_str = file_obj.getvalue()
             return pickle.loads(obj_str)
-        else:
-            print "no file"    
+        except Exception, err:
+            display_error("Your version of Solipsis is not compatible with the one "
+                          "of the peer you wish to download from. "
+                          "Make sure you both use the latest (%s)"% VERSION,
+                          title="Download error", error=err)
 
     def _on_complete_file(self, file_obj):
         """callback when finished downloading file"""
