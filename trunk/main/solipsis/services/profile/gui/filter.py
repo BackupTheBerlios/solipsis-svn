@@ -14,6 +14,7 @@ class FilterApp(BaseGUI):
         BaseGUI.__init__(self, options, *args)
         
     def OnInit(self):
+        BaseGUI.OnInit(self)
         filter_facade = create_filter_facade("manu")
         filter_facade.load()
         self.main_window = FilterFrame(self.options, None, -1, "")

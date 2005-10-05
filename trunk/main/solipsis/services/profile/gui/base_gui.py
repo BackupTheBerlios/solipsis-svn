@@ -20,6 +20,7 @@ from solipsis.services.profile.facade import create_facade
 class BaseGUI(wx.App, UIProxyReceiver):
     """Top-level class of GUI: application"""
     def __init__(self, options, *args):
+        UIProxyReceiver.__init__(self)
         self.options = options
         self.options['App'] = self
         # needed by wxCollector
@@ -27,7 +28,6 @@ class BaseGUI(wx.App, UIProxyReceiver):
         self.config_data = ConfigData()
         self.config_data.services_dir = os.path.dirname(solipsis.services.__file__)
         wx.App.__init__(self, *args)
-        UIProxyReceiver.__init__(self)
         
     def OnInit(self):
         """overrides"""
