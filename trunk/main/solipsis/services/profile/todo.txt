@@ -54,7 +54,7 @@ return _gizmos.TreeListCtrl_GetItemText(*args, **kwargs)
 wx._core.PyAssertionError: C++ assertion "wxAssertFailure" failed in
 contrib/gizmos/wxCode/src/treelistctrl.cpp(4617): invalid tree item
 
- -> XXX
+ -> ajout de popup demandant à l'utilsateur de sélectionner qqchose
 
 013: Gwendal_20051003_1
      ------------------

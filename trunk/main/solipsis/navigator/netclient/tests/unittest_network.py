@@ -208,26 +208,21 @@ class ProfileTest(NetworkTest):
         return NetworkTest.assertPosition(self, position,
                                             factory=self.other_factory)
 
-    def _rename_files(self, node_id, old_name):
+    def _set_ids(self, node_id, old_name):
         # function called only twice
         if self.first_id != None and self.second_id != None:
             return
-        if old_name == FILE_TEST:
+        if old_name.endswith(FILE_TEST):
             self.first_id = node_id
         else:
             self.second_id = node_id
-        # update files
-        new_name = os.path.join(get_prefs('profile_dir'), node_id)
-        for extension in ['.prf', '.blog']:
-            os.rename(old_name + extension,
-                      new_name + extension)
 
     def setUp(self):
         # launch fisrt navigator
         util.wait(NetworkTest.setUp(self))
         util.wait(self.assertResponse("connect %s"% self.FIRST_NODE, "Connected"))
         util.wait(self.assertResponse("go 0.1 0.3", "ok"))
-        util.wait(self.useResponse("id", self._rename_files, FILE_TEST))
+        util.wait(self.useResponse("id", self._set_ids, FILE_TEST))
         # launch 'telnet' on second navigator
         from twisted.internet import reactor
         self.other_factory = ReconnectingFactory()
@@ -238,7 +233,7 @@ class ProfileTest(NetworkTest):
         util.wait(self.assertOtherMessage("Ready"))
         util.wait(self.assertOtherResponse("connect %s"% self.OTHER_NODE, "Connected"))
         util.wait(self.assertOtherResponse("go 0.11 0.31", "ok"))
-        util.wait(self.useOtherResponse("id", self._rename_files, FILE_BRUCE))
+        util.wait(self.useOtherResponse("id", self._set_ids, FILE_BRUCE))
         # wait until both navigators have received meta data (no message usable from node)
         self.wait(2)
     setUp.timeout = 8
@@ -266,13 +261,13 @@ class ProfileTest(NetworkTest):
     def test_view_profile(self):
         util.wait(self.assertResponse("who profile", self.second_id))
         return self.assertResponse("menu %s View profile..."% self.second_id,
-                                   "File document for bruce")
+                                   "File document for bruce_030_09484")
     test_view_profile.timeout = 4
 
     def test_view_blog(self):
         util.wait(self.assertResponse("who profile", self.second_id))
         return self.assertResponse("menu %s View blog..."% self.second_id,
-                                   "Hi Buddy")
+                                   "[Hi Buddy (0)]")
     test_view_blog.timeout = 4
     
     def test_view_files(self):

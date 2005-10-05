@@ -24,13 +24,20 @@ import socket
 import os.path
 import solipsis
 import optparse
+import locale
+import shutil
 
 from twisted.internet.error import CannotListenError
+from twisted.internet import defer
+
 from solipsis.navigator.main import build_params
 from solipsis.navigator.netclient.app import NavigatorApp
 from solipsis.navigator.netclient.tests import LOCAL_PORT
+from solipsis.services.profile import PROFILE_EXT
+from solipsis.services.profile.tests import PROFILE_DIR, FILE_BRUCE, FILE_TEST
+from solipsis.services.profile.facade import get_facade
 
-USAGE = "launch.py [-t] [-p PORT] [-f FILE] [-d]"
+USAGE = "launch.py [pseudo | -B | -T]  [-t] [-p PORT] [-f FILE]"
 
 def run():
     # get conf file
@@ -48,30 +55,51 @@ def run():
     parser.add_option("-f", "--config-file",
                       action="store", dest="conf_file", default=conf_file,
                       help="file to read configuration from")
-    parser.add_option("-d", "--dual",
-                      action="store_true", dest="dual", default=False,
-                      help="launch two processes on port 23500 & 23501")
+    parser.add_option("-B", "--pseudo-bruce",
+                      action="store_true", dest="bruce", default=False,
+                      help="bruce profile")
+    parser.add_option("-T", "--pseudo-test",
+                      action="store_true", dest="test", default=False,
+                      help="test profile")
     options, args = parser.parse_args()
-    sys.argv = []
-    if options.dual:
-        # launch two applications
-        print "./launch.py"
-        os.spawnv(os.P_NOWAIT, "./launch.py", ["launch.py"])
-        print "./launch.py -p 23501"
-        os.spawnv(os.P_NOWAIT, "./launch.py", ["launch.py", "-p",  "23501"])
+    # set pseudo
+    if len(args) == 1:
+        pseudo =  os.path.join(PROFILE_DIR, args[0])
     else:
-        # app needs conf env
-        os.chdir(root_path)
-        params = build_params(options.conf_file)
-        params.testing = options.testing
-        params.local_port = int(options.port)
-        # launch application
-        try:
-            navigator = NavigatorApp(params=params)
-            navigator.addCallback(navigator._TryConnect)
-            navigator.startListening()
-        except CannotListenError, err:
-            print err
+        if options.bruce:
+            pseudo = FILE_BRUCE
+        elif options.test:
+            pseudo = FILE_TEST
+        else:
+            print USAGE
+            sys.exit(1)
+    sys.argv = []
+    # app needs conf env
+    os.chdir(root_path)
+    params = build_params(options.conf_file)
+    params.testing = options.testing
+    params.local_port = int(options.port)
+    params.node_id = pseudo
+    params.pseudo = pseudo
+    # launch application
+    try:
+        print "Pseudo:", pseudo
+        navigator = NavigatorApp(params=params)
+        def on_error(failure):
+            print "***", failure.getErrorMessage()
+        def on_connect(result):
+            src_path = pseudo + PROFILE_EXT
+            dst_path = os.path.join(PROFILE_DIR, get_facade()._desc.node_id + PROFILE_EXT)
+            shutil.copyfile(src_path, dst_path)
+            get_facade().load()
+            print src_path, ">", dst_path
+        deferred = defer.Deferred().addCallbacks(on_connect, on_error)
+        def on_init(result):
+            navigator._TryConnect(deferred)
+        navigator.addCallbacks(on_init, on_error)
+        navigator.startListening()
+    except CannotListenError, err:
+        print err
 
 if __name__ == "__main__":
     run()

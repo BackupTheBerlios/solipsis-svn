@@ -87,6 +87,9 @@ class BaseNavigatorApp(UIProxyReceiver):
     def addCallback(self, fun, *args):
         self.final_deferred.addCallback(fun, *args)
 
+    def addCallbacks(self, fun, fail):
+        self.final_deferred.addCallbacks(fun, fail)
+
     def OnInit(self):
         """
         Main initialization handler.
@@ -339,13 +342,13 @@ class BaseNavigatorApp(UIProxyReceiver):
         self.viewport.Reset()
         self.network.ConnectToNode(self.config_data, deferred)
         if self.config_data.connection_type == "local":
-            self.display_status("connecting to %s:%d"\
-                                % ("localhost",
-                                   self.config_data.local_control_port))
+            self.display_status(_("connecting to %s:%d"\
+                                  % ("localhost",
+                                     self.config_data.local_control_port)))
         else:
-            self.display_status("connecting to %s:%d"\
-                                % (self.config_data.host,
-                                   self.config_data.port))
+            self.display_status(_("connecting to %s:%d"\
+                                  % (self.config_data.host,
+                                     self.config_data.port)))
         self.services.RemoveAllPeers()
         self.services.SetNode(self.config_data.GetNode())
 
