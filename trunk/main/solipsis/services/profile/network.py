@@ -7,6 +7,8 @@ import tempfile
 import pickle
 import os.path
 import traceback
+import gettext
+_ = gettext.gettext
 
 from twisted.internet.protocol import ClientFactory, ServerFactory
 from twisted.internet import reactor, defer

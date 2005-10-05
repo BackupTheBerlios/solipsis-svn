@@ -10,9 +10,9 @@ garde affichée la derrière erreur, il continue à apparaître "profile:
 you have no filters defined yet for pseudo Lulu", alors qu'il a été
 finalement trouvé au moment de la véritable connexion.
 
- -> un message 'profil de lulu chargé' est affiché lorsque tout s'est
-    bien passé. Il remplace les autres (et cache définitivement le bug
-    dans ce cas particulier)
+ -> un message 'Loaded data for %pseudo%' est affiché lorsque tout
+    s'est bien passé. Il remplace les autres (et cache définitivement
+    le bug dans ce cas particulier)
 
 015: Gwendal_20051005_2
      ------------------
@@ -200,6 +200,20 @@ Didier_1
 DURÉE
 - 5j
 
+Gwendal_5
+---------
+Il est impossible de transmettre les commentaires à un POST dans la
+partie BLOG. Les commentaires sont "en local" ce qui a un intérêt très
+limité
+
+-> 2j
+
+Joaquin_3
+---------
+ajouter une liste des peers voisins ayant chargé le module profile
+
+-> 1j
+
 Didier_4
 --------
 mettre une IA basique pour piloter les crawlers: par exemple, lancer
@@ -225,20 +239,6 @@ implémenter la méthode de recherche retenue dans le moteur de
 recherche réel
 
 -> 2j
-
-Gwendal_5
----------
-Il est impossible de transmettre les commentaires à un POST dans la
-partie BLOG. Les commentaires sont "en local" ce qui a un intérêt très
-limité
-
--> 2j
-
-Joaquin_3
----------
-ajouter une liste des peers voisins ayant chargé le module profile
-
--> 1j
 
 Gwendal_2_1
 ----------
