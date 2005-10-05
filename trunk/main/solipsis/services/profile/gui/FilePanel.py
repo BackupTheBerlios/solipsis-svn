@@ -8,7 +8,7 @@ import sys
 from os.path import abspath
 from solipsis.util.wxutils import _
 
-from solipsis.services.profile.message import display_error
+from solipsis.services.profile.message import display_error, display_message
 from solipsis.services.profile.pathutils import formatbytes
 from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile.path_containers import DEFAULT_TAG, \
@@ -429,19 +429,31 @@ class SelectedTreeState(FilePanelState):
         
     def on_share(self, evt):
         """share all files in directory"""
-        for selection in self.get_selection():
+        selections = self.get_selection()
+        if not selections:
+            display_message(_("Your must select a directory or a file to share"),
+                            title="No item selected")
+        for selection in selections:
             get_facade().recursive_share(selection, True)
         self.owner.do_modified(True)
         
     def on_unshare(self, evt):
         """share all files in directory"""
-        for selection in self.get_selection():
+        selections = self.get_selection()
+        if not selections:
+            display_message(_("Your must select a directory or a file to unshare"),
+                            title="No item selected")
+        for selection in selections:
             get_facade().recursive_share(selection, False)
         self.owner.do_modified(True)
         
     def on_tag(self, evt):
         """tag selected files or directory"""
-        for selection in self.get_selection():
+        selections = self.get_selection()
+        if not selections:
+            display_message(_("Your must select a directory or a file to tag"),
+                            title="No item selected")
+        for selection in selections:
             get_facade().tag_file(selection, self.owner.tag_value.GetValue())
         self.owner.do_modified(True)
 
@@ -450,10 +462,12 @@ class SelectedTreeState(FilePanelState):
         # all repositories
         if self.owner.root in self.owner.tree_list.GetSelections():
             child, cookie = self.owner.tree_list.GetFirstChild(self.owner.root)
-            selections.append(self.owner.tree_list.GetItemText(child, FULL_PATH_COL))
+            child_name = self.owner.tree_list.GetItemText(child, FULL_PATH_COL)
+            child_name and selections.append(child_name)
             next = self.owner.tree_list.GetNextSibling(child)
             while next.IsOk():
-                selections.append(self.owner.tree_list.GetItemText(next, FULL_PATH_COL))
+                next_name = self.owner.tree_list.GetItemText(next, FULL_PATH_COL)
+                next_name and selections.append(next_name)
                 next = self.owner.tree_list.GetNextSibling(next)
         # selected only
         else:
