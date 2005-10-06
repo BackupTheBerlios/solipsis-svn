@@ -1,0 +1,561 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2005-09-27 18:54+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: gui/MatchFrame.py:31
+msgid "&Get files\tCtrl+G"
+msgstr ""
+
+#: gui/MatchFrame.py:33 gui/FilterFrame.py:41 gui/ViewerFrame.py:47
+#: gui/EditorFrame.py:48
+msgid "&Close\tCtrl+W"
+msgstr ""
+
+#: gui/MatchFrame.py:35 gui/FileDialog.py:30 gui/BlogDialog.py:69
+#: gui/BlogPanel.py:66 gui/FilePanel.py:37
+msgid "Actions"
+msgstr ""
+
+#: gui/MatchFrame.py:37 gui/FilterFrame.py:48 gui/ViewerFrame.py:70
+#: gui/EditorFrame.py:68
+msgid "About...\tCtrl+?"
+msgstr ""
+
+#: gui/MatchFrame.py:39 gui/FilterFrame.py:50 gui/EditorFrame.py:70
+msgid "Info"
+msgstr ""
+
+#: gui/MatchFrame.py:49
+msgid "View peer...\tCtrl+V"
+msgstr ""
+
+#: gui/MatchFrame.py:51
+msgid "Hide...\tCtrl+R"
+msgstr ""
+
+#: gui/MatchFrame.py:51
+msgid "Hide profile from note book"
+msgstr ""
+
+#: gui/MatchFrame.py:118 gui/MatchPanel.py:22 gui/MatchPanel.py:40
+msgid "Matches"
+msgstr ""
+
+#: gui/FileDialog.py:31
+msgid "Incoming dir:"
+msgstr ""
+
+#: gui/FileDialog.py:76
+msgid "Choose location to download files into"
+msgstr ""
+
+#: gui/FileDialog.py:158
+msgid "Chose Files"
+msgstr ""
+
+#: gui/FileDialog.py:160
+msgid "Dowload repository"
+msgstr ""
+
+#: gui/FileDialog.py:162
+msgid "Download selected files"
+msgstr ""
+
+#: gui/PersonalPanel.py:29
+msgid "Specify here a field of interest"
+msgstr ""
+
+#: gui/PersonalPanel.py:30 gui/PersonalFilterPanel.py:27
+msgid "Identity"
+msgstr ""
+
+#: gui/PersonalPanel.py:31 gui/PersonalFilterPanel.py:29
+msgid "Mr"
+msgstr ""
+
+#: gui/PersonalPanel.py:31 gui/PersonalFilterPanel.py:29
+msgid "Mrs"
+msgstr ""
+
+#: gui/PersonalPanel.py:31 gui/PersonalFilterPanel.py:29
+msgid "Ms"
+msgstr ""
+
+#: gui/PersonalPanel.py:32 gui/PersonalFilterPanel.py:31
+msgid "First name"
+msgstr ""
+
+#: gui/PersonalPanel.py:33 gui/PersonalFilterPanel.py:33
+msgid "Last Name"
+msgstr ""
+
+#: gui/PersonalPanel.py:34 gui/PersonalFilterPanel.py:34
+msgid "Pseudo: "
+msgstr ""
+
+#: gui/PersonalPanel.py:36
+msgid "E-mail: "
+msgstr ""
+
+#: gui/PersonalPanel.py:39 gui/PersonalFilterPanel.py:38 __init__.py:76
+msgid "Favourite Book"
+msgstr ""
+
+#: gui/PersonalPanel.py:40 gui/CustomPanel.py:24
+msgid "Harry Potter"
+msgstr ""
+
+#: gui/PersonalPanel.py:57 gui/PersonalFilterPanel.py:52 gui/CustomPanel.py:46
+msgid "MetaData"
+msgstr ""
+
+#: gui/PersonalPanel.py:58 gui/CustomPanel.py:47
+msgid "Custom value"
+msgstr ""
+
+#: gui/PersonalPanel.py:103
+msgid "Choose your picture"
+msgstr ""
+
+#: gui/PersonalPanel.py:106
+msgid ""
+"Image GIF (*.gif)|*.gif|Image JPEG (*.jpg)|*.jpg|Image PNG (*.png)|*.png|All "
+"files (*.*)|*.*"
+msgstr ""
+
+#: gui/PersonalPanel.py:155 gui/PersonalFilterPanel.py:171
+msgid "How you appear to other peers"
+msgstr ""
+
+#: gui/BlogDialog.py:100 gui/ViewerFrame.py:297 gui/EditorFrame.py:219
+msgid "Blog"
+msgstr ""
+
+#: gui/BlogDialog.py:128
+msgid "Peer's Blog"
+msgstr ""
+
+#: gui/PersonalFilterPanel.py:26
+msgid "Specify here a filter to use for a given keyword"
+msgstr ""
+
+#: gui/PersonalFilterPanel.py:36
+msgid "E-Mail: "
+msgstr ""
+
+#: gui/PersonalFilterPanel.py:39
+msgid ".*Potter.*"
+msgstr ""
+
+#: gui/PersonalFilterPanel.py:53 gui/FileFilterPanel.py:42
+msgid "Filter expresion"
+msgstr ""
+
+#: gui/DownloadDialog.py:23
+msgid "Connecting..."
+msgstr ""
+
+#: gui/DownloadDialog.py:25
+msgid "Always display"
+msgstr ""
+
+#: gui/DownloadDialog.py:26 gui/AboutDialog.py:24
+msgid "Ok"
+msgstr ""
+
+#: gui/DownloadDialog.py:38
+msgid "Downloading ..."
+msgstr ""
+
+#: gui/DownloadDialog.py:44
+#, python-format
+msgid "Downloading %s"
+msgstr ""
+
+#: gui/DownloadDialog.py:55
+#, python-format
+msgid "Downloaded %d files"
+msgstr ""
+
+#: gui/DownloadDialog.py:56
+msgid "Download Complete"
+msgstr ""
+
+#: gui/DownloadDialog.py:77
+msgid "Downloading"
+msgstr ""
+
+#: gui/AboutDialog.py:21
+msgid "Disclaimer"
+msgstr ""
+
+#: gui/AboutDialog.py:23
+msgid "Display at startup"
+msgstr ""
+
+#: gui/AboutDialog.py:48
+msgid "About Profile"
+msgstr ""
+
+#: gui/AboutDialog.py:55
+msgid "Solipsis Profile"
+msgstr ""
+
+#: gui/editor.py:26 gui/EditorFrame.py:195
+msgid "Profile Editor"
+msgstr ""
+
+#: gui/BlogPanel.py:70
+msgid "Enter your text here"
+msgstr ""
+
+#: gui/BlogPanel.py:106
+msgid "New blog"
+msgstr ""
+
+#: gui/BlogPanel.py:108
+msgid "Delete blog"
+msgstr ""
+
+#: gui/BlogPanel.py:110
+msgid "Comment"
+msgstr ""
+
+#: gui/FileFilterPanel.py:26
+msgid "Name here a filter to use on file names"
+msgstr ""
+
+#: gui/FileFilterPanel.py:27
+msgid "MP3 Filter"
+msgstr ""
+
+#: gui/FileFilterPanel.py:28
+msgid ".*\\.mp3"
+msgstr ""
+
+#: gui/FileFilterPanel.py:41
+msgid "Filter name"
+msgstr ""
+
+#: gui/FilterFrame.py:36
+msgid "&Activated\tCtrl+A"
+msgstr ""
+
+#: gui/FilterFrame.py:36
+msgid "Switch filters on/off"
+msgstr ""
+
+#: gui/FilterFrame.py:39 gui/EditorFrame.py:46
+msgid "&Save\tCtrl+S"
+msgstr ""
+
+#: gui/FilterFrame.py:39 gui/EditorFrame.py:46
+msgid "Save profile into file"
+msgstr ""
+
+#: gui/FilterFrame.py:41 gui/ViewerFrame.py:47 gui/EditorFrame.py:48
+msgid "Close profile management"
+msgstr ""
+
+#: gui/FilterFrame.py:43 gui/ViewerFrame.py:49 gui/EditorFrame.py:50
+msgid "Action"
+msgstr ""
+
+#: gui/FilterFrame.py:45
+msgid "Help...\tCtrl+H"
+msgstr ""
+
+#: gui/FilterFrame.py:45
+msgid "Display information about regular expressions"
+msgstr ""
+
+#: gui/FilterFrame.py:62 gui/ViewerFrame.py:88
+msgid "Import...\tCtrl+I"
+msgstr ""
+
+#: gui/FilterFrame.py:62
+msgid "Load & Match a profile and add it in contact list"
+msgstr ""
+
+#: gui/FilterFrame.py:68
+msgid "Using regular expressions"
+msgstr ""
+
+#: gui/FilterFrame.py:166
+msgid "Profile Filters"
+msgstr ""
+
+#: gui/FilterFrame.py:170 gui/ViewerFrame.py:267 gui/EditorFrame.py:199
+msgid "status"
+msgstr ""
+
+#: gui/FilterFrame.py:187 gui/EditorFrame.py:218
+msgid "Personal"
+msgstr ""
+
+#: gui/FilterFrame.py:188 gui/ViewerFrame.py:298 gui/EditorFrame.py:61
+#: gui/EditorFrame.py:220
+msgid "Files"
+msgstr ""
+
+#: gui/ViewerFrame.py:45 gui/EditorFrame.py:44
+msgid "&Export HTML ...\tCtrl+E"
+msgstr ""
+
+#: gui/ViewerFrame.py:45 gui/EditorFrame.py:44
+msgid "Write profile as HTML File"
+msgstr ""
+
+#: gui/ViewerFrame.py:51
+msgid "Refresh All"
+msgstr ""
+
+#: gui/ViewerFrame.py:54
+msgid "Profile\tCtrl+P"
+msgstr ""
+
+#: gui/ViewerFrame.py:56
+msgid "Blog\tCtrl+B"
+msgstr ""
+
+#: gui/ViewerFrame.py:58
+msgid "List files\tCtrl+L"
+msgstr ""
+
+#: gui/ViewerFrame.py:60
+msgid "Refresh"
+msgstr ""
+
+#: gui/ViewerFrame.py:62
+msgid "&Anonymous\tCtrl+A"
+msgstr ""
+
+#: gui/ViewerFrame.py:64
+msgid "&Friend\tCtrl+F"
+msgstr ""
+
+#: gui/ViewerFrame.py:66
+msgid "&Ignore\tCtrl+I"
+msgstr ""
+
+#: gui/ViewerFrame.py:68
+msgid "Status"
+msgstr ""
+
+#: gui/ViewerFrame.py:72
+msgid "Help"
+msgstr ""
+
+#: gui/ViewerFrame.py:88
+msgid "Load a profile and add it in contact list"
+msgstr ""
+
+#: gui/ViewerFrame.py:263
+msgid "Profile Viewer"
+msgstr ""
+
+#: gui/ViewerFrame.py:296
+msgid "View"
+msgstr ""
+
+#: gui/EditorFrame.py:41
+msgid "&Online\tCtrl+O"
+msgstr ""
+
+#: gui/EditorFrame.py:41
+msgid "Allow users seeing profile"
+msgstr ""
+
+#: gui/EditorFrame.py:52
+msgid "&Add directory...\tCtrl+A"
+msgstr ""
+
+#: gui/EditorFrame.py:54
+msgid "&Remove directory...\tCtrl+R"
+msgstr ""
+
+#: gui/EditorFrame.py:57 gui/FilePanel.py:65 gui/FilePanel.py:304
+msgid "Share"
+msgstr ""
+
+#: gui/EditorFrame.py:59 gui/FilePanel.py:67 gui/FilePanel.py:306
+msgid "Unshare"
+msgstr ""
+
+#: gui/EditorFrame.py:63
+msgid "&Profile...\tCtrl+P"
+msgstr ""
+
+#: gui/EditorFrame.py:63
+msgid "Preview your profile"
+msgstr ""
+
+#: gui/EditorFrame.py:65
+msgid "S&hared Files...\tCtrl+H"
+msgstr ""
+
+#: gui/EditorFrame.py:65
+msgid "Preview your shared files"
+msgstr ""
+
+#: gui/EditorFrame.py:140
+msgid "Export HTML file as ..."
+msgstr ""
+
+#: gui/EditorFrame.py:143
+msgid "HTML File (*.html)|*.html"
+msgstr ""
+
+#: gui/EditorFrame.py:156
+msgid "Your profile has been modified. Do you want to change it?"
+msgstr ""
+
+#: gui/EditorFrame.py:157
+msgid "Saving Dialog"
+msgstr ""
+
+#: gui/CustomPanel.py:21
+msgid ""
+"Type here interests which do not fall into any precise category. (one per "
+"line)"
+msgstr ""
+
+#: gui/CustomPanel.py:22
+msgid ""
+"Specify here a field of interest. For instance: (favorite book: Harry "
+"Potter) or (instrument: piano) "
+msgstr ""
+
+#: gui/CustomPanel.py:23
+msgid "favorite book"
+msgstr ""
+
+#: gui/FilePanel.py:38
+msgid "Tag:"
+msgstr ""
+
+#: gui/FilePanel.py:52
+msgid "Add directory"
+msgstr ""
+
+#: gui/FilePanel.py:54
+msgid "Remove directory"
+msgstr ""
+
+#: gui/FilePanel.py:57
+msgid "Share recursively"
+msgstr ""
+
+#: gui/FilePanel.py:59
+msgid "Unshare recursively"
+msgstr ""
+
+#: gui/FilePanel.py:63 gui/FilePanel.py:88 gui/FilePanel.py:302
+msgid "Tag"
+msgstr ""
+
+#: gui/FilePanel.py:85 gui/MatchPanel.py:38
+msgid "Name"
+msgstr ""
+
+#: gui/FilePanel.py:86
+msgid "Size"
+msgstr ""
+
+#: gui/FilePanel.py:87
+msgid "Shared"
+msgstr ""
+
+#: gui/FilePanel.py:101
+msgid "Explorer"
+msgstr ""
+
+#: gui/FilePanel.py:102
+msgid "#shared"
+msgstr ""
+
+#: gui/FilePanel.py:103
+msgid "full path"
+msgstr ""
+
+#: gui/FilePanel.py:107
+msgid "File System..."
+msgstr ""
+
+#: gui/FilePanel.py:111
+msgid "Your shared files"
+msgstr ""
+
+#: gui/FilePanel.py:141
+msgid "Choose your repository"
+msgstr ""
+
+#: gui/FilePanel.py:301
+msgid "Complementary information on file"
+msgstr ""
+
+#: gui/ProfileDialog.py:42 gui/ProfileDialog.py:57 plugin.py:219
+msgid "Profile"
+msgstr ""
+
+#: gui/MatchPanel.py:39
+msgid "Filter"
+msgstr ""
+
+#: gui/OthersPanel.py:33
+msgid "Peers"
+msgstr ""
+
+#: gui/OthersPanel.py:34
+msgid "Friends"
+msgstr ""
+
+#: gui/OthersPanel.py:35
+msgid "Anonymous"
+msgstr ""
+
+#: gui/OthersPanel.py:36
+msgid "Blacklisted"
+msgstr ""
+
+#: gui/OthersPanel.py:86
+msgid "select neighbor to display"
+msgstr ""
+
+#: __init__.py:74
+msgid "City"
+msgstr ""
+
+#: __init__.py:74
+msgid "Country"
+msgstr ""
+
+#: __init__.py:75
+msgid "Sport"
+msgstr ""
+
+#: __init__.py:75
+msgid "Studies"
+msgstr ""
+
+#: __init__.py:76
+msgid "Favourite Movie"
+msgstr ""
+
+#: plugin.py:223
+msgid "Manage personal information and share it with people"
+msgstr ""
