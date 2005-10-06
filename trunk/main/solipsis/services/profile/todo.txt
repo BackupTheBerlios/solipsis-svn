@@ -1,6 +1,16 @@
 
 # BLOG BUGS ##########################################################
 
+017: Gwendal_20051006_1
+     ------------------
+je vais modifier mon profile et c'est là qu'il y a un p'tit bug : dès
+que je fais une modification de mon espace partagé "add directory" ou
+"remove directory", à la fin du traitement, il m'ouvre une fenêtre
+"Joaquin's file" comme si j'avais fait un "get files" sur Joaquin au
+passage.
+
+ -> XXX
+
 016: Didier_20051005_1
      -----------------
 J'ai récupéré le build 578. En attendant l'amélioration du mode de
@@ -248,3 +258,9 @@ lenteur du systeme de gestion de partage de fichier
    cela est du au rafraichissement dynamique de l'arborscence.
    1/ enlever dynamisme et ajouter un bouton 'REFRESH': 1j
    2/ OU mettre en place un systeme de cache plus efficace: 3j
+
+Joaquin_20051006
+----------------
+Ajouter moyen de configurer l'encodage du profile
+
+ -> 1j
