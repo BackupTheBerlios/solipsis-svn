@@ -87,6 +87,9 @@ class BaseNavigatorApp(UIProxyReceiver):
     def addCallback(self, fun, *args):
         self.final_deferred.addCallback(fun, *args)
 
+    def addErrback(self, fun, *args):
+        self.final_deferred.addErrback(fun, *args)
+
     def addCallbacks(self, fun, fail):
         self.final_deferred.addCallbacks(fun, fail)
 
