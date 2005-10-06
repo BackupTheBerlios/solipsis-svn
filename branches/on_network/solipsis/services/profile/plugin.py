@@ -146,10 +146,10 @@ class Plugin(ServicePlugin):
     def activate(self, active=True):
         """eable/disable service"""
         if not active:
-            self.network.stop_listening()
-            self.network.disconnect()
+            self.network.server.stop_listening()
+            self.network.client.disconnect()
         else:
-            self.network.start_listening()
+            self.network.server.start_listening()
             for peer_id in self.peer_services.keys():
                 self.NewPeer(*self.peer_services[peer_id])
 
@@ -275,7 +275,7 @@ class Plugin(ServicePlugin):
         """delegate to network"""
         self.peer_services[peer.id_] = (peer, service)
         if get_facade() and get_facade()._activated:
-            self.network.on_new_peer(peer, service)
+            self.network.on_new_peer(peer)
 
     def ChangedPeer(self, peer, service):
         """delegate to network"""

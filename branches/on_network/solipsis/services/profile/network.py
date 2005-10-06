@@ -2,6 +2,7 @@
 #
 """client server module for file sharing"""
 
+import threading
 import random
 import tempfile
 import pickle
@@ -15,6 +16,7 @@ from twisted.internet import reactor, defer
 from twisted.internet import error
 from twisted.protocols import basic
 from StringIO import StringIO
+from Queue import Queue
 
 from solipsis import VERSION
 from solipsis.util.network import parse_address, get_free_port, release_port
@@ -53,72 +55,74 @@ SERVICES_MESSAGES = [MESSAGE_HELLO, MESSAGE_PROFILE,
                      MESSAGE_BLOG, MESSAGE_SHARED, MESSAGE_FILES,
                      MESSAGE_ERROR]
 
-def parse_message(message):
-    """extract command, address and data from message.
+class Message:
+    """Simple wrapper for a communication message"""
 
-    Expected format: MESSAGE host:port data
-    returns [COMMAND, HOST, port, DATA"""
-    result = []
-    # 2 maximum splits: data may contain spaces
-    items = message.split(' ', 2)
-    message = items[0]
-    # check command
-    if message not in SERVICES_MESSAGES:
-        raise ValueError("%s should be in %s"% (message, SERVICES_MESSAGES))
-    result.append(message)
-    # check address
-    result += parse_address(items[1])
-    # check data
-    if len(items) > 2:
-        data = items[2]
-        result.append(data)
-    else:
-        result.append(None)
-    return result
+    def __init_(self, command):
+        if command not in SERVICES_MESSAGES:
+            raise ValueError("%s should be in %s"% (command, SERVICES_MESSAGES))
+        self.command = command
+        self.ip = None
+        self.port = None
+        self.data = None
+
+    def __str__(self):
+        return " ".join([self.command,
+                         "%s:%d"% (self.ip, self.port),
+                         self.data])
+
+    def create_message(message):
+        """extract command, address and data from message.
+        
+        Expected format: MESSAGE host:port data
+        returns Message instance"""
+        # 2 maximum splits: data may contain spaces
+        items = message.split(' ', 2)
+        if not len(items) >= 2:
+            raise ValueError("%s should define host's ip and port"% command)
+        message = Message(items[0])
+        message.ip, port = parse_address(items[1])
+        message.port = int(port)
+        # check data
+        if len(items) > 2:
+            message.data = items[2]
+        return message
+    create_message = staticmethod(create_message)
+
+class PeerManager(threading.Thread):
+    """manage known ips (along with their ids) and timeouts"""
+
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.queue = Queue()
+        self.remote_ips = {}
+        self.remote_ids = {}
+
+    def run(self):
+        pass
+
+    def add_peer(self, peer_id, message):
+        pass
+
+    def lose_peer(self, peer_id):
+        pass
+
+    def del_peer(self, peer_id):
+        pass
+
+    def get_ip(self, peer_id):
+        pass
 
 class NetworkManager:
     """high level class managing clients and servers for each peer"""
 
     def __init__(self, host, known_port, download_dlg=None):
-        # service socket
-        self.host = host
-        self.port = known_port
         self.download_dlg = download_dlg
-        # server and client manager (listening to known port and
-        # spawing dedicated servers / clients
         self.client = ProfileClientFactory(self)
         self.server = ProfileServerFactory(self, host, known_port)
-        # {peer_id: remote_ip}
-        self.remote_ips = {}
-        self.remote_ids = {}
 
-    def start_listening(self):
-        """launching main server listening to well-known port"""
-        # delegate to ProfileServerFactory
-        self.server.start_listening()
-
-    def stop_listening(self):
-        """stops main server and desactivate profile sharing"""
-        # delegate to ProfileServerFactory
-        self.server.stop_listening()
-        for peer_id in self.remote_ips.keys():
-            self.on_lost_peer(peer_id)
-
-    def disconnect(self):
-        """close all active connections"""
-        self.client.disconnect()
-
-    def make_message(self, command, port, data=''):
-        """format message to be sent via service_api"""
-        message = "%s %s:%d %s"% (command, self.host, port, data)
-        print "sending UDP:", message
-        return message
-
-    def on_new_peer(self, peer, service):
-        """tries to connect to new peer"""
-        self._on_new_peer(peer.id_)
-
-    def _on_new_peer(self, peer_id):
+    # calls from plugin ##############################################
+    def on_new_peer(self, peer):
         """tries to connect to new peer"""
         # declare known port to other peer throug service_api
         if not self.remote_ips.has_key(peer_id):
@@ -126,6 +130,11 @@ class NetworkManager:
             message = self.make_message(MESSAGE_HELLO, self.port)
             from solipsis.services.profile.plugin import Plugin
             Plugin.service_api.SendData(peer_id, message)
+
+    def on_change_peer(self, peer, service):
+        """tries to connect to new peer"""
+        if not self.remote_ips.has_key(peer.id_):
+            self.on_new_peer(peer, service)
 
     def on_lost_peer(self, peer_id):
         """tries to connect to new peer"""
@@ -139,11 +148,6 @@ class NetworkManager:
             del self.remote_ips[peer_id]
             if self.remote_ids.has_key(remote_ip):
                 del self.remote_ids[remote_ip]
-
-    def on_change_peer(self, peer, service):
-        """tries to connect to new peer"""
-        if not self.remote_ips.has_key(peer.id_):
-            self.on_new_peer(peer, service)
 
     def on_service_data(self, peer_id, message):
         """demand to establish connection from peer that failed to
@@ -192,6 +196,7 @@ class NetworkManager:
         except AssertionError, err:
             print "ERROR Client corrupted:", err
 
+    # dialog processus ###############################################
     def _upload_impossible(self, peer_id, remote_ip, remote_port):
         """notify via udp that upload is not possible"""
         message = self.make_message(MESSAGE_ERROR, remote_port)
