@@ -2,6 +2,7 @@
 #
 """client server module for file sharing"""
 
+import datetime
 import threading
 import random
 import tempfile
@@ -16,7 +17,7 @@ from twisted.internet import reactor, defer
 from twisted.internet import error
 from twisted.protocols import basic
 from StringIO import StringIO
-from Queue import Queue
+from Queue import Queue, Empty
 
 from solipsis import VERSION
 from solipsis.util.network import parse_address, get_free_port, release_port
@@ -55,16 +56,21 @@ SERVICES_MESSAGES = [MESSAGE_HELLO, MESSAGE_PROFILE,
                      MESSAGE_BLOG, MESSAGE_SHARED, MESSAGE_FILES,
                      MESSAGE_ERROR]
 
-class Message:
+class SecurityException(Exception):
+    pass
+
+class Message(object):
     """Simple wrapper for a communication message"""
 
-    def __init_(self, command):
+    def __init__(self, command):
         if command not in SERVICES_MESSAGES:
             raise ValueError("%s should be in %s"% (command, SERVICES_MESSAGES))
         self.command = command
         self.ip = None
         self.port = None
         self.data = None
+        # creation_time is used as reference when cleaning
+        self.creation_time = datetime.datetime.now()
 
     def __str__(self):
         return " ".join([self.command,
@@ -89,29 +95,90 @@ class Message:
         return message
     create_message = staticmethod(create_message)
 
+class PeerState(object):
+    """trace messages received for this peer"""
+    
+    PEER_TIMEOUT = 120
+
+    def __init__(self, peer_id, first_message):
+        self.peer_id = peer_id
+        self.ip = first_message.ip
+        self.lost = None
+        self.messages = [first_message]
+
+    def add_message(self, message):
+        """archive message and force state lost to False"""
+        self.messages.append(message)
+        self.lost = None
+
+    def lose(self):
+        self.lost = datetime.datetime.now() \
+                    + datetime.timedelta(seconds=self.PEER_TIMEOUT)
+
+    def execute(self):
+        pass
+
 class PeerManager(threading.Thread):
     """manage known ips (along with their ids) and timeouts"""
 
+    CHECKING_FREQUENCY = 5
+
     def __init__(self):
         threading.Thread.__init__(self)
-        self.queue = Queue()
+        self.queue = Queue(-1) # infinite size
         self.remote_ips = {}
         self.remote_ids = {}
+        self.running = True
 
     def run(self):
-        pass
+        while self.running:
+            try:
+                # block until new message or TIMEOUT
+                message = self.queue.get(timeout=self.CHECKING_FREQUENCY)
+                if message is None:
+                    self.running = False
+                else:
+                    message.execute()
+                    self.check_peers(datetime.datetime.now())
+            except Empty:
+                # Empty exception is expected. check_peers will be
+                # called in finally
+                self.check_peers(datetime.datetime.now())
+
+    def stop(self):
+        self.queue.put(None)
+
+    def check_peers(self, now):
+        for peer_id, peer_state in self.remote_ids.items():
+            if peer_state.lost and peer_state.lost < now:
+                self.del_peer(peer_id)
 
     def add_peer(self, peer_id, message):
-        pass
+        # Peer already added
+        if peer_id in self.remote_ids:
+            # check ip
+            if message.ip !=  self.remote_ids[peer_id].ip:
+                raise SecurityException(
+                    "two ip (msg=%s, cache=%s) for same peer (%s)"\
+                    (message.ip,  self.remote_ids[peer_id], peer_id))
+            else:
+                self.remote_ids[peer_id].add_message(message)
+        # create new peer
+        else:
+            peer_state = PeerState(peer_id, message)
+            self.remote_ids[peer_id] = peer_state
+            self.remote_ips[message.ip] = peer_id
+            peer_state.add_message(message)
 
     def lose_peer(self, peer_id):
-        pass
+        self.remote_ids[peer_id].lose()
 
     def del_peer(self, peer_id):
-        pass
+        del self.remote_ips[self.remote_ids[peer_id].ip]
+        del self.remote_ids[peer_id]
 
     def get_ip(self, peer_id):
-        pass
+        return self.remote_ids[peer_id].ip
 
 class NetworkManager:
     """high level class managing clients and servers for each peer"""
@@ -120,12 +187,13 @@ class NetworkManager:
         self.download_dlg = download_dlg
         self.client = ProfileClientFactory(self)
         self.server = ProfileServerFactory(self, host, known_port)
+        self.peers = PeerManager()
 
     # calls from plugin ##############################################
     def on_new_peer(self, peer):
         """tries to connect to new peer"""
         # declare known port to other peer throug service_api
-        if not self.remote_ips.has_key(peer_id):
+        if not self.remote_ips.has_key(peer.id_):
             self.remote_ips[peer_id] = None
             message = self.make_message(MESSAGE_HELLO, self.port)
             from solipsis.services.profile.plugin import Plugin
