@@ -126,9 +126,10 @@ class PeerManager(threading.Thread):
     def __init__(self):
         threading.Thread.__init__(self)
         self.queue = Queue(-1) # infinite size
-        self.remote_ips = {}
-        self.remote_ids = {}
+        self.remote_ips = {}   # {ip : peer}
+        self.remote_ids = {}   # {id : peer}
         self.running = True
+        self.lock = threading.RLock()
 
     def run(self):
         while self.running:
@@ -138,44 +139,65 @@ class PeerManager(threading.Thread):
                 if message is None:
                     self.running = False
                 else:
-                    message.execute()
-                    self.check_peers(datetime.datetime.now())
+                    if not self.remote_ips.has_key(message.ip):
+                        raise SecurityException(
+                            "Incomming msg from unknkown peer (%s)"% message)
+                    self.remote_ips[message.ip].execute(self)
+                    self._check_peers(datetime.datetime.now())
             except Empty:
-                # Empty exception is expected. check_peers will be
+                # Empty exception is expected. _check_peers will be
                 # called in finally
-                self.check_peers(datetime.datetime.now())
+                self._check_peers(datetime.datetime.now())
 
     def stop(self):
         self.queue.put(None)
 
-    def check_peers(self, now):
-        for peer_id, peer_state in self.remote_ids.items():
-            if peer_state.lost and peer_state.lost < now:
-                self.del_peer(peer_id)
+    def _check_peers(self, now):
+        """Synchronized method to clean up dict of peers, always
+        called from peer_manager thread."""
+        try:
+            self.lock.acquire()
+            for peer_id, peer_state in self.remote_ids.items():
+                if peer_state.lost and peer_state.lost < now:
+                    self.del_peer(peer_id)
+        finally:
+            self.lock.release()
 
     def add_peer(self, peer_id, message):
-        # Peer already added
-        if peer_id in self.remote_ids:
-            # check ip
-            if message.ip !=  self.remote_ids[peer_id].ip:
-                raise SecurityException(
-                    "two ip (msg=%s, cache=%s) for same peer (%s)"\
-                    (message.ip,  self.remote_ids[peer_id], peer_id))
+        """Synchronized method called either from peer_manager thread
+        or network thread"""
+        try:
+            self.lock.acquire()
+            # Peer already added
+            if peer_id in self.remote_ids:
+                # check ip
+                if message.ip !=  self.remote_ids[peer_id].ip:
+                    raise SecurityException(
+                        "two ip (msg=%s, cache=%s) for same peer (%s)"\
+                        (message.ip,  self.remote_ids[peer_id], peer_id))
+                else:
+                    self.remote_ids[peer_id].add_message(message)
+            # create new peer
             else:
-                self.remote_ids[peer_id].add_message(message)
-        # create new peer
-        else:
-            peer_state = PeerState(peer_id, message)
-            self.remote_ids[peer_id] = peer_state
-            self.remote_ips[message.ip] = peer_id
-            peer_state.add_message(message)
+                peer_state = PeerState(peer_id, message)
+                self.remote_ids[peer_id] = peer_state
+                self.remote_ips[message.ip] = peer_state
+                peer_state.add_message(message)
+        finally:
+            self.lock.release()
+
+    def del_peer(self, peer_id):
+        """Synchronized method called either from peer_manager thread
+        or network thread"""
+        try:
+            self.lock.acquire()
+            del self.remote_ips[self.remote_ids[peer_id].ip]
+            del self.remote_ids[peer_id]
+        finally:
+            self.lock.release()
 
     def lose_peer(self, peer_id):
         self.remote_ids[peer_id].lose()
-
-    def del_peer(self, peer_id):
-        del self.remote_ips[self.remote_ids[peer_id].ip]
-        del self.remote_ids[peer_id]
 
     def get_ip(self, peer_id):
         return self.remote_ids[peer_id].ip

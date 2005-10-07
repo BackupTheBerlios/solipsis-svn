@@ -43,13 +43,15 @@ class NetworkTest(unittest.TestCase):
     def test_add_manager(self):
         self.manager.add_peer("toto", self.message)
         self.assertEquals("127.0.0.1", self.manager.remote_ids["toto"].ip)
-        self.assertEquals("toto", self.manager.remote_ips["127.0.0.1"])
+        self.assertEquals("toto", self.manager.remote_ips["127.0.0.1"].peer_id)
         self.assertEquals("127.0.0.1", self.manager.get_ip("toto"))
+        self.assertEquals(self.manager.remote_ids["toto"],
+                          self.manager.remote_ips["127.0.0.1"])
 
     def test_del_manager(self):
         self.manager.add_peer("toto", self.message)
         self.assertEquals("127.0.0.1", self.manager.remote_ids["toto"].ip)
-        self.assertEquals("toto", self.manager.remote_ips["127.0.0.1"])
+        self.assertEquals("toto", self.manager.remote_ips["127.0.0.1"].peer_id)
         self.manager.del_peer("toto")
         self.assertEquals(False, self.manager.remote_ids.has_key("toto"))
         self.assertEquals(False, self.manager.remote_ips.has_key("127.0.0.1"))
@@ -64,7 +66,7 @@ class NetworkTest(unittest.TestCase):
         self.manager.lose_peer("toto")
         self.assertNotEquals(None, self.manager.remote_ids["toto"].lost)
         self.assertEquals("127.0.0.1", self.manager.remote_ids["toto"].ip)
-        self.assertEquals("toto", self.manager.remote_ips["127.0.0.1"])
+        self.assertEquals("toto", self.manager.remote_ips["127.0.0.1"].peer_id)
         time.sleep(1.5)
         self.assertEquals(False, self.manager.remote_ids.has_key("toto"))
         self.assertEquals(False, self.manager.remote_ips.has_key("127.0.0.1"))
