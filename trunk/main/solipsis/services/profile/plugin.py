@@ -70,6 +70,7 @@ class Plugin(ServicePlugin):
         # declare actions
         self.MAIN_ACTION = {"Modify Profile...": self.modify_profile,
                             "Filter Profiles...": self.filter_profile,
+                            "Display Matches...": self.show_matches,
                             }
         self.POINT_ACTIONS = {#"View all...": self.show_profile,
                               "View profile...": self.get_profile,
@@ -163,6 +164,10 @@ class Plugin(ServicePlugin):
         """display profile once loaded"""
         if self.filter_frame:
             self.filter_frame.Show()
+
+    def show_matches(self, evt):
+        if self.filter_frame:
+            self.filter_frame.match_frame.Show()
             
 #     def show_profile(self, evt):
 #         """display profile once loaded"""

@@ -1,6 +1,26 @@
 
 # BLOG BUGS ##########################################################
 
+019: Joaquin_20051010_2
+     ------------------
+On peut, peut être, éliminer les warnings ? Ou au moins les en générer
+moins. Exemple quand je croise Gwendal il y a deux(?) warnings par
+fichier contenant un caractère spécial. Aucun warning ou un seul
+warning pour l'ensemble des fichiers du type "plusieurs fichiers blah
+blah utf8 blah blah" serait plus judicieux. Je préfère la solution
+"aucun warning".
+
+ -> XXX
+
+018: Joaquin_20051010_1
+     ------------------
+Quand est-ce que la "fenêtre de résultat" apparaît ? (je ne l'ai vu
+apparaître qu'un fois, je l'ai fermé et je ne l'ai plus jamais vu)
+
+ -> elle apparait lorsque le voisin apparait dans ton radius. Il faut
+    cependant activer les filtres (comportement par défaut). Elle
+    est désormais également affichable par le menu.
+
 017: Gwendal_20051006_1
      ------------------
 je vais modifier mon profile et c'est là qu'il y a un p'tit bug : dès
@@ -264,3 +284,18 @@ Joaquin_20051006
 Ajouter moyen de configurer l'encodage du profile
 
  -> 1j
+
+Joaquin_20051010_2
+------------------
+fenêtre de consultation des filtres avec deux listes:
+ - La liste de filtres (colonnes: nom du filtre, nombre de fichiers
+   répondant au filtre)
+ - La liste des fichiers correspondants au filtre sélectionné
+
+ -> 2j
+
+Joaquin_20051010_3
+------------------
+Actions possibles sur les résultats des filtres: télécharger des fichiers.
+
+ -> 1j (dépendant de Joaquin_20051010_2)

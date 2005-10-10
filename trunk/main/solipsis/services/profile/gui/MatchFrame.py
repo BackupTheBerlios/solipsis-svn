@@ -118,6 +118,7 @@ class MatchFrame(wx.Frame, UIProxyReceiver):
         self.SetTitle(_("Matches"))
         self.SetSize((460, 600))
         # end wxGlade
+        self.getfile_item.Enable(False)
         width = get_prefs("match_width")
         height = get_prefs("match_height")
         self.SetSize((width, height))
