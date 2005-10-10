@@ -20,6 +20,7 @@
 import os
 import sha
 import random
+import re
 from cStringIO import StringIO
 
 import wx
@@ -284,13 +285,18 @@ class _AvatarRepository(object):
             return
         self.builtin_avatars = []
         avatar_dir = 'avatars'
+        extensions = ['png', 'gif', 'jpg', 'jpeg']
+        ext_pattern = re.compile(".*\.(%s)$" % '|'.join(extensions))
         l = os.listdir(avatar_dir)
         for filename in l:
             if filename.startswith('.') or filename.startswith('_'):
                 continue
+            if not ext_pattern.match(filename, re.IGNORECASE):
+                continue
             path = os.path.join(avatar_dir, filename)
             if not os.path.isfile(path):
                 continue
+            print path
             hash_ = self._LoadAvatar(path)
             if hash_:
                 self.builtin_avatars.append(hash_)
