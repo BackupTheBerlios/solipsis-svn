@@ -172,20 +172,23 @@ class Plugin(ServicePlugin):
     def get_profile(self, peer_id, deferred=None):
         """request downwload of profile"""
         on_done = self.network.get_profile(peer_id)
-        on_done.addCallback(self._on_new_profile, peer_id)
-        deferred and on_done.chainDeferred(deferred)
+        if on_done != None:
+            on_done.addCallback(self._on_new_profile, peer_id)
+            deferred and on_done.chainDeferred(deferred)
 
     def get_blog_file(self, peer_id, deferred=None):
         """request downwload of blog"""
         on_done = self.network.get_blog_file(peer_id)
-        on_done.addCallback(self._on_new_blog, peer_id)
-        deferred and on_done.chainDeferred(deferred)
+        if on_done != None:
+            on_done.addCallback(self._on_new_blog, peer_id)
+            deferred and on_done.chainDeferred(deferred)
 
     def select_files(self, peer_id, deferred=None):
         """request downwload of list of shared files"""
         on_done = self.network.get_shared_files(peer_id)
-        on_done.addCallback(self._on_shared_files, peer_id)
-        deferred and on_done.chainDeferred(deferred)
+        if on_done != None:
+            on_done.addCallback(self._on_shared_files, peer_id)
+            deferred and on_done.chainDeferred(deferred)
 
     # side method
     def get_files(self, peer_id, file_descriptors):

@@ -121,7 +121,6 @@ class Parameters(object):
         try:
             self._config_parser = ConfigParser(self._defaults)
             self._config_parser.read(self._config_file)
-
         except Exception, e:
             sys.stderr.write("\nError while reading configuration file %s:\n" % self.configFileName)
             sys.stderr.write(str(e))
@@ -138,6 +137,10 @@ class Parameters(object):
         # Logging configuration
         # (note: only the root logger is used at the moment)
         #
-        logging.config.fileConfig(self._config_file, defaults={'logid': self.port})
+        try:
+            logging.config.fileConfig(self._config_file,
+                                      defaults={'logid': self.port})
+        except Exception, err:
+            print err
         self._logger = logging.getLogger()
         self._logger.info("Parameters initialized")
