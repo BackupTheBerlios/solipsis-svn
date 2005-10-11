@@ -20,7 +20,7 @@
 # </copyright>
 """Constants used by tests"""
 
-__revision__ = "$Id: $"
+__revision__ = "$Id$"
 
 import os, os.path
 import solipsis
@@ -115,11 +115,11 @@ def write_test_profile():
               `-- ..."""
     # write filter
     filter_document = FilterDocument()
-    filter_document.set_pseudo(FilterValue(value=".*", activate=True))
+    filter_document.set_pseudo(FilterValue(value="*", activate=True))
     filter_document.set_title(FilterValue(value="Mr", activate=True))
-    filter_document.set_lastname(FilterValue(value="b.*", activate=True))
+    filter_document.set_lastname(FilterValue(value="b*", activate=True))
     filter_document.add_custom_attributes('color', FilterValue(value="blue", activate=True))
-    filter_document.add_repository("MP3", FilterValue(value=".*\.mp3", activate=True))
+    filter_document.add_repository("MP3", FilterValue(value="*.mp3", activate=True))
     if os.path.exists(FILE_TEST + FILTER_EXT):
         os.remove(FILE_TEST + FILTER_EXT)
     filter_document.save(FILE_TEST + FILTER_EXT)

@@ -108,11 +108,11 @@ class BlogPanel(wx.Panel):
         
     def __set_properties(self):
         # begin wxGlade: BlogPanel.__set_properties
-        self.add_blog_button.SetToolTipString(_("New blog"))
+        self.add_blog_button.SetToolTipString(_("Post"))
         self.add_blog_button.SetSize(self.add_blog_button.GetBestSize())
-        self.del_blog_button.SetToolTipString(_("Delete blog"))
+        self.del_blog_button.SetToolTipString(_("Delete selected"))
         self.del_blog_button.SetSize(self.del_blog_button.GetBestSize())
-        self.comment_blog_button.SetToolTipString(_("Comment"))
+        self.comment_blog_button.SetToolTipString(_("Comment selected"))
         self.comment_blog_button.SetSize(self.comment_blog_button.GetBestSize())
         # end wxGlade
 

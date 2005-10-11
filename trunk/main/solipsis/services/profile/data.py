@@ -90,7 +90,7 @@ class PeerDescriptor:
         return "<img src='%s'/><font color=%s>%s</font>"\
                % (self.connected and BULB_ON_IMG() or BULB_OFF_IMG(),
                   PeerDescriptor.COLORS[self.state],
-                  get_facade()._desc.document.get_pseudo())
+                  get_facade()._desc.document.get_pseudo().encode(ENCODING))
     
 # BLOGS
 #######
@@ -226,9 +226,13 @@ class Blog:
   <p>%s</p>
   <p align='right'><cite>%s, %s</cite></p>
 </font>"""\
-               % (self.text.encode(ENCODING), self.author, self.date)
+               % (self.text.encode(ENCODING),
+                  self.author.encode(ENCODING),
+                  self.date)
     
     def _html_text(self):
         """return blog as main entry"""
-        return "<p'>%s</p><p align='right'><cite>%s, %s</cite></p>"\
-               % (self.text.encode(ENCODING), self.author, self.date)
+        return "<p>%s</p><p align='right'><cite>%s, %s</cite></p>"\
+               % (self.text.encode(ENCODING),
+                  self.author.encode(ENCODING),
+                  self.date)

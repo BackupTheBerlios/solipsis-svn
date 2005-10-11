@@ -25,7 +25,7 @@ class FileFilterPanel(wx.Panel):
         wx.Panel.__init__(self, *args, **kwds)
         self.f_action_sizer_staticbox = wx.StaticBox(self, -1, _("Name here a filter to use on file names"))
         self.f_key_value = wx.TextCtrl(self, -1, _("MP3 Filter"))
-        self.f_filter_value = wx.TextCtrl(self, -1, _(".*\\.mp3"))
+        self.f_filter_value = wx.TextCtrl(self, -1, _("*.mp3"))
         self.add_f_filter_button = wx.BitmapButton(self, -1, wx.Bitmap(ADD_CUSTOM(),wx.BITMAP_TYPE_ANY))
         self.del_f_filter_button = wx.BitmapButton(self, -1, wx.Bitmap(DEL_CUSTOM(),wx.BITMAP_TYPE_ANY))
         self.f_filters_list = wx.ListCtrl(self, -1, style=wx.LC_REPORT|wx.SUNKEN_BORDER)

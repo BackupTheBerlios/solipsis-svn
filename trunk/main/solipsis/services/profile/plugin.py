@@ -68,14 +68,14 @@ class Plugin(ServicePlugin):
         self.filter_frame = None
         self.peer_services = {}
         # declare actions
-        self.MAIN_ACTION = {"Modify Profile...": self.modify_profile,
-                            "Filter Profiles...": self.filter_profile,
+        self.MAIN_ACTION = {_("Edit Profile..."): self.modify_profile,
+                            _("Filter Profiles..."): self.filter_profile,
                             "Display Matches...": self.show_matches,
                             }
         self.POINT_ACTIONS = {#"View all...": self.show_profile,
-                              "View profile...": self.get_profile,
-                              "View blog...": self.get_blog_file,
-                              "Get files...": self.select_files,}
+                              _("View profile..."): self.get_profile,
+                              _("View blog..."): self.get_blog_file,
+                              _("Get files..."): self.select_files,}
 
     # Service setup
 
@@ -315,7 +315,7 @@ class Plugin(ServicePlugin):
 #                 display_message(
 #                     _(u"You have no profile yet for pseudo %s.\n\n "
 #                       "You may create one clicking on the menu Profile, "
-#                       "and selecting 'Modify Profile'"% node.pseudo),
+#                       "and selecting 'Edit Profile'"% node.pseudo),
 #                     title=_("New profile"))
             if not filter_facade.load():
                 display_status(_("You have no filters defined yet for pseudo %s"% node.pseudo))

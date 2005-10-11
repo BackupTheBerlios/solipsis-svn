@@ -31,6 +31,27 @@ from solipsis.services.profile.document import ContactsMixin, \
      SECTION_PERSONAL, SECTION_CUSTOM, SECTION_FILE, \
      AbstractPersonalData
 from solipsis.services.profile.document import DocSaverMixin
+    
+def create_regex(input_value):
+    """'input_input' is a keyword that main contain the joker char '*'.
+    Te function traduces it into a regex.
+
+    ie: *mp3 -> .*mp3
+        *.gif -> .*\.gif
+        bonus -> bonus
+        *any(FR)* -> .*any\(FR\).*"""
+    if input_value == "":
+        return input_value
+    # list of chars to replace (all except '*' and '\')
+    sensible_chars = ".^$+?{[]|()"
+    for sensible_char in sensible_chars:
+        input_value = input_value.replace(sensible_char, "\\" + sensible_char)
+    # add regex expression
+    if not input_value.startswith('*'):
+        input_value = "^" + input_value
+    if not input_value.endswith('*'):
+        input_value += "$"
+    return input_value.replace('*', '.*')
 
 class FilterValue:
     """wrapper for filter: regex, description ans state"""
@@ -38,7 +59,7 @@ class FilterValue:
     def __init__(self, name="no name", value=u"", activate=False):
         self.activated = activate
         self.description = value
-        self.regex = re.compile(value, re.IGNORECASE)
+        self.regex = re.compile(create_regex(value), re.IGNORECASE)
         self._name = name # name of member which is defined by FilterValue
 
     def __repr__(self):
@@ -54,7 +75,7 @@ class FilterValue:
     def set_value(self, value, activate=True):
         """recompile regex and (dis)activate filter"""
         self.description = value
-        self.regex = re.compile(value, re.IGNORECASE)
+        self.regex = re.compile(create_regex(value), re.IGNORECASE)
         self.activated = activate
         
     def does_match(self, data):

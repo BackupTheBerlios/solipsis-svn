@@ -46,7 +46,7 @@ class AboutDialog(wx.Dialog):
     def __set_properties(self):
         # begin wxGlade: AboutDialog.__set_properties
         self.SetTitle(_("About Profile"))
-        self.SetSize((300, 300))
+        self.SetMinSize((300, 300))
         self.tore_pic.SetMinSize((300, 156))
         self.disclaimer_lbl.SetBackgroundColour(wx.Colour(226, 226, 226))
         self.disclaimer_lbl.Enable(False)

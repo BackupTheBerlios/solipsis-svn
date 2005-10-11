@@ -36,7 +36,7 @@ class PersonalFilterPanel(wx.Panel):
         self.email_checkbox = wx.CheckBox(self, -1, _("E-Mail: "))
         self.email_value = wx.TextCtrl(self, -1, "")
         self.p_key_value = wx.TextCtrl(self, -1, _("Favourite Book"))
-        self.p_filter_value = wx.TextCtrl(self, -1, _(".*Potter.*"))
+        self.p_filter_value = wx.TextCtrl(self, -1, _("*Potter*"))
         self.add_p_filter_button = wx.BitmapButton(self, -1, wx.Bitmap(ADD_CUSTOM(),wx.BITMAP_TYPE_ANY))
         self.del_p_filter_button = wx.BitmapButton(self, -1, wx.Bitmap(DEL_CUSTOM(),wx.BITMAP_TYPE_ANY))
         self.p_filters_list = wx.ListCtrl(self, -1, style=wx.LC_REPORT|wx.LC_SINGLE_SEL|wx.LC_SORT_ASCENDING|wx.NO_BORDER)

@@ -6,7 +6,7 @@
 gathared in views.py. Documents are to be seen as completely
 independant from views"""
 
-__revision__ = "$Id: $"
+__revision__ = "$Id$"
 
 import unittest
 import os.path
@@ -15,17 +15,23 @@ from solipsis.services.profile import FILTER_EXT, QUESTION_MARK
 from solipsis.services.profile.prefs import get_prefs, set_prefs
 from solipsis.services.profile.data import PeerDescriptor
 from solipsis.services.profile.filter_document import FilterValue, PeerMatch, \
-     FilterDocument
+     FilterDocument, create_regex
 from solipsis.services.profile.tests import PROFILE_DIR, PROFILE_TEST, TEST_DIR
 from solipsis.services.profile.tests import write_test_profile, FILE_TEST
 
 class ValueTest(unittest.TestCase):
 
     def setUp(self):
-        self.title = FilterValue("title", ".*men$", True)
+        self.title = FilterValue("title", "*men", True)
+
+    def test_conversion(self):
+        self.assertEquals(create_regex("*mp3"), ".*mp3$")
+        self.assertEquals(create_regex("*.gif"), ".*\.gif$")
+        self.assertEquals(create_regex("bonus"), "^bonus$")
+        self.assertEquals(create_regex("*any(FR)*"), ".*any\(FR\).*")
 
     def test_creation(self):
-        self.title = FilterValue("title", ".*men$", True)
+        self.title = FilterValue("title", "*men", True)
         self.assertEquals(str(self.title), "title")
         self.assertEquals(self.title.activated, True)
         self.assertEquals(self.title.does_match("Good Omens"), False)
@@ -33,7 +39,7 @@ class ValueTest(unittest.TestCase):
         self.assertEquals(self.title.does_match("women").get_match(), "women")
 
     def test_setters(self):
-        self.title.set_value(".*men.?")
+        self.title.set_value("*men*")
         self.assertEquals(self.title.does_match("Good Omens").get_match(), "Good Omens")
         self.assertEquals(self.title.does_match("women").get_match(), "women")
         self.title.activated = False
@@ -80,26 +86,14 @@ class MatchTest(unittest.TestCase):
 
     def test_files(self):
         # add filter for dummy.txt
-        self.document.add_repository(u'Any', FilterValue(value=u'.*\..*', activate=True))
+        filter_value =  FilterValue(value=u'*.*', activate=True)
+        self.document.add_repository(u'Any', filter_value)
         match = PeerMatch(self.peer_desc, self.document)
-        match_files = [file_container.match for file_container in match.files[u'Any']]
+        match_files = [file_container.match for file_container
+                       in match.files[u'Any']]
         match_files.sort()
-        self.assertEquals(match_files, ['TOtO.txt', 'date.doc', 'date.txt', "dummy.txt"])
-
-def write_test_filter():
-    document = FilterDocument()
-    # set personal data
-    document.set_title(FilterValue(value=u"Mr", activate=True))
-    document.set_firstname(FilterValue(value=u"", activate=True))
-    document.set_lastname(FilterValue(value=u"breton", activate=True))
-    document.set_photo(FilterValue(value=QUESTION_MARK(), activate=False))
-    document.set_email(FilterValue(value=u"manu@ft.com", activate=False))
-    # set custom interests, working if IGNORECASE set
-    document.add_custom_attributes(u'color', FilterValue(value=u'BLUE', activate=True))
-    # set files
-    document.add_repository(u'MP3', FilterValue(value=u'.*\.mp3$', activate=True))
-    # write file
-    document.save(FILTER_TEST)
+        self.assertEquals(
+            match_files, ['TOtO.txt', 'date.doc', 'date.txt', "dummy.txt"])
     
 FILTER_TEST = os.path.join(PROFILE_DIR, PROFILE_TEST + FILTER_EXT)
 
@@ -108,10 +102,6 @@ class FilterTest(unittest.TestCase):
 
     def setUp(self):
         """override one in unittest.TestCase"""
-        # write test profile
-        if os.path.exists(FILTER_TEST):
-            os.remove(FILTER_TEST)
-        write_test_filter()
         # write test profile
         if os.path.exists(FILE_TEST):
             os.remove(FILE_TEST)
@@ -125,7 +115,7 @@ class FilterTest(unittest.TestCase):
         self.assertEquals(document.get_title().activated, True)
         self.assertEquals(document.get_firstname().description, u"")
         self.assertEquals(document.get_firstname().activated, False)
-        self.assertEquals(document.get_lastname().description, u"b.*")
+        self.assertEquals(document.get_lastname().description, u"b*")
         self.assertEquals(document.get_lastname().activated, True)
         self.assertEquals(document.get_photo().description, u"")
         self.assertEquals(document.get_photo().activated, False)

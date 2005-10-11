@@ -1,301 +1,51 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<html><head>
-<title>Regular Expression</title></head>
+<html>
+  <head>
+    <title>Filters on Solipsis</title>
+  </head>
 
-<body>
-<div class="titlepage">
-<center>
-<h1>Regular Expression</h1>
-<p>
-</p></center>
-</div>
+  <body>
+    <div class="titlepage">
+      <center>
+	<h1>Filters on Solipsis</h1>
+	<p>
+      </p></center>
+    </div>
 
-<p>
-This document is an introductory tutorial to using regular expressions.
-</p>
+    <p>
+      Filters are insensitive to case, and are matched with any
+      profile or the peer in your surroundings. If you create a filter
+      <code>"sound.wma"</code>, it will match both
+      <code>"sound.wma"</code> and <code>"SouND.wma"</code> (and other
+      combinaisons of lower and upper caps). But no other world nor
+      file than <code>"sound.wma"</code>. In order to match something
+      like <code>"Sound.wav"</code> or <code>"Sound.mid"</code> or
+      <code>"Best sound ever.mp3"</code>, you will have to use
+      wildchars...
+    </p>
 
-<h2><a name="SECTION000300000000000000000">
-In short...</a>
-</h2>
+    <p>
+      The character <code>'*'</code> is available as a wildchar (a
+      joker) to ease and extend filtering results.
+    </p>
 
-<p>
-Filters work on a character by character basis, being insensitive to
-case. If you apply the filter <code>"sound"</code>, it will match both <code>"sound"</code>
-and <code>"SouND"</code> (and other combinaisons of lower and upper caps). Wildchars are available to ease and extend comparaisons, such as '.' standing for
-any single character.  </p><p>
+    <p>
+      For instance the filter <code>"*.mp3"</code> matching anyfile
+      with the extension<code>".mp3"</code>. In the first example, you
+      can use the filter <code>"sound.*"</code> to match the
+      <code>"Sound.wav"</code> or <code>"Sound.mid"</code>. Another
+      example would be <code>"*madonna*.jpg"</code> that would match
+      any file coutaining <code>"madonna"</code> in its title and with
+      the extension <code>".mp3"</code>
+    </p>
 
-<p>
-For instance the filter <code>"s..nd"</code> will match <code>"sound"</code>, and <code>"sannd"</code> and
-<code>"s,ind"</code> and so one. A consequence is that <code>"sound.mp3"</code> wil match
-<code>"sound.mp3"</code> but also "<code>sound4mp3"</code> or <code>"soundxmp3"</code>. If you really want to
-match a dot, use '\.'. Thus "sound\.mp3" will match "sound.mp3"</p>
+    <p>
+      You may use the wildcar <code>'*'</code> anytime, at the
+      beginning of a world, inside it or at the end. For instance
+      <code>"s*nd"</code> will match <code>"sound"</code>, and
+      <code>"silverband"</code> and <code>"s,fefegegeind"</code> and
+      so one.
+    </p>
 
-<p>
-You may match any number of characters using the wildcar <code>'*'</code>. For
-instance <code>"s*ound"</code> will match <code>"sound"</code> and "<code>ssound"</code> and
-<code>"ssssound"</code>. Thus, combining <code>'.'</code> and <code>'*'</code>, you may filter
-anything. <code>".*mp3"</code> will match anything ending with <code>'mp3'</code>, <code>".*hobbes.*"</code>
-will match anything containing <code>'hobbes'</code> and so on.</p><p>
-
-</p><h2><a name="SECTION000300000000000000000">
-Exhaustive description</a>
-</h2>
-
-<p>
-We'll start by learning about the simplest possible regular
-expressions.  Since regular expressions are used to operate on
-strings, we'll begin with the most common task: matching characters.
-
-</p><p>
-
-</p><h3><a name="SECTION000310000000000000000">
-1 Matching Characters</a>
-</h3>
-
-<p>
-Most letters and characters will simply match themselves.  For
-example, the regular expression <tt class="regexp">test</tt> will match the string
-"<tt class="samp">test</tt>" exactly.  (You can enable a case-insensitive mode that
-would let this RE match "<tt class="samp">Test</tt>" or "<tt class="samp">TEST</tt>" as well; more
-about this later.)  
-
-</p><p>
-There are exceptions to this rule; some characters are
-special, and don't match themselves.  Instead, they signal that some
-out-of-the-ordinary thing should be matched, or they affect other
-portions of the RE by repeating them.  Much of this document is
-devoted to discussing various metacharacters and what they do.
-
-</p><p>
-Here's a complete list of the metacharacters; their meanings will be
-discussed in the rest of this HOWTO.
-
-</p><p>
-</p><div class="verbatim"><pre>. ^ $ * + ? { [ ] \ | ( )
-</pre></div>
-
-<p>
-The first metacharacters we'll look at are "<tt class="samp">[</tt>" and "<tt class="samp">]</tt>".
-They're used for specifying a character class, which is a set of
-characters that you wish to match.  Characters can be listed
-individually, or a range of characters can be indicated by giving two
-characters and separating them by a "<tt class="character">-</tt>".  For example,
-<tt class="regexp">[abc]</tt> will match any of the characters "<tt class="samp">a</tt>", "<tt class="samp">b</tt>", or
-"<tt class="samp">c</tt>"; this is the same as
-<tt class="regexp">[a-c]</tt>, which uses a range to express the same set of
-characters.  If you wanted to match only lowercase letters, your
-RE would be <tt class="regexp">[a-z]</tt>.
-
-</p><p>
-Metacharacters are not active inside classes.  For example,
-<tt class="regexp">[akm$]</tt> will match any of the characters "<tt class="character">a</tt>",
-"<tt class="character">k</tt>", "<tt class="character">m</tt>", or "<tt class="character">$</tt>"; "<tt class="character">$</tt>" is
-usually a metacharacter, but inside a character class it's stripped of
-its special nature.
-
-</p><p>
-You can match the characters not within a range by <i class="dfn">complementing</i>
-the set.  This is indicated by including a "<tt class="character">^</tt>" as the first
-character of the class; "<tt class="character">^</tt>" elsewhere will simply match the
-"<tt class="character">^</tt>" character.  For example, <code>[^5]</code> will match any
-character except "<tt class="character">5</tt>".
-
-</p><p>
-Perhaps the most important metacharacter is the backslash, "<tt class="samp">\</tt>".  
-As in Python string literals, the backslash can be followed by various
-characters to signal various special sequences.  It's also used to escape
-all the metacharacters so you can still match them in patterns; for
-example, if you need to match a "<tt class="samp">[</tt>" or 
-"<tt class="samp">\</tt>", you can precede them with a backslash to remove their
-special meaning: <tt class="regexp">\[</tt> or <tt class="regexp">\\</tt>.
-
-</p><p>
-Some of the special sequences beginning with "<tt class="character">\</tt>" represent
-predefined sets of characters that are often useful, such as the set
-of digits, the set of letters, or the set of anything that isn't
-whitespace.  The following predefined special sequences are available:
-
-</p><p>
-</p><dl compact="compact">
-<dt><code>\d</code></dt>
-<dd>Matches any decimal digit; this is
-equivalent to the class <tt class="regexp">[0-9]</tt>.
-
-<p>
-
-</p></dd><dt><code>\D</code></dt>
-<dd>Matches any non-digit character; this is
-equivalent to the class <code>[^0-9]</code>.
-
-<p>
-
-</p></dd><dt><code>\s</code></dt>
-<dd>Matches any whitespace character; this is
-equivalent to the class <tt class="regexp">[ \t\n\r\f\v]</tt>.
-
-<p>
-
-</p></dd><dt><code>\S</code></dt>
-<dd>Matches any non-whitespace character; this is
-equivalent to the class <code>[^ \t\n\r\f\v]</code>.
-
-<p>
-
-</p></dd><dt><code>\w</code></dt>
-<dd>Matches any alphanumeric character; this is equivalent to the class
-<tt class="regexp">[a-zA-Z0-9_]</tt>.  
-
-<p>
-
-</p></dd><dt><code>\W</code></dt>
-<dd>Matches any non-alphanumeric character; this is equivalent to the class
-<code>[^a-zA-Z0-9_]</code>.   
-</dd>
-</dl>
-
-<p>
-These sequences can be included inside a character class.  For
-example, <tt class="regexp">[\s,.]</tt> is a character class that will match any
-whitespace character, or "<tt class="character">,</tt>" or "<tt class="character">.</tt>".
-
-</p><p>
-The final metacharacter in this section is <tt class="regexp">.</tt>.  It matches
-anything except a newline character, and there's an alternate mode
-(<code>re.DOTALL</code>) where it will match even a newline.  "<tt class="character">.</tt>"
-is often used where you want to match ``any character''.  
-
-</p><p>
-
-</p><h3><a name="SECTION000320000000000000000">
-2 Repeating Things</a>
-</h3>
-
-<p>
-Being able to match varying sets of characters is the first thing
-regular expressions can do that isn't already possible with the
-methods available on strings.  However, if that was the only
-additional capability of regexes, they wouldn't be much of an advance.
-Another capability is that you can specify that portions of the RE
-must be repeated a certain number of times.
-
-</p><p>
-The first metacharacter for repeating things that we'll look at is
-<tt class="regexp">*</tt>.  <tt class="regexp">*</tt> doesn't match the literal character "<tt class="samp">*</tt>";
-instead, it specifies that the previous character can be matched zero
-or more times, instead of exactly once.
-
-</p><p>
-For example, <tt class="regexp">ca*t</tt> will match "<tt class="samp">ct</tt>" (0 "<tt class="samp">a</tt>"characters), "<tt class="samp">cat</tt>" (1 "<tt class="samp">a</tt>"), "<tt class="samp">caaat</tt>" (3 "<tt class="samp">a</tt>"characters), and so forth.  The RE engine has various internal
-limitations stemming from the size of C's <code>int</code> type, that will
-prevent it from matching over 2 billion "<tt class="samp">a</tt>" characters; you
-probably don't have enough memory to construct a string that large, so
-you shouldn't run into that limit.
-
-</p><p>
-Repetitions such as <tt class="regexp">*</tt> are <i class="dfn">greedy</i>; when repeating a RE,
-the matching engine will try to repeat it as many times as possible.
-If later portions of the pattern don't match, the matching engine will
-then back up and try again with few repetitions.
-
-</p><p>
-A step-by-step example will make this more obvious.  Let's consider
-the expression <tt class="regexp">a[bcd]*b</tt>.  This matches the letter
-"<tt class="character">a</tt>", zero or more letters from the class <code>[bcd]</code>, and
-finally ends with a "<tt class="character">b</tt>".  Now imagine matching this RE
-against the string "<tt class="samp">abcbd</tt>".  
-
-</p><p>
-<table style="border-collapse: collapse;" align="center" border="1">
-  <thead>
-    <tr class="tableheader">
-      <th align="center"><b>Step</b>&nbsp;</th>
-      <th align="left"><b>Matched</b>&nbsp;</th>
-      <th align="left"><b>Explanation</b>&nbsp;</th>
-      </tr>
-    </thead>
-  <tbody valign="baseline">
-    <tr><td align="center" valign="baseline">1</td>
-        <td align="left"><code>a</code></td>
-        <td align="left">The <tt class="regexp">a</tt> in the RE matches.</td>
-    </tr><tr><td align="center" valign="baseline">2</td>
-        <td align="left"><code>abcbd</code></td>
-        <td align="left">The engine matches <tt class="regexp">[bcd]*</tt>, going as far as
-it can, which is to the end of the string.</td>
-    </tr><tr><td align="center" valign="baseline">3</td>
-        <td align="left"><i>Failure</i></td>
-        <td align="left">The engine tries to match <tt class="regexp">b</tt>, but the
-current position is at the end of the string, so it fails.</td>
-    </tr><tr><td align="center" valign="baseline">4</td>
-        <td align="left"><code>abcb</code></td>
-        <td align="left">Back up, so that  <tt class="regexp">[bcd]*</tt> matches
-one less character.</td>
-    </tr><tr><td align="center" valign="baseline">5</td>
-        <td align="left"><i>Failure</i></td>
-        <td align="left">Try <tt class="regexp">b</tt> again, but the
-current position is at the last character, which is a "<tt class="character">d</tt>".</td>
-    </tr><tr><td align="center" valign="baseline">6</td>
-        <td align="left"><code>abc</code></td>
-        <td align="left">Back up again, so that  <tt class="regexp">[bcd]*</tt> is
-only matching "<tt class="samp">bc</tt>".</td>
-    </tr><tr><td align="center" valign="baseline">6</td>
-        <td align="left"><code>abcb</code></td>
-        <td align="left">Try <tt class="regexp">b</tt> again.  This time 
-but the character at the current position is "<tt class="character">b</tt>", so it succeeds.</td></tr></tbody>
-</table>
-
-</p><p>
-The end of the RE has now been reached, and it has matched
-"<tt class="samp">abcb</tt>".  This demonstrates how the matching engine goes as far as
-it can at first, and if no match is found it will then progressively
-back up and retry the rest of the RE again and again.  It will back up
-until it has tried zero matches for <tt class="regexp">[bcd]*</tt>, and if that
-subsequently fails, the engine will conclude that the string doesn't
-match the RE at all.
-
-</p><p>
-Another repeating metacharacter is <tt class="regexp">+</tt>, which matches one or
-more times.  Pay careful attention to the difference between
-<tt class="regexp">*</tt> and <tt class="regexp">+</tt>; <tt class="regexp">*</tt> matches <i>zero</i> or more
-times, so whatever's being repeated may not be present at all, while
-<tt class="regexp">+</tt> requires at least <i>one</i> occurrence.  To use a similar
-example, <tt class="regexp">ca+t</tt> will match "<tt class="samp">cat</tt>" (1 "<tt class="samp">a</tt>"),
-"<tt class="samp">caaat</tt>" (3 "<tt class="samp">a</tt>"'s), but won't match "<tt class="samp">ct</tt>".
-
-</p><p>
-There are two more repeating qualifiers.  The question mark character,
-<tt class="regexp">?</tt>, matches either once or zero times; you can think of it as
-marking something as being optional.  For example, <tt class="regexp">home-?brew</tt>
-matches either "<tt class="samp">homebrew</tt>" or "<tt class="samp">home-brew</tt>".  
-
-</p><p>
-The most complicated repeated qualifier is
-<tt class="regexp">{<var>m</var>,<var>n</var>}</tt>, where <var>m</var> and <var>n</var> are decimal
-integers.  This qualifier means there must be at least <var>m</var>
-repetitions, and at most <var>n</var>.  For example, <tt class="regexp">a/{1,3}b</tt>
-will match "<tt class="samp">a/b</tt>", "<tt class="samp">a//b</tt>", and "<tt class="samp">a///b</tt>".  It won't match
-"<tt class="samp">ab</tt>", which has no slashes, or "<tt class="samp">a////b</tt>", which has four.
-
-</p><p>
-You can omit either <var>m</var> or <var>n</var>; in that case, a reasonable
-value is assumed for the missing value.  Omitting <var>m</var> is
-interpreted as a lower limit of 0, while omitting <var>n</var> results in  an
-upper bound of infinity -- actually, the 2 billion limit mentioned
-earlier, but that might as well be infinity.  
-
-</p><p>
-Readers of a reductionist bent may notice that the three other qualifiers
-can all be expressed using this notation.  <tt class="regexp">{0,}</tt> is the same
-as <tt class="regexp">*</tt>, <tt class="regexp">{1,}</tt> is equivalent to <tt class="regexp">+</tt>, and
-<tt class="regexp">{0,1}</tt> is the same as <tt class="regexp">?</tt>.  It's better to use
-<tt class="regexp">*</tt>, <tt class="regexp">+</tt>, or <tt class="regexp">?</tt> when you can, simply because
-they're shorter and easier to read.
-</p>
-
-<h2><a name="SECTION000320000000000000000">
-Acknowledgement</a>
-</h2>
-<p>To: <b><font size="+2">A.M. Kuchling</font></b></p>
-<p>This document consists of the introduction of his very good  document 'Regular Expression HOWTO'.
-(http://www.amk.ca/python/howto/regex/regex.html)</p>
-
-</body></html>
+  </body>
+</html>

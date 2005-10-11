@@ -199,7 +199,7 @@ class FacadeTest(unittest.TestCase):
         # TODO: detail test
         filter_facade = create_filter_facade(PROFILE_TEST)
         filter_facade.load(directory=PROFILE_DIR)
-        self.assertEquals(filter_facade._desc.document.get_pseudo().description, ".*")
+        self.assertEquals(filter_facade._desc.document.get_pseudo().description, "*")
 
 class HighLevelTest(unittest.TestCase):
 
