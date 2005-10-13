@@ -1,96 +1,22 @@
-# pylint: disable-msg=C0103
-#
+# pylint: disable-msg=W0131
+# Missing docstring
 """client server module for file sharing"""
+
+__revision__ = "$Id$"
 
 import datetime
 import threading
-import pickle
 import gettext
 _ = gettext.gettext
 
 from Queue import Queue, Empty
-from twisted.internet import defer
 
-from solipsis import VERSION
-from solipsis.util.network import parse_address
-from solipsis.services.profile.message import display_warning
-
-# messages
-MESSAGE_HELLO = "HELLO"
-MESSAGE_ERROR = "ERROR"
-MESSAGE_PROFILE = "REQUEST_PROFILE"
-MESSAGE_BLOG = "REQUEST_BLOG"
-MESSAGE_SHARED = "REQUEST_SHARED"
-MESSAGE_FILES = "REQUEST_FILES"
-
-SERVICES_MESSAGES = [MESSAGE_HELLO, MESSAGE_ERROR, MESSAGE_PROFILE,
-                     MESSAGE_BLOG, MESSAGE_SHARED, MESSAGE_FILES]
+from solipsis.services.profile.message import display_warning, display_status
+from solipsis.services.profile.protocols import Message, Peer, MESSAGE_HELLO, \
+     ProfileClientFactory, ProfileServerFactory
 
 class SecurityException(Exception):
     pass
-
-class Message(object):
-    """Simple wrapper for a communication message"""
-
-    def __init__(self, command):
-        if command not in SERVICES_MESSAGES:
-            raise ValueError("%s should be in %s"% (command, SERVICES_MESSAGES))
-        self.command = command
-        self.ip = None
-        self.port = None
-        self.data = None
-        # creation_time is used as reference when cleaning
-        self.creation_time = datetime.datetime.now()
-
-    def __str__(self):
-        return " ".join([self.command,
-                         "%s:%d"% (self.ip or "?",
-                                   self.port or -1),
-                         self.data or ''])
-
-    def create_message(message):
-        """extract command, address and data from message.
-        
-        Expected format: MESSAGE host:port data
-        returns Message instance"""
-        # 2 maximum splits: data may contain spaces
-        items = message.split(' ', 2)
-        if not len(items) >= 2:
-            raise ValueError("%s should define host's ip and port"% command)
-        message = Message(items[0])
-        message.ip, port = parse_address(items[1])
-        message.port = int(port)
-        # check data
-        if len(items) > 2:
-            message.data = items[2]
-        return message
-    create_message = staticmethod(create_message)
-
-class PeerState(object):
-    """trace messages received for this peer"""
-    
-    PEER_TIMEOUT = 120
-
-    def __init__(self, peer_id):
-        self.peer_id = peer_id
-        self.ip = None
-        self.lost = None
-
-    def lose(self):
-        self.lost = datetime.datetime.now() \
-                    + datetime.timedelta(seconds=self.PEER_TIMEOUT)
-
-    def connected(self):
-        pass
-
-    def received_data(self, data):
-        pass
-
-    def disconnected(self):
-        pass
-
-    def execute(self, manager, message):
-        pass
 
 class PeerManager(threading.Thread):
     """manage known ips (along with their ids) and timeouts"""
@@ -102,6 +28,7 @@ class PeerManager(threading.Thread):
         self.queue = Queue(-1) # infinite size
         self.remote_ips = {}   # {ip : peer}
         self.remote_ids = {}   # {id : peer}
+        self.warnings = {}     # potential hackers {id: nb_hack}
         self.running = True
         self.lock = threading.RLock()
 
@@ -123,28 +50,52 @@ class PeerManager(threading.Thread):
     def stop(self):
         self.queue.put(None)
 
-    def get_ip(self, peer_id):
-        return self.remote_ids[peer_id].ip
+    def assert_ip(self, remote_ip):
+        if self.remote_ips.has_key(remote_ip):
+            return True
+        else:
+            # security exception -> archive warning
+            if not remote_ip in self.warnings:
+                self.warnings[remote_ip] = 1
+                # first time warning occurs -> display_warning
+                display_warning("host %s had not registered"% remote_ip,
+                                title="security warning")
+            else:
+                self.warnings[remote_ip] += 1
+                # n time warning occurs -> display_status
+                display_status(_("%d retries of potential hacker %s "\
+                                 % (self.warnings[remote_ip],
+                                    remote_ip)))
+            return False
+        
+    def assert_id(self, peer_id):
+        if self.remote_ids.has_key(peer_id):
+            return True
+        else:
+            display_warning(_("Your request on peer %s could not be granted "
+                              "since no connection is available %s "% peer_id),
+                            title=_("Download impossible"))
+            return False
 
-    def add_peer(self, peer_id, peer_ip):
+    def add_peer(self, peer_id):
         try:
             self.lock.acquire()
-            peer_state = PeerState(peer_id, peer_ip)
-            self.remote_ids[peer_id] = peer_state
-            self.remote_ips[peer_ip] = peer_state
+            peer = Peer(peer_id)
+            self.remote_ids[peer_id] = peer
+            self.remote_ips[peer_ip] = peer
         finally:
             self.lock.release()
 
-    def add_message(self, peer_state, message):
+    def add_message(self, peer, message):
         """Synchronized method called either from peer_manager thread
         or network thread"""
         try:
             self.lock.acquire()
             # check ip
-            if message.ip !=  peer_state.ip:
+            if message.ip !=  peer.ip:
                 raise SecurityException(
                     "two ip (msg=%s, cache=%s) for same peer (%s)"\
-                    (message.ip,  self.remote_ids[peer_id], peer_id))
+                    (message.ip,  self.remote_ids[peer.peer_id], peer.peer_id))
             # put message in queue
             self.queue.put(message)
         finally:
@@ -155,8 +106,8 @@ class PeerManager(threading.Thread):
         called from peer_manager thread."""
         try:
             self.lock.acquire()
-            for peer_id, peer_state in self.remote_ids.items():
-                if peer_state.lost and peer_state.lost < now:
+            for peer_id, peer in self.remote_ids.items():
+                if peer.lost and peer.lost < now:
                     self._del_peer(peer_id)
         finally:
             self.lock.release()
@@ -175,8 +126,6 @@ class NetworkManager:
     """high level class managing clients and servers for each peer"""
 
     def __init__(self, download_dlg=None):
-        from solipsis.services.profile.protocols import \
-             ProfileClientFactory, ProfileServerFactory
         self.download_dlg = download_dlg
         self.client = ProfileClientFactory(self)
         self.server = ProfileServerFactory(self)
@@ -185,9 +134,10 @@ class NetworkManager:
     # calls from plugin ##############################################
     def on_new_peer(self, peer):
         """tries to connect to new peer"""
+        self.peers.add_peer(peer.id_)
         from solipsis.services.profile.plugin import Plugin
         # declare known port to other peer throug service_api
-        message = server.wrap_message(MESSAGE_HELLO)
+        message = self.server.wrap_message(MESSAGE_HELLO)
         Plugin.service_api.SendData(peer.id_, str(message))
 
     def on_change_peer(self, peer, service):
@@ -221,136 +171,30 @@ class NetworkManager:
             self.download_dlg.update_file(file_name, size)
 
     # high level functions
-    def assert_peer(self, peer_id):
-        if self.peers.remote_ids.has_key(peer_id):
-            return True
-        else:
-            display_warning(_("Your request on peer %s could not be granted "
-                              "since no connection is available %s "% peer_id),
-                            title=_("Download impossible"))
-            return False
-        
     def get_profile(self, peer_id):
         """retreive peer's profile"""
-        if self.assert_peer(peer_id):
-            peer_state = self.peers.remote_ids[peer_id]
-            return self.client.get_profile(self.peers.remote_ids[peer_id])
+        if self.peers.assert_id(peer_id):
+            peer = self.peers.remote_ids[peer_id]
+            return peer.get_profile(self.client)
         #else: return None
 
     def get_blog_file(self, peer_id):
         """retreive peer's blog"""
-        if self.assert_peer(peer_id):
-            peer_state = self.peers.remote_ids[peer_id]
-            return self.client.get_blog(peer_state)
+        if self.peers.assert_id(peer_id):
+            peer = self.peers.remote_ids[peer_id]
+            return peer.get_blog(self.client)
         #else: return None
 
     def get_shared_files(self, peer_id):
         """retreive peer's shared list"""
-        if self.assert_peer(peer_id):
-            peer_state = self.peers.remote_ids[peer_id]
-            return self.client.get_shared_files(peer_state)
+        if self.peers.assert_id(peer_id):
+            peer = self.peers.remote_ids[peer_id]
+            return peer.get_shared_files(self.client)
         #else: return None
 
     def get_files(self, peer_id, file_descriptors, _on_all_files):
         """retreive file"""
-        self._on_all_files = _on_all_files
-        if self.assert_peer(peer_id):
-            peer_state = self.peers.remote_ids[peer_id]
-            return self.client.get_files(peer_state, file_descriptors,)
+        if self.peers.assert_id(peer_id):
+            peer = self.peers.remote_ids[peer_id]
+            return peer.get_files(self.client, file_descriptors, _on_all_files)
         #else: return None
-
-# custom deferred ####################################################
-class DeferredUpload(defer.Deferred):
-    """Deferred (from twisted.internet.defer) with information about
-    its status"""
-
-    def __init__(self, peer_id, message, manager, split_path=None, size=0):
-        defer.Deferred.__init__(self)
-        self.message = message
-        self.peer_id = peer_id
-        self.split_path = split_path
-        self.manager = manager
-        self.size = size
-        self.file = None
-        self.set_callbacks()
-
-    def get_message(self):
-        """format message to send to client according to file to be
-        uploaded"""
-        if self.message == MESSAGE_PROFILE:
-            self.file = tempfile.NamedTemporaryFile()
-            message = ASK_UPLOAD_PROFILE
-        elif self.message == MESSAGE_BLOG:
-            self.file = StringIO()
-            message = ASK_UPLOAD_BLOG
-        elif self.message == MESSAGE_SHARED:
-            self.file = StringIO()
-            message = ASK_UPLOAD_SHARED
-        elif self.message == MESSAGE_FILES:
-            # TODO: check place where to download and non overwriting
-            down_path = os.path.abspath(os.path.join(
-                get_prefs("download_repo"),
-                self.split_path[-1]))
-            self.file = open(down_path, "w+b")
-            self.manager.update_file(self.split_path, self.size)
-            message = "%s %s"% (ASK_UPLOAD_FILES,
-                                UNIVERSAL_SEP.join(self.split_path))
-        else:
-            print "%s not valid"% self.message
-            message = MESSAGE_ERROR
-        return message
-
-    def set_callbacks(self):
-        """add first callbacks"""
-        self.addCallback(self._first_callback)
-        if self.message == MESSAGE_PROFILE:
-            self.addCallback(self._on_complete_profile)
-        elif self.message == MESSAGE_BLOG:
-            self.addCallback(self._on_complete_pickle)
-        elif self.message == MESSAGE_SHARED:
-            self.addCallback(self._on_complete_pickle)
-        elif self.message == MESSAGE_FILES:
-            # callback added by factory
-            pass
-        else:
-            print "%s not valid"% self.message
-        self.addErrback(self._on_error)
-
-    def close(self):
-        """close file, clean upload"""
-        if self.file:
-            self.file.close()
-            self.file = None
-
-    def _first_callback(self, reason):
-        """call user's callback with proper file"""
-        if self.file:
-            self.file.seek(0)
-            return self.file
-
-    def _on_error(self, err):
-        """callback on exception"""
-        print "ERROR:", err
-        import traceback
-        traceback.print_exc()
-
-    # FIXME factorize with server
-    def _on_complete_profile(self, file_obj):
-        """callback when finished downloading profile"""
-        return read_document(file_obj)
-
-    # FIXME factorize with server
-    def _on_complete_pickle(self, file_obj):
-        """callback when finished downloading blog"""
-        obj_str = file_obj.getvalue()
-        if len(obj_str):
-            return pickle.loads(obj_str)
-        else:
-            print "no file"    
-
-    # FIXME factorize with server
-    def _on_complete_file(self, file_obj):
-        """callback when finished downloading file"""
-        # flag this one
-        return file_obj
-    

@@ -1,5 +1,5 @@
-# pylint: disable-msg=C0103
-#
+# pylint: disable-msg=W0131
+# Missing docstring
 """client server module for file sharing"""
 
 import socket
@@ -25,138 +25,222 @@ from solipsis.node.discovery import stun, local
 from solipsis.navigator.main import build_params
 from solipsis.util.network import parse_address, get_free_port, release_port
 from solipsis.services.profile import UNIVERSAL_SEP
-from solipsis.services.profile.network import Message
-from solipsis.services.profile.message import display_error, \
-     display_warning, display_status
 from solipsis.services.profile.prefs import get_prefs
 from solipsis.services.profile.document import read_document
 from solipsis.services.profile.facade import get_facade, get_filter_facade
+from solipsis.services.profile.message import display_error, \
+     display_warning, display_status
 
-# CLIENT #############################################################
-class ProfileClientProtocol(basic.LineReceiver):
-    """Intermediate client checking that a remote server exists."""
+# Messages ###########################################################
+MESSAGE_HELLO = "HELLO"
+MESSAGE_ERROR = "ERROR"
+MESSAGE_PROFILE = "REQUEST_PROFILE"
+MESSAGE_BLOG = "REQUEST_BLOG"
+MESSAGE_SHARED = "REQUEST_SHARED"
+MESSAGE_FILES = "REQUEST_FILES"
 
-    def __init__(self):
-        self.factory = None
-        self.size = 0
-        self.file = None
+SERVICES_MESSAGES = [MESSAGE_HELLO, MESSAGE_ERROR, MESSAGE_PROFILE,
+                     MESSAGE_BLOG, MESSAGE_SHARED, MESSAGE_FILES]
 
-    def lineReceived(self, line):
-        """incomming connection from other peer"""
-        print "Client Manager received from %s:"\
-              % self.transport.getPeer().host, line
-    
-    def rawDataReceived(self, data):
-        """specialised in Client/Server protocol"""
-        self.size += len(data)
-        self.factory.manager.update_download(self.size)
-        self.file.write(data)
+class Message(object):
+    """Simple wrapper for a communication message"""
+
+    def __init__(self, command):
+        if command not in SERVICES_MESSAGES:
+            raise ValueError("%s should be in %s"% (command, SERVICES_MESSAGES))
+        self.command = command
+        self.ip = None
+        self.port = None
+        self.data = None
+        # creation_time is used as reference when cleaning
+        self.creation_time = datetime.datetime.now()
+
+    def __str__(self):
+        return " ".join([self.command,
+                         "%s:%d"% (self.ip or "?",
+                                   self.port or -1),
+                         self.data or ''])
+
+    def create_message(message):
+        """extract command, address and data from message.
+        
+        Expected format: MESSAGE host:port data
+        returns Message instance"""
+        # 2 maximum splits: data may contain spaces
+        items = message.split(' ', 2)
+        if not len(items) >= 2:
+            raise ValueError("%s should define host's ip and port"% command)
+        message = Message(items[0])
+        message.ip, port = parse_address(items[1])
+        message.port = int(port)
+        # check data
+        if len(items) > 2:
+            message.data = items[2]
+        return message
+    create_message = staticmethod(create_message)
+
+class DownloadMessage(object):
+    """Simple wrapper to link connection, message sent and deferred to
+    be called when download complete"""
+
+    def __init__(self, transport, deferred, message):
+        self.transport = transport
+        self.deferred = deferred
+        self.message = message
+
+    def send_message(self):
+        self.transport.write(str(self.message)+"\r\n")
+
+# State pattern ######################################################
+#         # donwnload file
+#         elif line.startswith(MESSAGE_FILES):
+#             file_path = line[len(ASK_DOWNLOAD_FILES)+1:].strip()
+#             file_name = os.sep.join(file_path.split(UNIVERSAL_SEP))
+#             file_desc = get_facade().get_file_container(file_name)
+#             # check shared
+#             if file_desc._shared:
+#                 print "sending", file_name
+#                 deferred = basic.FileSender().\
+#                            beginFileTransfer(open(file_name), self.transport)
+#                 deferred.addCallback(lambda x: self.transport.loseConnection())
+#             else:
+#                 print "permission denied"
+#         # donwnload blog
+#         elif line == MESSAGE_BLOG:
+#             blog_stream = get_facade().get_blog_file()
+#             deferred = basic.FileSender().\
+#                        beginFileTransfer(blog_stream, self.transport)
+#             deferred.addCallback(lambda x: self.transport.loseConnection())
+#         # donwnload list of shared files
+#         elif line == MESSAGE_SHARED:
+#             files_stream = get_facade().get_shared_files()
+#             print "Sending", files_stream
+#             deferred = basic.FileSender().beginFileTransfer(files_stream,
+#                                                             self.transport)
+#             deferred.addCallback(lambda x: self.transport.loseConnection())
+#         # donwnload profile
+#         elif line == MESSAGE_PROFILE:
+#             file_obj = get_facade()._desc.document.to_stream()
+#             deferred = basic.FileSender().\
+#                        beginFileTransfer(file_obj, self.transport)
+#             deferred.addCallback(lambda x: self.transport.loseConnection())
+        
+#         if self.factory.download.startswith(ASK_DOWNLOAD_FILES):
+#             if self.factory.files:
+#                 self.setRawMode()
+#                 # TODO: check place where to download and non overwriting
+#                 # create file
+#                 file_path, size = self.factory.files.pop()
+#                 self.factory.manager.update_file(file_path[-1], size)
+#                 down_path = os.path.abspath(os.path.join(
+#                     get_prefs("download_repo"),
+#                     file_path[-1]))
+#                 print "loading into", down_path
+#                 self.file = open(down_path, "w+b")
+#                 self.sendLine("%s %s"% (self.factory.download,
+#                                         UNIVERSAL_SEP.join(file_path)))
+#             else:
+#                 self.factory.manager._on_all_files()
+#         elif self.factory.download.startswith(ASK_DOWNLOAD_BLOG)\
+#                  or self.factory.download.startswith(ASK_DOWNLOAD_SHARED):
+#             self.setRawMode()
+#             self.file = StringIO()
+#             self.sendLine(self.factory.download)
+#         elif self.factory.download.startswith(ASK_DOWNLOAD_PROFILE):
+#             self.setRawMode()
+#             self.file = tempfile.NamedTemporaryFile()
+#             self.sendLine(self.factory.download)
+#         elif self.factory.download.startswith(ASK_UPLOAD):
+#             self.file = None
+#             self.setLineMode()
+#             self.sendLine(self.factory.download)
+#         else:
+#             print "unexpected command %s"% self.factory.download
             
-    def rawDataReceived(self, data):
-        """called upon upload of a file, when server acting as a client"""
-        remote_ip = self.transport.getPeer().host
-        peers_state = self.factory.network.peers.remote_ips[remote_ip]
-        peers_state.received_data(data)
+class Peer(object):
+    """trace messages received for this peer"""
+    
+    PEER_TIMEOUT = 120
 
-    def sendLine(self, line):
-        """overrides in order to ease debug"""
-        print "Client manager sending:", line
-        assert isinstance(line, str), "%s must be a string"% line
-        basic.LineReceiver.sendLine(self, line)
+    def __init__(self, peer_id):
+        self.peer_id = peer_id
+        self.lost = None
+        # states
+        registered_state = PeerRegistered(self)
+        connected_state = PeerConnected(self)
+        disconnected_state = PeerDisconnected(self)
+        current_sate = None
+        # vars set by states
+        self.ip = None
+        self.port = None
+        self.downloads = {}
+
+    # client side ####################################################
+    def wrap_message(self, command, data=None):
+        message = Message(command)
+        message.ip = self.ip
+        message.port = self.port
+        message.data = data
+        return message
         
-    def connectionMade(self):
-        """a peer has connected to us"""
-        # check ip
-        remote_host  = self.transport.getPeer().host
-        assert remote_host == self.factory.remote_ip, \
-               "UNAUTHORIZED %s"% remote_host        # check action to be made
-        if self.factory.download.startswith(ASK_DOWNLOAD_FILES):
-            if self.factory.files:
-                self.setRawMode()
-                # TODO: check place where to download and non overwriting
-                # create file
-                file_path, size = self.factory.files.pop()
-                self.factory.manager.update_file(file_path[-1], size)
-                down_path = os.path.abspath(os.path.join(
-                    get_prefs("download_repo"),
-                    file_path[-1]))
-                print "loading into", down_path
-                self.file = open(down_path, "w+b")
-                self.sendLine("%s %s"% (self.factory.download,
-                                        UNIVERSAL_SEP.join(file_path)))
-            else:
-                self.factory.manager._on_all_files()
-        elif self.factory.download.startswith(ASK_DOWNLOAD_BLOG)\
-                 or self.factory.download.startswith(ASK_DOWNLOAD_SHARED):
-            self.setRawMode()
-            self.file = StringIO()
-            self.sendLine(self.factory.download)
-        elif self.factory.download.startswith(ASK_DOWNLOAD_PROFILE):
-            self.setRawMode()
-            self.file = tempfile.NamedTemporaryFile()
-            self.sendLine(self.factory.download)
-        elif self.factory.download.startswith(ASK_UPLOAD):
-            self.file = None
-            self.setLineMode()
-            self.sendLine(self.factory.download)
+    def get_profile(self, client):
+        """download peer profile using self.get_file. Automatically
+        called on client creation"""
+        return self._connect_client(client, MESSAGE_PROFILE)
+            
+    def get_blog_file(self, client):
+        """donload blog file using self.get_file"""
+        return self._connect_client(client, MESSAGE_BLOG)
+            
+    def get_shared_files(self, client):
+        """donload blog file using self.get_file"""
+        return self._connect_client(client, MESSAGE_SHARED)
+            
+    def get_files(self, client, file_descriptors):
+        """download given list of file"""
+        return self._connect_client(client, MESSAGE_FILES, file_descriptors)
+
+    def _fail_client(self, connector, reason):
+        download = self.downloads[id(connector.transport)]
+        pass
+
+    def _connect_client(self, client, command, data=None):
+        # set download information
+        message = self.wrap_message(command, data)
+        connector =  client.connect(self)
+        deferred = defer.Deferred()
+        download = DownloadMessage(connector.transport, deferred, message)
+        self.downloads[id(connector.transport)] = download
+        # set callback
+        if command == MESSAGE_HELLO:
+            deferred.addCallback(self._on_hello)
+        if command == MESSAGE_PROFILE:
+            deferred.addCallback(self._on_complete_profile)
+        elif command == MESSAGE_BLOG:
+            deferred.addCallback(self._on_complete_pickle)
+        elif command == MESSAGE_SHARED:
+            deferred.addCallback(self._on_complete_pickle)
+        elif command == MESSAGE_FILES:
+            deferred.addCallback(self._on_complete_file)
         else:
-            print "unexpected command %s"% self.factory.download
+            raise ValueError("ERROR in add_client: %s not valid"% command)
+        return deferred
 
-    def connectionLost(self, reason):
-        """called when transfer complete"""
-        PeerProtocol.connectionLost(self, reason)
-        if self.file:
-            self.file.seek(0)
-            self.factory.deferred.callback(self.file)
-            self.file.close()
-            self.file = None
-        #else: was an upload, no file opened
-        
-class ProfileClientFactory(ClientFactory):
-    """client connecting on known port thanks to TCP. call UDP on failure."""
+    def _on_connected(self, transport):
+        download = self.downloads[id(transport)]
+        download.send_message()
+        self.file = tempfile.NamedTemporaryFile()
+        pass
 
-    protocol = ProfileClientProtocol
+    def _on_disconnected(self, transport):
+        download = self.downloads[id(transport)]
+        pass
 
-    def __init__(self, manager):
-        # service api (UDP transports)
-        self.manager = manager
-        self.remote_ip = remote_ip
-        self.remote_port  = None
-        self.peer_id = None
-        # flag download/upload
-        self.connector = None
-        self.download = None
-        self.deferred = None
-        self.files = []
-
-    def connect(self):
-        """connect to remote server"""
-        if self.remote_port:
-            self.deferred = defer.Deferred()
-            self.connector = reactor.connectTCP(self.remote_ip,
-                                                self.remote_port, self)
-            return self.deferred
-        return False
-
-    def disconnect(self):
-        """close connection with server"""
-        if self.connector:
-            self.connector.disconnect()
-            self.connector = None
-            self.download = None
-            self.files = []
-
-    def clientConnectionFailed(self, connector, reason):
-        """Called when a connection has failed to connect."""
-        # clean dictionaries of client/server in upper lever
-        self.disconnect()
-        self.manager.client.lose_dedicated_client(self.remote_ip)
-
-    def _on_profile_complete(self, document, peer_id):
+    def _on_hello(self, file_obj):
         """callback when autoloading of profile successful"""
-        get_facade().set_data(peer_id, document, flag_update=False)
-        get_facade().set_connected(peer_id, True)
-        get_filter_facade().fill_data(peer_id, document)
+        get_facade().set_data(self.peer_id, document, flag_update=False)
+        get_facade().set_connected(self.peer_id, True)
+        get_filter_facade().fill_data(self.peer_id, document)
         
     def _on_complete_profile(self, file_obj):
         """callback when finished downloading profile"""
@@ -168,9 +252,10 @@ class ProfileClientFactory(ClientFactory):
             obj_str = file_obj.getvalue()
             return pickle.loads(obj_str)
         except Exception, err:
-            display_error(_("Your version of Solipsis is not compatible with the one "
-                            "of the peer you wish to download from. "
-                            "Make sure you both use the latest (%s)"% VERSION),
+            display_error(_("Your version of Solipsis is not compatible "
+                            "with the peer'sone you wish to download from "
+                            "Make sure you both use the latest (%s)"\
+                            % VERSION),
                           title="Download error", error=err)
 
     def _on_complete_file(self, file_obj):
@@ -179,110 +264,160 @@ class ProfileClientFactory(ClientFactory):
         self.connect().addCallback(self._on_complete_file)
         # flag this one
         return file_obj.name
+
+    # server side ####################################################
+    def lose(self):
+        self.lost = datetime.datetime.now() \
+                    + datetime.timedelta(seconds=self.PEER_TIMEOUT)
+
+    def connected(self, protocol):
+        self.current_sate.connected(protocol)
+    def disconnected(self):
+        self.current_sate.disconnected()
+    def execute(self, manager, message):
+        self.current_sate.execute()
+    def received_data(self, data):
+        self.current_sate.received_data()
+    
+class PeerState(object):
+    """trace messages received for this peer"""
+
+    def __init__(self, peer):
+        self.peer = peer
         
-    def get_profile(self):
-        """download peer profile using self.get_file. Automatically
-        called on client creation"""
-        self.download = ASK_DOWNLOAD_PROFILE
-        return self.connect().addCallback(self._on_complete_profile)
-            
-    def get_blog_file(self):
-        """donload blog file using self.get_file"""
-        self.download = ASK_DOWNLOAD_BLOG
-        return self.connect().addCallback(self._on_complete_pickle)
-            
-    def get_shared_files(self):
-        """donload blog file using self.get_file"""
-        self.download = ASK_DOWNLOAD_SHARED
-        return self.connect().addCallback(self._on_complete_pickle)
-            
-    def get_files(self, file_descriptors):
-        """download given list of file"""
-        for split_path, size in file_descriptors:
-            self.files.append((split_path, size))
-        self.download = ASK_DOWNLOAD_FILES
-        return self.connect().addCallback(self._on_complete_file)
+    def connected(self, protocol):
+        raise NotImplementedError
+    def disconnected(self):
+        raise NotImplementedError
+    def execute(self, manager, message):
+        raise NotImplementedError
+    def received_data(self, data):
+        raise NotImplementedError
+    
+class PeerRegistered(PeerState):
+    """trace messages received for this peer"""
+
+    def connected(self, protocol):
+        pass
+
+    def disconnected(self):
+        pass
+
+    def execute(self, manager, message):
+        pass
+    
+    def received_data(self, data):
+        pass
+    
+class PeerConnected(PeerState):
+    """trace messages received for this peer"""
+
+    def connected(self, protocol):
+        pass
+
+    def disconnected(self):
+        pass
+
+    def execute(self, manager, message):
+        pass
+    
+    def received_data(self, data):
+        pass
+    
+class PeerDisconnected(PeerState):
+    """trace messages received for this peer"""
+
+    def connected(self, protocol):
+        pass
+
+    def disconnected(self):
+        pass
+
+    def execute(self, manager, message):
+        pass
+    
+    def received_data(self, data):
+        pass
+    
+# Client #############################################################
+class ProfileClientProtocol(basic.LineReceiver):
+    """Intermediate client checking that a remote server exists."""
+
+    def __init__(self):
+        self.size = 0
+        self.file = None
+        
+    def connectionMade(self):
+        """a peer has connected to us"""
+        remote_ip = self.transport.getPeer().host
+        if not self.factory.network.peers.assert_ip(remote_ip):
+            self.transport.loseConnection()
+        else:
+            peer = self.factory.network.peers.remote_ips[remote_ip]
+            self.setRawMode()
+            peer._on_connected(self.transport)
+
+    def connectionLost(self, reason):
+        """called when transfer complete"""
+        remote_ip = self.transport.getPeer().host
+        peer = self.factory.network.peers.remote_ips[remote_ip]
+        peer._on_disconnected(self.transport)
+
+        
+class ProfileClientFactory(ClientFactory):
+    """client connecting on known port thanks to TCP. call UDP on failure."""
+
+    protocol = ProfileClientProtocol
+
+    def __init__(self, *args, **kwargs):
+        ClientFactory.__init__(self, *args, **kwargs)
+        self.transports = {}
+
+    def connect(self, peer):
+        """connect to remote server"""
+        
+        connector = reactor.connectTCP(self.peer.ip,
+                                       self.peer.port,
+                                       self)
+        self.transports[id(connector.transport)] = peer
+        return connector
+
+    def clientConnectionFailed(self, connector, reason):
+        """Called when a connection has failed to connect."""
+        peer = self.transports[id(connector.transport)]
+        peer._fail_client(connector, reason)
     
 # SERVER #############################################################
 class ProfileServerProtocol(basic.LineReceiver):
 
-    def __init__(self, *args, **kwargs):
-        basic.LineReceiver.__init__(self, *args, **kwargs)
-        self.peer_sate = None
+    def sendMessage(self, command, data=None):
+        message = self.factory._wrap_message(command, data)
+        self.sendLine(str(message))
 
     def lineReceived(self, line):
         """incomming connection from other peer"""
         if line == "ping":
             self.sendLine("pong")
-            return
         else:
             message = Message.create_message(line)
-            self.factory.network.add_message(self.peer_state,
-                                             message)
-        # donwnload file
-        elif line.startswith(MESSAGE_FILES):
-            file_path = line[len(ASK_DOWNLOAD_FILES)+1:].strip()
-            file_name = os.sep.join(file_path.split(UNIVERSAL_SEP))
-            file_desc = get_facade().get_file_container(file_name)
-            # check shared
-            if file_desc._shared:
-                print "sending", file_name
-                deferred = basic.FileSender().\
-                           beginFileTransfer(open(file_name), self.transport)
-                deferred.addCallback(lambda x: self.transport.loseConnection())
-            else:
-                print "permission denied"
-        # donwnload blog
-        elif line == MESSAGE_BLOG:
-            blog_stream = get_facade().get_blog_file()
-            deferred = basic.FileSender().\
-                       beginFileTransfer(blog_stream, self.transport)
-            deferred.addCallback(lambda x: self.transport.loseConnection())
-        # donwnload list of shared files
-        elif line == ASK_DOWNLOAD_SHARED:
-            files_stream = get_facade().get_shared_files()
-            print "Sending", files_stream
-            deferred = basic.FileSender().beginFileTransfer(files_stream,
-                                                            self.transport)
-            deferred.addCallback(lambda x: self.transport.loseConnection())
-        # donwnload profile
-        elif line == ASK_DOWNLOAD_PROFILE:
-            file_obj = get_facade()._desc.document.to_stream()
-            deferred = basic.FileSender().\
-                       beginFileTransfer(file_obj, self.transport)
-            deferred.addCallback(lambda x: self.transport.loseConnection())
-        elif line == ASK_UPLOAD:
-            self.setRawMode()
-            remote_host = self.transport.getPeer().host
-            deferred = self.factory.deferreds[remote_host]
-            self.sendLine(deferred.get_message())
-        else:
-            print "unexpected line", line
+            self.factory.network.add_message(message)
             
     def connectionMade(self):
         """a peer has connect to us"""
         remote_ip = self.transport.getPeer().host
-        peers_ip = self.factory.network.peers.remote_ips
-        if not peers_ip.has_key(remote_ip):
+        if not self.factory.network.peers.assert_ip(remote_ip):
             self.transport.loseConnection()
-            if not remote_ip in self.factory.warnings:
-                self.factory.warnings[remote_ip] = 1
-                display_warning("host %s had not registered"% remote_ip,
-                                title="security warning")
-            else:
-                self.factory.warnings[remote_ip] += 1
-                display_status(_("%d retries of potential hacker %s "\
-                                 % (self.factory.warnings[remote_ip],
-                                    remote_ip)))
         else:
             display_status(_("%s has connected"% remote_ip))
-            self.peer_state = peers_ip[remote_ip]
-            self.peer_state.connected()
+            peer_ips = self.factory.network.peers.remote_ips
+            peer_ips[remote_ip].connected(self)
         
     def connectionLost(self, reason):
         """called when transfer complete"""
-        display_status(_("%s disconnected"% self.peer_state.ip))
-        self.peer_state.disconnected()
+        remote_ip = self.transport.getPeer().host
+        display_status(_("%s disconnected"% remote_ip))
+        peer_ips = self.factory.network.peers.remote_ips
+        peer_ips[remote_ip].disconnected()
 
 class ProfileServerFactory(ServerFactory):
     """server listening on known port. It will spawn a dedicated
@@ -296,17 +431,9 @@ class ProfileServerFactory(ServerFactory):
         # followings initialised when server started
         self.local_port = None
         self.listener = None
-        self.warnings = {}    # dictionary of potential hackers 
         # followings are set by STUN response
         self.public_ip = None
         self.public_port = None
-
-    def wrap_message(self, command, data=None):
-        message = Message(command)
-        message.ip = self.public_ip
-        message.port = self.public_port
-        message.data = data
-        return message
 
     def start_listening(self, conf_file=None):
         """launch well-known server of profiles"""
@@ -337,3 +464,10 @@ class ProfileServerFactory(ServerFactory):
         """shutdown well-known server"""
         self.listener.stopListening()
         release_port(self.local_port)
+
+    def _wrap_message(self, command, data=None):
+        message = Message(command)
+        message.ip = self.public_ip
+        message.port = self.public_port
+        message.data = data
+        return message

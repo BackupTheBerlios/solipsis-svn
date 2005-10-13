@@ -9,7 +9,8 @@ __revision__ = "$Id$"
 import unittest
 import time
 
-from solipsis.services.profile.network import Message, PeerManager
+from solipsis.services.profile.protocols import Message
+from solipsis.services.profile.network import PeerManager
 
 class NetworkTest(unittest.TestCase):
 
