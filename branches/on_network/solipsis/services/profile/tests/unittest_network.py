@@ -9,10 +9,34 @@ __revision__ = "$Id$"
 import unittest
 import time
 
-from solipsis.services.profile.protocols import Message
-from solipsis.services.profile.network import PeerManager
+from solipsis.node.peer import Peer
+from solipsis.services.profile.network import Message, \
+     NetworkManager, PeerManager
 
-class NetworkTest(unittest.TestCase):
+class BaseTest(unittest.TestCase):
+
+    def assert_no_peer(self):
+        self.assertEquals(False, self.manager.assert_id("toto"))
+        self.assertEquals(False, self.manager.assert_ip("127.0.0.1"))
+
+    def assert_new_peer(self):
+        self.assertEquals(True, self.manager.assert_id("toto"))
+        self.assertEquals(False, self.manager.assert_ip("127.0.0.1"))
+        self.assertEquals(None, self.manager.remote_ids["toto"].ip)
+        self.assertEquals(None, self.manager.remote_ids["toto"].port)
+        self.assertEquals(None, self.manager.remote_ids["toto"].lost)
+
+    def assert_peer(self):
+        self.assertEquals(True, self.manager.assert_id("toto"))
+        self.assertEquals(True, self.manager.assert_ip("127.0.0.1"))
+        self.assertEquals("127.0.0.1", self.manager.remote_ids["toto"].ip)
+        self.assertEquals(23501, self.manager.remote_ids["toto"].port)
+
+    def assert_peer_lost(self):
+        self.assert_peer()
+        self.assertNotEquals(None, self.manager.remote_ids["toto"].lost)
+
+class PeerTest(BaseTest):
 
     def setUp(self):
         # create manager with small timeout (not to slow down test)
@@ -20,7 +44,6 @@ class NetworkTest(unittest.TestCase):
         self.manager.CHECKING_FREQUENCY = 0.3
         self.manager.start()
         # create default message
-        # create message
         self.message =  Message.create_message(
             "HELLO 127.0.0.1:23501 data youpi")
 
@@ -42,36 +65,66 @@ class NetworkTest(unittest.TestCase):
         self.assertEquals("HELLO 127.0.0.1:23501 data youpi", str(self.message))
 
     def test_add_manager(self):
-        self.manager.add_message("toto", self.message)
-        self.assertEquals("127.0.0.1", self.manager.remote_ids["toto"].ip)
-        self.assertEquals("toto", self.manager.remote_ips["127.0.0.1"].peer_id)
-        self.assertEquals("127.0.0.1", self.manager.get_ip("toto"))
+        self.assert_no_peer()
+        self.manager.add_peer("toto")
+        self.manager.set_peer("toto", self.message)
+        self.assert_peer()
         self.assertEquals(self.manager.remote_ids["toto"],
                           self.manager.remote_ips["127.0.0.1"])
 
     def test_del_manager(self):
-        self.manager.add_message("toto", self.message)
-        self.assertEquals("127.0.0.1", self.manager.remote_ids["toto"].ip)
-        self.assertEquals("toto", self.manager.remote_ips["127.0.0.1"].peer_id)
+        self.manager.add_peer("toto")
+        self.manager.set_peer("toto", self.message)
         time.sleep(0.1)
         self.manager._del_peer("toto")
-        self.assertEquals(False, self.manager.remote_ids.has_key("toto"))
-        self.assertEquals(False, self.manager.remote_ips.has_key("127.0.0.1"))
+        self.assert_no_peer()
 
     def test_lose_manager(self):
         # add peer
-        self.manager.add_message("toto", self.message)
-        self.assertEquals(None, self.manager.remote_ids["toto"].lost)
+        self.manager.add_peer("toto")
+        self.manager.set_peer("toto", self.message)
         # reduce timeout in order not to slow down test
-        self.manager.remote_ids["toto"].PEER_TIMEOUT = 1
-        # loose peer. it should be deleted after PEER_TIMEOUT (3s)
+        self.manager.remote_ids["toto"].PEER_TIMEOUT = 0.7
+        # loose peer. it should be deleted after PEER_TIMEOUT
         self.manager.remote_ids["toto"].lose()
-        self.assertNotEquals(None, self.manager.remote_ids["toto"].lost)
-        self.assertEquals("127.0.0.1", self.manager.remote_ids["toto"].ip)
-        self.assertEquals("toto", self.manager.remote_ips["127.0.0.1"].peer_id)
+        self.assert_peer_lost()
         time.sleep(1.3)
-        self.assertEquals(False, self.manager.remote_ids.has_key("toto"))
-        self.assertEquals(False, self.manager.remote_ips.has_key("127.0.0.1"))
+        self.assert_no_peer()
+
+class NetworkTest(BaseTest):
+
+    def setUp(self):
+        # create manager with small timeout (not to slow down test)
+        self.network = NetworkManager()
+        self.manager = self.network.peers
+        self.manager.CHECKING_FREQUENCY = 0.3
+
+    def tearDown(self):
+        # stop manager
+        self.network.stop()
+        
+    def test_network_manager(self):
+        peer = Peer("toto")
+        self.assert_no_peer()
+        # add peer
+        self.network.on_new_peer(peer)
+        self.assert_new_peer()
+        # set peer information
+        self.network.on_service_data("toto",
+                                     "HELLO 127.0.0.1:23501 data youpi")
+        self.assert_peer()
+        # change peer
+        self.network.on_change_peer(peer, "profile")
+        self.assert_new_peer()
+        self.network.on_service_data("toto",
+                                     "HELLO 127.0.0.1:23501 data youpi")
+        self.assert_peer()
+        # lose peer
+        self.manager.remote_ids["toto"].PEER_TIMEOUT = 0.7
+        self.network.on_lost_peer("toto")
+        self.assert_peer_lost()
+        time.sleep(1.3)
+        self.assert_no_peer()
     
 if __name__ == "__main__":
     unittest.main()

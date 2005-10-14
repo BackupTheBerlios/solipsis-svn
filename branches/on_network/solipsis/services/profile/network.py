@@ -11,12 +11,95 @@ _ = gettext.gettext
 
 from Queue import Queue, Empty
 
+from solipsis.util.network import parse_address
 from solipsis.services.profile.message import display_warning, display_status
-from solipsis.services.profile.protocols import Message, Peer, MESSAGE_HELLO, \
-     ProfileClientFactory, ProfileServerFactory
+
 
 class SecurityException(Exception):
     pass
+
+# Messages ###########################################################
+MESSAGE_HELLO = "HELLO"
+MESSAGE_ERROR = "ERROR"
+MESSAGE_PROFILE = "REQUEST_PROFILE"
+MESSAGE_BLOG = "REQUEST_BLOG"
+MESSAGE_SHARED = "REQUEST_SHARED"
+MESSAGE_FILES = "REQUEST_FILES"
+
+SERVICES_MESSAGES = [MESSAGE_HELLO, MESSAGE_ERROR, MESSAGE_PROFILE,
+                     MESSAGE_BLOG, MESSAGE_SHARED, MESSAGE_FILES]
+
+class Message(object):
+    """Simple wrapper for a communication message"""
+
+    def __init__(self, command):
+        if command not in SERVICES_MESSAGES:
+            raise ValueError("%s should be in %s"% (command, SERVICES_MESSAGES))
+        self.command = command
+        self.ip = None
+        self.port = None
+        self.data = None
+        # creation_time is used as reference when cleaning
+        self.creation_time = datetime.datetime.now()
+
+    def __str__(self):
+        return " ".join([self.command,
+                         "%s:%d"% (self.ip or "?",
+                                   self.port or -1),
+                         self.data or ''])
+
+    def create_message(message):
+        """extract command, address and data from message.
+        
+        Expected format: MESSAGE host:port data
+        returns Message instance"""
+        # 2 maximum splits: data may contain spaces
+        items = message.split(' ', 2)
+        if not len(items) >= 2:
+            raise ValueError("%s should define command & host's address"\
+                             % message)
+        message = Message(items[0])
+        message.ip, port = parse_address(items[1])
+        message.port = int(port)
+        # check data
+        if len(items) > 2:
+            message.data = items[2]
+        return message
+    create_message = staticmethod(create_message)
+
+class DownloadMessage(object):
+    """Simple wrapper to link connection, message sent and deferred to
+    be called when download complete"""
+
+    def __init__(self, transport, deferred, message):
+        self.transport = transport
+        self.deferred = deferred
+        self.message = message
+
+    def send_message(self):
+        self.transport.write(str(self.message)+"\r\n")
+            
+# peers ##############################################################
+class Peer(object):
+    """contain 'static' information about a peer: its is, ip, port..."""
+    
+    PEER_TIMEOUT = 120
+
+    def __init__(self, peer_id):
+        self.peer_id = peer_id
+        self.lost = None
+        # protocols
+#         from solipsis.services.profile.client_protocol import PeerClient
+#         from solipsis.services.profile.server_protocol import PeerServer
+#         self.client = PeerClient(self)
+#         self.server = PeerServer(self)
+        # vars set UDP message
+        self.ip = None
+        self.port = None
+
+    def lose(self):
+        self.lost = datetime.datetime.now() \
+                    + datetime.timedelta(seconds=self.PEER_TIMEOUT)
 
 class PeerManager(threading.Thread):
     """manage known ips (along with their ids) and timeouts"""
@@ -40,7 +123,11 @@ class PeerManager(threading.Thread):
                 if message is None:
                     self.running = False
                 else:
-                    self.remote_ips[message.ip].execute(self, message)
+                    if message.ip in self.remote_ips:
+                        self.remote_ips[message.ip].execute(self, message)
+                    else:
+                        display_status(_("message '%s' out of date. Peer is gone"% \
+                                         str(message)))
                     self._check_peers(datetime.datetime.now())
             except Empty:
                 # Empty exception is expected when no message received
@@ -72,9 +159,18 @@ class PeerManager(threading.Thread):
         if self.remote_ids.has_key(peer_id):
             return True
         else:
-            display_warning(_("Your request on peer %s could not be granted "
-                              "since no connection is available %s "% peer_id),
-                            title=_("Download impossible"))
+            # security exception -> archive warning
+            if not peer_id in self.warnings:
+                self.warnings[peer_id] = 1
+                # first time warning occurs -> display_warning
+                display_warning("peer %s had not registered"% peer_id,
+                                title="security warning")
+            else:
+                self.warnings[peer_id] += 1
+                # n time warning occurs -> display_status
+                display_status(_("%d retries of potential hacker %s "\
+                                 % (self.warnings[peer_id],
+                                    peer_id)))
             return False
 
     def add_peer(self, peer_id):
@@ -82,7 +178,16 @@ class PeerManager(threading.Thread):
             self.lock.acquire()
             peer = Peer(peer_id)
             self.remote_ids[peer_id] = peer
-            self.remote_ips[peer_ip] = peer
+        finally:
+            self.lock.release()
+
+    def set_peer(self, peer_id, message):
+        try:
+            self.lock.acquire()
+            peer = self.remote_ids[peer_id]
+            self.remote_ips[message.ip] = peer
+            peer.ip = message.ip
+            peer.port = message.port
         finally:
             self.lock.release()
 
@@ -122,28 +227,38 @@ class PeerManager(threading.Thread):
         finally:
             self.lock.release()
 
+# network interface ##################################################
 class NetworkManager:
     """high level class managing clients and servers for each peer"""
 
     def __init__(self, download_dlg=None):
-        self.download_dlg = download_dlg
+        from solipsis.services.profile.client_protocol \
+             import ProfileClientFactory
+        from solipsis.services.profile.server_protocol \
+             import ProfileServerFactory
         self.client = ProfileClientFactory(self)
         self.server = ProfileServerFactory(self)
+        self.download_dlg = download_dlg
         self.peers = PeerManager()
+        self.peers.start()
+
+    def stop(self):
+        self.peers.stop()
 
     # calls from plugin ##############################################
     def on_new_peer(self, peer):
         """tries to connect to new peer"""
         self.peers.add_peer(peer.id_)
-        from solipsis.services.profile.plugin import Plugin
         # declare known port to other peer throug service_api
-        message = self.server.wrap_message(MESSAGE_HELLO)
-        Plugin.service_api.SendData(peer.id_, str(message))
+        from solipsis.services.profile.plugin import Plugin
+        message = self.server._wrap_message(MESSAGE_HELLO)
+        if Plugin.service_api:
+            Plugin.service_api.SendData(peer.id_, str(message))
 
     def on_change_peer(self, peer, service):
         """tries to connect to new peer"""
         if self.peers.remote_ids.has_key(peer.id_):
-            self.peers.remote_ids[peer.id_].lose()
+            self.peers._del_peer(peer.id_)
         self.on_new_peer(peer)
 
     def on_lost_peer(self, peer_id):
@@ -154,9 +269,14 @@ class NetworkManager:
     def on_service_data(self, peer_id, message):
         """demand to establish connection from peer that failed to
         connect through TCP"""
-        message = Message.create_message(message)
-        self.peers.add_message(peer_id, message)
-
+        if self.peers.assert_id(peer_id):
+            message = Message.create_message(message)
+            if message.command != MESSAGE_HELLO:
+                display_status("unexpected message '%s' from %s"\
+                               % (str(message), peer_id))
+            else:
+                self.peers.set_peer(peer_id, message)
+            
     # dialog processus ###############################################
     def update_download(self, size):
         """available to wx navigators only. update status of download
