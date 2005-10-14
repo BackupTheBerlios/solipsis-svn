@@ -123,6 +123,7 @@ class DownloadMessage(object):
     def send_message(self):
         self.transport.write(str(self.message)+"\r\n")
 
+    # TODO: check place where to download and non overwriting
     def setup_download(self):
         self.file = tempfile.NamedTemporaryFile()
         self.size = 0
@@ -232,6 +233,7 @@ class PeerManager(threading.Thread):
             self.remote_ips[message.ip] = peer
             peer.ip = message.ip
             peer.port = message.port
+            peer.server.current_sate =  peer.server.registered_state
         finally:
             self.lock.release()
 
@@ -293,11 +295,7 @@ class NetworkManager:
     def on_new_peer(self, peer):
         """tries to connect to new peer"""
         self.peers.add_peer(peer.id_)
-        # declare known port to other peer throug service_api
-        from solipsis.services.profile.plugin import Plugin
-        message = self.server.wrap_message(MESSAGE_HELLO)
-        if Plugin.service_api:
-            Plugin.service_api.SendData(peer.id_, str(message))
+        self.server.send_udp_message(MESSAGE_HELLO)
 
     def on_change_peer(self, peer, service):
         """tries to connect to new peer"""
@@ -316,8 +314,9 @@ class NetworkManager:
         if self.peers.assert_id(peer_id):
             message = Message.create_message(message)
             if message.command != MESSAGE_HELLO:
-                display_status("unexpected message '%s' from %s"\
-                               % (str(message), peer_id))
+                SecurityAlert(peer_id,
+                              "unexpected message '%s' from %s"\
+                              % (str(message), peer_id))
             else:
                 self.peers.set_peer(peer_id, message)
             

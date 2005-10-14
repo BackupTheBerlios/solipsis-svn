@@ -1,104 +1,27 @@
-# pylint: disable-msg=W0131
-# Missing docstring
+# pylint: disable-msg=W0131,C0103
+# Missing docstring, Invalid name
 """client server module for file sharing"""
 
+__revision__ = "$Id$"
+
 import socket
-import datetime
-import threading
-import random
-import tempfile
-import pickle
-import os.path
-import traceback
+import os, os.path
 import gettext
 _ = gettext.gettext
 
-from twisted.internet.protocol import ClientFactory, ServerFactory
-from twisted.internet import reactor, defer
-from twisted.internet import error
+from twisted.internet.protocol import ServerFactory
+from twisted.internet import reactor
 from twisted.protocols import basic
-from StringIO import StringIO
-from Queue import Queue, Empty
 
-from solipsis import VERSION
-from solipsis.node.discovery import stun, local
+from solipsis.node.discovery import stun
 from solipsis.navigator.main import build_params
-from solipsis.util.network import parse_address, get_free_port, release_port
+from solipsis.util.network import get_free_port, release_port
 from solipsis.services.profile import UNIVERSAL_SEP
-from solipsis.services.profile.prefs import get_prefs
-from solipsis.services.profile.document import read_document
-from solipsis.services.profile.facade import get_facade, get_filter_facade
-from solipsis.services.profile.message import display_error, \
-     display_warning, display_status
-from solipsis.services.profile.network import Message, DownloadMessage, \
+from solipsis.services.profile.facade import get_facade
+from solipsis.services.profile.message import display_warning, display_status
+from solipsis.services.profile.network import Message, SecurityAlert, \
      MESSAGE_PROFILE, MESSAGE_BLOG, MESSAGE_SHARED, MESSAGE_FILES, \
      MESSAGE_HELLO, MESSAGE_ERROR
-
-# State pattern ######################################################
-#         # donwnload file
-#         elif line.startswith(MESSAGE_FILES):
-#             file_path = line[len(ASK_DOWNLOAD_FILES)+1:].strip()
-#             file_name = os.sep.join(file_path.split(UNIVERSAL_SEP))
-#             file_desc = get_facade().get_file_container(file_name)
-#             # check shared
-#             if file_desc._shared:
-#                 print "sending", file_name
-#                 deferred = basic.FileSender().\
-#                            beginFileTransfer(open(file_name), self.transport)
-#                 deferred.addCallback(lambda x: self.transport.loseConnection())
-#             else:
-#                 print "permission denied"
-#         # donwnload blog
-#         elif line == MESSAGE_BLOG:
-#             blog_stream = get_facade().get_blog_file()
-#             deferred = basic.FileSender().\
-#                        beginFileTransfer(blog_stream, self.transport)
-#             deferred.addCallback(lambda x: self.transport.loseConnection())
-#         # donwnload list of shared files
-#         elif line == MESSAGE_SHARED:
-#             files_stream = get_facade().get_shared_files()
-#             print "Sending", files_stream
-#             deferred = basic.FileSender().beginFileTransfer(files_stream,
-#                                                             self.transport)
-#             deferred.addCallback(lambda x: self.transport.loseConnection())
-#         # donwnload profile
-#         elif line == MESSAGE_PROFILE:
-#             file_obj = get_facade()._desc.document.to_stream()
-#             deferred = basic.FileSender().\
-#                        beginFileTransfer(file_obj, self.transport)
-#             deferred.addCallback(lambda x: self.transport.loseConnection())
-        
-#         if self.factory.download.startswith(ASK_DOWNLOAD_FILES):
-#             if self.factory.files:
-#                 self.setRawMode()
-#                 # TODO: check place where to download and non overwriting
-#                 # create file
-#                 file_path, size = self.factory.files.pop()
-#                 self.factory.manager.update_file(file_path[-1], size)
-#                 down_path = os.path.abspath(os.path.join(
-#                     get_prefs("download_repo"),
-#                     file_path[-1]))
-#                 print "loading into", down_path
-#                 self.file = open(down_path, "w+b")
-#                 self.sendLine("%s %s"% (self.factory.download,
-#                                         UNIVERSAL_SEP.join(file_path)))
-#             else:
-#                 self.factory.manager._on_all_files()
-#         elif self.factory.download.startswith(ASK_DOWNLOAD_BLOG)\
-#                  or self.factory.download.startswith(ASK_DOWNLOAD_SHARED):
-#             self.setRawMode()
-#             self.file = StringIO()
-#             self.sendLine(self.factory.download)
-#         elif self.factory.download.startswith(ASK_DOWNLOAD_PROFILE):
-#             self.setRawMode()
-#             self.file = tempfile.NamedTemporaryFile()
-#             self.sendLine(self.factory.download)
-#         elif self.factory.download.startswith(ASK_UPLOAD):
-#             self.file = None
-#             self.setLineMode()
-#             self.sendLine(self.factory.download)
-#         else:
-#             print "unexpected command %s"% self.factory.download
             
 class PeerServer(object):
     """trace messages received for this peer"""
@@ -106,10 +29,10 @@ class PeerServer(object):
     def __init__(self, peer):
         self.peer = peer
         # states
-        registered_state = PeerRegistered(self)
-        connected_state = PeerConnected(self)
-        disconnected_state = PeerDisconnected(self)
-        current_sate = PeerState(self)
+        self.registered_state = PeerRegistered(self)
+        self.connected_state = PeerConnected(self)
+        self.disconnected_state = PeerDisconnected(self)
+        self.current_sate = PeerState(self)
 
     def connected(self, protocol):
         self.current_sate.connected(protocol)
@@ -117,64 +40,93 @@ class PeerServer(object):
     def disconnected(self):
         self.current_sate.disconnected()
         
-    def execute(self, manager, message):
-        self.current_sate.execute()
+    def execute(self, message):
+        self.current_sate.execute(message)
     
 class PeerState(object):
     """trace messages received for this peer"""
 
     def __init__(self, peer_server):
+        self.protocol = None
         self.peer_server = peer_server
         
     def connected(self, protocol):
-        raise NotImplementedError
+        raise SecurityAlert(self.peer_server.peer.peer_id,
+                            "Connection impossible in state %s"%
+                            self.__class__.__name__)
     def disconnected(self):
-        raise NotImplementedError
-    def execute(self, manager, message):
-        raise NotImplementedError
+        raise SecurityAlert(self.peer_server.peer.peer_id,
+                            "Disconnection impossible in state %s"%
+                            self.__class__.__name__)
+    def execute(self, message):
+        raise SecurityAlert(self.peer_server.peer.peer_id,
+                            "Action impossible in state %s"%
+                            self.__class__.__name__)
     
 class PeerRegistered(PeerState):
     """trace messages received for this peer"""
 
     def connected(self, protocol):
-        pass
-
-    def disconnected(self):
-        pass
-
-    def execute(self, manager, message):
-        pass
+        self.protocol = protocol
+        self.peer_server.current_sate = self.peer_server.connected_state
     
 class PeerConnected(PeerState):
     """trace messages received for this peer"""
 
     def connected(self, protocol):
-        pass
+        self.protocol = protocol
 
     def disconnected(self):
-        pass
+        self.peer_server.current_sate = self.peer_server.disconnected_state
 
-    def execute(self, manager, message):
-        pass
-    
+    def execute(self, message):
+        transport = self.protocol.transport
+        if message.command in [MESSAGE_HELLO, MESSAGE_PROFILE]:
+            file_obj = get_facade()._desc.document.to_stream()
+            deferred = basic.FileSender().\
+                       beginFileTransfer(file_obj, transport)
+            deferred.addCallback(lambda x: transport.loseConnection())
+        elif message.command == MESSAGE_BLOG:
+            blog_stream = get_facade().get_blog_file()
+            deferred = basic.FileSender().\
+                       beginFileTransfer(blog_stream, transport)
+            deferred.addCallback(lambda x: transport.loseConnection())
+        elif message.command == MESSAGE_SHARED:
+            files_stream = get_facade().get_shared_files()
+            deferred = basic.FileSender().beginFileTransfer(files_stream,
+                                                            transport)
+            deferred.addCallback(lambda x: transport.loseConnection())
+        elif message.command == MESSAGE_FILES:
+            file_path = message.data
+            file_name = os.sep.join(file_path.split(UNIVERSAL_SEP))
+            file_desc = get_facade().get_file_container(file_name)
+            # check shared
+            if file_desc._shared:
+                display_status("sending %s"% file_name)
+                deferred = basic.FileSender().\
+                           beginFileTransfer(open(file_name), transport)
+                deferred.addCallback(lambda x: transport.loseConnection())
+            else:
+                self.protocol.factory.send_udp_message(
+                    self.peer_server.peer.peer_id, MESSAGE_ERROR, message.data)
+                SecurityAlert(self.peer_server.peer.peer_id,
+                              "Trying to download unshare file %s"\
+                              % file_name)
+        else:
+            raise ValueError("ERROR in _connect: %s not valid"% message.command)
+
 class PeerDisconnected(PeerState):
     """trace messages received for this peer"""
 
     def connected(self, protocol):
-        pass
+        self.protocol = protocol
+        self.peer_server.current_sate = self.peer_server.connected_state
 
     def disconnected(self):
         pass
-
-    def execute(self, manager, message):
-        pass
     
 # SERVER #############################################################
-class ProfileServerProtocol(basic.LineReceiver):
-
-    def sendMessage(self, command, data=None):
-        message = self.factory.wrap_message(command, data)
-        self.sendLine(str(message))
+class ProfileServerProtocol(basic.LineOnlyReceiver):
 
     def lineReceived(self, line):
         """incomming connection from other peer"""
@@ -200,7 +152,7 @@ class ProfileServerProtocol(basic.LineReceiver):
         if self.factory.network.peers.assert_ip(remote_ip):
             display_status(_("%s disconnected"% remote_ip))
             peer = self.factory.network.peers.remote_ips[remote_ip]
-            peer.server.disconnected(self)
+            peer.server.disconnected()
         else:
             display_status(_("%s already disconnected"% remote_ip))
 
@@ -250,9 +202,11 @@ class ProfileServerFactory(ServerFactory):
         self.listener.stopListening()
         release_port(self.local_port)
 
-    def wrap_message(self, command, data=None):
+    def send_udp_message(self, peer_id, command, data=None):
+        from solipsis.services.profile.plugin import Plugin
         message = Message(command)
         message.ip = self.public_ip
         message.port = self.public_port
         message.data = data
-        return message
+        if Plugin.service_api:
+            Plugin.service_api.SendData(peer_id, str(message))

@@ -2,7 +2,7 @@
 # Missing docstring, Invalid name
 """client server module for file sharing"""
 
-__revision__ = "$Id: $"
+__revision__ = "$Id$"
 
 import pickle
 import gettext
@@ -40,6 +40,10 @@ class PeerClient(dict):
             
         
     # high level API #################################################
+    def auto_load(self):
+        """download profile when meeting peer for the first time"""
+        return self._connect(MESSAGE_HELLO)
+    
     def get_profile(self):
         """download peer profile using self.get_file. Automatically
         called on client creation"""
@@ -68,7 +72,7 @@ class PeerClient(dict):
         # set callback
         if command == MESSAGE_HELLO:
             deferred.addCallback(self._on_hello)
-        if command == MESSAGE_PROFILE:
+        elif command == MESSAGE_PROFILE:
             deferred.addCallback(self._on_complete_profile)
         elif command == MESSAGE_BLOG:
             deferred.addCallback(self._on_complete_pickle)
