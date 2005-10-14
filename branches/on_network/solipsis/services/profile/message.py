@@ -44,7 +44,7 @@ def _display(msg, msg_type, title="Solipsis Profile", error=None):
 #     else:
 #         print "MSG: " + msg
 #         if not error is None:
-#             print "ERR: "error
+#             print "ERR: ", error
 #             import traceback
 #             traceback.print_exc()
     

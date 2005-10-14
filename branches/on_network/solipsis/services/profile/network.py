@@ -6,6 +6,7 @@ __revision__ = "$Id$"
 
 import datetime
 import threading
+import tempfile
 import gettext
 _ = gettext.gettext
 
@@ -15,8 +16,49 @@ from solipsis.util.network import parse_address
 from solipsis.services.profile.message import display_warning, display_status
 
 
-class SecurityException(Exception):
-    pass
+class SecurityAlert(Exception):
+
+    def __init__(self, key, *args, **kwargs):
+        Exception. __init__(self, *args, **kwargs)
+        SecurityWarnings.instance()[key] = self
+        SecurityWarnings.instance().display(key)
+
+class SecurityWarnings(dict):
+
+    _instance = None
+    def instance(cls, *args, **kwargs):
+        """Mise en oeuvre du pattern singleton"""
+        if cls._instance is None:
+            cls._instance = cls(*args, **kwargs)
+        return cls._instance
+    instance = classmethod(instance)
+        
+    def __init__(self, *args, **kwargs):
+        dict.__init__(self, *args, **kwargs)
+
+    def __setitem__(self, key, value):
+        if key in self:
+            self[key].append(value)
+        else:
+            dict.__setitem__(self, key, [value])
+
+    def count(self, key):
+        if key in self:
+            return len(self[key])
+        else:
+            return 0
+
+    def display(self, key):
+        if key in self:
+            nb_tries = self.count(key)
+            if nb_tries > 1:
+                display_status(_("%d retries of potential hacker '%s'"\
+                                 % (nb_tries, key)))
+            elif nb_tries == 1:
+                display_warning(_("'%s' has not registered properly: %s"\
+                                  % (key, str(self[key][0]))),
+                                title="Security Warning")
+        #else no warning...
 
 # Messages ###########################################################
 MESSAGE_HELLO = "HELLO"
@@ -75,9 +117,25 @@ class DownloadMessage(object):
         self.transport = transport
         self.deferred = deferred
         self.message = message
+        self.file = None
+        self.size = 0
 
     def send_message(self):
         self.transport.write(str(self.message)+"\r\n")
+
+    def setup_download(self):
+        self.file = tempfile.NamedTemporaryFile()
+        self.size = 0
+        pass
+
+    def write_data(self, data):
+        pass
+
+    def teardown_download(self):
+        pass
+
+    def close(self, reason=None):
+        pass
             
 # peers ##############################################################
 class Peer(object):
@@ -85,14 +143,14 @@ class Peer(object):
     
     PEER_TIMEOUT = 120
 
-    def __init__(self, peer_id):
+    def __init__(self, peer_id, connect_method):
         self.peer_id = peer_id
         self.lost = None
         # protocols
-#         from solipsis.services.profile.client_protocol import PeerClient
-#         from solipsis.services.profile.server_protocol import PeerServer
-#         self.client = PeerClient(self)
-#         self.server = PeerServer(self)
+        from solipsis.services.profile.client_protocol import PeerClient
+        from solipsis.services.profile.server_protocol import PeerServer
+        self.client = PeerClient(self, connect_method)
+        self.server = PeerServer(self)
         # vars set UDP message
         self.ip = None
         self.port = None
@@ -101,18 +159,25 @@ class Peer(object):
         self.lost = datetime.datetime.now() \
                     + datetime.timedelta(seconds=self.PEER_TIMEOUT)
 
+    def wrap_message(self, command, data=None):
+        message = Message(command)
+        message.ip = self.ip
+        message.port = self.port
+        message.data = data
+        return message
+
 class PeerManager(threading.Thread):
     """manage known ips (along with their ids) and timeouts"""
 
     CHECKING_FREQUENCY = 5
 
-    def __init__(self):
+    def __init__(self, connect_method):
         threading.Thread.__init__(self)
         self.queue = Queue(-1) # infinite size
         self.remote_ips = {}   # {ip : peer}
         self.remote_ids = {}   # {id : peer}
-        self.warnings = {}     # potential hackers {id: nb_hack}
         self.running = True
+        self.connect_method = connect_method
         self.lock = threading.RLock()
 
     def run(self):
@@ -126,8 +191,9 @@ class PeerManager(threading.Thread):
                     if message.ip in self.remote_ips:
                         self.remote_ips[message.ip].execute(self, message)
                     else:
-                        display_status(_("message '%s' out of date. Peer is gone"% \
-                                         str(message)))
+                        SecurityAlert(message.ip,
+                                      _("Message '%s' out of date."\
+                                        % str(message)))
                     self._check_peers(datetime.datetime.now())
             except Empty:
                 # Empty exception is expected when no message received
@@ -141,42 +207,20 @@ class PeerManager(threading.Thread):
         if self.remote_ips.has_key(remote_ip):
             return True
         else:
-            # security exception -> archive warning
-            if not remote_ip in self.warnings:
-                self.warnings[remote_ip] = 1
-                # first time warning occurs -> display_warning
-                display_warning("host %s had not registered"% remote_ip,
-                                title="security warning")
-            else:
-                self.warnings[remote_ip] += 1
-                # n time warning occurs -> display_status
-                display_status(_("%d retries of potential hacker %s "\
-                                 % (self.warnings[remote_ip],
-                                    remote_ip)))
+            SecurityAlert(remote_ip, "Host has not registered")
             return False
         
     def assert_id(self, peer_id):
         if self.remote_ids.has_key(peer_id):
             return True
         else:
-            # security exception -> archive warning
-            if not peer_id in self.warnings:
-                self.warnings[peer_id] = 1
-                # first time warning occurs -> display_warning
-                display_warning("peer %s had not registered"% peer_id,
-                                title="security warning")
-            else:
-                self.warnings[peer_id] += 1
-                # n time warning occurs -> display_status
-                display_status(_("%d retries of potential hacker %s "\
-                                 % (self.warnings[peer_id],
-                                    peer_id)))
+            SecurityAlert(peer_id, "Peer has not registered")
             return False
 
     def add_peer(self, peer_id):
         try:
             self.lock.acquire()
-            peer = Peer(peer_id)
+            peer = Peer(peer_id, self.connect_method)
             self.remote_ids[peer_id] = peer
         finally:
             self.lock.release()
@@ -191,18 +235,18 @@ class PeerManager(threading.Thread):
         finally:
             self.lock.release()
 
-    def add_message(self, peer, message):
+    def add_message(self, message):
         """Synchronized method called either from peer_manager thread
         or network thread"""
         try:
             self.lock.acquire()
-            # check ip
-            if message.ip !=  peer.ip:
-                raise SecurityException(
-                    "two ip (msg=%s, cache=%s) for same peer (%s)"\
-                    (message.ip,  self.remote_ids[peer.peer_id], peer.peer_id))
-            # put message in queue
-            self.queue.put(message)
+            # put in queue after checking ip up
+            if not self.remote_ips.has_key(message.ip):
+                SecurityAlert(message.ip,
+                              _("Incomming '%s' from unknown host"\
+                                % str(message)))
+            else:
+                self.queue.put(message)
         finally:
             self.lock.release()
 
@@ -239,7 +283,7 @@ class NetworkManager:
         self.client = ProfileClientFactory(self)
         self.server = ProfileServerFactory(self)
         self.download_dlg = download_dlg
-        self.peers = PeerManager()
+        self.peers = PeerManager(self.client.connect)
         self.peers.start()
 
     def stop(self):
@@ -251,7 +295,7 @@ class NetworkManager:
         self.peers.add_peer(peer.id_)
         # declare known port to other peer throug service_api
         from solipsis.services.profile.plugin import Plugin
-        message = self.server._wrap_message(MESSAGE_HELLO)
+        message = self.server.wrap_message(MESSAGE_HELLO)
         if Plugin.service_api:
             Plugin.service_api.SendData(peer.id_, str(message))
 
@@ -295,26 +339,26 @@ class NetworkManager:
         """retreive peer's profile"""
         if self.peers.assert_id(peer_id):
             peer = self.peers.remote_ids[peer_id]
-            return peer.get_profile(self.client)
+            return peer.client.get_profile()
         #else: return None
 
     def get_blog_file(self, peer_id):
         """retreive peer's blog"""
         if self.peers.assert_id(peer_id):
             peer = self.peers.remote_ids[peer_id]
-            return peer.get_blog(self.client)
+            return peer.client.get_blog()
         #else: return None
 
     def get_shared_files(self, peer_id):
         """retreive peer's shared list"""
         if self.peers.assert_id(peer_id):
             peer = self.peers.remote_ids[peer_id]
-            return peer.get_shared_files(self.client)
+            return peer.client.get_shared_files()
         #else: return None
 
     def get_files(self, peer_id, file_descriptors, _on_all_files):
         """retreive file"""
         if self.peers.assert_id(peer_id):
             peer = self.peers.remote_ids[peer_id]
-            return peer.get_files(self.client, file_descriptors, _on_all_files)
+            return peer.client.get_files(file_descriptors, _on_all_files)
         #else: return None

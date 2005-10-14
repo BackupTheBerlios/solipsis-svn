@@ -40,7 +40,7 @@ class PeerTest(BaseTest):
 
     def setUp(self):
         # create manager with small timeout (not to slow down test)
-        self.manager = PeerManager()
+        self.manager = PeerManager(None)
         self.manager.CHECKING_FREQUENCY = 0.3
         self.manager.start()
         # create default message
