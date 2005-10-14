@@ -2,7 +2,7 @@
 # Missing docstring, Invalid name
 """client server module for file sharing"""
 
-__revision__ = "$Id$"
+__revision__ = "$Id: $"
 
 import pickle
 import gettext
