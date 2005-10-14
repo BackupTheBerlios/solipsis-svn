@@ -30,66 +30,9 @@ from solipsis.services.profile.document import read_document
 from solipsis.services.profile.facade import get_facade, get_filter_facade
 from solipsis.services.profile.message import display_error, \
      display_warning, display_status
-
-# Messages ###########################################################
-MESSAGE_HELLO = "HELLO"
-MESSAGE_ERROR = "ERROR"
-MESSAGE_PROFILE = "REQUEST_PROFILE"
-MESSAGE_BLOG = "REQUEST_BLOG"
-MESSAGE_SHARED = "REQUEST_SHARED"
-MESSAGE_FILES = "REQUEST_FILES"
-
-SERVICES_MESSAGES = [MESSAGE_HELLO, MESSAGE_ERROR, MESSAGE_PROFILE,
-                     MESSAGE_BLOG, MESSAGE_SHARED, MESSAGE_FILES]
-
-class Message(object):
-    """Simple wrapper for a communication message"""
-
-    def __init__(self, command):
-        if command not in SERVICES_MESSAGES:
-            raise ValueError("%s should be in %s"% (command, SERVICES_MESSAGES))
-        self.command = command
-        self.ip = None
-        self.port = None
-        self.data = None
-        # creation_time is used as reference when cleaning
-        self.creation_time = datetime.datetime.now()
-
-    def __str__(self):
-        return " ".join([self.command,
-                         "%s:%d"% (self.ip or "?",
-                                   self.port or -1),
-                         self.data or ''])
-
-    def create_message(message):
-        """extract command, address and data from message.
-        
-        Expected format: MESSAGE host:port data
-        returns Message instance"""
-        # 2 maximum splits: data may contain spaces
-        items = message.split(' ', 2)
-        if not len(items) >= 2:
-            raise ValueError("%s should define host's ip and port"% command)
-        message = Message(items[0])
-        message.ip, port = parse_address(items[1])
-        message.port = int(port)
-        # check data
-        if len(items) > 2:
-            message.data = items[2]
-        return message
-    create_message = staticmethod(create_message)
-
-class DownloadMessage(object):
-    """Simple wrapper to link connection, message sent and deferred to
-    be called when download complete"""
-
-    def __init__(self, transport, deferred, message):
-        self.transport = transport
-        self.deferred = deferred
-        self.message = message
-
-    def send_message(self):
-        self.transport.write(str(self.message)+"\r\n")
+from solipsis.services.profile.network import Message, DownloadMessage, \
+     MESSAGE_PROFILE, MESSAGE_BLOG, MESSAGE_SHARED, MESSAGE_FILES, \
+     MESSAGE_HELLO, MESSAGE_ERROR
 
 # State pattern ######################################################
 #         # donwnload file
@@ -157,7 +100,7 @@ class DownloadMessage(object):
 #         else:
 #             print "unexpected command %s"% self.factory.download
             
-class Peer(object):
+class PeerServer(object):
     """trace messages received for this peer"""
     
     PEER_TIMEOUT = 120
@@ -339,59 +282,11 @@ class PeerDisconnected(PeerState):
     def received_data(self, data):
         pass
     
-# Client #############################################################
-class ProfileClientProtocol(basic.LineReceiver):
-    """Intermediate client checking that a remote server exists."""
-
-    def __init__(self):
-        self.size = 0
-        self.file = None
-        
-    def connectionMade(self):
-        """a peer has connected to us"""
-        remote_ip = self.transport.getPeer().host
-        if not self.factory.network.peers.assert_ip(remote_ip):
-            self.transport.loseConnection()
-        else:
-            peer = self.factory.network.peers.remote_ips[remote_ip]
-            self.setRawMode()
-            peer._on_connected(self.transport)
-
-    def connectionLost(self, reason):
-        """called when transfer complete"""
-        remote_ip = self.transport.getPeer().host
-        peer = self.factory.network.peers.remote_ips[remote_ip]
-        peer._on_disconnected(self.transport)
-
-        
-class ProfileClientFactory(ClientFactory):
-    """client connecting on known port thanks to TCP. call UDP on failure."""
-
-    protocol = ProfileClientProtocol
-
-    def __init__(self, *args, **kwargs):
-        ClientFactory.__init__(self, *args, **kwargs)
-        self.transports = {}
-
-    def connect(self, peer):
-        """connect to remote server"""
-        
-        connector = reactor.connectTCP(self.peer.ip,
-                                       self.peer.port,
-                                       self)
-        self.transports[id(connector.transport)] = peer
-        return connector
-
-    def clientConnectionFailed(self, connector, reason):
-        """Called when a connection has failed to connect."""
-        peer = self.transports[id(connector.transport)]
-        peer._fail_client(connector, reason)
-    
 # SERVER #############################################################
 class ProfileServerProtocol(basic.LineReceiver):
 
     def sendMessage(self, command, data=None):
-        message = self.factory._wrap_message(command, data)
+        message = self.factory.wrap_message(command, data)
         self.sendLine(str(message))
 
     def lineReceived(self, line):
@@ -400,7 +295,7 @@ class ProfileServerProtocol(basic.LineReceiver):
             self.sendLine("pong")
         else:
             message = Message.create_message(line)
-            self.factory.network.add_message(message)
+            self.factory.network.peers.add_message(message)
             
     def connectionMade(self):
         """a peer has connect to us"""
@@ -465,7 +360,7 @@ class ProfileServerFactory(ServerFactory):
         self.listener.stopListening()
         release_port(self.local_port)
 
-    def _wrap_message(self, command, data=None):
+    def wrap_message(self, command, data=None):
         message = Message(command)
         message.ip = self.public_ip
         message.port = self.public_port
