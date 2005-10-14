@@ -102,139 +102,35 @@ from solipsis.services.profile.network import Message, DownloadMessage, \
             
 class PeerServer(object):
     """trace messages received for this peer"""
-    
-    PEER_TIMEOUT = 120
 
-    def __init__(self, peer_id):
-        self.peer_id = peer_id
-        self.lost = None
+    def __init__(self, peer):
+        self.peer = peer
         # states
         registered_state = PeerRegistered(self)
         connected_state = PeerConnected(self)
         disconnected_state = PeerDisconnected(self)
-        current_sate = None
-        # vars set by states
-        self.ip = None
-        self.port = None
-        self.downloads = {}
-
-    # client side ####################################################
-    def wrap_message(self, command, data=None):
-        message = Message(command)
-        message.ip = self.ip
-        message.port = self.port
-        message.data = data
-        return message
-        
-    def get_profile(self, client):
-        """download peer profile using self.get_file. Automatically
-        called on client creation"""
-        return self._connect_client(client, MESSAGE_PROFILE)
-            
-    def get_blog_file(self, client):
-        """donload blog file using self.get_file"""
-        return self._connect_client(client, MESSAGE_BLOG)
-            
-    def get_shared_files(self, client):
-        """donload blog file using self.get_file"""
-        return self._connect_client(client, MESSAGE_SHARED)
-            
-    def get_files(self, client, file_descriptors):
-        """download given list of file"""
-        return self._connect_client(client, MESSAGE_FILES, file_descriptors)
-
-    def _fail_client(self, connector, reason):
-        download = self.downloads[id(connector.transport)]
-        pass
-
-    def _connect_client(self, client, command, data=None):
-        # set download information
-        message = self.wrap_message(command, data)
-        connector =  client.connect(self)
-        deferred = defer.Deferred()
-        download = DownloadMessage(connector.transport, deferred, message)
-        self.downloads[id(connector.transport)] = download
-        # set callback
-        if command == MESSAGE_HELLO:
-            deferred.addCallback(self._on_hello)
-        if command == MESSAGE_PROFILE:
-            deferred.addCallback(self._on_complete_profile)
-        elif command == MESSAGE_BLOG:
-            deferred.addCallback(self._on_complete_pickle)
-        elif command == MESSAGE_SHARED:
-            deferred.addCallback(self._on_complete_pickle)
-        elif command == MESSAGE_FILES:
-            deferred.addCallback(self._on_complete_file)
-        else:
-            raise ValueError("ERROR in add_client: %s not valid"% command)
-        return deferred
-
-    def _on_connected(self, transport):
-        download = self.downloads[id(transport)]
-        download.send_message()
-        self.file = tempfile.NamedTemporaryFile()
-        pass
-
-    def _on_disconnected(self, transport):
-        download = self.downloads[id(transport)]
-        pass
-
-    def _on_hello(self, file_obj):
-        """callback when autoloading of profile successful"""
-        get_facade().set_data(self.peer_id, document, flag_update=False)
-        get_facade().set_connected(self.peer_id, True)
-        get_filter_facade().fill_data(self.peer_id, document)
-        
-    def _on_complete_profile(self, file_obj):
-        """callback when finished downloading profile"""
-        return read_document(file_obj)
-
-    def _on_complete_pickle(self, file_obj):
-        """callback when finished downloading blog"""
-        try:
-            obj_str = file_obj.getvalue()
-            return pickle.loads(obj_str)
-        except Exception, err:
-            display_error(_("Your version of Solipsis is not compatible "
-                            "with the peer'sone you wish to download from "
-                            "Make sure you both use the latest (%s)"\
-                            % VERSION),
-                          title="Download error", error=err)
-
-    def _on_complete_file(self, file_obj):
-        """callback when finished downloading file"""
-        # proceed next
-        self.connect().addCallback(self._on_complete_file)
-        # flag this one
-        return file_obj.name
-
-    # server side ####################################################
-    def lose(self):
-        self.lost = datetime.datetime.now() \
-                    + datetime.timedelta(seconds=self.PEER_TIMEOUT)
+        current_sate = PeerState(self)
 
     def connected(self, protocol):
         self.current_sate.connected(protocol)
+        
     def disconnected(self):
         self.current_sate.disconnected()
+        
     def execute(self, manager, message):
         self.current_sate.execute()
-    def received_data(self, data):
-        self.current_sate.received_data()
     
 class PeerState(object):
     """trace messages received for this peer"""
 
-    def __init__(self, peer):
-        self.peer = peer
+    def __init__(self, peer_server):
+        self.peer_server = peer_server
         
     def connected(self, protocol):
         raise NotImplementedError
     def disconnected(self):
         raise NotImplementedError
     def execute(self, manager, message):
-        raise NotImplementedError
-    def received_data(self, data):
         raise NotImplementedError
     
 class PeerRegistered(PeerState):
@@ -249,9 +145,6 @@ class PeerRegistered(PeerState):
     def execute(self, manager, message):
         pass
     
-    def received_data(self, data):
-        pass
-    
 class PeerConnected(PeerState):
     """trace messages received for this peer"""
 
@@ -264,9 +157,6 @@ class PeerConnected(PeerState):
     def execute(self, manager, message):
         pass
     
-    def received_data(self, data):
-        pass
-    
 class PeerDisconnected(PeerState):
     """trace messages received for this peer"""
 
@@ -277,9 +167,6 @@ class PeerDisconnected(PeerState):
         pass
 
     def execute(self, manager, message):
-        pass
-    
-    def received_data(self, data):
         pass
     
 # SERVER #############################################################
@@ -304,15 +191,18 @@ class ProfileServerProtocol(basic.LineReceiver):
             self.transport.loseConnection()
         else:
             display_status(_("%s has connected"% remote_ip))
-            peer_ips = self.factory.network.peers.remote_ips
-            peer_ips[remote_ip].connected(self)
+            peer = self.factory.network.peers.remote_ips[remote_ip]
+            peer.server.connected(self)
         
     def connectionLost(self, reason):
         """called when transfer complete"""
         remote_ip = self.transport.getPeer().host
-        display_status(_("%s disconnected"% remote_ip))
-        peer_ips = self.factory.network.peers.remote_ips
-        peer_ips[remote_ip].disconnected()
+        if self.factory.network.peers.assert_ip(remote_ip):
+            display_status(_("%s disconnected"% remote_ip))
+            peer = self.factory.network.peers.remote_ips[remote_ip]
+            peer.server.disconnected(self)
+        else:
+            display_status(_("%s already disconnected"% remote_ip))
 
 class ProfileServerFactory(ServerFactory):
     """server listening on known port. It will spawn a dedicated
