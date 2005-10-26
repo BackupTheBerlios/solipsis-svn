@@ -9,7 +9,8 @@ __revision__ = "$Id$"
 import unittest
 import os, os.path
 
-from solipsis.services.profile.data import PeerDescriptor, Blogs, load_blogs
+from solipsis.services.profile.blog import Blogs, load_blogs
+from solipsis.services.profile.data import PeerDescriptor
 from solipsis.services.profile.prefs import get_prefs, set_prefs
 from solipsis.services.profile.tests import get_bruce_profile, write_test_profile
 from solipsis.services.profile.tests import PSEUDO, BLOG_EXT, TEST_DIR,  FILE_TEST, \

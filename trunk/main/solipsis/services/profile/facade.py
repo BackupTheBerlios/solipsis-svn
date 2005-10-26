@@ -24,11 +24,11 @@ __revision__ = "$Id$"
 import pickle
 
 from StringIO import StringIO
-from solipsis.services.profile import ENCODING, PROFILE_EXT, FILTER_EXT
+from solipsis.services.profile import ENCODING, PROFILE_EXT
 from solipsis.services.profile.view import HtmlView
 from solipsis.services.profile.data import PeerDescriptor
-from solipsis.services.profile.simple_facade import SimpleFacade
-from solipsis.services.profile.filter_document import FilterDocument
+from solipsis.services.profile.blog import Blogs
+from solipsis.services.profile.cache_document import CacheDocument
 
 def create_facade(node_id):
     """implements pattern singleton on Facade. User may specify
@@ -40,54 +40,87 @@ def get_facade():
     """implements pattern singleton on Facade. User may specify
     document end/or view to initialize facade with at creation"""
     return Facade.s_facade
-
-def create_filter_facade(node_id):
-    """implements pattern singleton on FilterFacade"""
-    FilterFacade.filter_facade = FilterFacade(node_id)
-    return FilterFacade.filter_facade
-
-def get_filter_facade():
-    """implements pattern singleton on FilterFacade"""
-    if FilterFacade.filter_facade == None and get_facade() != None:
-        create_filter_facade(get_facade()._desc.node_id)
-    return FilterFacade.filter_facade
-
-class FilterFacade(SimpleFacade):
-    """facade associating a FilterDocument and a FilterView"""
-
-    filter_facade = None
-
-    def __init__(self, node_id):
-        SimpleFacade.__init__(self, node_id)
-        self._desc = PeerDescriptor(node_id,
-                                    document=FilterDocument())
-
-    def save(self, directory=None):
-        """save .profile.solipsis"""
-        SimpleFacade.save(self, directory=directory, doc_extension=FILTER_EXT)
-
-    def load(self, directory=None):
-        """load .profile.solipsis"""
-        SimpleFacade.load(self, directory=directory, doc_extension=FILTER_EXT)
     
-    def add_repository(self, key, filter_value):
-        """sets new value for repositor"""
-        return self._try_change("add_repository",
-                                "build_files",
-                                key, filter_value)
+class AbstractFacade:
+    """manages user's actions & connects document and view"""
+    
+    def __init__(self, node_id, document):
+        self._desc = PeerDescriptor(node_id,
+                                    document=document,
+                                    blog=Blogs())
+        self.views = {}
+        self._activated = True
 
-class Facade(SimpleFacade):
+    # views
+    def add_view(self, view):
+        """add  a view object to facade"""
+        self.views[view.get_name()] = view
+        view.import_desc(self._desc)
+
+    # documents
+    def import_document(self, document):
+        """associate given document with peer"""
+        self._desc.document.import_document(document)
+        for view in self.views:
+            view.import_desc(self._desc)
+
+    # proxy
+    def _try_change(self, setter, updater, *args, **kwargs):
+        """Calls the setting function on a document (wich can be
+        passed in **kwargs with the key 'document'), and calls the
+        getting function on all views linked to the facade.
+
+        returns value returned by setter"""
+        if not 'document' in kwargs:
+            document = self._desc.document
+        else:
+            document = kwargs['document']
+        try:
+            result = getattr(document, setter)(*args)
+            for view in self.views.values():
+                getattr(view, updater)()
+            return result
+        except TypeError, error:
+            print >> stderr, str(error)
+            raise
+   
+    def get_peers(self):
+        """returns PeerDescriptor with given id"""
+        return self._desc.document.get_peers()
+   
+    def get_peer(self, peer_id):
+        """returns PeerDescriptor with given id"""
+        return self._desc.document.get_peer(peer_id)
+    
+    # menu
+    def save(self, doc_extension, directory=None):
+        """save .profile.solipsis"""
+        self._desc.save(directory=directory,
+                        doc_extension=doc_extension)
+            
+    def load(self, doc_extension, directory=None):
+        """load .profile.solipsis"""
+        try:
+            self._desc.load(directory=directory,
+                            doc_extension=doc_extension)
+        except ValueError, err:
+            print err, ": Using blank one"
+        # update
+        for view in self.views.values():
+            view.import_desc(self._desc)
+
+class Facade(AbstractFacade):
     """manages user's actions & connects document and view"""
     
     s_facade = None
 
     def __init__(self, node_id):
-        SimpleFacade.__init__(self, node_id)
+        AbstractFacade.__init__(self, node_id, CacheDocument())
 
     # views
     def add_view(self, view):
         """add  a view object to facade"""
-        SimpleFacade.add_view(self, view)
+        AbstractFacade.add_view(self, view)
         view.update_blogs()
 
     # proxy
@@ -111,7 +144,7 @@ class Facade(SimpleFacade):
             name = name.encode(ENCODING)
         return self._desc.document.get_container(name)
     
-    # MENU
+    # menu
     def export_profile(self, path):
         """write profile in html format"""
         html_file = open(path, "w")
@@ -120,13 +153,63 @@ class Facade(SimpleFacade):
 
     def save(self, directory=None):
         """save .profile.solipsis"""
-        SimpleFacade.save(self, directory=directory, doc_extension=PROFILE_EXT)
+        AbstractFacade.save(self, directory=directory, doc_extension=PROFILE_EXT)
 
     def load(self, directory=None):
         """load .profile.solipsis"""
-        SimpleFacade.load(self, directory=directory, doc_extension=PROFILE_EXT)
+        AbstractFacade.load(self, directory=directory, doc_extension=PROFILE_EXT)
         for view in self.views.values():
             view.update_blogs()
+
+    # personal
+    def change_pseudo(self, pseudo):
+        """sets peer as friend """
+        return self._try_change("set_pseudo",
+                                "update_pseudo",
+                                pseudo)
+    
+    def change_title(self, title):
+        """sets new value for title"""
+        return self._try_change("set_title",
+                                "update_title",
+                                title)
+
+    def change_firstname(self, firstname):
+        """sets new value for firstname"""
+        return self._try_change("set_firstname",
+                                "update_firstname",
+                                firstname)
+
+    def change_lastname(self, lastname):
+        """sets new value for lastname"""
+        return self._try_change("set_lastname",
+                                "update_lastname",
+                                lastname)
+
+    def change_photo(self, path):
+        """sets new value for photo"""
+        return self._try_change("set_photo",
+                                "update_photo",
+                                path)
+
+    def change_email(self, email):
+        """sets new value for email"""
+        return self._try_change("set_email",
+                                "update_email",
+                                email)
+
+    # custom
+    def add_custom_attributes(self, key, value):
+        """sets new value for custom_attributes"""
+        return self._try_change("add_custom_attributes",
+                                "update_custom_attributes",
+                                key, value)
+
+    def del_custom_attributes(self, key):
+        """sets new value for custom_attributes"""
+        return self._try_change("remove_custom_attributes",
+                                "update_custom_attributes",
+                                key)
 
     # blog
     def add_blog(self, text):
@@ -149,7 +232,7 @@ class Facade(SimpleFacade):
                               'update_blogs',
                               index, text, author)
     
-    # FILE TAB
+    # file
     def add_repository(self, path):
         """sets new value for repositor"""
         path = path.encode(ENCODING)
@@ -214,12 +297,28 @@ class Facade(SimpleFacade):
                                 "update_files",
                                 path, tag)
 
-    # PEER MANAGEMENT   
+    # peer management   
+    def set_data(self, peer_id, document, flag_update=True):
+        """same as fill data but without updating views"""
+        self._desc.document.fill_data(peer_id, document, flag_update)
+        
     def set_connected(self, peer_id, connected):
         """change connected status of given peer and updates views"""
         return self._try_change("set_connected",
                                 "update_peers",
                                 peer_id, connected)
+    
+    def remove_peer(self, peer_id):
+        """sets peer as friend """
+        return self._try_change("remove_peer",
+                                "update_peers",
+                                peer_id)
+
+    def fill_data(self, peer_id, document):
+        """sets peer as friend """
+        return self._try_change("fill_data",
+                                "update_peers",
+                                peer_id, document)
 
     def fill_blog(self, peer_id, blog):
         """sets peer as friend """
@@ -250,3 +349,4 @@ class Facade(SimpleFacade):
         return self._try_change("unmark_peer",
                                 "update_peers",
                                 peer_id)
+

@@ -28,7 +28,9 @@ import solipsis
 from solipsis.services.profile import QUESTION_MARK, \
      PROFILE_EXT, BLOG_EXT, FILTER_EXT
 from solipsis.services.profile.file_document import FileDocument
-from solipsis.services.profile.filter_document import FilterValue, FilterDocument
+from solipsis.services.profile.filter_document import FilterDocument
+from solipsis.services.profile.filter_data import FilterValue, \
+     PeerFilter, FileFilter
 from solipsis.services.profile.data import PeerDescriptor, Blogs, load_blogs
 
 TEST_DIR = os.path.sep.join([os.path.dirname(solipsis.__file__),
@@ -115,11 +117,15 @@ def write_test_profile():
               `-- ..."""
     # write filter
     filter_document = FilterDocument()
-    filter_document.set_pseudo(FilterValue(value="*", activate=True))
-    filter_document.set_title(FilterValue(value="Mr", activate=True))
-    filter_document.set_lastname(FilterValue(value="b*", activate=True))
-    filter_document.add_custom_attributes('color', FilterValue(value="blue", activate=True))
-    filter_document.add_repository("MP3", FilterValue(value="*.mp3", activate=True))
+    peer_filter = PeerFilter("Mr_B", **{"pseudo" : "*",
+                                     "title": "Mr",
+                                     "lastname": "b*"})
+    peer_filter.update_dict(FilterValue(name='color',
+                                        value="blue",
+                                        activate=True))
+    file_filter = FileFilter("MP3", **{"name": "*.mp3"})
+    filter_document.filters[peer_filter.filter_name] = peer_filter
+    filter_document.filters[file_filter.filter_name] = file_filter
     if os.path.exists(FILE_TEST + FILTER_EXT):
         os.remove(FILE_TEST + FILTER_EXT)
     filter_document.save(FILE_TEST + FILTER_EXT)

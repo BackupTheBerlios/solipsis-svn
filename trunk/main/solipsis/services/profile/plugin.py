@@ -27,7 +27,8 @@ from solipsis.services.plugin import ServicePlugin
 from solipsis.services.profile import set_solipsis_dir
 from solipsis.services.profile.message import display_message, display_status
 from solipsis.services.profile.prefs import get_prefs
-from solipsis.services.profile.facade import create_facade, get_facade, \
+from solipsis.services.profile.facade import create_facade, get_facade
+from solipsis.services.profile.filter_facade import \
      create_filter_facade, get_filter_facade
 from solipsis.services.profile.network import NetworkManager
 from solipsis.services.profile.view import EditorView, ViewerView, FilterView
@@ -70,7 +71,6 @@ class Plugin(ServicePlugin):
         # declare actions
         self.MAIN_ACTION = {_("Edit Profile..."): self.modify_profile,
                             _("Filter Profiles..."): self.filter_profile,
-                            "Display Matches...": self.show_matches,
                             }
         self.POINT_ACTIONS = {#"View all...": self.show_profile,
                               _("View profile..."): self.get_profile,
@@ -141,7 +141,7 @@ class Plugin(ServicePlugin):
                 'Saving Filters',
                 wx.YES_NO | wx.ICON_INFORMATION)
             if dlg.ShowModal() == wx.ID_YES:
-                get_filter_facade()._desc.save()
+                get_filter_facade().save()
         self.activate(False)
 
     def activate(self, active=True):
@@ -164,10 +164,6 @@ class Plugin(ServicePlugin):
         """display profile once loaded"""
         if self.filter_frame:
             self.filter_frame.Show()
-
-    def show_matches(self, evt):
-        if self.filter_frame:
-            self.filter_frame.match_frame.Show()
             
 #     def show_profile(self, evt):
 #         """display profile once loaded"""
