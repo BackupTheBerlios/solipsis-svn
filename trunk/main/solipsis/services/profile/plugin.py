@@ -136,7 +136,7 @@ class Plugin(ServicePlugin):
         if self.filter_frame and self.filter_frame.modified:
             self.filter_frame.do_modified(False)
             dlg = wx.MessageDialog(
-                self.editor_frame,
+                self.filter_frame,
                 'Your filters have been modified. Do you want to save them?',
                 'Saving Filters',
                 wx.YES_NO | wx.ICON_INFORMATION)
@@ -162,7 +162,7 @@ class Plugin(ServicePlugin):
             
     def filter_profile(self, evt):
         """display profile once loaded"""
-        if self.filter_frame:
+        if not self.filter_frame is None:
             self.filter_frame.Show()
             
 #     def show_profile(self, evt):

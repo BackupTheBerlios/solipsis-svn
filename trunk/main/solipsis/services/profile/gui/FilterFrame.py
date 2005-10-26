@@ -40,7 +40,6 @@ class FilterFrame(wx.Frame):
         self.options = options
         self.tabs = {}
         args = (parent, id, title)
-        
         # begin wxGlade: FilterFrame.__init__
         kwds["style"] = wx.DEFAULT_FRAME_STYLE
         wx.Frame.__init__(self, *args, **kwds)
@@ -100,8 +99,6 @@ class FilterFrame(wx.Frame):
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.on_right_click_filter, self.filter_list)
         self.Bind(wx.EVT_LIST_COL_RIGHT_CLICK, self.on_right_click_col_filter, self.filter_list)
         # end wxGlade
-        
-        self.Bind(wx.EVT_CLOSE, self.on_close)
 
         # filter list
         self.filter_list.InsertColumn(0, "Name")
@@ -146,7 +143,7 @@ class FilterFrame(wx.Frame):
         self.popup_col_menu.AppendItem(self.new_file_item)
         self.popup_col_menu.AppendItem(self.new_profile_item)
         
-        
+        self.Bind(wx.EVT_CLOSE, self.on_close)
         self.set_profile_view()
 
     # state ##########################################################
@@ -195,12 +192,6 @@ class FilterFrame(wx.Frame):
         self.filter_list.DeleteItem(item_id)
         self.view_profile_panel.reset()
         self.view_file_panel.reset()
-
-    def _close(self):
-        """termainate application"""
-        self.help_dialog.Destroy()
-        self.Destroy()
-        sys.exit()
         
     # tab ############################################################
     def set_tab(self, peer_id):
@@ -299,10 +290,11 @@ class FilterFrame(wx.Frame):
         set_prefs("filter_height", new_size.GetHeight())
         # close dialog
         if self.options["standalone"]:
-            self._close()
+            self.help_dialog.Destroy()
+            self.Destroy()
+            self.options['App'].ExitMainLoop()
         else:
             self.Hide()
-        event.Skip()
 
     def on_help(self, event): # wxGlade: FilterFrame.<event_handler>
         """display dialog about regular expression"""
