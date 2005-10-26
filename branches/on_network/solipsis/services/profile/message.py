@@ -22,7 +22,7 @@
 """defines functions to display message in navigator. These functions
 do not do anything if no navigator is defined (in tests for instance)"""
 
-__revision__ = "$Id: __init__.py 865 2005-09-30 08:28:36Z emb $"
+__revision__ = "$Id$"
 
 def _display(msg, msg_type, title="Solipsis Profile", error=None):
     from solipsis.services.profile.plugin import Plugin

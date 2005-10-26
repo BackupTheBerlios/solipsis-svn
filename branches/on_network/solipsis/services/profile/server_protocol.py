@@ -5,7 +5,6 @@
 __revision__ = "$Id$"
 
 import socket
-import os, os.path
 import gettext
 _ = gettext.gettext
 
@@ -16,116 +15,9 @@ from twisted.protocols import basic
 from solipsis.node.discovery import stun
 from solipsis.navigator.main import build_params
 from solipsis.util.network import get_free_port, release_port
-from solipsis.services.profile import UNIVERSAL_SEP
-from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile.message import display_warning, display_status
-from solipsis.services.profile.network import Message, SecurityAlert, \
-     MESSAGE_PROFILE, MESSAGE_BLOG, MESSAGE_SHARED, MESSAGE_FILES, \
-     MESSAGE_HELLO, MESSAGE_ERROR
-            
-class PeerServer(object):
-    """trace messages received for this peer"""
+from solipsis.services.profile.network_data import Message
 
-    def __init__(self, peer):
-        self.peer = peer
-        # states
-        self.registered_state = PeerRegistered(self)
-        self.connected_state = PeerConnected(self)
-        self.disconnected_state = PeerDisconnected(self)
-        self.current_sate = PeerState(self)
-
-    def connected(self, protocol):
-        self.current_sate.connected(protocol)
-        
-    def disconnected(self):
-        self.current_sate.disconnected()
-        
-    def execute(self, message):
-        self.current_sate.execute(message)
-    
-class PeerState(object):
-    """trace messages received for this peer"""
-
-    def __init__(self, peer_server):
-        self.protocol = None
-        self.peer_server = peer_server
-        
-    def connected(self, protocol):
-        raise SecurityAlert(self.peer_server.peer.peer_id,
-                            "Connection impossible in state %s"%
-                            self.__class__.__name__)
-    def disconnected(self):
-        raise SecurityAlert(self.peer_server.peer.peer_id,
-                            "Disconnection impossible in state %s"%
-                            self.__class__.__name__)
-    def execute(self, message):
-        raise SecurityAlert(self.peer_server.peer.peer_id,
-                            "Action impossible in state %s"%
-                            self.__class__.__name__)
-    
-class PeerRegistered(PeerState):
-    """trace messages received for this peer"""
-
-    def connected(self, protocol):
-        self.protocol = protocol
-        self.peer_server.current_sate = self.peer_server.connected_state
-    
-class PeerConnected(PeerState):
-    """trace messages received for this peer"""
-
-    def connected(self, protocol):
-        self.protocol = protocol
-
-    def disconnected(self):
-        self.peer_server.current_sate = self.peer_server.disconnected_state
-
-    def execute(self, message):
-        transport = self.protocol.transport
-        if message.command in [MESSAGE_HELLO, MESSAGE_PROFILE]:
-            file_obj = get_facade()._desc.document.to_stream()
-            deferred = basic.FileSender().\
-                       beginFileTransfer(file_obj, transport)
-            deferred.addCallback(lambda x: transport.loseConnection())
-        elif message.command == MESSAGE_BLOG:
-            blog_stream = get_facade().get_blog_file()
-            deferred = basic.FileSender().\
-                       beginFileTransfer(blog_stream, transport)
-            deferred.addCallback(lambda x: transport.loseConnection())
-        elif message.command == MESSAGE_SHARED:
-            files_stream = get_facade().get_shared_files()
-            deferred = basic.FileSender().beginFileTransfer(files_stream,
-                                                            transport)
-            deferred.addCallback(lambda x: transport.loseConnection())
-        elif message.command == MESSAGE_FILES:
-            file_path = message.data
-            file_name = os.sep.join(file_path.split(UNIVERSAL_SEP))
-            file_desc = get_facade().get_file_container(file_name)
-            # check shared
-            if file_desc._shared:
-                display_status("sending %s"% file_name)
-                deferred = basic.FileSender().\
-                           beginFileTransfer(open(file_name), transport)
-                deferred.addCallback(lambda x: transport.loseConnection())
-            else:
-                self.protocol.factory.send_udp_message(
-                    self.peer_server.peer.peer_id, MESSAGE_ERROR, message.data)
-                SecurityAlert(self.peer_server.peer.peer_id,
-                              "Trying to download unshare file %s"\
-                              % file_name)
-        else:
-            raise ValueError("ERROR in _connect: %s not valid"% message.command)
-
-class PeerDisconnected(PeerState):
-    """trace messages received for this peer"""
-
-    def connected(self, protocol):
-        self.protocol = protocol
-        self.peer_server.current_sate = self.peer_server.connected_state
-
-    def disconnected(self):
-        pass
-    
-# SERVER #############################################################
 class ProfileServerProtocol(basic.LineOnlyReceiver):
 
     def lineReceived(self, line):
@@ -139,6 +31,7 @@ class ProfileServerProtocol(basic.LineOnlyReceiver):
     def connectionMade(self):
         """a peer has connect to us"""
         remote_ip = self.transport.getPeer().host
+        # check that ip has been suscribed (by high-level funciton 'on_new_peer')
         if not self.factory.network.peers.assert_ip(remote_ip):
             self.transport.loseConnection()
         else:

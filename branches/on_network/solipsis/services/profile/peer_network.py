@@ -1,0 +1,373 @@
+# pylint: disable-msg=W0131,C0103
+# Missing docstring, Invalid name
+"""client server module for file sharing"""
+
+__revision__ = "$Id: network.py 902 2005-10-14 16:18:06Z emb $"
+
+import os, os.path
+import pickle
+import datetime
+import threading
+import gettext
+_ = gettext.gettext
+
+from Queue import Queue, Empty
+from twisted.protocols import basic
+from twisted.internet import defer
+
+from solipsis.services.profile import VERSION, UNIVERSAL_SEP
+from solipsis.services.profile.document import read_document
+from solipsis.services.profile.facade import get_facade, get_filter_facade
+from solipsis.services.profile.message import display_status, display_error
+from solipsis.services.profile.network_data import SecurityAlert, \
+     DownloadMessage, Message, MESSAGE_HELLO, MESSAGE_ERROR, \
+     MESSAGE_PROFILE, MESSAGE_BLOG, MESSAGE_SHARED, MESSAGE_FILES
+          
+# server #############################################################
+class PeerServer(object):
+    """trace messages received for this peer"""
+
+    def __init__(self, peer):
+        self.peer = peer
+        self.protocol = None
+        # states
+        self.registered_state = PeerRegistered(self)
+        self.connected_state = PeerConnected(self)
+        self.disconnected_state = PeerDisconnected(self)
+        self.current_sate = PeerState(self)
+
+    def connected(self, protocol):
+        self.current_sate.connected(protocol)
+        
+    def disconnected(self):
+        self.current_sate.disconnected()
+        
+    def execute(self, message):
+        self.current_sate.execute(message)
+    
+class PeerState(object):
+    """trace messages received for this peer"""
+
+    def __init__(self, peer_server):
+        self.peer_server = peer_server
+        
+    def connected(self, protocol):
+        raise SecurityAlert(self.peer_server.peer.peer_id,
+                            "Connection impossible in state %s"%
+                            self.__class__.__name__)
+    def disconnected(self):
+        raise SecurityAlert(self.peer_server.peer.peer_id,
+                            "Disconnection impossible in state %s"%
+                            self.__class__.__name__)
+    def execute(self, message):
+        raise SecurityAlert(self.peer_server.peer.peer_id,
+                            "Action impossible in state %s"%
+                            self.__class__.__name__)
+    
+class PeerRegistered(PeerState):
+    """trace messages received for this peer"""
+
+    def connected(self, protocol):
+        self.peer_server.protocol = protocol
+        self.peer_server.current_sate = self.peer_server.connected_state
+
+    def disconnected(self):
+        self.peer_server.current_sate = self.peer_server.disconnected_state
+
+class PeerDisconnected(PeerState):
+    """trace messages received for this peer"""
+
+    def connected(self, protocol):
+        self.protocol = protocol
+        self.peer_server.current_sate = self.peer_server.connected_state
+
+    def disconnected(self):
+        pass
+    
+class PeerConnected(PeerState):
+    """trace messages received for this peer"""
+
+    def connected(self, protocol):
+        self.peer_server.protocol = protocol
+
+    def disconnected(self):
+        self.peer_server.protocol = None
+        self.peer_server.current_sate = self.peer_server.disconnected_state
+
+    def execute(self, message):
+        transport = self.protocol.transport
+        if message.command in [MESSAGE_HELLO, MESSAGE_PROFILE]:
+            file_obj = get_facade()._desc.document.to_stream()
+            deferred = basic.FileSender().\
+                       beginFileTransfer(file_obj, transport)
+            deferred.addCallback(lambda x: transport.loseConnection())
+        elif message.command == MESSAGE_BLOG:
+            blog_stream = get_facade().get_blog_file()
+            deferred = basic.FileSender().\
+                       beginFileTransfer(blog_stream, transport)
+            deferred.addCallback(lambda x: transport.loseConnection())
+        elif message.command == MESSAGE_SHARED:
+            files_stream = get_facade().get_shared_files()
+            deferred = basic.FileSender().beginFileTransfer(files_stream,
+                                                            transport)
+            deferred.addCallback(lambda x: transport.loseConnection())
+        elif message.command == MESSAGE_FILES:
+            file_path = message.data
+            file_name = os.sep.join(file_path.split(UNIVERSAL_SEP))
+            file_desc = get_facade().get_file_container(file_name)
+            # check shared
+            if file_desc._shared:
+                display_status("sending %s"% file_name)
+                deferred = basic.FileSender().\
+                           beginFileTransfer(open(file_name), transport)
+                deferred.addCallback(lambda x: transport.loseConnection())
+            else:
+                self.protocol.factory.send_udp_message(
+                    self.peer_server.peer.peer_id, MESSAGE_ERROR, message.data)
+                SecurityAlert(self.peer_server.peer.peer_id,
+                              "Trying to download unshare file %s"\
+                              % file_name)
+        else:
+            raise ValueError("ERROR in _connect: %s not valid"% message.command)
+          
+# client #############################################################
+class PeerClient(dict):
+    """dictionary of all dowloads: {id(transport): }"""
+    
+    def __init__(self, peer, connect_method, *args, **kwargs):
+        dict.__init__(self, *args, **kwargs)
+        self.peer = peer
+        self.connect = connect_method
+
+    def __setitem__(self, transport, download_msg):
+        dict.__setitem__(self, id(transport), download_msg)
+
+    def __getitem__(self, transport):
+        try:
+            return dict.__getitem__(self, id(transport))
+        except KeyError:
+            raise SecurityAlert(transport.getPeer().host,
+                                _("Corrupted client"))
+            
+        
+    # high level API #
+    def auto_load(self):
+        """download profile when meeting peer for the first time"""
+        return self._connect(MESSAGE_HELLO)
+    
+    def get_profile(self):
+        """download peer profile using self.get_file. Automatically
+        called on client creation"""
+        return self._connect(MESSAGE_PROFILE)
+            
+    def get_blog_file(self):
+        """donload blog file using self.get_file"""
+        return self._connect(MESSAGE_BLOG)
+            
+    def get_shared_files(self):
+        """donload blog file using self.get_file"""
+        return self._connect(MESSAGE_SHARED)
+            
+    def get_files(self, file_descriptors):
+        """download given list of file"""
+        return self._connect(MESSAGE_FILES, file_descriptors)
+
+    # connection management #
+    def _connect(self, command, data=None):
+        # set download information
+        message = self.peer.wrap_message(command, data)
+        connector =  self.connect(self)
+        deferred = defer.Deferred()
+        download = DownloadMessage(connector.transport, deferred, message)
+        self[connector.transport] = download
+        # set callback
+        if command == MESSAGE_HELLO:
+            deferred.addCallback(self._on_hello)
+        elif command == MESSAGE_PROFILE:
+            deferred.addCallback(self._on_complete_profile)
+        elif command == MESSAGE_BLOG:
+            deferred.addCallback(self._on_complete_pickle)
+        elif command == MESSAGE_SHARED:
+            deferred.addCallback(self._on_complete_pickle)
+        elif command == MESSAGE_FILES:
+            deferred.addCallback(self._on_complete_file)
+        else:
+            raise ValueError("ERROR in _connect: %s not valid"% command)
+        return deferred
+        
+    def _fail_client(self, transport, reason):
+        self[transport].close(reason)
+
+    def _on_connected(self, transport):
+        self[transport].send_message()
+        self[transport].setup_download()
+    
+    def rawDataReceived(self, transport, data):
+        self[transport].write_data(data)
+
+    def _on_disconnected(self, transport, reason):
+        self[transport].teardown_download()
+        self[transport].close(reason)
+
+    # callbacks #
+    def _on_hello(self, file_obj):
+        """callback when autoloading of profile successful"""
+        document = read_document(file_obj)
+        get_facade().set_data(self.peer.peer_id, document, flag_update=False)
+        get_filter_facade().fill_data(self.peer.peer_id, document)
+        
+    def _on_complete_profile(self, file_obj):
+        """callback when finished downloading profile"""
+        return read_document(file_obj)
+
+    def _on_complete_pickle(self, file_obj):
+        """callback when finished downloading blog"""
+        try:
+            obj_str = file_obj.getvalue()
+            return pickle.loads(obj_str)
+        except Exception, err:
+            display_error(_("Your version of Solipsis is not compatible "
+                            "with the peer'sone you wish to download from "
+                            "Make sure you both use the latest (%s)"\
+                            % VERSION),
+                          title="Download error", error=err)
+
+    def _on_complete_file(self, file_obj):
+        """callback when finished downloading file"""
+        pass
+    
+# wrapper of server & client #########################################
+class Peer(object):
+    """contain 'static' information about a peer: its is, ip, port..."""
+    
+    PEER_TIMEOUT = 120
+
+    def __init__(self, peer_id, connect_method):
+        self.peer_id = peer_id
+        self.lost = None
+        # protocols
+        self.client = PeerClient(self, connect_method)
+        self.server = PeerServer(self)
+        # vars set UDP message
+        self.ip = None
+        self.port = None
+
+    def lose(self):
+        self.lost = datetime.datetime.now() \
+                    + datetime.timedelta(seconds=self.PEER_TIMEOUT)
+
+    def wrap_message(self, command, data=None):
+        message = Message(command)
+        message.ip = self.ip
+        message.port = self.port
+        message.data = data
+        return message
+
+# manager ############################################################
+class PeerManager(threading.Thread):
+    """manage known ips (along with their ids) and timeouts"""
+
+    CHECKING_FREQUENCY = 5
+
+    def __init__(self, connect_method):
+        """connect method expects a peer and is implemented in
+        PeerClientFactory in our case"""
+        threading.Thread.__init__(self)
+        self.queue = Queue(-1) # infinite size
+        self.remote_ips = {}   # {ip : peer}
+        self.remote_ids = {}   # {id : peer}
+        self.running = True
+        self.connect_method = connect_method
+        self.lock = threading.RLock()
+
+    def run(self):
+        while self.running:
+            try:
+                # block until new message or TIMEOUT
+                message = self.queue.get(timeout=self.CHECKING_FREQUENCY)
+                if message is None:
+                    self.running = False
+                else:
+                    if message.ip in self.remote_ips:
+                        self.remote_ips[message.ip].server.execute(self, message)
+                    else:
+                        SecurityAlert(message.ip,
+                                      _("Message '%s' out of date."\
+                                        % str(message)))
+                    self._check_peers(datetime.datetime.now())
+            except Empty:
+                # Empty exception is expected when no message received
+                # during period defined by CHECKING_FREQUENCY.
+                self._check_peers(datetime.datetime.now())
+
+    def stop(self):
+        self.queue.put(None)
+
+    def assert_ip(self, remote_ip):
+        if self.remote_ips.has_key(remote_ip):
+            return True
+        else:
+            SecurityAlert(remote_ip, "Host has not registered")
+            return False
+        
+    def assert_id(self, peer_id):
+        if self.remote_ids.has_key(peer_id):
+            return True
+        else:
+            SecurityAlert(peer_id, "Peer has not registered")
+            return False
+
+    def add_peer(self, peer_id):
+        try:
+            self.lock.acquire()
+            peer = Peer(peer_id, self.connect_method)
+            self.remote_ids[peer_id] = peer
+        finally:
+            self.lock.release()
+
+    def set_peer(self, peer_id, message):
+        try:
+            self.lock.acquire()
+            peer = self.remote_ids[peer_id]
+            self.remote_ips[message.ip] = peer
+            peer.ip = message.ip
+            peer.port = message.port
+            peer.server.current_sate =  peer.server.registered_state
+        finally:
+            self.lock.release()
+
+    def add_message(self, message):
+        """Synchronized method called either from peer_manager thread
+        or network thread"""
+        try:
+            self.lock.acquire()
+            # put in queue after checking ip up
+            if not self.remote_ips.has_key(message.ip):
+                SecurityAlert(message.ip,
+                              _("Incomming '%s' from unknown host"\
+                                % str(message)))
+            else:
+                self.queue.put(message)
+        finally:
+            self.lock.release()
+
+    def _check_peers(self, now):
+        """Synchronized method to clean up dict of peers, always
+        called from peer_manager thread."""
+        try:
+            self.lock.acquire()
+            for peer_id, peer in self.remote_ids.items():
+                if peer.lost and peer.lost < now:
+                    self._del_peer(peer_id)
+        finally:
+            self.lock.release()
+
+    def _del_peer(self, peer_id):
+        """Synchronized method called either from peer_manager thread
+        or network thread"""
+        try:
+            self.lock.acquire()
+            del self.remote_ips[self.remote_ids[peer_id].ip]
+            del self.remote_ids[peer_id]
+        finally:
+            self.lock.release()
