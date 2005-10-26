@@ -1,5 +1,5 @@
 BUGS OUVERTS:
-  017, 019, O24, 025b, 027, 028, 031, 032, 033
+  017, 019, O24, 025b, 027, 028, 032, 033, 034
 
 BUG EN COURT:
   027, 025b
@@ -7,6 +7,13 @@ BUG EN COURT:
 BUGS SUIVANTS:
   024
 
+
+     -------------------
+034: Gwendal_200510126_2
+     -------------------
+champ global dans l'édition des filtres de profile
+
+ -> 1j
 
      -------------------
 033: Gwendal_200510126_1
@@ -23,13 +30,12 @@ Le nombre de fichier n'est pas mis à jour dans la preview
 
  -> XXX
 
-     -------------------
 031: Joaquin_200510126_1
-     -------------------
+........................
 "New File Filter" ne fait rien, le pop menu ne marche pas
 
  -> c'est un pb de widget suivant la plateforme. il marche sur
-    certaine machine et pas sur d'autres... je vais uniformiser
+    certaine machine et pas sur d'autres... done
 
 030: Gwendal_200510114_3
 ........................
