@@ -1,11 +1,11 @@
 BUGS OUVERTS:
-  017, 019, 023 -> 028
+  017, 019, O24, 025b, 027, 028
 
 BUG EN COURT:
-  027
+  027, 025b
 
 BUGS SUIVANTS:
-  023 -> 026
+  024
 
 
 030: Gwendal_200510114_3
@@ -45,31 +45,34 @@ intégrer le travail de Luca dans le module de profile
 
  -> 5j en cours
 
-     ------------------
 026: Joaquin_20051011_7
-     ------------------
+.......................
 Ajouter un filtre par défaut qui affiche tous les profils voisins
 
--> 1j
+ -> done
 
-     ------------------
+     -------------------
+025b: Joaquin_20051011_6
+     -------------------
+Les filtres sur les données personnelles doivent pouvoir être ET/OU.
+
+ -> 1j
+
 025: Joaquin_20051011_6
-     ------------------
-Les filtres sur les données personnelles doivent être des ET.
-On doit pouvoir en définir autant que souhaité
+.......................
+On doit pouvoir définir autant de filtres sur les profile que souhaité
 
--> 1j
+ -> done
 
      ------------------
 024: Joaquin_20051011_5
      ------------------
 Actions possibles sur les résultats des filtres: télécharger des fichiers.
 
--> 1j dépend de 021
+ -> 1j dépend de 021
 
-     ------------------
 O23: Joaquin_20051011_3
-     ------------------
+.......................
 fenêtre de consultation des filtres à la 'limewire'
  - mode edition dans un side-panel
  - La liste de filtres actifs avec rafraichissement
@@ -78,7 +81,7 @@ Il faudra indiquer le type de filtre dans une colonne (F/P), fusionner
 les deux colonnes Name, Filter et mettre le nombre de match dans la
 dernière
 
- -> 5j
+ -> done
 
 O22: Joaquin_20051011_4
 .......................
