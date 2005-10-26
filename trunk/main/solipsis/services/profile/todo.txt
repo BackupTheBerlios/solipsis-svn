@@ -1,5 +1,5 @@
 BUGS OUVERTS:
-  017, 019, O24, 025b, 027, 028
+  017, 019, O24, 025b, 027, 028, 031, 032, 033
 
 BUG EN COURT:
   027, 025b
@@ -7,6 +7,29 @@ BUG EN COURT:
 BUGS SUIVANTS:
   024
 
+
+     -------------------
+033: Gwendal_200510126_1
+     -------------------
+dans l'onglet 'files' du profile, il y a TROIS occurrences de mes
+dossiers partagés
+
+ -> difficilement reproductible, vais revoir le widget
+
+     -------------------
+032: Joaquin_200510126_2
+     -------------------
+Le nombre de fichier n'est pas mis à jour dans la preview
+
+ -> XXX
+
+     -------------------
+031: Joaquin_200510126_1
+     -------------------
+"New File Filter" ne fait rien, le pop menu ne marche pas
+
+ -> c'est un pb de widget suivant la plateforme. il marche sur
+    certaine machine et pas sur d'autres... je vais uniformiser
 
 030: Gwendal_200510114_3
 ........................
@@ -69,7 +92,7 @@ On doit pouvoir définir autant de filtres sur les profile que souhaité
      ------------------
 Actions possibles sur les résultats des filtres: télécharger des fichiers.
 
- -> 1j dépend de 021
+ -> 1j dépend de 027
 
 O23: Joaquin_20051011_3
 .......................
