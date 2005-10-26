@@ -129,22 +129,31 @@ class FilterFrame(wx.Frame):
 
         # popup menu
         self.popup_menu = wx.Menu()
-        self.refresh_item = wx.MenuItem(self.popup_menu, wx.NewId(), _("Refresh"))
-        self.delete_item = wx.MenuItem(self.popup_menu, wx.NewId(), _("Delete"))
-        self.popup_menu.AppendItem(self.refresh_item)
-        self.popup_menu.AppendItem(self.delete_item)
+        refresh_item = wx.MenuItem(self.popup_menu, wx.NewId(), _("Refresh"))
+        delete_item = wx.MenuItem(self.popup_menu, wx.NewId(), _("Delete"))
+        new_file_item = wx.MenuItem(self.popup_menu, wx.NewId(), _("New File filter"))
+        new_profile_item = wx.MenuItem(self.popup_menu, wx.NewId(), _("New Profile filter"))
+        self.popup_menu.AppendItem(refresh_item)
+        self.popup_menu.AppendItem(delete_item)
         self.popup_menu.AppendSeparator()
-        self.popup_menu.AppendItem(self.new_file_item)
-        self.popup_menu.AppendItem(self.new_profile_item)
-        self.Bind(wx.EVT_MENU, self.on_delete, self.delete_item)
-        self.Bind(wx.EVT_MENU, self.on_refresh_filter, self.refresh_item)
+        self.popup_menu.AppendItem(new_file_item)
+        self.popup_menu.AppendItem(new_profile_item)
+        self.Bind(wx.EVT_MENU, self.on_delete, delete_item)
+        self.Bind(wx.EVT_MENU, self.on_refresh_filter, refresh_item)
+        self.Bind(wx.EVT_MENU, self.on_new_file, new_file_item)
+        self.Bind(wx.EVT_MENU, self.on_new_profile, new_profile_item)
 
         self.popup_col_menu = wx.Menu()
-        self.popup_col_menu.AppendItem(self.new_file_item)
-        self.popup_col_menu.AppendItem(self.new_profile_item)
+        new_file_item = wx.MenuItem(self.popup_col_menu, wx.NewId(), _("New File filter"))
+        new_profile_item = wx.MenuItem(self.popup_col_menu, wx.NewId(), _("New Profile filter"))
+        self.popup_col_menu.AppendItem(new_file_item)
+        self.popup_col_menu.AppendItem(new_profile_item)
+        self.Bind(wx.EVT_MENU, self.on_new_file, new_file_item)
+        self.Bind(wx.EVT_MENU, self.on_new_profile, new_profile_item)
         
         self.Bind(wx.EVT_CLOSE, self.on_close)
         self.set_profile_view()
+        self.set_file_view()
 
     # state ##########################################################
     def get_filter_names(self):
@@ -388,16 +397,16 @@ class FilterFrame(wx.Frame):
         edit_sizer = self.edit_pane.GetSizer()
         edit_sizer.Detach(self.current_edit)
         edit_sizer.Add(self.edit_file_panel, 1, wx.EXPAND, 0)
-        edit_sizer.Layout()
         self.current_edit = self.edit_file_panel
         # view
         view_sizer = self.view_pane.GetSizer()
         view_sizer.Detach(self.current_view)
         view_sizer.Add(self.view_file_panel, 1, wx.EXPAND, 0)
-        view_sizer.Layout()
         self.current_view = self.view_file_panel
         self.edit_profile_panel.Hide()
         self.view_profile_panel.Hide()
+        edit_sizer.Layout()
+        view_sizer.Layout()
 
     def set_profile_view(self):
         if self.current_edit == self.edit_profile_panel:
@@ -407,16 +416,16 @@ class FilterFrame(wx.Frame):
         edit_sizer = self.edit_pane.GetSizer()
         edit_sizer.Detach(self.current_edit)
         edit_sizer.Add(self.edit_profile_panel, 1, wx.EXPAND, 0)
-        edit_sizer.Layout()
         self.current_edit = self.edit_profile_panel
         # view
         view_sizer = self.view_pane.GetSizer()
         view_sizer.Detach(self.current_view)
         view_sizer.Add(self.view_profile_panel, 1, wx.EXPAND, 0)
-        view_sizer.Layout()
         self.current_view = self.view_profile_panel
         self.edit_file_panel.Hide()
         self.view_file_panel.Hide()
+        edit_sizer.Layout()
+        view_sizer.Layout()
     
     def __set_properties(self):
         # begin wxGlade: FilterFrame.__set_properties

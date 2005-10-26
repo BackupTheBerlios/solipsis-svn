@@ -49,9 +49,9 @@ class FilterMixin:
             self.filters[name] = val
 
     def _create_match_all(self):
-        if "All" not in self.filters:
-            self.filters["All"] = PeerFilter(
-                "All", **{'pseudo': '*'})
+        if u"All" not in self.filters:
+            self.filters[u"All"] = PeerFilter(
+                u"All", **{'pseudo': u'*'})
 
     def update_file_filter(self, filter_name, **props):
         if not filter_name in self.filters:
