@@ -27,7 +27,8 @@ from solipsis.services.plugin import ServicePlugin
 from solipsis.services.profile import set_solipsis_dir
 from solipsis.services.profile.message import display_message, display_status
 from solipsis.services.profile.prefs import get_prefs
-from solipsis.services.profile.facade import create_facade, get_facade, \
+from solipsis.services.profile.facade import create_facade, get_facade
+from solipsis.services.profile.filter_facade import \
      create_filter_facade, get_filter_facade
 from solipsis.services.profile.network import NetworkManager
 from solipsis.services.profile.view import EditorView, ViewerView, FilterView
@@ -68,13 +69,13 @@ class Plugin(ServicePlugin):
         self.filter_frame = None
         self.peer_services = {}
         # declare actions
-        self.MAIN_ACTION = {"Modify Profile...": self.modify_profile,
-                            "Filter Profiles...": self.filter_profile,
+        self.MAIN_ACTION = {_("Edit Profile..."): self.modify_profile,
+                            _("Filter Profiles..."): self.filter_profile,
                             }
         self.POINT_ACTIONS = {#"View all...": self.show_profile,
-                              "View profile...": self.get_profile,
-                              "View blog...": self.get_blog_file,
-                              "Get files...": self.select_files,}
+                              _("View profile..."): self.get_profile,
+                              _("View blog..."): self.get_blog_file,
+                              _("Get files..."): self.select_files,}
 
     # Service setup
 
@@ -135,20 +136,23 @@ class Plugin(ServicePlugin):
         if self.filter_frame and self.filter_frame.modified:
             self.filter_frame.do_modified(False)
             dlg = wx.MessageDialog(
-                self.editor_frame,
+                self.filter_frame,
                 'Your filters have been modified. Do you want to save them?',
                 'Saving Filters',
                 wx.YES_NO | wx.ICON_INFORMATION)
             if dlg.ShowModal() == wx.ID_YES:
-                get_filter_facade()._desc.save()
+                get_filter_facade().save()
         self.activate(False)
 
     def activate(self, active=True):
         """eable/disable service"""
         if not active:
+            self.network.stop()
             self.network.server.stop_listening()
-            self.network.client.disconnect()
+            for peer_id in self.peer_services.keys():
+                self.LostPeer(peer_id)
         else:
+            self.network.start()
             self.network.server.start_listening()
             for peer_id in self.peer_services.keys():
                 self.NewPeer(*self.peer_services[peer_id])

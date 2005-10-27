@@ -42,8 +42,8 @@ from solipsis.services.profile import DEFAULT_INTERESTS, ENCODING, \
 from solipsis.services.profile.message import display_status, display_error
 from solipsis.services.profile.path_containers import ContainerMixin,  \
      create_container, DictContainer, SharedFiles, ContainerException
-from solipsis.services.profile.data import  Blogs, retro_compatibility, \
-     PeerDescriptor
+from solipsis.services.profile.blog import  Blogs, retro_compatibility
+from solipsis.services.profile.data import  PeerDescriptor
 
 SECTION_PERSONAL = "Personal"
 SECTION_CUSTOM = "Custom"

@@ -1,6 +1,163 @@
+BUGS OUVERTS:
+  017, 019, O24, 027, 028, 032, 033
 
-# BLOG BUGS ##########################################################
+BUG EN COURT:
+  027
 
+BUGS SUIVANTS:
+  024
+
+
+
+035: Gwendal_200510126_3
+........................
+Deux modes d'édition du filtre sur profile: simle & advanced
+
+ -> done
+
+034: Gwendal_200510126_2
+........................
+champ global dans l'édition des filtres de profile
+
+ -> done
+
+     -------------------
+033: Gwendal_200510126_1
+     -------------------
+dans l'onglet 'files' du profile, il y a TROIS occurrences de mes
+dossiers partagés
+
+ -> difficilement reproductible, vais revoir le widget
+
+     -------------------
+032: Joaquin_200510126_2
+     -------------------
+Le nombre de fichier n'est pas mis à jour dans la preview
+
+ -> XXX
+
+031: Joaquin_200510126_1
+........................
+"New File Filter" ne fait rien, le pop menu ne marche pas
+
+ -> c'est un pb de widget suivant la plateforme. il marche sur
+    certaine machine et pas sur d'autres... done
+
+030: Gwendal_200510114_3
+........................
+File "/home/gwendal/trunk/main/solipsis/services/profile/network.py", line
+298, in lineReceived
+client.set_remote(self.factory.manager.remote_ids[remote_host],
+exceptions.KeyError: '192.33.178.60 <http://192.33.178.60>'
+
+ -> sera corrigé par 024
+
+029: Gwendal_200510114_2
+........................
+chez moi, les filtres ne fonctionnent toujours pas--- Mais, peut-être
+me faudrait-il une démo ?
+
+ -> Je vais pas mal améliorer l'interface des filtres pour la
+    rapprocher des programmes existants et donner à l'utilisateur plus
+    de repères. cf 021 -> 023
+
+     -------------------
+028: Gwendal_200510114_1
+     -------------------
+quand je fais un "Get files" sur quelqu'un d'autre, il y a une
+nouvelle série de warning comme quoi MES fichiers ne respectent pas le
+UTF-8--- Pourquoi un get files sur une autre entité produit un travail
+sur mes fichiers ?
+
+ -> XXX à faire avec 017
+
+     --------
+027: Didier_1
+     --------
+intégrer le travail de Luca dans le module de profile
+* refonte du systeme d'echange
+* modification du code ntcp pour une connexion sans aucun NAT
+
+ -> 5j en cours
+
+026: Joaquin_20051011_7
+.......................
+Ajouter un filtre par défaut qui affiche tous les profils voisins
+
+ -> done
+
+025b: Joaquin_20051011_6
+.......................
+Les filtres sur les données personnelles doivent pouvoir être ET/OU.
+
+ -> done
+
+025: Joaquin_20051011_6
+.......................
+On doit pouvoir définir autant de filtres sur les profile que souhaité
+
+ -> done
+
+     ------------------
+024: Joaquin_20051011_5
+     ------------------
+Actions possibles sur les résultats des filtres: télécharger des fichiers.
+
+ -> 1j dépend de 027
+
+O23: Joaquin_20051011_3
+.......................
+fenêtre de consultation des filtres à la 'limewire'
+ - mode edition dans un side-panel
+ - La liste de filtres actifs avec rafraichissement
+ - La liste des fichiers correspondants au filtre sélectionné
+Il faudra indiquer le type de filtre dans une colonne (F/P), fusionner
+les deux colonnes Name, Filter et mettre le nombre de match dans la
+dernière
+
+ -> done
+
+O22: Joaquin_20051011_4
+.......................
+simplifier le système des expressions régulières
+
+ -> fait. Il ne reste qu'un seul joker: '*'
+
+O21: Joaquin_20051010_2
+.......................
+unicodeDecodeError sur le post d'un Blog
+
+ -> corrigé
+
+O20: Joaquin_20051010_1
+.......................
+Vocabulaire GUI:
+ - Modify Profile -> Edit Profile 
+ - New Blog -> Post
+ - Share/Unshare -> Share/Unshare [file]
+
+     ------------------
+019: Joaquin_20051010_2
+     ------------------
+On peut, peut être, éliminer les warnings ? Ou au moins les en générer
+moins. Exemple quand je croise Gwendal il y a deux(?) warnings par
+fichier contenant un caractère spécial. Aucun warning ou un seul
+warning pour l'ensemble des fichiers du type "plusieurs fichiers blah
+blah utf8 blah blah" serait plus judicieux. Je préfère la solution
+"aucun warning".
+
+ -> XXX
+
+018: Joaquin_20051010_1
+.......................
+Quand est-ce que la "fenêtre de résultat" apparaît ? (je ne l'ai vu
+apparaître qu'un fois, je l'ai fermé et je ne l'ai plus jamais vu)
+
+ -> elle apparait lorsque le voisin apparait dans ton radius. Il faut
+    cependant activer les filtres (comportement par défaut). Elle
+    est désormais également affichable par le menu.
+
+     ------------------
 017: Gwendal_20051006_1
      ------------------
 je vais modifier mon profile et c'est là qu'il y a un p'tit bug : dès
@@ -12,7 +169,7 @@ passage.
  -> XXX
 
 016: Didier_20051005_1
-     -----------------
+......................
 J'ai récupéré le build 578. En attendant l'amélioration du mode de
 connexion, le déport sur la status bar de l'avertissement sur les
 profils et filtres me convient à un détail près.  Comme la status bar
@@ -25,8 +182,8 @@ finalement trouvé au moment de la véritable connexion.
     le bug dans ce cas particulier)
 
 015: Gwendal_20051005_2
-     ------------------
-pas de 'get files' : context bar affiche "erreur [...] UTF-8"
+.......................
+pas de 'get files' : context bar affiche "erreur [---] UTF-8"
 
  -> Messages d'erreurs :
 File "/home/gwendal/trunk/main/solipsis/services/profile/network.py", line
@@ -52,7 +209,7 @@ exceptions.AttributeError: 'module' object has no attribute 'SharedFiles'
    qui est l'encodage par défaut de ta machine).
 
 014: Gwendal_20051005_1
-     ------------------
+.......................
 Quand je fais "share" dans le menu file de la fenêtre "modify profile", cela
 produit:
 File "/home/gwendal/trunk/main/solipsis/services/profile/gui/FilePanel.py",
@@ -60,17 +217,17 @@ line 453, in get_selection
 selections.append(self.owner.tree_list.GetItemText(child, FULL_PATH_COL))
 File "/usr/lib/python2.4/site-packages/wx-2.6-gtk2-unicode/wx/gizmos.py",
 line 656, in GetItemText
-return _gizmos.TreeListCtrl_GetItemText(*args, **kwargs)
+return _gizmos.TreeListCtrl_GetItemText(*args, ..kwargs)
 wx._core.PyAssertionError: C++ assertion "wxAssertFailure" failed in
 contrib/gizmos/wxCode/src/treelistctrl.cpp(4617): invalid tree item
 
  -> ajout de popup demandant à l'utilsateur de sélectionner qqchose
 
 013: Gwendal_20051003_1
-     ------------------
+.......................
 File "/usr/lib/python2.4/site-packages/twisted/internet/defer.py", 
   line 328,in _runCallbacks
-  self.result = callback(self.result, *args, **kw)
+  self.result = callback(self.result, *args, ..kw)
 File "/home/gwendal/trunk/main/solipsis/services/profile/network.py", 
   line 373, in _on_profile_complete
   get_filter_facade().fill_data(peer_id, document)
@@ -81,11 +238,11 @@ exceptions.AttributeError: 'NoneType' object has no attribute 'fill_data'
    qu'elle soit écrite sur le disque
 
 012: Joaquin_20050930_4
-     ------------------
+.......................
 Je tente un view profile:
 exceptions.AssertionError: [/home/gwendal/Gnutella/Santana/02 Love,
 Devotion & Surrender.mp3] not a valid file
-Il y a, semble-t-il, un problème avec certains noms de fichier...
+Il y a, semble-t-il, un problème avec certains noms de fichier---
 
 -> Corrigé. Le problème venait de la vérification de validité du
    chemin du fichier qui est toujours fausse puisqu'il s'agit d'un
@@ -93,7 +250,7 @@ Il y a, semble-t-il, un problème avec certains noms de fichier...
    n'avait pas lieu d'être.
 
 011: Joaquin_20050930_3
-     ------------------
+.......................
 J'essaye un get files sur quelqu'un, il ne se passe rien sauf un
 message qui s'affiche:
 "sending DOWNLOAD_SHARED"
@@ -101,29 +258,29 @@ message qui s'affiche:
 -> corrigé
 
 010: Joaquin_20050930_2
-     ------------------
+.......................
 Quand j'ouvre le profile editor ou l'éditeur de filtre:
 AttributeError: 'CommandEvent' object has no attribute 'callback'
 
 -> corrigé
 
 009: Joaquin_20050930_1
-     ------------------
+.......................
 Quand je m'approche de qqun ou quand qqun s'approche de moi il s'ouvre
 une boîte de dialogue "corrupted profile file".
 
 -> le message est déplacé dans la barre d'état
 
 008: Flavio_20050930_1
-     -----------------
+......................
 when I try to update my profile an error message appears on the
 console saying : invalid tag expected as unicode, but there is no way
-to change encoding in the gui...
+to change encoding in the gui
 
 -> version de wxpython non unicode?
 
 007: Gwendal_20050929_2
-     ------------------
+.......................
 Exception sur l'ajout de dossiers deja partages
 File "/home/gwendal/trunk/main/solipsis/services/profile/document.py", 
   line 236, in add_repository
@@ -133,7 +290,7 @@ ValueError: '/home/gwendal/Gnutella' conflicts with existing repo
 -> remplacée par une popup explicative
 
 006: Gwendal_20050929_1
-     ------------------
+.......................
 Exception sur un ajout de dossiers contenant des fichiers ayant un
 caractere latin1:
 File "/home/gwendal/trunk/main/solipsis/services/profile/gui/FilePanel.py",
@@ -157,13 +314,13 @@ UnicodeDecodeError: 'utf8' codec can't decode bytes in position 7-9: invalid
    logique). Elle est maintenant également corigée.
 
 005: Joaquin_1
-     ---------
+..............
 Les expressions régulières ne marchent pas pour les filtres de fichiers 
 
 -> corrigé
 
 004: Gwendal_3
-     ---------
+..............
 Le service profile semble faire des recherches de fichiers ".blog"
 très régulièrement (à chaque nouvelle rencontre ???), produisant des
 ralentissements considérables de l'ensemble des services du
@@ -173,7 +330,7 @@ l'utilisation de Solipsis
 -> dépends des bugs Didier_2, Didier_3
 
 003: Gwendal_4
-     ---------
+..............
 Selon mon expérience, un très faible pourcentage d'accès aux
 informations des entités rencontrées se déroule correctement. Les
 messages d'erreurs se multiplient sans qu'aucune explication ne soit
@@ -183,7 +340,7 @@ pour permettre la connexion entre services profile soient défaillants
 -> dépends du bug Didier_1
 
 OO2: Didier_2
-     --------
+.............
 prendre en compte l'identifiant persistant des noeuds dans le profil
 * dissocier pseudo et node_id dans la description d'un peer
 * modifier systeme de sauvegarde pour prendre en compte id
@@ -191,7 +348,7 @@ prendre en compte l'identifiant persistant des noeuds dans le profil
 -> réalisé
 
 001: Didier_3
-     --------
+.............
 s'assurer de l'identification des amis (avec le node_id persistent)
 * revoir systeme d'archivage des peers rencontrés
 
@@ -201,31 +358,16 @@ s'assurer de l'identification des amis (avec le node_id persistent)
 # FEATURES A PRIORISER ###############################################
 ######################################################################
 
-Didier_1
---------
-- intégrer le travail de Luca dans le module de profile
-  * refonte du systeme d'echange
-  * modification du code ntcp pour une connexion sans aucun NAT
-
-DURÉE
-- 5j
-
 Gwendal_5
----------
+.........
 Il est impossible de transmettre les commentaires à un POST dans la
 partie BLOG. Les commentaires sont "en local" ce qui a un intérêt très
 limité
 
 -> 2j
 
-Joaquin_3
----------
-ajouter une liste des peers voisins ayant chargé le module profile
-
--> 1j
-
 Didier_4
---------
+........
 mettre une IA basique pour piloter les crawlers: par exemple, lancer
 un crawler balayant un segment horizontal, puis le relancer ailleurs
 lorsqu?il a finit.
@@ -237,30 +379,24 @@ lorsqu?il a finit.
 -> 3j
 
 Didier_5
---------
+........
 préparer un simulateur de robot crawler et étudier les meilleurs
 méthodes de recherche
 
 -> 10j
 
 Didier_6
---------
+........
 implémenter la méthode de recherche retenue dans le moteur de
 recherche réel
 
 -> 2j
 
 Gwendal_2_1
-----------
+..........
 lenteur du systeme de gestion de partage de fichier
 
 -> A PRECISER
    cela est du au rafraichissement dynamique de l'arborscence.
    1/ enlever dynamisme et ajouter un bouton 'REFRESH': 1j
    2/ OU mettre en place un systeme de cache plus efficace: 3j
-
-Joaquin_20051006
-----------------
-Ajouter moyen de configurer l'encodage du profile
-
- -> 1j

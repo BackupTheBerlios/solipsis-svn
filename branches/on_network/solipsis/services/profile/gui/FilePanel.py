@@ -26,10 +26,11 @@ from FileDialog import FileDialog
                 
 class FilePanel(wx.Panel):
     """Display shared file and allow user add/remove some"""
-    def __init__(self, parent, id,
+    def __init__(self, parent, id, cb_selected=None,
                  cb_modified=lambda x: sys.stdout.write(str(x))):
         # set members
         self.do_modified = cb_modified
+        self.cb_selected = cb_selected
         args = (parent, id)
         kwds = {}
         # begin wxGlade: FilePanel.__init__
@@ -220,22 +221,19 @@ class FilePanel(wx.Panel):
         dir_name = self.tree_list.GetItemText(self.tree_list.GetSelection(), FULL_PATH_COL)
         file_name = self.dir_list.GetItemText(self.dir_list.GetNextItem(-1, state=wx.LIST_STATE_SELECTED))
         full_path = os.path.join(dir_name, file_name)
+        self._update_select(file_name)
+        if self.cb_selected:
+            self.cb_selected(file_name)
         data = get_facade().get_file_container(full_path)
 
     def on_select_tree(self, evt):
         """new shared directory selecetd"""
-        self._select_tree(evt.GetItem())
-
-    def _select_tree(self, item):
-        """new shared directory selecetd"""
-        self.current_state = self.tree_state
-        file_name = self.tree_list.GetItemText(item, FULL_PATH_COL)
-        if not file_name:
-            self.dir_list.DeleteAllItems()
-        else:
-            if item != self.root:
-                container = get_facade().get_file_container(abspath(file_name))
-                self._display_dir_content(container)
+        item = evt.GetItem()
+        file_name = self.tree_list.GetItemText(item, NAME_COL)
+        self._update_select(file_name)
+        if self.cb_selected:
+            self.cb_selected(file_name)
+        self._select_tree(item)
 
     def on_popup_list(self, evt):
         item = evt.GetItem()
@@ -286,6 +284,17 @@ class FilePanel(wx.Panel):
         # update view
         self.file_dlg.refresh()
         self._select_tree(self.tree_list.GetSelection())
+
+    def _select_tree(self, item):
+        """new shared directory selecetd"""
+        self.current_state = self.tree_state
+        file_name = self.tree_list.GetItemText(item, FULL_PATH_COL)
+        if not file_name:
+            self.dir_list.DeleteAllItems()
+        else:
+            if item != self.root:
+                container = get_facade().get_file_container(abspath(file_name))
+                self._display_dir_content(container)
             
 
     def _add_container_in_tree(self, parent, container, overwrite=False):
@@ -337,6 +346,12 @@ class FilePanel(wx.Panel):
         self.unshare_button.SetSize(self.unshare_button.GetBestSize())
         # end wxGlade
 
+    def _update_select(self, file_name):
+        self.share_item.SetText(_("Share '%s'"% file_name))
+        self.unshare_item.SetText(_("Unshare '%s'"% file_name))
+        self.share_button.SetToolTipString(_("Share '%s'"% file_name))
+        self.unshare_button.SetToolTipString(_("Unshare '%s'"% file_name))
+
     def __do_layout(self):
         """set up widgets"""
         # begin wxGlade: FilePanel.__do_layout
@@ -360,7 +375,7 @@ class FilePanel(wx.Panel):
         self.window_1_pane_2.SetSizer(sizer_2)
         sizer_2.Fit(self.window_1_pane_2)
         sizer_2.SetSizeHints(self.window_1_pane_2)
-        self.window_1.SplitVertically(self.window_1_pane_1, self.window_1_pane_2, 66)
+        self.window_1.SplitVertically(self.window_1_pane_1, self.window_1_pane_2, 10)
         file_sizer.Add(self.window_1, 1, wx.EXPAND, 0)
         self.SetAutoLayout(True)
         self.SetSizer(file_sizer)
@@ -398,7 +413,8 @@ class SelectedListState(FilePanelState):
         
     def on_share(self, evt):
         """share selected files"""
-        dir_name = self.owner.tree_list.GetItemText(self.owner.tree_list.GetSelection(), FULL_PATH_COL)
+        dir_name = self.owner.tree_list.GetItemText(self.owner.tree_list.GetSelection(),
+                                                    FULL_PATH_COL)
         file_names = [self.owner.dir_list.GetItemText(item)
                       for item in self.owner._get_selected_listitems()]
         get_facade().share_files(dir_name, file_names, True)
@@ -406,7 +422,8 @@ class SelectedListState(FilePanelState):
         
     def on_unshare(self, evt):
         """cancel sharing of selected files"""
-        dir_name = self.owner.tree_list.GetItemText(self.owner.tree_list.GetSelection(), FULL_PATH_COL)
+        dir_name = self.owner.tree_list.GetItemText(self.owner.tree_list.GetSelection(),
+                                                    FULL_PATH_COL)
         file_names = [self.owner.dir_list.GetItemText(item)
                       for item in self.owner._get_selected_listitems()]
         get_facade().share_files(dir_name, file_names, False)

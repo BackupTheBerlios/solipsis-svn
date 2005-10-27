@@ -94,6 +94,7 @@ class Preferences:
               "match_height": IntParam("Match height", DIALOG_SECTION, 600),
               "filter_width": IntParam("Filter width", DIALOG_SECTION, 460),
               "filter_height": IntParam("Filter height", DIALOG_SECTION, 600),
+              "simple_mode": BoolParam("Simple mode", DIALOG_SECTION, True),
               }
 
     def __init__(self, file_name):

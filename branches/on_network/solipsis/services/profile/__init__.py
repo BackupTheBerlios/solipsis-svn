@@ -28,7 +28,7 @@ _ = gettext.gettext
 
 from solipsis.services.profile.message import display_error, display_status
 
-VERSION = "0.3.0"
+VERSION = "0.4.0"
 DISCLAIMER = "All data in profiles are shared within Solipsis communauty"
 
 DOWNLOAD_REPO = os.sep.join([os.path.expanduser("~"), ".solipsis", "download"])

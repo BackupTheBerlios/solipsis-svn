@@ -440,77 +440,17 @@ class FilterView(AbstractView):
         self.frame = frame
         # init view
         AbstractView.__init__(self, desc, do_import, name)
-        
-    # PERSONAL TAB
-    def update_pseudo(self):
-        """email"""
-        tab = self.frame.personal_filter_tab
-        filter_pseudo = self._desc.document.get_pseudo()
-        tab.pseudo_checkbox.SetValue(filter_pseudo.activated)
-        tab.pseudo_value.Enable(filter_pseudo.activated)
-        tab.pseudo_value.SetValue(filter_pseudo.description)
-        
-    def update_title(self):
-        """display title in view"""
-        tab = self.frame.personal_filter_tab
-        filter_title = self._desc.document.get_title()
-        tab.title_checkbox.SetValue(filter_title.activated)
-        tab.title_value.Enable(filter_title.activated)
-        tab.title_value.SetValue(filter_title.description)
 
-    def update_firstname(self):
-        """display firstname in view"""
-        tab = self.frame.personal_filter_tab
-        filter_firstname = self._desc.document.get_firstname()
-        tab.firstname_checkbox.SetValue(filter_firstname.activated)
-        tab.firstname_value.Enable(filter_firstname.activated)
-        tab.firstname_value.SetValue(filter_firstname.description)
+    def import_desc(self, desc):
+        """update view with document"""
+        self._desc = desc
+        for filter_name in self._desc.document.filters:
+            self.update_filter(filter_name)
 
-    def update_lastname(self):
-        """lastname"""
-        tab = self.frame.personal_filter_tab
-        filter_lastname = self._desc.document.get_lastname()
-        tab.lastname_checkbox.SetValue(filter_lastname.activated)
-        tab.lastname_value.Enable(filter_lastname.activated)
-        tab.lastname_value.SetValue(filter_lastname.description)
+    def update_filter(self, filter_name):
+        self.frame.cb_update(filter_name)
 
-    def update_photo(self):
-        """photo"""
-        pass
-
-    def update_email(self):
-        """email"""
-        tab = self.frame.personal_filter_tab
-        filter_email = self._desc.document.get_email()
-        tab.email_checkbox.SetValue(filter_email.activated)
-        tab.email_value.Enable(filter_email.activated)
-        tab.email_value.SetValue(filter_email.description)
-
-    # CUSTOM TAB
-    def update_custom_attributes(self):
-        """custom_attributes"""
-        filters_list = self.frame.personal_filter_tab.p_filters_list
-        filters_list.DeleteAllItems()
-        for key, filter_value \
-                in self._desc.document.get_custom_attributes().items():
-            index = filters_list.InsertStringItem(sys.maxint, key)
-            filters_list.SetStringItem(index, 1, filter_value.description)
-        
-    # FILE TAB : frame.file_tab
-    def build_files(self):
-        """structure changes (repository)"""
-        filters_list = self.frame.file_filter_tab.f_filters_list
-        filters_list.DeleteAllItems()
-        for key, filter_value in self._desc.document.get_files().iteritems():
-            index = filters_list.InsertStringItem(sys.maxint, key)
-            filters_list.SetStringItem(index, 1, filter_value.description)
-        
-    def update_files(self):
-        """properties of files changes (tag...)"""
-        self.build_files()
-        
-    # OTHERS TAB
-    def update_peers(self):
-        """peer"""
-        self.frame.match_frame.set_page()
+    def delete_filter(self, filter_name):
+        self.frame.cb_delete(filter_name)
+    
 

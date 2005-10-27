@@ -18,3 +18,55 @@
 # </copyright>
 """Plugin profile: allow users to define a set of personal information
 and exchange it with other peers"""
+
+import wx
+
+def get_all_item_ids(list):
+    items = []
+    item_id = -1
+    while True:
+        item_id = list.GetNextItem(item_id)
+        if item_id == -1:
+            break
+        else:
+            items.append(item_id)
+    return items
+
+def get_item_id_by_label(list, label, column=0):
+    item_id = list.GetNextItem(-1)
+    while item_id != -1:
+        if list.GetItem(item_id, column).GetText() == label:
+            return item_id
+        else:
+            item_id = list.GetNextItem(item_id)
+    raise KeyError(label + "not found in list")
+
+def get_selected_item_ids(list):
+    items = []
+    item_id = -1
+    while True:
+        item_id = list.GetNextItem(item_id, state=wx.LIST_STATE_SELECTED)
+        if item_id == -1:
+            break
+        else:
+            items.append(item_id)
+    return items
+
+def get_all_items(list, column=0):
+    items = get_all_item_ids(list)
+    return [list.GetItem(item_id, column) for item_id in items]
+
+def get_all_labels(list, column=0):
+    items = get_all_item_ids(list)
+    return [list.GetItem(item_id, column).GetText() for item_id in items]
+
+def get_selected_labels(list, column=0):
+    items = get_selected_item_ids(list)
+    return [list.GetItem(item_id, column).GetText() for item_id in items]
+
+def get_new_label(list, prefix="item_"):
+    existing =  get_all_labels(list)
+    item = 0
+    while prefix + str(item) in existing:
+        item += 1
+    return prefix + str(item)

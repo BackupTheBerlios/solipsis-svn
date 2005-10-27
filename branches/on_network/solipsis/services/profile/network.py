@@ -21,6 +21,8 @@ class NetworkManager:
         self.server = ProfileServerFactory(self)
         self.peers = PeerManager(self.client.connect)
         self.download_dlg = download_dlg
+
+    def start(self):
         self.peers.start()
 
     def stop(self):

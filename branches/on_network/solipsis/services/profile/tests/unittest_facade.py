@@ -14,8 +14,8 @@ import pickle
 from solipsis.services.profile.prefs import get_prefs, set_prefs
 from solipsis.services.profile.document import read_document
 from solipsis.services.profile.data import PeerDescriptor
-from solipsis.services.profile.facade import Facade, \
-      create_facade, create_filter_facade
+from solipsis.services.profile.facade import Facade, create_facade
+from solipsis.services.profile.filter_facade import create_filter_facade
 from solipsis.services.profile.tests import PROFILE_DIR, PROFILE_TEST, \
      write_test_profile, TEST_DIR, PSEUDO
 from solipsis.services.profile import ENCODING, QUESTION_MARK, force_unicode
@@ -196,10 +196,9 @@ class FacadeTest(unittest.TestCase):
                           PeerDescriptor.ANONYMOUS)
 
     def test_match_peer(self):
-        # TODO: detail test
         filter_facade = create_filter_facade(PROFILE_TEST)
         filter_facade.load(directory=PROFILE_DIR)
-        self.assertEquals(filter_facade._desc.document.get_pseudo().description, ".*")
+        self.assertEquals(3, len(filter_facade._desc.document.filters))
 
 class HighLevelTest(unittest.TestCase):
 

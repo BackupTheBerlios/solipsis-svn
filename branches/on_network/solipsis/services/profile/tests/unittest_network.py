@@ -117,7 +117,7 @@ class PeerManagerTest(BaseTest):
     def setUp(self):
         # create manager with small timeout (not to slow down test)
         self.manager = PeerManager(None)
-        self.manager.CHECKING_FREQUENCY = 0.3
+        self.manager.CHECKING_FREQUENCY = 0.2
         self.manager.start()
         # create default message
         self.message =  Message.create_message(
@@ -147,11 +147,11 @@ class PeerManagerTest(BaseTest):
         self.manager.add_peer("toto")
         self.manager.set_peer("toto", self.message)
         # reduce timeout in order not to slow down test
-        self.manager.remote_ids["toto"].PEER_TIMEOUT = 0.7
+        self.manager.remote_ids["toto"].PEER_TIMEOUT = 0.5
         # loose peer. it should be deleted after PEER_TIMEOUT
         self.manager.remote_ids["toto"].lose()
         self.assert_peer_lost()
-        time.sleep(1.3)
+        time.sleep(1)
         self.assert_no_peer()
 
 class NetworkTest(BaseTest):
@@ -160,7 +160,8 @@ class NetworkTest(BaseTest):
         # create manager with small timeout (not to slow down test)
         self.network = NetworkManager()
         self.manager = self.network.peers
-        self.manager.CHECKING_FREQUENCY = 0.3
+        self.manager.CHECKING_FREQUENCY = 0.2
+        self.network.start()
 
     def tearDown(self):
         # stop manager
@@ -183,10 +184,10 @@ class NetworkTest(BaseTest):
                                      "HELLO 127.0.0.1:23501 data youpi")
         self.assert_peer()
         # lose peer
-        self.manager.remote_ids["toto"].PEER_TIMEOUT = 0.7
+        self.manager.remote_ids["toto"].PEER_TIMEOUT = 0.5
         self.network.on_lost_peer("toto")
         self.assert_peer_lost()
-        time.sleep(1.3)
+        time.sleep(1)
         self.assert_no_peer()
     
 if __name__ == "__main__":
