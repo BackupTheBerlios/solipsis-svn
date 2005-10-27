@@ -121,7 +121,6 @@ class Parameters(object):
         try:
             self._config_parser = ConfigParser(self._defaults)
             self._config_parser.read(self._config_file)
-
         except Exception, e:
             sys.stderr.write("\nError while reading configuration file %s:\n" % self.configFileName)
             sys.stderr.write(str(e))
