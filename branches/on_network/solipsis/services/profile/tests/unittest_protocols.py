@@ -11,6 +11,9 @@ from twisted.internet.defer import Deferred
 from twisted.internet.protocol import ReconnectingClientFactory
 from twisted.protocols import basic
 
+from solipsis.services.profile.tests import write_test_profile, \
+     PROFILE_TEST, PROFILE_DIR
+from solipsis.services.profile.facade import create_facade
 from solipsis.services.profile.network_data import SecurityWarnings
 
 # side class #########################################################
@@ -27,7 +30,6 @@ class AsynchroneMixin:
 
     def send(self, connector, msg):
         """to be used with ReconnectingFactory"""
-        print "xxx send", msg
         deferred = Deferred()
         self.deferreds.put(deferred)
         connector.transport.write(msg + "\r\n")
@@ -59,7 +61,6 @@ class NetworkTest(unittest.TestCase, AsynchroneMixin):
 
     def test_intrusion(self):
         self.assert_(not SecurityWarnings.instance().has_key("boby"))
-        self.assertEquals(0, SecurityWarnings.instance().count("boby"))
         self.network.on_service_data("boby", "HELLO 127.0.0.1:1111")
         self.assertEquals(1, SecurityWarnings.instance().count("boby"))
         self.network.get_profile("boby")
@@ -135,17 +136,37 @@ class ServerTest(unittest.TestCase, AsynchroneMixin):
     test_connection.timeout = 8
 
 class ClientTest(unittest.TestCase):
-    pass
 
+    def __init__(self, *args, **kwargs):
+        write_test_profile()
+        create_facade(PROFILE_TEST).load(directory=PROFILE_DIR)
+        
+    def setUp(self):
+        # import here not to get twisted.internet.reactor imported too soon
+        from solipsis.services.profile.network import NetworkManager
+        self.network = NetworkManager()
+        util.wait(self.network.start(), timeout=10)
+        self.network.on_new_peer(FakePeer("boby"))
+        self.network.on_service_data(
+            "boby", "HELLO 127.0.0.1:%s"% str(self.network.server.local_port))
+
+    def test_downloads(self):
+        def _on_test(result):
+            print "xxx ", result
+        deferred = self.network.get_profile("boby")
+        deferred.addCallbacks(_on_test, on_error)
+        print "xxx ", deferred
+        return deferred
+    test_downloads.timeout = 8
+    
 # network classes ####################################################
 class SimpleProtocol(basic.LineReceiver):
 
     def connectionMade(self):
-        print "xxx connectionMade"
-
+        pass
+    
     def lineReceived(self, data):
         """to be used when sending data with AsynchroneMixin.send"""
-        print "xxx lineReceived", data
         self.factory.deferreds.get().callback(data)
         
 class ReconnectingFactory(ReconnectingClientFactory):
@@ -159,11 +180,9 @@ class ReconnectingFactory(ReconnectingClientFactory):
         self.resetDelay()
 
     def clientConnectionLost(self, connector, reason):
-        print "xxx clientConnectionLost", reason
         ReconnectingClientFactory.clientConnectionLost(self, connector, reason)
     
     def clientConnectionFailed(self, connector, reason):
-        print "xxx clientConnectionFailed", reason
         ReconnectingClientFactory.clientConnectionFailed(self, connector, reason)
 
 # launcher ###########################################################

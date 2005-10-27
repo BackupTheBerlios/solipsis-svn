@@ -90,23 +90,23 @@ class PeerTest(unittest.TestCase):
             "HELLO 127.0.0.1:23501 data youpi")
 
     def test_server(self):
-        self.assert_(isinstance(self.peer.server.current_sate, PeerState))
+        self.assert_(isinstance(self.peer.server.current_state, PeerState))
         self.assertRaises(SecurityAlert, self.peer.server.connected, None)
         self.assertRaises(SecurityAlert, self.peer.server.disconnected)
         self.assertRaises(SecurityAlert, self.peer.server.execute, self.msg)
         # registered
-        self.peer.server.current_sate = self.peer.server.registered_state
+        self.peer.server.current_state = self.peer.server.registered_state
         self.assertRaises(SecurityAlert, self.peer.server.execute, self.msg)
         # connected
         self.peer.server.connected("transport")
-        self.assert_(isinstance(self.peer.server.current_sate, PeerConnected))
+        self.assert_(isinstance(self.peer.server.current_state, PeerConnected))
         # disconnected
         self.peer.server.disconnected()
-        self.assert_(isinstance(self.peer.server.current_sate, PeerDisconnected))
+        self.assert_(isinstance(self.peer.server.current_state, PeerDisconnected))
         self.assertRaises(SecurityAlert, self.peer.server.execute, self.msg)
         # connected
         self.peer.server.connected("transport")
-        self.assert_(isinstance(self.peer.server.current_sate, PeerConnected))
+        self.assert_(isinstance(self.peer.server.current_state, PeerConnected))
 
     def test_peer(self):
         msg = self.peer.wrap_message(MESSAGE_HELLO)
@@ -161,11 +161,11 @@ class NetworkTest(BaseTest):
         self.network = NetworkManager()
         self.manager = self.network.peers
         self.manager.CHECKING_FREQUENCY = 0.2
-        self.network.start()
+        self.network.peers.start()
 
     def tearDown(self):
         # stop manager
-        self.network.stop()
+        self.network.peers.stop()
         
     def test_network_manager(self):
         peer = peer_node.Peer("toto")

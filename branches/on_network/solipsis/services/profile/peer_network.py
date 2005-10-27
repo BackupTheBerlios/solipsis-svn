@@ -80,7 +80,7 @@ class PeerDisconnected(PeerState):
     """trace messages received for this peer"""
 
     def connected(self, protocol):
-        self.protocol = protocol
+        self.peer_server.protocol = protocol
         self.peer_server.current_state = self.peer_server.connected_state
 
     def disconnected(self):
@@ -97,7 +97,7 @@ class PeerConnected(PeerState):
         self.peer_server.current_state = self.peer_server.disconnected_state
 
     def execute(self, message):
-        transport = self.protocol.transport
+        transport = self.peer_server.protocol.transport
         if message.command in [MESSAGE_HELLO, MESSAGE_PROFILE]:
             file_obj = get_facade()._desc.document.to_stream()
             deferred = basic.FileSender().\
@@ -124,7 +124,7 @@ class PeerConnected(PeerState):
                            beginFileTransfer(open(file_name), transport)
                 deferred.addCallback(lambda x: transport.loseConnection())
             else:
-                self.protocol.factory.send_udp_message(
+                self.peer_server.protocol.factory.send_udp_message(
                     self.peer_server.peer.peer_id, MESSAGE_ERROR, message.data)
                 SecurityAlert(self.peer_server.peer.peer_id,
                               "Trying to download unshare file %s"\
@@ -195,7 +195,7 @@ class PeerClient(dict):
     def _connect(self, command, data=None):
         # set download information
         message = self.peer.wrap_message(command, data)
-        connector =  self.connect(self)
+        connector =  self.connect(self.peer)
         deferred = defer.Deferred()
         download = DownloadMessage(connector.transport, deferred, message)
         self[connector.transport] = download
@@ -307,7 +307,7 @@ class PeerManager(threading.Thread):
                     break
                 else:
                     if message.ip in self.remote_ips:
-                        self.remote_ips[message.ip].server.execute(self, message)
+                        self.remote_ips[message.ip].server.execute(message)
                     else:
                         SecurityAlert(message.ip,
                                       _("Message '%s' out of date."\
