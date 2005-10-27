@@ -6,6 +6,7 @@ import sys
 import wx.lib.mixins.listctrl  as  listmix
 
 from solipsis.util.wxutils import _
+from solipsis.services.profile.prefs import get_prefs, set_prefs
 from solipsis.services.profile.gui import get_all_item_ids, get_new_label, \
      get_selected_item_ids, get_selected_labels
 from solipsis.services.profile.filter_facade import get_filter_facade
@@ -28,19 +29,24 @@ class EditProfilePanel(wx.Panel):
         wx.Panel.__init__(self, *args, **kwds)
         self.edit_profile_sizer_staticbox = wx.StaticBox(self, -1, _("Edit profile..."))
         self.filter_name_label = wx.StaticText(self, -1, _("Filter name"))
-        self.filter_name_value = wx.TextCtrl(self, -1, _("Filter name"))
+        self.filter_name_value = wx.TextCtrl(self, -1, "")
+        self.all_label = wx.StaticText(self, -1, _("Search :"))
+        self.all_value = wx.TextCtrl(self, -1, "")
         self.title_label = wx.StaticText(self, -1, _("Title :"))
         self.title_value = wx.ComboBox(self, -1, choices=["", _("Mr"), _("Mrs"), _("Ms")], style=wx.CB_DROPDOWN|wx.CB_SIMPLE|wx.CB_READONLY)
         self.firstname_label = wx.StaticText(self, -1, _("First name :"))
-        self.firstname_value = wx.TextCtrl(self, -1, _("First name"))
+        self.firstname_value = wx.TextCtrl(self, -1, "")
         self.lastname_label = wx.StaticText(self, -1, _("Last name :"))
-        self.lastname_value = wx.TextCtrl(self, -1, _("Last name"))
+        self.lastname_value = wx.TextCtrl(self, -1, "")
         self.pseudo_label = wx.StaticText(self, -1, _("Pseudo :"))
-        self.pseudo_value = wx.TextCtrl(self, -1, _("Pseudo"))
+        self.pseudo_value = wx.TextCtrl(self, -1, "")
         self.email_label = wx.StaticText(self, -1, _("Email :"))
-        self.email_value = wx.TextCtrl(self, -1, _("Email"))
+        self.email_value = wx.TextCtrl(self, -1, "")
         self.customs_label = wx.StaticText(self, -1, _("Customs :"))
         self.customs_list = MyListCtrl(self, -1, style=wx.LC_REPORT|wx.LC_EDIT_LABELS|wx.LC_SORT_ASCENDING|wx.SUNKEN_BORDER)
+        self.logic_checkbox = wx.CheckBox(self, -1, _("AND search (default: OR)"))
+        self.spacer_label = wx.StaticText(self, -1, "")
+        self.mode_button = wx.Button(self, -1, _("Advanced mode"))
         self.clear_button = wx.Button(self, -1, _("Clear"))
         self.apply_button = wx.Button(self, -1, _("Apply"))
 
@@ -50,6 +56,7 @@ class EditProfilePanel(wx.Panel):
         self.Bind(wx.EVT_TEXT, self.on_filter_name, self.filter_name_value)
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.on_right_click, self.customs_list)
         self.Bind(wx.EVT_LIST_COL_RIGHT_CLICK, self.on_right_click, self.customs_list)
+        self.Bind(wx.EVT_BUTTON, self.on_switch_mode, self.mode_button)
         self.Bind(wx.EVT_BUTTON, self.on_clear, self.clear_button)
         self.Bind(wx.EVT_BUTTON, self.on_apply, self.apply_button)
         # end wxGlade
@@ -69,6 +76,9 @@ class EditProfilePanel(wx.Panel):
         self.Bind(wx.EVT_MENU, self.on_new_custom, self.new_item)
         self.Bind(wx.EVT_MENU, self.on_delete_custom, self.delete_item)
 
+        if not get_prefs("simple_mode"):
+            self.on_switch_mode(None)
+
     def reset(self):
         self.filter_name_value.Clear()
         self.title_value.Clear()
@@ -85,14 +95,28 @@ class EditProfilePanel(wx.Panel):
         self.lastname_value.SetValue(new_filter.lastname.description)
         self.pseudo_value.SetValue(new_filter.pseudo.description)
         self.email_value.SetValue(new_filter.email.description)
+        self.logic_checkbox.SetValue(not new_filter.filter_or)
         for key, value in new_filter.customs.items():
             index = self.customs_list.InsertStringItem(sys.maxint, key)
             self.customs_list.SetStringItem(index, 1, value.description)
 
     def __set_properties(self):
         # begin wxGlade: EditProfilePanel.__set_properties
+        self.title_label.Hide()
+        self.title_value.Hide()
         self.title_value.SetSelection(0)
+        self.firstname_label.Hide()
+        self.firstname_value.Hide()
+        self.lastname_label.Hide()
+        self.lastname_value.Hide()
+        self.pseudo_label.Hide()
         self.pseudo_value.SetToolTipString(_("How you appear to other peers"))
+        self.pseudo_value.Hide()
+        self.email_label.Hide()
+        self.email_value.Hide()
+        self.customs_label.Hide()
+        self.customs_list.Hide()
+        self.logic_checkbox.Hide()
         # end wxGlade
 
     def __do_layout(self):
@@ -101,6 +125,8 @@ class EditProfilePanel(wx.Panel):
         title_sizer = wx.BoxSizer(wx.HORIZONTAL)
         edit_profile_sizer.Add(self.filter_name_label, 0, wx.ADJUST_MINSIZE, 0)
         edit_profile_sizer.Add(self.filter_name_value, 0, wx.EXPAND|wx.ADJUST_MINSIZE, 0)
+        edit_profile_sizer.Add(self.all_label, 0, wx.TOP|wx.ADJUST_MINSIZE, 5)
+        edit_profile_sizer.Add(self.all_value, 0, wx.ADJUST_MINSIZE, 0)
         title_sizer.Add(self.title_label, 0, wx.ADJUST_MINSIZE, 0)
         title_sizer.Add(self.title_value, 0, wx.FIXED_MINSIZE, 0)
         edit_profile_sizer.Add(title_sizer, 0, wx.TOP|wx.EXPAND, 5)
@@ -114,6 +140,9 @@ class EditProfilePanel(wx.Panel):
         edit_profile_sizer.Add(self.email_value, 0, wx.EXPAND|wx.FIXED_MINSIZE, 0)
         edit_profile_sizer.Add(self.customs_label, 0, wx.TOP|wx.ADJUST_MINSIZE, 5)
         edit_profile_sizer.Add(self.customs_list, 1, wx.EXPAND, 0)
+        edit_profile_sizer.Add(self.logic_checkbox, 0, wx.TOP|wx.EXPAND|wx.ADJUST_MINSIZE, 5)
+        edit_profile_sizer.Add(self.spacer_label, 1, wx.EXPAND|wx.ADJUST_MINSIZE, 0)
+        edit_profile_sizer.Add(self.mode_button, 0, wx.TOP|wx.EXPAND|wx.ADJUST_MINSIZE, 3)
         edit_profile_sizer.Add(self.clear_button, 0, wx.TOP|wx.EXPAND|wx.ADJUST_MINSIZE, 1)
         edit_profile_sizer.Add(self.apply_button, 0, wx.TOP|wx.EXPAND|wx.ADJUST_MINSIZE, 1)
         self.SetAutoLayout(True)
@@ -146,25 +175,84 @@ class EditProfilePanel(wx.Panel):
         event.Skip()
 
     def on_apply(self, event): # wxGlade: EditProfilePanel.<event_handler>
-        props = {"title": self.title_value.GetValue(),
-                 "firstname": self.firstname_value.GetValue(),
-                 "lastname": self.lastname_value.GetValue(),
-                 "pseudo": self.pseudo_value.GetValue(),
-                 "email": self.email_value.GetValue()}
-        # customs
-        customs = {}
-        custom_item_ids = get_all_item_ids(self.customs_list)
-        for item_id in custom_item_ids:
-            key = self.customs_list.GetItem(item_id, 0).GetText()
-            value = self.customs_list.GetItem(item_id, 1).GetText()
-            customs[key] = value
+        if self.all_label.IsShown():
+            # simple mode
+            props = {"title": self.all_value.GetValue(),
+                     "firstname": self.all_value.GetValue(),
+                     "lastname": self.all_value.GetValue(),
+                     "pseudo": self.all_value.GetValue(),
+                     "email": self.all_value.GetValue()}
+            filter_or = True
+            # customs
+            customs = {}
+        else:
+            # advanced mode
+            props = {"title": self.title_value.GetValue(),
+                     "firstname": self.firstname_value.GetValue(),
+                     "lastname": self.lastname_value.GetValue(),
+                     "pseudo": self.pseudo_value.GetValue(),
+                     "email": self.email_value.GetValue()}
+            filter_or = not self.logic_checkbox.IsChecked()
+            # customs
+            customs = {}
+            custom_item_ids = get_all_item_ids(self.customs_list)
+            for item_id in custom_item_ids:
+                key = self.customs_list.GetItem(item_id, 0).GetText()
+                value = self.customs_list.GetItem(item_id, 1).GetText()
+                customs[key] = value
         # set filter
         get_filter_facade().update_profile_filter(
             self.filter_name_value.GetValue(),
+            filter_or,
             customs,
             **props)
         self.frame.do_modified(True)
         event.Skip()
+
+    def on_switch_mode(self, event): # wxGlade: EditProfilePanel.<event_handler>
+        if self.all_label.IsShown():
+            # switching to advanced
+            self.mode_button.SetLabel(_("Simple Mode"))
+            self.all_label.Hide()
+            self.all_value.Hide()
+            self.spacer_label.Hide()
+            self.title_label.Show()
+            self.title_value.Show()
+            self.firstname_label.Show()
+            self.firstname_value.Show()
+            self.lastname_label.Show()
+            self.lastname_value.Show()
+            self.pseudo_label.Show()
+            self.pseudo_value.Show()
+            self.email_label.Show()
+            self.email_value.Show()
+            self.customs_label.Show()
+            self.customs_list.Show()
+            self.logic_checkbox.Show()
+            set_prefs("simple_mode", False)
+        else:
+            # switching to simple
+            self.mode_button.SetLabel(_("Advanced Mode"))
+            self.all_label.Show()
+            self.all_value.Show()
+            self.spacer_label.Show()
+            self.title_label.Hide()
+            self.title_value.Hide()
+            self.firstname_label.Hide()
+            self.firstname_value.Hide()
+            self.lastname_label.Hide()
+            self.lastname_value.Hide()
+            self.pseudo_label.Hide()
+            self.pseudo_value.Hide()
+            self.email_label.Hide()
+            self.email_value.Hide()
+            self.customs_label.Hide()
+            self.customs_list.Hide()
+            self.logic_checkbox.Hide()
+            set_prefs("simple_mode", True)
+        self.GetSizer().Layout()
+        if not event is None:
+            event.Skip()
 
 # end of class EditProfilePanel
 

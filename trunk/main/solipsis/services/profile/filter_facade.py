@@ -69,8 +69,9 @@ class FilterFacade(AbstractFacade):
         for view in self.views.values():
             view.update_filter(filter_name)
         
-    def update_profile_filter(self, filter_name, customs, **props):
-        self._desc.document.update_profile_filter(filter_name, customs, **props)
+    def update_profile_filter(self, filter_name, filter_or, customs, **props):
+        self._desc.document.update_profile_filter(
+            filter_name, filter_or, customs, **props)
         for view in self.views.values():
             view.update_filter(filter_name)
 

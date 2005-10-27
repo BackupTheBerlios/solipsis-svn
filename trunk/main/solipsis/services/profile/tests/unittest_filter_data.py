@@ -71,7 +71,7 @@ class FiltersTest(unittest.TestCase):
         # filters
         self.peer_filter = PeerFilter("test peer", **{
             "title": "Mr",
-            "lastname": "Manu",
+            "firstname": "Manu",
             "lastname": "b*",
             "pseudo": "*emb"})
         self.file_filter = FileFilter("test file", **{
@@ -119,19 +119,40 @@ class FiltersTest(unittest.TestCase):
         self.assertEquals("Hero.mp3", matches[0].match)
 
     def test_peer_filter(self):
-        matches =  self.peer_filter.match("bob", self.custom_props, **self.peer_props)
+        matches =  self.peer_filter.match("bob", self.custom_props,
+                                          **self.peer_props)
         self.assertEquals(3, len(matches))
         self.assertEquals("title", matches[0].get_name())
         self.assertEquals("b*", matches[1].get_description())
         self.assertEquals("emb", matches[2].match)
 
+    def test_and_filters(self):
+        p_filter = PeerFilter("test peer", filter_or=False, **{
+            "title": "Mr",
+            "firstname": "Manu",
+            "lastname": "b*",
+            "pseudo": "*emb"})
+        matches =  p_filter.match("bob", {},
+                                  **self.peer_props)
+        self.assertEquals([], matches)
+        # ok
+        p_filter = PeerFilter("test peer", filter_or=False, **{
+            "title": "Mr",
+            "lastname": "b*",
+            "pseudo": "*emb"})
+        matches =  p_filter.match("bob", {},
+                                  **self.peer_props)
+        self.assertEquals(3, len(matches))
+
     def test_update(self):
         self.peer_filter.update_title(FilterValue("title", "Mss", True))
         self.assertEquals(2, len(
-            self.peer_filter.match("bob", self.custom_props, **self.peer_props)))
+            self.peer_filter.match("bob", self.custom_props,
+                                   **self.peer_props)))
         self.peer_filter.update_email(FilterValue("email", "*@*fr", True))
         self.assertEquals(3, len(
-            self.peer_filter.match("bob", self.custom_props, **self.peer_props)))
+            self.peer_filter.match("bob", self.custom_props,
+                                   **self.peer_props)))
 
     def test_update_properties(self):
         self.assertEquals("Mr", self.peer_filter.title.description)
@@ -145,7 +166,8 @@ class FiltersTest(unittest.TestCase):
     def test_customs(self):
         self.peer_filter.update_dict(FilterValue("book", "*potter", True))
         self.peer_filter.update_dict(FilterValue("sport", "bik*", True))
-        matches =  self.peer_filter.match("bob", self.custom_props, **self.peer_props)
+        matches =  self.peer_filter.match("bob", self.custom_props,
+                                          **self.peer_props)
         self.assertEquals(5, len(matches))
         self.assertEquals("book", matches[3].get_name())
         self.assertEquals("bik*", matches[4].get_description())
@@ -155,7 +177,7 @@ class FiltersTest(unittest.TestCase):
         file_dict = self.file_filter.as_dict()
         self.assertEquals({'name': '*.mp3, (1)',
                            'size': ', (0)'}, file_dict)
-        self.assertEquals({'firstname': ', (0)',
+        self.assertEquals({'firstname': 'Manu, (1)',
                            'title': 'Mr, (1)',
                            'lastname': 'b*, (1)',
                            'pseudo': '*emb, (1)',

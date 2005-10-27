@@ -126,12 +126,15 @@ class AbstractFilter:
     ALL_FILTERS = []
     PREFIX = ""
     
-    def __init__(self, filter_name, **properties):
+    def __init__(self, filter_name, filter_or=True, **properties):
+        """if filter_or set to True, matching will use logic OR
+        between properties. Otherwise, it will use AND"""
         self.filter_name = filter_name
+        self.filter_or = filter_or
         # set each properties
         for prop_name in self.ALL_FILTERS:
             # set filter value
-            if prop_name in properties:
+            if prop_name in properties and properties[prop_name].strip():
                 filter_value = FilterValue(name=prop_name,
                                            value=properties[prop_name],
                                            activate=True)
@@ -154,7 +157,14 @@ class AbstractFilter:
         if not name.startswith(cls.PREFIX):
             return None, None
         name = name[len(cls.PREFIX):]
-        new_filter = cls(name)
+        filter_or = True
+        if name.startswith("AND_"):
+            filter_or = False
+            name = name[4:]
+        elif name.startswith("OR_"):
+            name = name[3:]
+        #else: do nothing, filter_or by default
+        new_filter = cls(name, filter_or)
         for prop_name, value in properties:
             prop_name = prop_name.strip().lower()
             value = FilterValue.from_str(prop_name, value)
@@ -173,7 +183,7 @@ class AbstractFilter:
 
     def update_properties(self, **props):
         for prop_name in self.ALL_FILTERS:
-            if prop_name in props:
+            if prop_name in props and props[prop_name].strip():
                 getattr(self, prop_name).set_value(props[prop_name])
             else:
                 getattr(self, prop_name).activated = False
@@ -187,11 +197,14 @@ class AbstractFilter:
         # match each properties
         for prop_name in self.ALL_FILTERS:
             filter_value = getattr(self, prop_name)
-            if prop_name in properties:
+            if filter_value.activated and prop_name in properties:
                 matches.append(filter_value.does_match(peer_id,
                                                        properties[prop_name]))
         # return only valid matches
-        return [matche for matche in matches if not matche is False]
+        if False in matches and not self.filter_or:
+            return []
+        else:
+            return [matche for matche in matches if not matche is False]
 
 class FileFilter(AbstractFilter):
     """Implementation of AbstractFilter for files: two fields might be
@@ -200,8 +213,8 @@ class FileFilter(AbstractFilter):
     ALL_FILTERS = ["name", "size"]
     PREFIX = "file_"
 
-    def __init__(self, filter_name, **properties):
-        AbstractFilter.__init__(self, filter_name, **properties)
+    def __init__(self, filter_name, filter_or=True, **properties):
+        AbstractFilter.__init__(self, filter_name, filter_or, **properties)
         
     def update_dict(self, filter_value):
         """update other fields than those specified in ALL_FILTERS"""
@@ -221,8 +234,8 @@ class PeerFilter(AbstractFilter):
                    "pseudo", "photo", "email"]
     PREFIX = "peer_"
 
-    def __init__(self, filter_name, **properties):
-        AbstractFilter.__init__(self, filter_name, **properties)
+    def __init__(self, filter_name, filter_or=True, **properties):
+        AbstractFilter.__init__(self, filter_name, filter_or, **properties)
         # set customs {name : value}
         self.customs = {}
             
@@ -256,6 +269,10 @@ class PeerFilter(AbstractFilter):
         [merged.setdefault(k,v)
          for k,v in self.customs.items() if k in customs]
         for custom_name, filter_value in merged.items():
-            matches.append(filter_value.does_match(peer_id,
-                                                   customs[custom_name]))
-        return [matche for matche in matches if not matche is False]
+            if filter_value.activated:
+                matches.append(
+                    filter_value.does_match(peer_id, customs[custom_name]))
+        if False in matches and not self.filter_or:
+            return []
+        else:
+            return [matche for matche in matches if not matche is False]

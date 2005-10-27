@@ -59,13 +59,14 @@ class FilterMixin:
         else:
             self.filters[filter_name].update_properties(**props)
 
-    def update_profile_filter(self, filter_name, customs, **props):
+    def update_profile_filter(self, filter_name, filter_or, customs, **props):
         if not filter_name in self.filters:
-            new_filter = PeerFilter(filter_name, **props)
+            new_filter = PeerFilter(filter_name, filter_or, **props)
             new_filter.update_customs(customs)
             self.filters[filter_name] = new_filter
         else:
             new_filter = self.filters[filter_name]
+            new_filter.filter_or = filter_or
             new_filter.update_properties(**props)
             new_filter.update_customs(customs)
             
@@ -104,7 +105,9 @@ class FilterSaverMixin(DocSaverMixin):
     # menu
     def save(self, path):
         for name, a_filter in self.filters.items():
-            section_name = a_filter.PREFIX + name
+            section_name = a_filter.PREFIX \
+                           + (a_filter.filter_or and 'OR_' or 'AND_') \
+                           + name
             if not self.config.has_section(section_name):
                 self.config.add_section(section_name)
             for prop_name, value in a_filter.as_dict().items():

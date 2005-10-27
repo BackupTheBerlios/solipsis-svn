@@ -33,6 +33,9 @@ class FilterTest(unittest.TestCase):
 
     def assert_content(self, document):
         self.assertEquals(3, len(self.document.filters))
+        self.assert_(self.document.filters["All"].filter_or)
+        self.assert_(self.document.filters["MP3"].filter_or)
+        self.assertEquals(False, self.document.filters["Mr_B"].filter_or)
         all_dict = self.document.filters["All"].as_dict()
         peer_dict = self.document.filters["Mr_B"].as_dict()
         file_dict = self.document.filters["MP3"].as_dict()

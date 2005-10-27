@@ -117,9 +117,10 @@ def write_test_profile():
               `-- ..."""
     # write filter
     filter_document = FilterDocument()
-    peer_filter = PeerFilter("Mr_B", **{"pseudo" : "*",
-                                     "title": "Mr",
-                                     "lastname": "b*"})
+    peer_filter = PeerFilter("Mr_B", filter_or=False,**{
+        "pseudo" : "*",
+        "title": "Mr",
+        "lastname": "b*"})
     peer_filter.update_dict(FilterValue(name='color',
                                         value="blue",
                                         activate=True))

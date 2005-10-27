@@ -18,9 +18,9 @@ class EditFilePanel(wx.Panel):
         self.filter_name_label = wx.StaticText(self, -1, _("Filter name :"))
         self.filter_name_value = wx.TextCtrl(self, -1, _("Filter name"))
         self.file_name = wx.StaticText(self, -1, _("File name :"))
-        self.file_name_value = wx.TextCtrl(self, -1, _("File name"))
+        self.file_name_value = wx.TextCtrl(self, -1, "")
         self.file_size = wx.StaticText(self, -1, _("File size: "))
-        self.size_value = wx.TextCtrl(self, -1, _("File size"))
+        self.size_value = wx.TextCtrl(self, -1, "")
         self.clear_button = wx.Button(self, -1, _("Clear"))
         self.apply_button = wx.Button(self, -1, _("Apply"))
 
@@ -44,7 +44,8 @@ class EditFilePanel(wx.Panel):
 
     def __set_properties(self):
         # begin wxGlade: EditFilePanel.__set_properties
-        pass
+        self.file_size.Hide()
+        self.size_value.Hide()
         # end wxGlade
 
     def __do_layout(self):
