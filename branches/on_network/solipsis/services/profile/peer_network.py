@@ -17,7 +17,8 @@ from twisted.internet import defer
 
 from solipsis.services.profile import VERSION, UNIVERSAL_SEP
 from solipsis.services.profile.document import read_document
-from solipsis.services.profile.facade import get_facade, get_filter_facade
+from solipsis.services.profile.facade import get_facade
+from solipsis.services.profile.filter_facade import get_filter_facade
 from solipsis.services.profile.message import display_status, display_error
 from solipsis.services.profile.network_data import SecurityAlert, \
      DownloadMessage, Message, MESSAGE_HELLO, MESSAGE_ERROR, \

@@ -85,8 +85,7 @@ class Plugin(ServicePlugin):
     def EnableBasic(self):
         """enable non graphic part"""
         set_solipsis_dir(self.service_api.GetDirectory())
-        self.network = NetworkManager(self.host,
-                                      random.randrange(7100, 7200))
+        self.network = NetworkManager()
         self.activate(True)
         
     def Enable(self):
@@ -114,9 +113,7 @@ class Plugin(ServicePlugin):
             wx.EVT_MENU(main_window, item_id, method)
         self.service_api.SetMenu(self.GetTitle(), menu)
         # launch network
-        self.network = NetworkManager(self.host,
-                                      random.randrange(7100, 7200),
-                                      download_dlg=self.editor_frame.download_dlg)
+        self.network = NetworkManager(download_dlg=self.editor_frame.download_dlg)
         self.activate(True)
     
     def Disable(self):
