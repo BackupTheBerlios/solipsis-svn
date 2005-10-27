@@ -1,19 +1,25 @@
 BUGS OUVERTS:
-  017, 019, O24, 025b, 027, 028, 032, 033, 034
+  017, 019, O24, 027, 028, 032, 033
 
 BUG EN COURT:
-  027, 025b
+  027
 
 BUGS SUIVANTS:
   024
 
 
-     -------------------
+
+035: Gwendal_200510126_3
+........................
+Deux modes d'édition du filtre sur profile: simle & advanced
+
+ -> done
+
 034: Gwendal_200510126_2
-     -------------------
+........................
 champ global dans l'édition des filtres de profile
 
- -> 1j
+ -> done
 
      -------------------
 033: Gwendal_200510126_1
@@ -80,12 +86,11 @@ Ajouter un filtre par défaut qui affiche tous les profils voisins
 
  -> done
 
-     -------------------
 025b: Joaquin_20051011_6
-     -------------------
+.......................
 Les filtres sur les données personnelles doivent pouvoir être ET/OU.
 
- -> 1j
+ -> done
 
 025: Joaquin_20051011_6
 .......................
