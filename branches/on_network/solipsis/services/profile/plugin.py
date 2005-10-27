@@ -145,12 +145,10 @@ class Plugin(ServicePlugin):
         """eable/disable service"""
         if not active:
             self.network.stop()
-            self.network.server.stop_listening()
             for peer_id in self.peer_services.keys():
                 self.LostPeer(peer_id)
         else:
             self.network.start()
-            self.network.server.start_listening()
             for peer_id in self.peer_services.keys():
                 self.NewPeer(*self.peer_services[peer_id])
 

@@ -24,8 +24,10 @@ class NetworkManager:
 
     def start(self):
         self.peers.start()
+        return self.server.start_listening()
 
     def stop(self):
+        self.server.stop_listening()
         self.peers.stop()
 
     # calls from plugin ##############################################
@@ -49,13 +51,17 @@ class NetworkManager:
         """demand to establish connection from peer that failed to
         connect through TCP"""
         if self.peers.assert_id(peer_id):
-            message = Message.create_message(message)
-            if message.command != MESSAGE_HELLO:
-                SecurityAlert(peer_id,
-                              "unexpected message '%s' from %s"\
-                              % (str(message), peer_id))
-            else:
-                self.peers.set_peer(peer_id, message)
+            try:
+                message = Message.create_message(message)
+                if message.command != MESSAGE_HELLO:
+                    SecurityAlert(peer_id,
+                                  "unvalid message '%s' from %s"\
+                                  % (str(message), peer_id))
+                else:
+                    self.peers.set_peer(peer_id, message)
+            except ValueError, err:
+                SecurityAlert(peer_id, str(err))
+        #else: alert raises by assert_id
             
     # dialog processus ###############################################
     def update_download(self, size):
@@ -76,25 +82,25 @@ class NetworkManager:
         if self.peers.assert_id(peer_id):
             peer = self.peers.remote_ids[peer_id]
             return peer.client.get_profile()
-        #else: return None
+        #else: alert raises by assert_id
 
     def get_blog_file(self, peer_id):
         """retreive peer's blog"""
         if self.peers.assert_id(peer_id):
             peer = self.peers.remote_ids[peer_id]
-            return peer.client.get_blog()
-        #else: return None
+            return peer.client.get_blog_file()
+        #else: alert raises by assert_id
 
     def get_shared_files(self, peer_id):
         """retreive peer's shared list"""
         if self.peers.assert_id(peer_id):
             peer = self.peers.remote_ids[peer_id]
             return peer.client.get_shared_files()
-        #else: return None
+        #else: alert raises by assert_id
 
     def get_files(self, peer_id, file_descriptors, _on_all_files):
         """retreive file"""
         if self.peers.assert_id(peer_id):
             peer = self.peers.remote_ids[peer_id]
             return peer.client.get_files(file_descriptors, _on_all_files)
-        #else: return None
+        #else: alert raises by assert_id

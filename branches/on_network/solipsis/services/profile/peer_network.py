@@ -32,19 +32,20 @@ class PeerServer(object):
         self.peer = peer
         self.protocol = None
         # states
+        self.new_state = PeerState(self)
         self.registered_state = PeerRegistered(self)
         self.connected_state = PeerConnected(self)
         self.disconnected_state = PeerDisconnected(self)
-        self.current_sate = PeerState(self)
+        self.current_state = self.new_state
 
     def connected(self, protocol):
-        self.current_sate.connected(protocol)
+        self.current_state.connected(protocol)
         
     def disconnected(self):
-        self.current_sate.disconnected()
+        self.current_state.disconnected()
         
     def execute(self, message):
-        self.current_sate.execute(message)
+        self.current_state.execute(message)
     
 class PeerState(object):
     """trace messages received for this peer"""
@@ -70,17 +71,17 @@ class PeerRegistered(PeerState):
 
     def connected(self, protocol):
         self.peer_server.protocol = protocol
-        self.peer_server.current_sate = self.peer_server.connected_state
+        self.peer_server.current_state = self.peer_server.connected_state
 
     def disconnected(self):
-        self.peer_server.current_sate = self.peer_server.disconnected_state
+        self.peer_server.current_state = self.peer_server.disconnected_state
 
 class PeerDisconnected(PeerState):
     """trace messages received for this peer"""
 
     def connected(self, protocol):
         self.protocol = protocol
-        self.peer_server.current_sate = self.peer_server.connected_state
+        self.peer_server.current_state = self.peer_server.connected_state
 
     def disconnected(self):
         pass
@@ -93,7 +94,7 @@ class PeerConnected(PeerState):
 
     def disconnected(self):
         self.peer_server.protocol = None
-        self.peer_server.current_sate = self.peer_server.disconnected_state
+        self.peer_server.current_state = self.peer_server.disconnected_state
 
     def execute(self, message):
         transport = self.protocol.transport
@@ -159,19 +160,36 @@ class PeerClient(dict):
     def get_profile(self):
         """download peer profile using self.get_file. Automatically
         called on client creation"""
-        return self._connect(MESSAGE_PROFILE)
+        if self.peer.server.current_state == self.peer.server.new_state:
+            SecurityAlert(self.peer.peer_id,
+                          "Can't get profile: peer's server not known yet")
+        else:
+            return self._connect(MESSAGE_PROFILE)
             
     def get_blog_file(self):
         """donload blog file using self.get_file"""
-        return self._connect(MESSAGE_BLOG)
+        if self.peer.server.current_state == self.peer.server.new_state:
+            SecurityAlert(self.peer.peer_id,
+                          "Can't get blog: peer's server not known yet")
+        else:
+            return self._connect(MESSAGE_BLOG)
             
     def get_shared_files(self):
         """donload blog file using self.get_file"""
-        return self._connect(MESSAGE_SHARED)
+        if self.peer.server.current_state == self.peer.server.new_state:
+            SecurityAlert(self.peer.peer_id,
+                          "Can't get list: peer's server not known yet")
+        else:
+            return self._connect(MESSAGE_SHARED)
             
-    def get_files(self, file_descriptors):
+    def get_files(self, file_descriptors, _on_all_files):
         """download given list of file"""
-        return self._connect(MESSAGE_FILES, file_descriptors)
+        if self.peer.server.current_state == self.peer.server.new_state:
+            SecurityAlert(self.peer.peer_id,
+                          "Can't get files: peer's server not known yet")
+        else:
+            deferred = self._connect(MESSAGE_FILES, file_descriptors)
+            return deferred.addCallback(_on_all_files)
 
     # connection management #
     def _connect(self, command, data=None):
@@ -195,6 +213,9 @@ class PeerClient(dict):
         else:
             raise ValueError("ERROR in _connect: %s not valid"% command)
         return deferred
+    
+    def rawDataReceived(self, transport, data):
+        self[transport].write_data(data)
         
     def _fail_client(self, transport, reason):
         self[transport].close(reason)
@@ -202,9 +223,6 @@ class PeerClient(dict):
     def _on_connected(self, transport):
         self[transport].send_message()
         self[transport].setup_download()
-    
-    def rawDataReceived(self, transport, data):
-        self[transport].write_data(data)
 
     def _on_disconnected(self, transport, reason):
         self[transport].teardown_download()
@@ -277,17 +295,16 @@ class PeerManager(threading.Thread):
         self.queue = Queue(-1) # infinite size
         self.remote_ips = {}   # {ip : peer}
         self.remote_ids = {}   # {id : peer}
-        self.running = True
         self.connect_method = connect_method
         self.lock = threading.RLock()
 
     def run(self):
-        while self.running:
+        while True:
             try:
                 # block until new message or TIMEOUT
                 message = self.queue.get(timeout=self.CHECKING_FREQUENCY)
                 if message is None:
-                    self.running = False
+                    break
                 else:
                     if message.ip in self.remote_ips:
                         self.remote_ips[message.ip].server.execute(self, message)
@@ -300,6 +317,7 @@ class PeerManager(threading.Thread):
                 # Empty exception is expected when no message received
                 # during period defined by CHECKING_FREQUENCY.
                 self._check_peers(datetime.datetime.now())
+        display_status("stopping server")
 
     def stop(self):
         self.queue.put(None)
@@ -333,7 +351,7 @@ class PeerManager(threading.Thread):
             self.remote_ips[message.ip] = peer
             peer.ip = message.ip
             peer.port = message.port
-            peer.server.current_sate =  peer.server.registered_state
+            peer.server.current_state =  peer.server.registered_state
         finally:
             self.lock.release()
 
