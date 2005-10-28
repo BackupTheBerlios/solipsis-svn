@@ -113,7 +113,7 @@ class Plugin(ServicePlugin):
             wx.EVT_MENU(main_window, item_id, method)
         self.service_api.SetMenu(self.GetTitle(), menu)
         # launch network
-        self.network = NetworkManager(download_dlg=self.editor_frame.download_dlg)
+        self.network = NetworkManager()
         self.activate(True)
     
     def Disable(self):
@@ -189,16 +189,11 @@ class Plugin(ServicePlugin):
             on_done.addCallback(self._on_shared_files, peer_id)
             deferred and on_done.chainDeferred(deferred)
 
-    # side method
     def get_files(self, peer_id, file_descriptors):
-        """request downwload of given files"""
-        if self.editor_frame and get_prefs("display_dl"):
-            self.editor_frame.download_dlg.init()
-            self.editor_frame.download_dlg.Show()
-        deferred = self.network.get_files(peer_id, file_descriptors,
-                                          self._on_all_files)
-        deferred and deferred.addCallback(
-            lambda file_name: "%s downloaded\n"% file_name)
+        """request downwload of given files.
+
+        file_descriptor is a list: [ [split path], size ]"""
+        self.network.get_files(peer_id, file_descriptors)
 
     # callbacks methods
     def _on_new_profile(self, document, peer_id):
@@ -215,13 +210,6 @@ class Plugin(ServicePlugin):
         """store and display file object corresponding to blog"""
         get_facade().fill_shared_files(peer_id, files)
         return str(files)
-    
-    def _on_all_files(self):
-        """store and display file object corresponding to blog"""
-        if self.editor_frame:
-            self.editor_frame.download_dlg.complete_all_files()
-        else:
-            print 'No more file to download'
 
     # Service description methods
     def GetTitle(self):

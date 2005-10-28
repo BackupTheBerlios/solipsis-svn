@@ -24,6 +24,15 @@ from solipsis.services.profile.network_data import SecurityAlert, \
      DownloadMessage, Message, MESSAGE_HELLO, MESSAGE_ERROR, \
      MESSAGE_PROFILE, MESSAGE_BLOG, MESSAGE_SHARED, MESSAGE_FILES
           
+def format_data_file(split_path, size=0):
+    new_path = UNIVERSAL_SEP.join(split_path)
+    return "%s,%s"% (size, new_path)
+            
+def extract_data_file(description):
+    size, file_path = description.split(',', 1)
+    new_path = file_path.split(UNIVERSAL_SEP)
+    return (new_path, size)
+    
 # server #############################################################
 class PeerServer(object):
     """trace messages received for this peer"""
@@ -114,8 +123,8 @@ class PeerConnected(PeerState):
                                                             transport)
             deferred.addCallback(lambda x: transport.loseConnection())
         elif message.command == MESSAGE_FILES:
-            file_path = message.data
-            file_name = os.sep.join(file_path.split(UNIVERSAL_SEP))
+            split_path, file_size = extract_data_file(message.data)
+            file_name = os.sep.join(split_path)
             file_desc = get_facade().get_file_container(file_name)
             # check shared
             if file_desc._shared:
@@ -136,10 +145,13 @@ class PeerConnected(PeerState):
 class PeerClient(dict):
     """dictionary of all dowloads: {id(transport): }"""
     
-    def __init__(self, peer, connect_method, *args, **kwargs):
-        dict.__init__(self, *args, **kwargs)
+    def __init__(self, peer, connect_method):
+        dict.__init__(self)
         self.peer = peer
         self.connect = connect_method
+        self.download_dlg = None
+        # [ [split path], size]
+        self.files = []
 
     def __setitem__(self, transport, download_msg):
         dict.__setitem__(self, id(transport), download_msg)
@@ -182,14 +194,35 @@ class PeerClient(dict):
         else:
             return self._connect(MESSAGE_SHARED)
             
-    def get_files(self, file_descriptors, _on_all_files):
-        """download given list of file"""
+    def get_files(self, file_descriptors):
+        """download given list of file
+
+        file_descriptor is a list: [ [split path], size ]"""
         if self.peer.server.current_state == self.peer.server.new_state:
             SecurityAlert(self.peer.peer_id,
                           "Can't get files: peer's server not known yet")
         else:
-            deferred = self._connect(MESSAGE_FILES, file_descriptors)
-            return deferred.addCallback(_on_all_files)
+            # display downlaod dialog if necessary
+            if get_prefs("display_dl") \
+                   and "wx" in sys.modules:
+                print "xxx using wx"
+                from solipsis.util.uiproxy import UIProxy
+                from solipsis.services.profile.gui.DownloadDialog \
+                     import DownloadDialog
+                self.download_dlg = UIProxy(DownloadDialog(
+                    get_prefs("display_dl"), None, -1))
+                self.download_dlg.init()
+                self.download_dlg.Show()
+            # launch first download
+            self.files = file_descriptors
+            if self.files:
+                split_path, size = self.files.pop()
+                self.update_file(split_path[-1], size)
+                return self._connect(MESSAGE_FILES,
+                                     format_data_file(split_path, size))
+            else:
+                display_warning(_("Empty List"),
+                                _("No file selected to download"))
 
     # connection management #
     def _connect(self, command, data=None):
@@ -197,7 +230,9 @@ class PeerClient(dict):
         message = self.peer.wrap_message(command, data)
         connector =  self.connect(self.peer)
         deferred = defer.Deferred()
-        download = DownloadMessage(connector.transport, deferred, message)
+        download = DownloadMessage(connector.transport,
+                                   deferred,
+                                   message)
         self[connector.transport] = download
         # set callback
         if command == MESSAGE_HELLO:
@@ -216,8 +251,11 @@ class PeerClient(dict):
     
     def rawDataReceived(self, transport, data):
         self[transport].write_data(data)
+        self.update_download(self[transport].size)
         
     def _fail_client(self, transport, reason):
+        display_warning("Action [%s] failed: %s"\
+                        % (str(self[transport].message), reason))
         self[transport].close(reason)
 
     def _on_connected(self, transport):
@@ -229,21 +267,20 @@ class PeerClient(dict):
         self[transport].close(reason)
 
     # callbacks #
-    def _on_hello(self, file_obj):
+    def _on_hello(self, donwload_msg):
         """callback when autoloading of profile successful"""
-        document = read_document(file_obj)
+        document = read_document(donwload_msg.file)
         get_facade().set_data(self.peer.peer_id, document, flag_update=False)
         get_filter_facade().fill_data(self.peer.peer_id, document)
         
-    def _on_complete_profile(self, file_obj):
+    def _on_complete_profile(self, donwload_msg):
         """callback when finished downloading profile"""
-        return read_document(file_obj)
+        return read_document(donwload_msg.file)
 
-    def _on_complete_pickle(self, file_obj):
+    def _on_complete_pickle(self, donwload_msg):
         """callback when finished downloading blog"""
         try:
-            obj_str = file_obj.getvalue()
-            return pickle.loads(obj_str)
+            return pickle.load(donwload_msg.file)
         except Exception, err:
             display_error(_("Your version of Solipsis is not compatible "
                             "with the peer'sone you wish to download from "
@@ -251,10 +288,40 @@ class PeerClient(dict):
                             % VERSION),
                           title="Download error", error=err)
 
-    def _on_complete_file(self, file_obj):
+    def _on_complete_file(self, donwload_msg):
         """callback when finished downloading file"""
-        pass
-    
+        if self.files:
+            split_path, size = self.files.pop()
+            self.update_file(split_path[-1], size)
+            self._connect(MESSAGE_FILES,
+                          format_data_file(split_path, size))
+        else:
+            self.complete_all_files()
+            
+    # dialog processus ###############################################
+    def update_download(self, size):
+        """available to wx navigators only. update status of download
+        in specific dialog"""
+        if self.download_dlg:
+            self.download_dlg.update_download(size)
+        else:
+            display_status("received: %d"% size)
+
+    def update_file(self, file_name, size):
+        """available to wx navigators only. update downloaded file in
+        specific dialog"""
+        if self.download_dlg:
+            self.download_dlg.update_file(file_name, size)
+        else:
+            display_status("%s downloaded (%d)"% (file_name, size))
+
+    def complete_all_files(self):
+        if self.download_dlg:
+            self.download_dlg.complete_all_files()
+            self.download_dlg = None
+        else:
+            display_status("All files downloaded")
+        
 # wrapper of server & client #########################################
 class Peer(object):
     """contain 'static' information about a peer: its is, ip, port..."""

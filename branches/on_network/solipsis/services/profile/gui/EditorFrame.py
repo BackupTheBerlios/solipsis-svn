@@ -5,13 +5,11 @@
 import wx
 import sys
 from solipsis.util.wxutils import _
-from solipsis.util.uiproxy import UIProxy
 from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile.prefs import get_prefs, set_prefs
 
 from solipsis.services.profile.gui.FileDialog import FileDialog
 from solipsis.services.profile.gui.ProfileDialog import ProfileDialog
-from solipsis.services.profile.gui.DownloadDialog import DownloadDialog
 from solipsis.services.profile.gui.AboutDialog import AboutDialog
 
 # begin wxGlade: dependencies
@@ -82,7 +80,6 @@ class EditorFrame(wx.Frame):
             #put here special initialisation for standalone editor
             pass
         self.profile_dlg = ProfileDialog(parent, -1, plugin=self.plugin)
-        self.download_dlg = UIProxy(DownloadDialog(get_prefs("display_dl"), parent, -1))
         # events
         self.bind_controls()
 

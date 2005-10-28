@@ -5,14 +5,17 @@ import os, os.path
 import time
 import twisted.scripts.trial as trial
 
+from os.path import abspath
 from Queue import Queue
 from twisted.trial import unittest, util
 from twisted.internet.defer import Deferred
 from twisted.internet.protocol import ReconnectingClientFactory
 from twisted.protocols import basic
 
+from solipsis.services.profile import QUESTION_MARK
+from solipsis.services.profile.data import PeerDescriptor
 from solipsis.services.profile.tests import write_test_profile, \
-     PROFILE_TEST, PROFILE_DIR
+     PROFILE_TEST, PROFILE_BRUCE, PROFILE_DIR, TEST_DIR
 from solipsis.services.profile.facade import create_facade
 from solipsis.services.profile.network_data import SecurityWarnings
 
@@ -42,7 +45,7 @@ class FakePeer:
 
 # tests classes ######################################################
 def on_error(reason):
-    print "ERR:", reason
+    print "xxx ERR:", reason
     raise AssertionError(str(reason))
     
 class NetworkTest(unittest.TestCase, AsynchroneMixin):
@@ -66,7 +69,7 @@ class NetworkTest(unittest.TestCase, AsynchroneMixin):
         self.network.get_profile("boby")
         self.network.get_blog_file("boby")
         self.network.get_shared_files("boby")
-        self.network.get_files("boby", ["whatever"], None)
+        self.network.get_files("boby", ["whatever"])
         self.assertEquals(5, SecurityWarnings.instance().count("boby"))
 
     def test_bad_init(self):
@@ -78,7 +81,7 @@ class NetworkTest(unittest.TestCase, AsynchroneMixin):
         self.network.get_profile("boby")
         self.network.get_blog_file("boby")
         self.network.get_shared_files("boby")
-        self.network.get_files("boby", ["whatever"], None)
+        self.network.get_files("boby", ["whatever"])
         self.assertEquals(6, SecurityWarnings.instance().count("boby"))
     
 class ServerTest(unittest.TestCase, AsynchroneMixin):
@@ -149,15 +152,58 @@ class ClientTest(unittest.TestCase):
         self.network.on_new_peer(FakePeer("boby"))
         self.network.on_service_data(
             "boby", "HELLO 127.0.0.1:%s"% str(self.network.server.local_port))
+        
+    def tearDown(self):
+        self.network.stop()
+
+    def assert_profile(self, doc):
+        """check validity of content"""
+        self.assertEquals(u"atao", doc.get_pseudo())
+        self.assertEquals(u"Mr", doc.get_title())
+        self.assertEquals(u"manu", doc.get_firstname())
+        self.assertEquals(u"breton", doc.get_lastname())
+        self.assertEquals(QUESTION_MARK(), doc.get_photo())
+        self.assertEquals(u"manu@ft.com", doc.get_email())
+        self.assertEquals({'City': u'', 'color': u'blue', 'Country': u'',
+                           'Favourite Book': u'', 'homepage': u'manu.com',
+                           'Favourite Movie': u'', 'Studies': u''},
+                          doc.get_custom_attributes())
+        # peers
+        peers = doc.get_peers()
+        self.assertEquals(peers.has_key(PROFILE_BRUCE), True)
+        self.assertEquals(peers[PROFILE_BRUCE].state, PeerDescriptor.FRIEND)
+        self.assertEquals(peers[PROFILE_BRUCE].connected, False)
+
+    def assert_blog(self, blog):
+        self.assertEquals(blog.count_blogs(), 1)
+        self.assertEquals(blog.get_blog(0).text, u"This is a test")
+        self.assertEquals(blog.get_blog(0).count_blogs(), 0)
+
+    def assert_files(self, files):
+        shared_files = ["date.doc", "routage", "null", "TOtO.txt", "dummy.txt"]
+        for container in files[TEST_DIR]:
+            print container.name
+            self.assert_(container.name in shared_files)
+            if container.name == "date.txt":
+                self.assertEquals("tagos", container._tag)
 
     def test_downloads(self):
-        def _on_test(result):
-            print "xxx ", result
+        def _on_test_profile(result):
+            self.assert_(result)
+            self.assert_profile(result)
         deferred = self.network.get_profile("boby")
-        deferred.addCallbacks(_on_test, on_error)
-        print "xxx ", deferred
-        return deferred
-    test_downloads.timeout = 8
+        util.wait(deferred.addCallbacks(_on_test_profile, on_error))
+        def _on_test_blog(result):
+            self.assert_(result)
+            self.assert_blog(result)
+        deferred = self.network.get_blog_file("boby")
+        util.wait(deferred.addCallbacks(_on_test_blog, on_error))
+        def _on_test_shared_files(result):
+            self.assert_(result)
+            self.assert_files(result)
+        deferred = self.network.get_shared_files("boby")
+        return deferred.addCallbacks(_on_test_shared_files, on_error)
+    test_downloads.timeout = 10
     
 # network classes ####################################################
 class SimpleProtocol(basic.LineReceiver):

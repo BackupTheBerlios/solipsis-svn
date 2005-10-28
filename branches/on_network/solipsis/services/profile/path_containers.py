@@ -66,7 +66,7 @@ class ContainerException(Exception):
         self.stack = extract_stack()[:-1]
     
 class SharedFiles(dict):
-    """dict wrapper (useless for now)"""
+    """keys are repository and values are list of containers"""
 
     def flatten(self):
         """convert tree of containers to array"""

@@ -16,11 +16,10 @@ from solipsis.services.profile.network_data import Message, SecurityAlert, \
 class NetworkManager:
     """high level class managing clients and servers for each peer"""
 
-    def __init__(self, download_dlg=None):
+    def __init__(self):
         self.client = ProfileClientFactory(self)
         self.server = ProfileServerFactory(self)
         self.peers = PeerManager(self.client.connect)
-        self.download_dlg = download_dlg
 
     def start(self):
         self.peers.start()
@@ -63,19 +62,6 @@ class NetworkManager:
                 SecurityAlert(peer_id, str(err))
         #else: alert raises by assert_id
             
-    # dialog processus ###############################################
-    def update_download(self, size):
-        """available to wx navigators only. update status of download
-        in specific dialog"""
-        if self.download_dlg:
-            self.download_dlg.update_download(size)
-
-    def update_file(self, file_name, size):
-        """available to wx navigators only. update downloaded file in
-        specific dialog"""
-        if self.download_dlg:
-            self.download_dlg.update_file(file_name, size)
-
     # high level functions ###########################################
     def get_profile(self, peer_id):
         """retreive peer's profile"""
@@ -98,9 +84,9 @@ class NetworkManager:
             return peer.client.get_shared_files()
         #else: alert raises by assert_id
 
-    def get_files(self, peer_id, file_descriptors, _on_all_files):
+    def get_files(self, peer_id, file_descriptors):
         """retreive file"""
         if self.peers.assert_id(peer_id):
             peer = self.peers.remote_ids[peer_id]
-            return peer.client.get_files(file_descriptors, _on_all_files)
+            return peer.client.get_files(file_descriptors)
         #else: alert raises by assert_id

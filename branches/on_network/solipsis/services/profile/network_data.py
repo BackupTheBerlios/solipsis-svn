@@ -4,6 +4,7 @@
 
 __revision__ = "$Id: network.py 902 2005-10-14 16:18:06Z emb $"
 
+import sys
 import datetime
 import tempfile
 import gettext
@@ -107,7 +108,7 @@ class Message(object):
     create_message = staticmethod(create_message)
 
 class DownloadMessage(object):
-    """Simple wrapper to link connection, message sent and deferred to
+    """wrapper to link connection, message sent and deferred to
     be called when download complete"""
 
     def __init__(self, transport, deferred, message):
@@ -120,17 +121,18 @@ class DownloadMessage(object):
     def send_message(self):
         self.transport.write(str(self.message)+"\r\n")
 
+    # download management ############################################
     def setup_download(self):
         self.file = tempfile.NamedTemporaryFile()
         self.size = 0
-        pass
 
     def write_data(self, data):
-        pass
+        self.size += len(data)
+        self.file.write(data)
 
     def teardown_download(self):
-        pass
-
+        self.file.seek(0)
+        self.deferred.callback(self.file)
+        
     def close(self, reason=None):
-        pass
-            
+        self.file.close()
