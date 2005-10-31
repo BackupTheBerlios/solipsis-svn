@@ -270,13 +270,13 @@ class FilterFrame(wx.Frame):
     def on_new_file(self, event): # wxGlade: FilterFrame.<event_handler>
         self.set_file_view()
         self.edit_file_panel.reset()
-        self.edit_file_panel.filter_name_value.SetValue(
+        self.edit_file_panel.file_name_value.SetValue(
             get_new_label(self.filter_list, "filter_"))
 
     def on_new_profile(self, event): # wxGlade: FilterFrame.<event_handler>
         self.set_profile_view()
         self.edit_profile_panel.reset()
-        self.edit_profile_panel.filter_name_value.SetValue(
+        self.edit_profile_panel.all_value.SetValue(
             get_new_label(self.filter_list, "filter_"))
         
     def on_save(self, event): # wxGlade: FilterFrame.<event_handler>

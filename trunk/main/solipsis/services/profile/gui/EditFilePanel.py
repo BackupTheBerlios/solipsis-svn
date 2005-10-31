@@ -14,10 +14,14 @@ class EditFilePanel(wx.Panel):
         # begin wxGlade: EditFilePanel.__init__
         kwds["style"] = wx.TAB_TRAVERSAL
         wx.Panel.__init__(self, *args, **kwds)
+        self.sizer_7_staticbox = wx.StaticBox(self, -1, _("Searching mode"))
         self.file_name = wx.StaticText(self, -1, _("Search :"))
         self.file_name_value = wx.TextCtrl(self, -1, "")
         self.file_size = wx.StaticText(self, -1, _("File size: "))
         self.size_value = wx.TextCtrl(self, -1, "")
+        self.simple_radio = wx.RadioButton(self, -1, _("Simple"))
+        self.advanced_radio = wx.RadioButton(self, -1, _("Advanced"))
+        self.expert_radio = wx.RadioButton(self, -1, _("Expert"))
         self.clear_button = wx.Button(self, -1, _("Clear"))
         self.apply_button = wx.Button(self, -1, _("Apply"))
 
@@ -40,16 +44,24 @@ class EditFilePanel(wx.Panel):
         # begin wxGlade: EditFilePanel.__set_properties
         self.file_size.Hide()
         self.size_value.Hide()
+        self.simple_radio.SetValue(1)
+        self.advanced_radio.Enable(False)
+        self.expert_radio.Enable(False)
         # end wxGlade
 
     def __do_layout(self):
         # begin wxGlade: EditFilePanel.__do_layout
         edit_file_sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer_7 = wx.StaticBoxSizer(self.sizer_7_staticbox, wx.VERTICAL)
         edit_file_sizer.Add(self.file_name, 0, wx.TOP|wx.ADJUST_MINSIZE, 5)
         edit_file_sizer.Add(self.file_name_value, 0, wx.EXPAND|wx.ADJUST_MINSIZE, 0)
         edit_file_sizer.Add(self.file_size, 0, wx.TOP|wx.ADJUST_MINSIZE, 5)
         edit_file_sizer.Add(self.size_value, 0, wx.EXPAND|wx.ADJUST_MINSIZE, 0)
         edit_file_sizer.Add((20, 20), 1, wx.EXPAND|wx.ADJUST_MINSIZE, 0)
+        sizer_7.Add(self.simple_radio, 0, wx.ADJUST_MINSIZE, 0)
+        sizer_7.Add(self.advanced_radio, 0, wx.ADJUST_MINSIZE, 0)
+        sizer_7.Add(self.expert_radio, 0, wx.ADJUST_MINSIZE, 0)
+        edit_file_sizer.Add(sizer_7, 0, wx.EXPAND, 0)
         edit_file_sizer.Add(self.clear_button, 0, wx.TOP|wx.EXPAND|wx.ADJUST_MINSIZE, 1)
         edit_file_sizer.Add(self.apply_button, 0, wx.TOP|wx.EXPAND|wx.ADJUST_MINSIZE, 1)
         self.SetAutoLayout(True)
