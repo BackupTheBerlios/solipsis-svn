@@ -51,9 +51,12 @@ class FilterFrame(wx.Frame):
         self.window_4 = wx.SplitterWindow(self.window_3_pane_1, -1, style=wx.SP_3D|wx.SP_BORDER)
         self.view_pane = wx.Panel(self.window_4, -1)
         self.window_4_pane_1 = wx.Panel(self.window_4, -1)
+        self.edit_pane = wx.Panel(self.window_2, -1)
+        self.edit_notebook = wx.Notebook(self.edit_pane, -1, style=0)
+        self.notebook_1_pane_2 = wx.Panel(self.edit_notebook, -1)
         self.sizer_4_staticbox = wx.StaticBox(self.window_4_pane_1, -1, _("Filters"))
         self.sizer_6_staticbox = wx.StaticBox(self.window_3_pane_2, -1, _("Profile details..."))
-        self.edit_pane = wx.Panel(self.window_2, -1)
+        self.notebook_1_pane_1 = wx.Panel(self.edit_notebook, -1)
         
         # Menu Bar
         self.filter_menu = wx.MenuBar()
@@ -80,7 +83,8 @@ class FilterFrame(wx.Frame):
         self.filter_menu.Append(self.help_menu, _("Info"))
         # Menu Bar end
         self.statusbar = self.CreateStatusBar(1, 0)
-        self.edit_file_panel = EditFilePanel(self, self.edit_pane, -1)
+        self.edit_file_panel = EditFilePanel(self, self.notebook_1_pane_1, -1)
+        self.edit_profile_panel = EditProfilePanel(self, self.notebook_1_pane_2, -1)
         self.filter_list = wx.ListCtrl(self.window_4_pane_1, -1, style=wx.LC_REPORT|wx.LC_EDIT_LABELS|wx.LC_SORT_ASCENDING|wx.SUNKEN_BORDER)
         self.view_file_panel = ViewFilePanel(self.view_pane, -1)
         self.preview_notebook = wx.Notebook(self.window_3_pane_2, -1, style=0)
@@ -95,6 +99,7 @@ class FilterFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_close, self.quit_item)
         self.Bind(wx.EVT_MENU, self.on_help, self.help_item)
         self.Bind(wx.EVT_MENU, self.on_about, self.about_item)
+        self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGED, self.on_change_tab, self.edit_notebook)
         self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_select_filter, self.filter_list)
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.on_right_click_filter, self.filter_list)
         self.Bind(wx.EVT_LIST_COL_RIGHT_CLICK, self.on_right_click_col_filter, self.filter_list)
@@ -115,7 +120,6 @@ class FilterFrame(wx.Frame):
         # file, profile panels & help dialog
         self.current_edit = self.edit_file_panel
         self.current_view = self.view_file_panel
-        self.edit_profile_panel = EditProfilePanel(self, self.edit_pane, -1)
         self.view_profile_panel = ViewProfilePanel(self.view_pane, -1)
         self.help_dialog = ProfileDialog(parent, -1)
         self.help_dialog.profile_window.SetPage(open(REGEX_HTML()).read())
@@ -388,43 +392,40 @@ class FilterFrame(wx.Frame):
         get_filter_facade().delete_filters(filter_names)
         self.do_modified(True)
 
+    def on_change_tab(self, event): # wxGlade: FilterFrame.<event_handler>
+        if 0 == self.edit_notebook.GetSelection():
+            self.set_file_view()
+        else:
+            self.set_profile_view()
+        event.Skip()
+
     # layout #########################################################
     def set_file_view(self):
         if self.current_edit == self.edit_file_panel:
             return
-        self.edit_file_panel.Show()
-        self.view_file_panel.Show()
-        edit_sizer = self.edit_pane.GetSizer()
-        edit_sizer.Detach(self.current_edit)
-        edit_sizer.Add(self.edit_file_panel, 1, wx.EXPAND, 0)
         self.current_edit = self.edit_file_panel
+        self.edit_notebook.SetSelection(0)
         # view
         view_sizer = self.view_pane.GetSizer()
         view_sizer.Detach(self.current_view)
         view_sizer.Add(self.view_file_panel, 1, wx.EXPAND, 0)
         self.current_view = self.view_file_panel
-        self.edit_profile_panel.Hide()
+        self.view_file_panel.Show()
         self.view_profile_panel.Hide()
-        edit_sizer.Layout()
         view_sizer.Layout()
 
     def set_profile_view(self):
         if self.current_edit == self.edit_profile_panel:
             return
-        self.edit_profile_panel.Show()
-        self.view_profile_panel.Show()
-        edit_sizer = self.edit_pane.GetSizer()
-        edit_sizer.Detach(self.current_edit)
-        edit_sizer.Add(self.edit_profile_panel, 1, wx.EXPAND, 0)
         self.current_edit = self.edit_profile_panel
+        self.edit_notebook.SetSelection(1)
         # view
         view_sizer = self.view_pane.GetSizer()
         view_sizer.Detach(self.current_view)
         view_sizer.Add(self.view_profile_panel, 1, wx.EXPAND, 0)
         self.current_view = self.view_profile_panel
-        self.edit_file_panel.Hide()
+        self.view_profile_panel.Show()
         self.view_file_panel.Hide()
-        edit_sizer.Layout()
         view_sizer.Layout()
     
     def __set_properties(self):
@@ -454,7 +455,21 @@ class FilterFrame(wx.Frame):
         view_sizer = wx.BoxSizer(wx.HORIZONTAL)
         sizer_4 = wx.StaticBoxSizer(self.sizer_4_staticbox, wx.VERTICAL)
         edit_sizer = wx.BoxSizer(wx.VERTICAL)
-        edit_sizer.Add(self.edit_file_panel, 1, wx.EXPAND, 0)
+        sizer_5 = wx.BoxSizer(wx.VERTICAL)
+        sizer_3 = wx.BoxSizer(wx.VERTICAL)
+        sizer_3.Add(self.edit_file_panel, 1, wx.EXPAND, 0)
+        self.notebook_1_pane_1.SetAutoLayout(True)
+        self.notebook_1_pane_1.SetSizer(sizer_3)
+        sizer_3.Fit(self.notebook_1_pane_1)
+        sizer_3.SetSizeHints(self.notebook_1_pane_1)
+        sizer_5.Add(self.edit_profile_panel, 1, wx.EXPAND, 0)
+        self.notebook_1_pane_2.SetAutoLayout(True)
+        self.notebook_1_pane_2.SetSizer(sizer_5)
+        sizer_5.Fit(self.notebook_1_pane_2)
+        sizer_5.SetSizeHints(self.notebook_1_pane_2)
+        self.edit_notebook.AddPage(self.notebook_1_pane_1, _("File"))
+        self.edit_notebook.AddPage(self.notebook_1_pane_2, _("Peer"))
+        edit_sizer.Add(self.edit_notebook, 1, wx.EXPAND, 0)
         self.edit_pane.SetAutoLayout(True)
         self.edit_pane.SetSizer(edit_sizer)
         edit_sizer.Fit(self.edit_pane)
