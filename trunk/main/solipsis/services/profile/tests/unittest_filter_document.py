@@ -40,10 +40,10 @@ class FilterTest(unittest.TestCase):
         peer_dict = self.document.filters["Mr_B"].as_dict()
         file_dict = self.document.filters["MP3"].as_dict()
         self.assertEquals('*, (1)', all_dict['pseudo'])
-        self.assertEquals('*.mp3, (1)', file_dict['name'])
+        self.assertEquals('.mp3, (1)', file_dict['name'])
         self.assertEquals('*, (1)', peer_dict['pseudo'])
         self.assertEquals('Mr, (1)', peer_dict['title'])
-        self.assertEquals('b*, (1)', peer_dict['lastname'])
+        self.assertEquals('b, (1)', peer_dict['lastname'])
         self.assertEquals('blue, (1)', peer_dict['color'])
             
     def test_load(self):

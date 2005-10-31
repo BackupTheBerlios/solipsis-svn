@@ -85,7 +85,9 @@ class FilterFacade(AbstractFacade):
 
     def delete_filters(self, filter_names):
         for filter_name in filter_names:
-            del self._desc.document.filters[filter_name]
-            del self._desc.document.results[filter_name]
+            if filter_name in  self._desc.document.filters:
+                del self._desc.document.filters[filter_name]
+            if filter_name in self._desc.document.results:
+                del self._desc.document.results[filter_name]
             for view in self.views.values():
                 view.delete_filter(filter_name)

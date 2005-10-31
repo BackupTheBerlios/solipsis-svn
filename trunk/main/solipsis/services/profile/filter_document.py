@@ -60,7 +60,8 @@ class FilterMixin:
             self.filters[filter_name].update_properties(**props)
 
     def update_profile_filter(self, filter_name, filter_or, customs, **props):
-        if not filter_name in self.filters:
+        if not filter_name in self.filters \
+               or not isinstance(self.filters[filter_name], PeerFilter):
             new_filter = PeerFilter(filter_name, filter_or, **props)
             new_filter.update_customs(customs)
             self.filters[filter_name] = new_filter
