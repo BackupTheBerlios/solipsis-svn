@@ -7,21 +7,25 @@
   <body>
     <div class="titlepage">
       <center>
-	<h1>Filters on Solipsis</h1>
+	<h2>Filters on Solipsis</h2>
 	<p>
       </p></center>
     </div>
 
+    <h3>Default searching mode</h3>
     <p>
-      Filters are insensitive to case, and are matched with any
-      profile or the peer in your surroundings. If you create a filter
-      <code>"sound.wma"</code>, it will match both
-      <code>"sound.wma"</code> and <code>"SouND.wma"</code> (and other
-      combinaisons of lower and upper caps). But no other world nor
-      file than <code>"sound.wma"</code>. In order to match something
-      like <code>"Sound.wav"</code> or <code>"Sound.mid"</code> or
-      <code>"Best sound ever.mp3"</code>, you will have to use
-      wildchars...
+      Anyword entered in the searching fields will act as a key word
+      and will be seek through neighbours' data. Filters are
+      insensitive to case.
+    </p>
+
+    <h3>Advanced searching mode (files only, coming soon)</h3>
+    <p>
+      The keyword entered is not searched through, it is matched
+      exactly. This means that <code>"photo"</code> will not give you
+      any result for a picture named <code>"my best photo
+      ever.jpg"</code>, not even <code>"photo.jpg"</code>. You will
+      have to use wildchars...
     </p>
 
     <p>
@@ -30,21 +34,31 @@
     </p>
 
     <p>
-      For instance the filter <code>"*.mp3"</code> matching anyfile
-      with the extension<code>".mp3"</code>. In the first example, you
-      can use the filter <code>"sound.*"</code> to match the
-      <code>"Sound.wav"</code> or <code>"Sound.mid"</code>. Another
-      example would be <code>"*madonna*.mp3"</code> that would match
-      any file coutaining <code>"madonna"</code> in its title and with
-      the extension <code>".mp3"</code>
+      For instance the filter <code>"*.jpg"</code> matching anyfile
+      with the extension<code>".jpg"</code>. And
+      <code>"*forest*.jpg"</code> would match any file containing
+      <code>"forest"</code> in its title and with the extension
+      <code>".jpg"</code>
     </p>
 
+    <h3>Expert searching mode (files only, coming soon)</h3>
     <p>
-      You may use the wildcar <code>'*'</code> anytime, at the
-      beginning of a world, inside it or at the end. For instance
-      <code>"s*nd"</code> will match <code>"sound"</code>, and
-      <code>"silverband"</code> and <code>"s,fefegegeind"</code> and
-      so one.
+      This mode uses regular expressions to perform the search. It
+      uses a set of wildchars to describe the format of the searched
+      value, or the number of its occurences:
+    <br>
+      . ^ $ * + ? { [ ] \ | ( )
+    </p>
+    <p>
+      It also provides a set of expression describing the expected
+    format:
+    <br>
+      \d \D \s \S \w \W
+    </p>
+    <p>
+      A very good <a
+      href="http://www.amk.ca/python/howto/regex/regex.html">HOWTO</a>
+      has been written by A.M. Kuchling and explains it all.
     </p>
 
   </body>
