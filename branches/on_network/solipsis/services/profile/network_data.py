@@ -132,7 +132,7 @@ class DownloadMessage(object):
 
     def teardown_download(self):
         self.file.seek(0)
-        self.deferred.callback(self.file)
+        self.deferred.callback(self)
         
     def close(self, reason=None):
         self.file.close()

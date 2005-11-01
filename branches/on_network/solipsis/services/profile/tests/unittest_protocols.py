@@ -13,10 +13,12 @@ from twisted.internet.protocol import ReconnectingClientFactory
 from twisted.protocols import basic
 
 from solipsis.services.profile import QUESTION_MARK
+from solipsis.services.profile.prefs import set_prefs
 from solipsis.services.profile.data import PeerDescriptor
 from solipsis.services.profile.tests import write_test_profile, \
-     PROFILE_TEST, PROFILE_BRUCE, PROFILE_DIR, TEST_DIR
-from solipsis.services.profile.facade import create_facade
+     PROFILE_TEST, PROFILE_BRUCE, PROFILE_DIR, TEST_DIR, \
+     DATA_DIR, GENERATED_DIR
+from solipsis.services.profile.facade import get_facade, create_facade
 from solipsis.services.profile.network_data import SecurityWarnings
 
 # side class #########################################################
@@ -182,7 +184,6 @@ class ClientTest(unittest.TestCase):
     def assert_files(self, files):
         shared_files = ["date.doc", "routage", "null", "TOtO.txt", "dummy.txt"]
         for container in files[TEST_DIR]:
-            print container.name
             self.assert_(container.name in shared_files)
             if container.name == "date.txt":
                 self.assertEquals("tagos", container._tag)
@@ -202,8 +203,34 @@ class ClientTest(unittest.TestCase):
             self.assert_(result)
             self.assert_files(result)
         deferred = self.network.get_shared_files("boby")
-        return deferred.addCallbacks(_on_test_shared_files, on_error)
-    test_downloads.timeout = 10
+        util.wait(deferred.addCallbacks(_on_test_shared_files, on_error))
+        def _on_test_files(result):
+            file_name = os.path.join(GENERATED_DIR, "arc en ciel 6.gif")
+            self.assert_(os.path.exists(file_name))
+            self.assertEquals(163564, os.stat(file_name)[6])
+            file_name = os.path.join(GENERATED_DIR, "02_b_1280x1024.jpg")
+            self.assert_(os.path.exists(file_name))
+            self.assertEquals(629622, os.stat(file_name)[6])
+            file_name = os.path.join(GENERATED_DIR, "pywin32-203.win32-py2.3.exe")
+            self.assert_(os.path.exists(file_name))
+            self.assertEquals(3718120, os.stat(file_name)[6])
+            file_name = os.path.join(GENERATED_DIR, "Python-2.3.5.zip")
+            self.assert_(os.path.exists(file_name))
+            self.assertEquals(9769010, os.stat(file_name)[6])
+        get_facade().share_files(DATA_DIR,
+                                 ["arc en ciel 6.gif",
+                                  "02_b_1280x1024.jpg",
+                                  "pywin32-203.win32-py2.3.exe",
+                                  "Python-2.3.5.zip"],
+                                 share=True)
+        set_prefs("download_repo", GENERATED_DIR)
+        deferred = self.network.get_files("boby", [
+            (DATA_DIR.split(os.sep) + ["arc en ciel 6.gif"], 163564),
+            (DATA_DIR.split(os.sep) + ["02_b_1280x1024.jpg"], 629622),
+            (DATA_DIR.split(os.sep) + ["pywin32-203.win32-py2.3.exe"], 3718120),
+            (DATA_DIR.split(os.sep) + ["Python-2.3.5.zip"], 9769010)])
+        return deferred.addCallbacks(_on_test_files, on_error)
+    test_downloads.timeout = 15
     
 # network classes ####################################################
 class SimpleProtocol(basic.LineReceiver):

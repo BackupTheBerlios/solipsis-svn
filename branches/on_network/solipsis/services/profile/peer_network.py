@@ -5,6 +5,7 @@
 __revision__ = "$Id: network.py 902 2005-10-14 16:18:06Z emb $"
 
 import os, os.path
+import sys
 import pickle
 import datetime
 import threading
@@ -16,9 +17,11 @@ from twisted.protocols import basic
 from twisted.internet import defer
 
 from solipsis.services.profile import VERSION, UNIVERSAL_SEP
+from solipsis.services.profile.prefs import get_prefs
 from solipsis.services.profile.document import read_document
 from solipsis.services.profile.facade import get_facade
 from solipsis.services.profile.filter_facade import get_filter_facade
+from solipsis.services.profile.path_containers import ContainerException
 from solipsis.services.profile.message import display_status, display_error
 from solipsis.services.profile.network_data import SecurityAlert, \
      DownloadMessage, Message, MESSAGE_HELLO, MESSAGE_ERROR, \
@@ -125,18 +128,23 @@ class PeerConnected(PeerState):
         elif message.command == MESSAGE_FILES:
             split_path, file_size = extract_data_file(message.data)
             file_name = os.sep.join(split_path)
-            file_desc = get_facade().get_file_container(file_name)
-            # check shared
-            if file_desc._shared:
-                display_status("sending %s"% file_name)
-                deferred = basic.FileSender().\
-                           beginFileTransfer(open(file_name), transport)
-                deferred.addCallback(lambda x: transport.loseConnection())
-            else:
-                self.peer_server.protocol.factory.send_udp_message(
-                    self.peer_server.peer.peer_id, MESSAGE_ERROR, message.data)
+            try:
+                file_desc = get_facade().get_file_container(file_name)
+                 # check shared
+                if file_desc._shared:
+                    display_status("sending %s"% file_name)
+                    deferred = basic.FileSender().\
+                               beginFileTransfer(open(file_name, "rb"), transport)
+                    deferred.addCallback(lambda x: transport.loseConnection())
+                else:
+                    self.peer_server.protocol.factory.send_udp_message(
+                        self.peer_server.peer.peer_id, MESSAGE_ERROR, message.data)
+                    SecurityAlert(self.peer_server.peer.peer_id,
+                                  "Trying to download unshare file %s"\
+                                  % file_name)
+            except ContainerException:
                 SecurityAlert(self.peer_server.peer.peer_id,
-                              "Trying to download unshare file %s"\
+                              "Trying to download unvalid file %s"\
                               % file_name)
         else:
             raise ValueError("ERROR in _connect: %s not valid"% message.command)
@@ -152,6 +160,7 @@ class PeerClient(dict):
         self.download_dlg = None
         # [ [split path], size]
         self.files = []
+        self.files_deferred = None
 
     def __setitem__(self, transport, download_msg):
         dict.__setitem__(self, id(transport), download_msg)
@@ -218,8 +227,12 @@ class PeerClient(dict):
             if self.files:
                 split_path, size = self.files.pop()
                 self.update_file(split_path[-1], size)
-                return self._connect(MESSAGE_FILES,
+                self._connect(MESSAGE_FILES,
                                      format_data_file(split_path, size))
+                # create deferred to be called when all files downloaded
+                deferred = defer.Deferred()
+                self.files_deferred = deferred
+                return self.files_deferred
             else:
                 display_warning(_("Empty List"),
                                 _("No file selected to download"))
@@ -290,6 +303,14 @@ class PeerClient(dict):
 
     def _on_complete_file(self, donwload_msg):
         """callback when finished downloading file"""
+        # write downloaded file
+        split_path = extract_data_file(donwload_msg.message.data)[0]
+        download_path = os.path.join(get_prefs("download_repo"),
+                                     split_path[-1])
+        download_file = open(download_path, "wb")
+        download_file.write(donwload_msg.file.read())
+        download_file.close()
+        # download next
         if self.files:
             split_path, size = self.files.pop()
             self.update_file(split_path[-1], size)
@@ -304,8 +325,7 @@ class PeerClient(dict):
         in specific dialog"""
         if self.download_dlg:
             self.download_dlg.update_download(size)
-        else:
-            display_status("received: %d"% size)
+        #else do not print: too much
 
     def update_file(self, file_name, size):
         """available to wx navigators only. update downloaded file in
@@ -313,9 +333,10 @@ class PeerClient(dict):
         if self.download_dlg:
             self.download_dlg.update_file(file_name, size)
         else:
-            display_status("%s downloaded (%d)"% (file_name, size))
+            display_status("downloading %s (%d)"% (file_name, size))
 
     def complete_all_files(self):
+        self.files_deferred.callback("callback complete all")
         if self.download_dlg:
             self.download_dlg.complete_all_files()
             self.download_dlg = None

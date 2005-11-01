@@ -85,7 +85,7 @@ class NetworkManager:
         #else: alert raises by assert_id
 
     def get_files(self, peer_id, file_descriptors):
-        """retreive file"""
+        """retrieve file"""
         if self.peers.assert_id(peer_id):
             peer = self.peers.remote_ids[peer_id]
             return peer.client.get_files(file_descriptors)
