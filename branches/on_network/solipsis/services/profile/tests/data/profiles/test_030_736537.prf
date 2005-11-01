@@ -1,0 +1,32 @@
+# profile-encoding::cp1252
+[Personal]
+repositories = D:\svn\solipsis\branches\on_network\solipsis\services\profile\tests
+firstname = manu
+title = Mr
+lastname = breton
+pseudo = atao
+photo = D:\svn\solipsis\branches\on_network\solipsis\services\profile\images\question_mark.gif
+email = manu@ft.com
+
+[Files]
+D:\svn\solipsis\branches\on_network\solipsis\services\profile\tests\data\subdir1\subsubdir\null = F,shared,0,tag1
+D:\svn\solipsis\branches\on_network\solipsis\services\profile\tests\data\date.txt = F,,30,tagos
+D:\svn\solipsis\branches\on_network\solipsis\services\profile\tests\data\subdir1 = D,shared,0,none
+D:\svn\solipsis\branches\on_network\solipsis\services\profile\tests\data\subdir1\subsubdir\dummy.txt = F,shared,6,tag2
+D:\svn\solipsis\branches\on_network\solipsis\services\profile\tests\data\subdir1\date.doc = F,shared,30,none
+D:\svn\solipsis\branches\on_network\solipsis\services\profile\tests\data\routage = F,shared,342,none
+D:\svn\solipsis\branches\on_network\solipsis\services\profile\tests\data\subdir1\TOtO.txt = F,shared,47,none
+D:\svn\solipsis\branches\on_network\solipsis\services\profile\tests\data\emptydir = D,shared,0,none
+
+[Others]
+bruce_030_09484 = bruce,Friend,Tue Nov 01 01:02:38 2005
+
+[Custom]
+City = 
+color = blue
+Country = 
+Favourite Book = 
+homepage = manu.com
+Favourite Movie = 
+Studies = 
+
