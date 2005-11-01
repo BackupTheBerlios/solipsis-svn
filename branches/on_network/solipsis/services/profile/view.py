@@ -22,7 +22,6 @@ workings of documents"""
 
 __revision__ = "$Id$"
 
-import wx
 import sys
 import os, os.path
 import pickle
@@ -332,6 +331,7 @@ class EditorView(AbstractView):
 
     def update_photo(self):
         """photo"""
+        import wx
         self.frame.personal_tab.photo_button.SetBitmapLabel(
             wx.Bitmap(self._desc.document.get_photo(), wx.BITMAP_TYPE_ANY))
 

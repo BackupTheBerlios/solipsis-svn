@@ -20,9 +20,9 @@
 """main class for plugin. Allow 'plug&Play' into navigator"""
 
 import random
-import wx
+import gettext
+_ = gettext.gettext
 
-from solipsis.util.wxutils import _
 from solipsis.services.plugin import ServicePlugin
 from solipsis.services.profile import set_solipsis_dir
 from solipsis.services.profile.message import display_message, display_status
@@ -32,10 +32,6 @@ from solipsis.services.profile.filter_facade import \
      create_filter_facade, get_filter_facade
 from solipsis.services.profile.network import NetworkManager
 from solipsis.services.profile.view import EditorView, ViewerView, FilterView
-from solipsis.services.profile.gui.EditorFrame import EditorFrame
-from solipsis.services.profile.gui.ViewerFrame import ViewerFrame
-from solipsis.services.profile.gui.FilterFrame import FilterFrame
-
 
 class ClassAttribute(object):
     """Make a class attribute"""
@@ -94,6 +90,10 @@ class Plugin(ServicePlugin):
         be defined here, not in the constructor.  This includes
         e.g. opening sockets, collecting data from directories, etc.
         """
+        import wx
+        from solipsis.services.profile.gui.EditorFrame import EditorFrame
+        from solipsis.services.profile.gui.ViewerFrame import ViewerFrame
+        from solipsis.services.profile.gui.FilterFrame import FilterFrame
         set_solipsis_dir(self.service_api.GetDirectory())
         # init windows
         main_window = self.service_api.GetMainWindow()
@@ -122,6 +122,7 @@ class Plugin(ServicePlugin):
         # method because of multithreading and the frame is destroyed
         # before the user actually answer to the popup
         if self.editor_frame and self.editor_frame.modified:
+            import wx
             self.editor_frame.do_modified(False)
             dlg = wx.MessageDialog(
                 self.editor_frame,
@@ -131,6 +132,7 @@ class Plugin(ServicePlugin):
             if dlg.ShowModal() == wx.ID_YES:
                 get_facade()._desc.save()
         if self.filter_frame and self.filter_frame.modified:
+            import wx
             self.filter_frame.do_modified(False)
             dlg = wx.MessageDialog(
                 self.filter_frame,
