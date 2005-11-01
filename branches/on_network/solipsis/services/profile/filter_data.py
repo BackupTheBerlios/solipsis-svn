@@ -46,6 +46,24 @@ def create_regex(input_value):
     if not input_value.endswith('*'):
         input_value += "$"
     return input_value.replace('*', '.*')
+    
+def create_key_regex(input_value):
+    """'input_input' is a keyword that contains no joker .
+    Te function traduces it into a regex.
+
+    ie: mp3 -> .*mp3.*
+        bon.us -> .*bon\.us.*
+        *any(FR)* -> .*any\(FR\).*"""
+    if input_value == "":
+        return input_value
+    if input_value == "*":
+        return ".*"
+    # list of chars to replace (all except '*' and '\')
+    sensible_chars = "*.^$+?{[]|()"
+    for sensible_char in sensible_chars:
+        input_value = input_value.replace(sensible_char, "\\" + sensible_char)
+    # add regex expression
+    return '.*' + input_value + '.*'
 
 class FilterValue(object):
     """wrapper for filter: regex, description ans state"""
@@ -54,7 +72,7 @@ class FilterValue(object):
         self.name = name
         self.description = value
         self.activated = activate
-        self.regex = re.compile(create_regex(value), re.IGNORECASE)
+        self.regex = re.compile(create_key_regex(value), re.IGNORECASE)
 
     def __eq__(self, other):
         return self.description == other.description \
@@ -82,7 +100,7 @@ class FilterValue(object):
     def set_value(self, value, activate=True):
         """recompile regex and (dis)activate filter"""
         self.description = value
-        self.regex = re.compile(create_regex(value), re.IGNORECASE)
+        self.regex = re.compile(create_key_regex(value), re.IGNORECASE)
         self.activated = activate
         
     def does_match(self, peer_id, data):

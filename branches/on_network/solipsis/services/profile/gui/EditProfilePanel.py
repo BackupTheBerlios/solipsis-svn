@@ -27,9 +27,6 @@ class EditProfilePanel(wx.Panel):
         # begin wxGlade: EditProfilePanel.__init__
         kwds["style"] = wx.TAB_TRAVERSAL
         wx.Panel.__init__(self, *args, **kwds)
-        self.edit_profile_sizer_staticbox = wx.StaticBox(self, -1, _("Edit profile..."))
-        self.filter_name_label = wx.StaticText(self, -1, _("Filter name"))
-        self.filter_name_value = wx.TextCtrl(self, -1, "")
         self.all_label = wx.StaticText(self, -1, _("Search :"))
         self.all_value = wx.TextCtrl(self, -1, "")
         self.title_label = wx.StaticText(self, -1, _("Title :"))
@@ -53,7 +50,6 @@ class EditProfilePanel(wx.Panel):
         self.__set_properties()
         self.__do_layout()
 
-        self.Bind(wx.EVT_TEXT, self.on_filter_name, self.filter_name_value)
         self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.on_right_click, self.customs_list)
         self.Bind(wx.EVT_LIST_COL_RIGHT_CLICK, self.on_right_click, self.customs_list)
         self.Bind(wx.EVT_BUTTON, self.on_switch_mode, self.mode_button)
@@ -80,7 +76,7 @@ class EditProfilePanel(wx.Panel):
             self.on_switch_mode(None)
 
     def reset(self):
-        self.filter_name_value.Clear()
+        self.all_value.Clear()
         self.title_value.Clear()
         self.firstname_value.Clear()
         self.lastname_value.Clear()
@@ -89,7 +85,7 @@ class EditProfilePanel(wx.Panel):
         self.customs_list.DeleteAllItems()
 
     def update(self, new_filter):
-        self.filter_name_value.SetValue(new_filter.filter_name)
+        self.all_value.SetValue(new_filter.filter_name)
         self.title_value.SetValue(new_filter.title.description)
         self.firstname_value.SetValue(new_filter.firstname.description)
         self.lastname_value.SetValue(new_filter.lastname.description)
@@ -121,12 +117,10 @@ class EditProfilePanel(wx.Panel):
 
     def __do_layout(self):
         # begin wxGlade: EditProfilePanel.__do_layout
-        edit_profile_sizer = wx.StaticBoxSizer(self.edit_profile_sizer_staticbox, wx.VERTICAL)
+        edit_profile_sizer = wx.BoxSizer(wx.VERTICAL)
         title_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        edit_profile_sizer.Add(self.filter_name_label, 0, wx.ADJUST_MINSIZE, 0)
-        edit_profile_sizer.Add(self.filter_name_value, 0, wx.EXPAND|wx.ADJUST_MINSIZE, 0)
         edit_profile_sizer.Add(self.all_label, 0, wx.TOP|wx.ADJUST_MINSIZE, 5)
-        edit_profile_sizer.Add(self.all_value, 0, wx.ADJUST_MINSIZE, 0)
+        edit_profile_sizer.Add(self.all_value, 0, wx.EXPAND|wx.ADJUST_MINSIZE, 0)
         title_sizer.Add(self.title_label, 0, wx.ADJUST_MINSIZE, 0)
         title_sizer.Add(self.title_value, 0, wx.FIXED_MINSIZE, 0)
         edit_profile_sizer.Add(title_sizer, 0, wx.TOP|wx.EXPAND, 5)
@@ -151,10 +145,6 @@ class EditProfilePanel(wx.Panel):
         edit_profile_sizer.SetSizeHints(self)
         # end wxGlade
 
-    def on_filter_name(self, event): # wxGlade: EditProfilePanel.<event_handler>
-        self.apply_button.Enable(bool(self.filter_name_value.GetValue()))
-        event.Skip()
-
     def on_right_click(self, event): # wxGlade: EditProfilePanel.<event_handler>
         self.PopupMenu(self.popup_menu)
         event.Skip()
@@ -177,6 +167,7 @@ class EditProfilePanel(wx.Panel):
     def on_apply(self, event): # wxGlade: EditProfilePanel.<event_handler>
         if self.all_label.IsShown():
             # simple mode
+            filter_name = self.all_value.GetValue()
             props = {"title": self.all_value.GetValue(),
                      "firstname": self.all_value.GetValue(),
                      "lastname": self.all_value.GetValue(),
@@ -187,6 +178,7 @@ class EditProfilePanel(wx.Panel):
             customs = {}
         else:
             # advanced mode
+            filter_name = self.firstname_value.GetValue()
             props = {"title": self.title_value.GetValue(),
                      "firstname": self.firstname_value.GetValue(),
                      "lastname": self.lastname_value.GetValue(),
@@ -202,7 +194,7 @@ class EditProfilePanel(wx.Panel):
                 customs[key] = value
         # set filter
         get_filter_facade().update_profile_filter(
-            self.filter_name_value.GetValue(),
+            filter_name,
             filter_or,
             customs,
             **props)

@@ -1,13 +1,13 @@
 # profile-encoding::cp1252
 [file_OR_MP3]
-name = *.mp3, (1)
+name = .mp3, (1)
 size = , (0)
 
 [peer_AND_Mr_B]
 firstname = , (0)
 title = Mr, (1)
 color = blue, (1)
-lastname = b*, (1)
+lastname = b, (1)
 pseudo = *, (1)
 photo = , (0)
 email = , (0)

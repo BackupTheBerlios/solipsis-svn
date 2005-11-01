@@ -162,7 +162,7 @@ class Plugin(ServicePlugin):
             
     def filter_profile(self, evt):
         """display profile once loaded"""
-        if self.filter_frame:
+        if not self.filter_frame is None:
             self.filter_frame.Show()
             
 #     def show_profile(self, evt):

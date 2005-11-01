@@ -30,7 +30,7 @@ from solipsis.services.profile import ENCODING
 from solipsis.services.profile.filter_data import FilterValue, FileFilter, PeerFilter
 from solipsis.services.profile.document import DocSaverMixin, ContactsMixin, \
      SECTION_PERSONAL, SECTION_CUSTOM, SECTION_FILE, \
-     AbstractPersonalData
+     AbstractPersonalData, CustomConfigParser
 
 class FilterMixin:
     """Implements API for all pesonal data in cache"""
@@ -54,13 +54,15 @@ class FilterMixin:
                 u"All", **{'pseudo': u'*'})
 
     def update_file_filter(self, filter_name, **props):
-        if not filter_name in self.filters:
+        if not filter_name in self.filters \
+               or not isinstance(self.filters[filter_name], FileFilter):
             self.filters[filter_name] = FileFilter(filter_name, **props)
         else:
             self.filters[filter_name].update_properties(**props)
 
     def update_profile_filter(self, filter_name, filter_or, customs, **props):
-        if not filter_name in self.filters:
+        if not filter_name in self.filters \
+               or not isinstance(self.filters[filter_name], PeerFilter):
             new_filter = PeerFilter(filter_name, filter_or, **props)
             new_filter.update_customs(customs)
             self.filters[filter_name] = new_filter
@@ -104,6 +106,7 @@ class FilterSaverMixin(DocSaverMixin):
 
     # menu
     def save(self, path):
+        self.config = CustomConfigParser(self.encoding)
         for name, a_filter in self.filters.items():
             section_name = a_filter.PREFIX \
                            + (a_filter.filter_or and 'OR_' or 'AND_') \

@@ -120,11 +120,11 @@ def write_test_profile():
     peer_filter = PeerFilter("Mr_B", filter_or=False,**{
         "pseudo" : "*",
         "title": "Mr",
-        "lastname": "b*"})
+        "lastname": "b"})
     peer_filter.update_dict(FilterValue(name='color',
                                         value="blue",
                                         activate=True))
-    file_filter = FileFilter("MP3", **{"name": "*.mp3"})
+    file_filter = FileFilter("MP3", **{"name": ".mp3"})
     filter_document.filters[peer_filter.filter_name] = peer_filter
     filter_document.filters[file_filter.filter_name] = file_filter
     if os.path.exists(FILE_TEST + FILTER_EXT):
