@@ -56,10 +56,8 @@ class DownloadDialog(wx.Dialog, UIProxyReceiver):
         self.download_label.SetLabel(_("Download Complete"))
         self.download_gauge.SetValue(self.download_gauge.GetRange())
         self.counter = 0
-        
 
     # EVENTS
-    
     def bind_controls(self):
         """bind all controls with facade"""
         self.always_display_check.Bind(wx.EVT_CHECKBOX, self.on_check_display)

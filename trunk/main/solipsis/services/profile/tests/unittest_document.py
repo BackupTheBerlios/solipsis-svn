@@ -207,7 +207,11 @@ class DocumentTest(unittest.TestCase):
                         in document.get_shared_files()[TEST_DIR]]
         shared_files.sort()
         self.assertEquals(shared_files, [os.sep.join([TEST_DIR, "data", ".path"]),
+                                         os.sep.join([TEST_DIR, "data", "02_b_1280x1024.jpg"]),
+                                         os.sep.join([TEST_DIR, "data", "Python-2.3.5.zip"]),
+                                         os.sep.join([TEST_DIR, "data", "arc en ciel 6.gif"]),
                                          os.sep.join([TEST_DIR, "data", "date.txt"]),
+                                         os.sep.join([TEST_DIR, "data", "pywin32-203.win32-py2.3.exe"]),
                                          os.sep.join([TEST_DIR, "data", "routage"]),
                                          os.sep.join([TEST_DIR, "data", "subdir1", "TOtO.txt"]),
                                          os.sep.join([TEST_DIR, "data", "subdir1", "date.doc"])])

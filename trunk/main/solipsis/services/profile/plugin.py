@@ -20,9 +20,9 @@
 """main class for plugin. Allow 'plug&Play' into navigator"""
 
 import random
-import wx
+import gettext
+_ = gettext.gettext
 
-from solipsis.util.wxutils import _
 from solipsis.services.plugin import ServicePlugin
 from solipsis.services.profile import set_solipsis_dir
 from solipsis.services.profile.message import display_message, display_status
@@ -32,10 +32,6 @@ from solipsis.services.profile.filter_facade import \
      create_filter_facade, get_filter_facade
 from solipsis.services.profile.network import NetworkManager
 from solipsis.services.profile.view import EditorView, ViewerView, FilterView
-from solipsis.services.profile.gui.EditorFrame import EditorFrame
-from solipsis.services.profile.gui.ViewerFrame import ViewerFrame
-from solipsis.services.profile.gui.FilterFrame import FilterFrame
-
 
 class ClassAttribute(object):
     """Make a class attribute"""
@@ -85,8 +81,7 @@ class Plugin(ServicePlugin):
     def EnableBasic(self):
         """enable non graphic part"""
         set_solipsis_dir(self.service_api.GetDirectory())
-        self.network = NetworkManager(self.host,
-                                      random.randrange(7100, 7200))
+        self.network = NetworkManager()
         self.activate(True)
         
     def Enable(self):
@@ -95,6 +90,10 @@ class Plugin(ServicePlugin):
         be defined here, not in the constructor.  This includes
         e.g. opening sockets, collecting data from directories, etc.
         """
+        import wx
+        from solipsis.services.profile.gui.EditorFrame import EditorFrame
+        from solipsis.services.profile.gui.ViewerFrame import ViewerFrame
+        from solipsis.services.profile.gui.FilterFrame import FilterFrame
         set_solipsis_dir(self.service_api.GetDirectory())
         # init windows
         main_window = self.service_api.GetMainWindow()
@@ -114,9 +113,7 @@ class Plugin(ServicePlugin):
             wx.EVT_MENU(main_window, item_id, method)
         self.service_api.SetMenu(self.GetTitle(), menu)
         # launch network
-        self.network = NetworkManager(self.host,
-                                      random.randrange(7100, 7200),
-                                      download_dlg=self.editor_frame.download_dlg)
+        self.network = NetworkManager()
         self.activate(True)
     
     def Disable(self):
@@ -125,6 +122,7 @@ class Plugin(ServicePlugin):
         # method because of multithreading and the frame is destroyed
         # before the user actually answer to the popup
         if self.editor_frame and self.editor_frame.modified:
+            import wx
             self.editor_frame.do_modified(False)
             dlg = wx.MessageDialog(
                 self.editor_frame,
@@ -134,6 +132,7 @@ class Plugin(ServicePlugin):
             if dlg.ShowModal() == wx.ID_YES:
                 get_facade()._desc.save()
         if self.filter_frame and self.filter_frame.modified:
+            import wx
             self.filter_frame.do_modified(False)
             dlg = wx.MessageDialog(
                 self.filter_frame,
@@ -147,10 +146,11 @@ class Plugin(ServicePlugin):
     def activate(self, active=True):
         """eable/disable service"""
         if not active:
-            self.network.stop_listening()
-            self.network.disconnect()
+            self.network.stop()
+            for peer_id in self.peer_services.keys():
+                self.LostPeer(peer_id)
         else:
-            self.network.start_listening()
+            self.network.start()
             for peer_id in self.peer_services.keys():
                 self.NewPeer(*self.peer_services[peer_id])
 
@@ -173,31 +173,29 @@ class Plugin(ServicePlugin):
     def get_profile(self, peer_id, deferred=None):
         """request downwload of profile"""
         on_done = self.network.get_profile(peer_id)
-        on_done.addCallback(self._on_new_profile, peer_id)
-        deferred and on_done.chainDeferred(deferred)
+        if on_done != None:
+            on_done.addCallback(self._on_new_profile, peer_id)
+            deferred and on_done.chainDeferred(deferred)
 
     def get_blog_file(self, peer_id, deferred=None):
         """request downwload of blog"""
         on_done = self.network.get_blog_file(peer_id)
-        on_done.addCallback(self._on_new_blog, peer_id)
-        deferred and on_done.chainDeferred(deferred)
+        if on_done != None:
+            on_done.addCallback(self._on_new_blog, peer_id)
+            deferred and on_done.chainDeferred(deferred)
 
     def select_files(self, peer_id, deferred=None):
         """request downwload of list of shared files"""
         on_done = self.network.get_shared_files(peer_id)
-        on_done.addCallback(self._on_shared_files, peer_id)
-        deferred and on_done.chainDeferred(deferred)
+        if on_done != None:
+            on_done.addCallback(self._on_shared_files, peer_id)
+            deferred and on_done.chainDeferred(deferred)
 
-    # side method
     def get_files(self, peer_id, file_descriptors):
-        """request downwload of given files"""
-        if self.editor_frame and get_prefs("display_dl"):
-            self.editor_frame.download_dlg.init()
-            self.editor_frame.download_dlg.Show()
-        deferred = self.network.get_files(peer_id, file_descriptors,
-                                          self._on_all_files)
-        deferred and deferred.addCallback(
-            lambda file_name: "%s downloaded\n"% file_name)
+        """request downwload of given files.
+
+        file_descriptor is a list: [ [split path], size ]"""
+        self.network.get_files(peer_id, file_descriptors)
 
     # callbacks methods
     def _on_new_profile(self, document, peer_id):
@@ -214,13 +212,6 @@ class Plugin(ServicePlugin):
         """store and display file object corresponding to blog"""
         get_facade().fill_shared_files(peer_id, files)
         return str(files)
-    
-    def _on_all_files(self):
-        """store and display file object corresponding to blog"""
-        if self.editor_frame:
-            self.editor_frame.download_dlg.complete_all_files()
-        else:
-            print 'No more file to download'
 
     # Service description methods
     def GetTitle(self):
@@ -276,7 +267,7 @@ class Plugin(ServicePlugin):
         """delegate to network"""
         self.peer_services[peer.id_] = (peer, service)
         if get_facade() and get_facade()._activated:
-            self.network.on_new_peer(peer, service)
+            self.network.on_new_peer(peer)
 
     def ChangedPeer(self, peer, service):
         """delegate to network"""
@@ -311,7 +302,7 @@ class Plugin(ServicePlugin):
 #                 display_message(
 #                     _(u"You have no profile yet for pseudo %s.\n\n "
 #                       "You may create one clicking on the menu Profile, "
-#                       "and selecting 'Edit Profile'"% node.pseudo),
+#                       "and selecting 'Modify Profile'"% node.pseudo),
 #                     title=_("New profile"))
             if not filter_facade.load():
                 display_status(_("You have no filters defined yet for pseudo %s"% node.pseudo))
