@@ -25,6 +25,7 @@ __revision__ = "$Id: filter_document.py 894 2005-10-11 18:39:43Z emb $"
 
 import re
 from solipsis.services.profile import ENCODING
+from solipsis.services.profile.message import log
     
 def create_regex(input_value):
     """'input_input' is a keyword that main contain the joker char '*'.
@@ -94,7 +95,7 @@ class FilterValue(object):
                                value=description,
                                activate= activated=="(1)" and True or False)
         except ValueError:
-            print "could not read filter", desc
+            log("could not read filter", desc)
     from_str = staticmethod(from_str)
         
     def set_value(self, value, activate=True):
@@ -236,8 +237,8 @@ class FileFilter(AbstractFilter):
         
     def update_dict(self, filter_value):
         """update other fields than those specified in ALL_FILTERS"""
-        print "no other field in FileFilter"
-        
+        pass
+    
     def match(self, peer_id, file_dicts):
         matches = []
         for file_dict in file_dicts:

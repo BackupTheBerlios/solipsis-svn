@@ -26,14 +26,13 @@ import locale
 import gettext
 _ = gettext.gettext
 
-from solipsis.services.profile.message import display_error, display_status
+from solipsis.services.profile.message import log, display_error, display_status
 
 VERSION = "0.4.0"
 DISCLAIMER = "All data in profiles are shared within Solipsis communauty"
 
 DOWNLOAD_REPO = os.sep.join([os.path.expanduser("~"), ".solipsis", "download"])
 PROFILE_DIR = os.sep.join([os.path.expanduser("~"), ".solipsis", "profiles"])
-PREFS_FILE = os.path.join(PROFILE_DIR, ".preferences")
 
 ENCODING = locale.getpreferredencoding()
 KNOWN_ENCODINGS = [ENCODING, "utf-8", "utf-16",
@@ -57,7 +56,7 @@ def force_unicode(chars):
         try:
             return unicode(chars, encoding)
         except UnicodeDecodeError:
-            print encoding, "does not apply on", chars
+            log(encoding, "does not apply on", chars)
                 
     
 # Encoding not saved in preferences because it must be attached within

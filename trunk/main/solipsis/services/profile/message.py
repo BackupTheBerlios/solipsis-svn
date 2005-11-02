@@ -24,6 +24,8 @@ do not do anything if no navigator is defined (in tests for instance)"""
 
 __revision__ = "$Id: __init__.py 865 2005-09-30 08:28:36Z emb $"
 
+from solipsis.services.profile.prefs import get_prefs
+
 def _display(msg, msg_type, title="Solipsis Profile", error=None):
     from solipsis.services.profile.plugin import Plugin
     service_api = Plugin.service_api
@@ -60,3 +62,6 @@ def display_message(msg, title="Profile Information"):
 def display_status(msg):
     _display(msg, "STATE")
     
+def log(*args):
+    if get_prefs("log"):
+        print ' '.join([str(arg) for arg in args])

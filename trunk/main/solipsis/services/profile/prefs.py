@@ -23,8 +23,10 @@ __revision__ = "$Id$"
 import os.path
 
 import ConfigParser
-from solipsis.services.profile import PREFS_FILE, DOWNLOAD_REPO, PROFILE_DIR
 
+DOWNLOAD_REPO = os.sep.join([os.path.expanduser("~"), ".solipsis", "download"])
+PROFILE_DIR = os.sep.join([os.path.expanduser("~"), ".solipsis", "profiles"])
+PREFS_FILE = os.path.join(PROFILE_DIR, ".preferences")
 MAIN_SECTION = "General"
 DIALOG_SECTION = "Dialogs"
 
@@ -95,6 +97,7 @@ class Preferences:
               "filter_width": IntParam("Filter width", DIALOG_SECTION, 460),
               "filter_height": IntParam("Filter height", DIALOG_SECTION, 600),
               "simple_mode": BoolParam("Simple mode", DIALOG_SECTION, True),
+              "log": BoolParam("Enable logging", MAIN_SECTION, False),
               }
 
     def __init__(self, file_name):

@@ -30,13 +30,14 @@ import os.path
 import time
 import sys
 from solipsis.services.profile import force_unicode, ENCODING, QUESTION_MARK
-from solipsis.services.profile.path_containers import DEFAULT_TAG, \
-     create_container, DictContainer
+
 from solipsis.services.profile.data import PeerDescriptor
+from solipsis.services.profile.message import log, display_status
 from solipsis.services.profile.document import \
      AbstractPersonalData, FileSharingMixin, ContactsMixin, DocSaverMixin, \
      SECTION_PERSONAL, SECTION_CUSTOM, SECTION_OTHERS, SECTION_FILE
-
+from solipsis.services.profile.path_containers import DEFAULT_TAG, \
+     create_container, DictContainer
 SHARED_TAG = "shared"
 
 class FilePersonalMixin(AbstractPersonalData):
@@ -201,7 +202,7 @@ class FileFilesharingMixin(FileSharingMixin):
             try:
                 self.files[repo] = create_container(repo, checked=False)
             except AssertionError:
-                print "non valid repo '%s'"% repo
+                display_status("non valid repo '%s'"% repo)
         # if no valid repo found, does not try any further...
         if self.files == {}:
             return self.files
@@ -216,8 +217,7 @@ class FileFilesharingMixin(FileSharingMixin):
                 o_size = int(o_size)
             except (ValueError, ConfigParser.NoSectionError,
                     ConfigParser.NoOptionError), err:
-                print >> sys.stderr, "option '%s' not well formated: %s"\
-                      % (o_description, err)
+                log("option '%s' not well formated: %s"% (o_description, err))
                 o_file, o_share, o_tag, o_size = False, False, DEFAULT_TAG, 0
             # add container
             try:
@@ -227,14 +227,14 @@ class FileFilesharingMixin(FileSharingMixin):
                 file_container.tag(o_tag)
                 file_container.size = o_size
             except KeyError:
-                print "non valid file '%s'"% option
+                log("non valid file '%s'"% option)
         return FileSharingMixin.get_files(self)
         
     def _set_repositories(self):
         """update list of repos"""
         repos_list = self.get_repositories()
         if repos_list == None:
-            print "No repo to set."
+            display_status("No repo to set.")
             return
         if not self.config.has_section(SECTION_PERSONAL):
             self.config.add_section(SECTION_PERSONAL)
@@ -293,7 +293,7 @@ class FileContactMixin(ContactsMixin):
                 peer_desc.load()
                 # TODO: use timestamp
             except Exception, error:
-                print error, ": peer %s not retreived"% description
+                log(error, ": peer %s not retreived"% description)
         return ContactsMixin.get_peers(self)
         
     def _set_peers(self):

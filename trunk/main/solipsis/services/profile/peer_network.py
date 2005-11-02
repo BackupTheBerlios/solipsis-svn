@@ -214,7 +214,6 @@ class PeerClient(dict):
             # display downlaod dialog if necessary
             if get_prefs("display_dl") \
                    and "wx" in sys.modules:
-                print "xxx using wx"
                 from solipsis.util.uiproxy import UIProxy
                 from solipsis.services.profile.gui.DownloadDialog \
                      import DownloadDialog
