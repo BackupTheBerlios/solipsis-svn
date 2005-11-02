@@ -83,9 +83,9 @@ def load_encoding(file_obj):
 
 set_solipsis_dir(os.path.dirname(__file__))
 
-images_dir = lambda : os.path.join(solipsis_dir, u"images")
-PREVIEW_PT = lambda : os.path.join(solipsis_dir, u"preview.html")
-REGEX_HTML = lambda : os.path.join(solipsis_dir, u"regex.html")
+images_dir = lambda : os.sep.join([solipsis_dir, u"data", u"images"])
+PREVIEW_PT = lambda : os.sep.join([solipsis_dir, u"data", u"preview.html"])
+REGEX_HTML = lambda : os.sep.join([solipsis_dir, u"data", u"regex.html"])
 QUESTION_MARK = lambda : os.path.join(images_dir(), u"question_mark.gif")
 ADD_CUSTOM = lambda : os.path.join(images_dir(), u"add_file.jpeg")
 DEL_CUSTOM = lambda : os.path.join(images_dir(), u"del_file.jpeg")
