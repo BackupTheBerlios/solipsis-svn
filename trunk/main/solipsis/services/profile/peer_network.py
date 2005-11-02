@@ -474,7 +474,9 @@ class PeerManager(threading.Thread):
         or network thread"""
         try:
             self.lock.acquire()
-            del self.remote_ips[self.remote_ids[peer_id].ip]
-            del self.remote_ids[peer_id]
+            if peer_id in self.remote_ids:
+                if self.remote_ids[peer_id].ip in self.remote_ips:
+                    del self.remote_ips[self.remote_ids[peer_id].ip]
+                del self.remote_ids[peer_id]
         finally:
             self.lock.release()
