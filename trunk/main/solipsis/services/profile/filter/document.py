@@ -1,5 +1,5 @@
-# pylint: disable-msg=W0131,W0201
-# Missing docstring, Attribute '%s' defined outside __init__
+# pylint: disable-msg=W0131,W0201,W0142
+# Missing docstring, Attribute '%s' defined outside __init__,  Used * or ** magic
 #
 # <copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
@@ -25,12 +25,10 @@ independant from views"""
 
 __revision__ = "$Id$"
 
-import re
 from solipsis.services.profile import ENCODING
-from solipsis.services.profile.filter.data import FilterValue, FileFilter, PeerFilter
-from solipsis.services.profile.editor.document import DocSaverMixin, ContactsMixin, \
-     SECTION_PERSONAL, SECTION_CUSTOM, SECTION_FILE, \
-     AbstractPersonalData, CustomConfigParser
+from solipsis.services.profile.filter.data import FileFilter, PeerFilter
+from solipsis.services.profile.editor.document import \
+     DocSaverMixin, CustomConfigParser
 
 class FilterMixin:
     """Implements API for all pesonal data in cache"""

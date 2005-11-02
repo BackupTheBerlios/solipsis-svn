@@ -41,9 +41,11 @@ class FilterView(AbstractView):
             self.update_filter(filter_name)
 
     def update_filter(self, filter_name):
+        """refresh gui when changing filter"""
         self.frame.cb_update(filter_name)
 
     def delete_filter(self, filter_name):
+        """refresh gui when deleting filter"""
         self.frame.cb_delete(filter_name)
     
 

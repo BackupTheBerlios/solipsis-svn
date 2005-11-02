@@ -22,16 +22,13 @@
 __revision__ = "$Id$"
 
 import os, os.path
-import pickle
-import time
 import gettext
 _ = gettext.gettext
 
 from solipsis.services.profile import ENCODING, PROFILE_EXT, \
-     BLOG_EXT, BULB_ON_IMG, BULB_OFF_IMG, VERSION
-from solipsis.services.profile.tools.message import display_warning, display_error
+     BLOG_EXT, BULB_ON_IMG, BULB_OFF_IMG
 from solipsis.services.profile.tools.prefs import get_prefs
-from solipsis.services.profile.tools.blog import Blogs, Blog, load_blogs
+from solipsis.services.profile.tools.blog import Blogs, load_blogs
 
 # PEERS ##############################################################
 class PeerDescriptor:
@@ -94,9 +91,11 @@ class PeerDescriptor:
 
     # extraction #####################################################
     def custom_as_dict(self):
+        """compile all peer's attributes into a dictionary (used by filters)"""
         return self.document.get_custom_attributes()
 
     def peer_as_dict(self):
+        """compile all peer's attributes into a dictionary (used by filters)"""
         return {"title": self.document.get_title(),
                 "firstname":  self.document.get_firstname(),
                 "lastname":  self.document.get_lastname(),
@@ -105,6 +104,7 @@ class PeerDescriptor:
                 "email": self.document.get_email()}
 
     def files_as_dicts(self):
+        """compile all files into a dictionary (used by filters)"""
         result = []
         file_containers = self.document.get_shared_files().flatten()
         for file_container in file_containers:

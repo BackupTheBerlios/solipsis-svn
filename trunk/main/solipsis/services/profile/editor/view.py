@@ -355,9 +355,11 @@ class EditorView(AbstractView):
         
     # FILE TAB : frame.file_tab
     def build_files(self):
+        """refresh gui on structural change (arbo)"""
         self.frame.file_tab.cb_build_tree(self._desc.document.get_files())
         
     def update_files(self):
+        """refresh gui on simple change (tag, sharing...)"""
         self.frame.file_tab.cb_update_tree(self._desc.document.get_files())
         
     # OTHERS TAB

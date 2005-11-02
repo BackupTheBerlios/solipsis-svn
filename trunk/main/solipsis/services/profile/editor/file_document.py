@@ -28,7 +28,6 @@ __revision__ = "$Id$"
 import ConfigParser
 import os.path
 import time
-import sys
 from solipsis.services.profile import force_unicode, ENCODING, QUESTION_MARK
 
 from solipsis.services.profile.tools.peer import PeerDescriptor

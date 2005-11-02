@@ -1,3 +1,5 @@
+# pylint: disable-msg=W0131
+# Missing docstring
 # <copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
 # Copyright (C) 2002-2005 France Telecom R&D
@@ -21,10 +23,8 @@ available. This facade will be used both by GUI and unittests."""
 
 __revision__ = "$Id: simple_facade.py 864 2005-09-30 07:27:23Z emb $"
 
-from sys import stderr
 from solipsis.services.profile import FILTER_EXT
-from solipsis.services.profile.tools.peer import PeerDescriptor
-from solipsis.services.profile.editor.facade import AbstractFacade
+from solipsis.services.profile.editor.facade import AbstractFacade, get_facade
 from solipsis.services.profile.filter.document import FilterDocument
 
 def create_filter_facade(node_id):

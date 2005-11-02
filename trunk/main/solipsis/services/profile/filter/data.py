@@ -1,5 +1,5 @@
-# pylint: disable-msg=W0131,W0201
-# Missing docstring, Attribute '%s' defined outside __init__
+# pylint: disable-msg=W0131,W0201,W0142
+# Missing docstring, Attribute '%s' defined outside __init__,  Used * or ** magic
 #
 # <copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
@@ -24,7 +24,6 @@
 __revision__ = "$Id: filter_document.py 894 2005-10-11 18:39:43Z emb $"
 
 import re
-from solipsis.services.profile import ENCODING
 from solipsis.services.profile.tools.message import log
     
 def create_regex(input_value):
@@ -284,9 +283,9 @@ class PeerFilter(AbstractFilter):
     def match(self, peer_id, customs, **properties):
         matches = AbstractFilter. match(self, peer_id, **properties)
         # match custom attributes
-        merged={}
-        [merged.setdefault(k,v)
-         for k,v in self.customs.items() if k in customs]
+        merged = {}
+        [merged.setdefault(key, value)
+         for key, value in self.customs.items() if key in customs]
         for custom_name, filter_value in merged.items():
             if filter_value.activated:
                 matches.append(
