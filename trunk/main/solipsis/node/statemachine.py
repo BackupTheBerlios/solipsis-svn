@@ -835,8 +835,7 @@ class StateMachine(object):
         self.moved = True
         def _finish():
             self.moved = False
-        caller = DelayedCaller(self.reactor)
-        caller.CallLater(self.move_duration, _finish)
+        self.caller.CallLater(self.move_duration, _finish)
 
     def JumpNear(self, address, peer_id=None):
         """
