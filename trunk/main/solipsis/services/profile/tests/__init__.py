@@ -27,11 +27,11 @@ import solipsis
 
 from solipsis.services.profile import QUESTION_MARK, \
      PROFILE_EXT, BLOG_EXT, FILTER_EXT
-from solipsis.services.profile.file_document import FileDocument
-from solipsis.services.profile.filter_document import FilterDocument
-from solipsis.services.profile.filter_data import FilterValue, \
+from solipsis.services.profile.editor.file_document import FileDocument
+from solipsis.services.profile.filter.document import FilterDocument
+from solipsis.services.profile.filter.data import FilterValue, \
      PeerFilter, FileFilter
-from solipsis.services.profile.data import PeerDescriptor, Blogs, load_blogs
+from solipsis.services.profile.tools.peer import PeerDescriptor, Blogs, load_blogs
 
 TEST_DIR = os.path.sep.join([os.path.dirname(solipsis.__file__),
                              "services", "profile", "tests"])

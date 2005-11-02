@@ -9,9 +9,9 @@ __revision__ = "$Id$"
 import unittest
 import os, os.path
 
-from solipsis.services.profile.blog import Blogs, load_blogs
-from solipsis.services.profile.data import PeerDescriptor
-from solipsis.services.profile.prefs import get_prefs, set_prefs
+from solipsis.services.profile.tools.blog import Blogs, load_blogs
+from solipsis.services.profile.tools.peer import PeerDescriptor
+from solipsis.services.profile.tools.prefs import get_prefs, set_prefs
 from solipsis.services.profile.tests import get_bruce_profile, write_test_profile
 from solipsis.services.profile.tests import PSEUDO, BLOG_EXT, TEST_DIR,  FILE_TEST, \
      PROFILE_DIR, PROFILE_TEST, PROFILE_BRUCE, PROFILE_010
@@ -86,14 +86,6 @@ class BlogTest(unittest.TestCase):
         self.assertEquals(loaded_blog.get_blog(0).text, u"This is a test")
         self.assertEquals(loaded_blog.get_blog(0).count_blogs(), 0)
 
-    def test_retro_compatibility(self):
-        loaded_blog = load_blogs(os.path.join(PROFILE_DIR, PROFILE_010 + BLOG_EXT))
-        self.assertEquals(loaded_blog.count_blogs(), 4)
-        self.assertEquals(loaded_blog.get_blog(0).text, u"Hi there! Watch my next movie... it's going to be real fun")
-        self.assertEquals(loaded_blog.get_blog(0).count_blogs(), 0)
-        self.assertEquals(loaded_blog.get_blog(1).text, u"I won't tell you much but this I can say: it's going to be terrific!")
-        self.assertEquals(loaded_blog.get_blog(2).text, u'Watch here for its name... coming soon')
-        self.assertEquals(loaded_blog.get_blog(3).text, u"A Godess' world.  What do you think?")
 
 if __name__ == '__main__':
     unittest.main()

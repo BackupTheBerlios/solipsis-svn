@@ -12,9 +12,9 @@ import unittest
 import os.path
 
 from solipsis.services.profile import FILTER_EXT, QUESTION_MARK
-from solipsis.services.profile.prefs import get_prefs, set_prefs
-from solipsis.services.profile.data import PeerDescriptor
-from solipsis.services.profile.filter_data import FilterValue, \
+from solipsis.services.profile.tools.prefs import get_prefs, set_prefs
+from solipsis.services.profile.tools.peer import PeerDescriptor
+from solipsis.services.profile.filter.data import FilterValue, \
      FileFilter, PeerFilter, create_regex, create_key_regex
 
 class ValuesTest(unittest.TestCase):

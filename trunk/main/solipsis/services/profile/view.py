@@ -430,27 +430,5 @@ class ViewerView(AbstractView):
         peer_desc = self._desc.document.last_downloaded_desc
         if peer_desc != None:
             self.frame.display_profile(peer_desc)
-
-class FilterView(AbstractView):
-    """synthetises information and renders it in HTML"""
-
-    def __init__(self, desc, frame,
-                 do_import=True, name="filter"):
-        # link to the frame used by view
-        self.frame = frame
-        # init view
-        AbstractView.__init__(self, desc, do_import, name)
-
-    def import_desc(self, desc):
-        """update view with document"""
-        self._desc = desc
-        for filter_name in self._desc.document.filters:
-            self.update_filter(filter_name)
-
-    def update_filter(self, filter_name):
-        self.frame.cb_update(filter_name)
-
-    def delete_filter(self, filter_name):
-        self.frame.cb_delete(filter_name)
     
 

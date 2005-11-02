@@ -10,17 +10,17 @@ __revision__ = "$Id$"
 import os
 import unittest
 import pickle
+from os.path import abspath
 
-from solipsis.services.profile.prefs import get_prefs, set_prefs
-from solipsis.services.profile.document import read_document
-from solipsis.services.profile.data import PeerDescriptor
-from solipsis.services.profile.facade import Facade, create_facade
-from solipsis.services.profile.filter_facade import create_filter_facade
+from solipsis.services.profile import ENCODING, QUESTION_MARK, force_unicode
+from solipsis.services.profile.tools.prefs import get_prefs, set_prefs
+from solipsis.services.profile.tools.peer import PeerDescriptor
+from solipsis.services.profile.tools.files import ContainerException
+from solipsis.services.profile.editor.document import read_document
+from solipsis.services.profile.editor.facade import Facade, create_facade
+from solipsis.services.profile.filter.facade import create_filter_facade
 from solipsis.services.profile.tests import PROFILE_DIR, PROFILE_TEST, \
      write_test_profile, TEST_DIR, PSEUDO
-from solipsis.services.profile import ENCODING, QUESTION_MARK, force_unicode
-from solipsis.services.profile.path_containers import ContainerException
-from os.path import abspath
 
 class FacadeTest(unittest.TestCase):
     """assert that facade does effectively change document and calls callback on views"""

@@ -27,8 +27,8 @@ __revision__ = "$Id$"
 
 import re
 from solipsis.services.profile import ENCODING
-from solipsis.services.profile.filter_data import FilterValue, FileFilter, PeerFilter
-from solipsis.services.profile.document import DocSaverMixin, ContactsMixin, \
+from solipsis.services.profile.filter.data import FilterValue, FileFilter, PeerFilter
+from solipsis.services.profile.editor.document import DocSaverMixin, ContactsMixin, \
      SECTION_PERSONAL, SECTION_CUSTOM, SECTION_FILE, \
      AbstractPersonalData, CustomConfigParser
 

@@ -4,8 +4,8 @@
 import wx
 
 from solipsis.util.wxutils import _
-from solipsis.services.profile.prefs import set_prefs
 from solipsis.services.profile import TORE_IMG, VERSION, DISCLAIMER
+from solipsis.services.profile.tools.prefs import set_prefs
 
 # begin wxGlade: dependencies
 # end wxGlade

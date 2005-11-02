@@ -4,9 +4,10 @@
 import wx
 import sys
 from solipsis.util.wxutils import _
-from solipsis.services.profile.facade import get_facade
-from solipsis.services.profile.message import display_error, display_warning
+
 from solipsis.services.profile import ADD_BLOG, DEL_BLOG, ADD_COMMENT
+from solipsis.services.profile.editor.facade import get_facade
+from solipsis.services.profile.tools.message import display_error, display_warning
 
 
 # begin wxGlade: dependencies

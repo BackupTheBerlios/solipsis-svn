@@ -12,16 +12,17 @@ import wx
 import sys
 from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxy
+
 from solipsis.services.profile import REGEX_HTML, PROFILE_EXT, FILTER_EXT
+from solipsis.services.profile.tools.peer import PeerDescriptor
+from solipsis.services.profile.tools.prefs import get_prefs, set_prefs
+from solipsis.services.profile.editor.facade import get_facade
+from solipsis.services.profile.editor.view import HtmlView
+from solipsis.services.profile.editor.file_document import FileDocument
+from solipsis.services.profile.filter.data import FileFilter, PeerFilter
+from solipsis.services.profile.filter.facade import get_filter_facade
 from solipsis.services.profile.gui import get_all_labels, get_new_label, \
      get_item_id_by_label, get_selected_labels
-from solipsis.services.profile.data import PeerDescriptor
-from solipsis.services.profile.prefs import get_prefs, set_prefs
-from solipsis.services.profile.facade import get_facade
-from solipsis.services.profile.view import HtmlView
-from solipsis.services.profile.filter_data import FileFilter, PeerFilter
-from solipsis.services.profile.filter_facade import get_filter_facade
-from solipsis.services.profile.file_document import FileDocument
 from solipsis.services.profile.gui.AboutDialog import AboutDialog
 from solipsis.services.profile.gui.ProfileDialog import ProfileDialog
 from solipsis.services.profile.gui.EditFilePanel import EditFilePanel

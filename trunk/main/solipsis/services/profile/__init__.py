@@ -26,7 +26,7 @@ import locale
 import gettext
 _ = gettext.gettext
 
-from solipsis.services.profile.message import log, display_error, display_status
+from solipsis.services.profile.tools.message import log, display_error, display_status
 
 VERSION = "0.4.0"
 DISCLAIMER = "All data in profiles are shared within Solipsis communauty"

@@ -12,10 +12,10 @@ import unittest
 import difflib
 import os
 from os.path import abspath
-from solipsis.services.profile.data import PeerDescriptor
-from solipsis.services.profile.view import HtmlView
-from solipsis.services.profile.tests import PROFILE_TEST, PSEUDO
 from solipsis.services.profile import images_dir
+from solipsis.services.profile.tools.peer import PeerDescriptor
+from solipsis.services.profile.editor.view import HtmlView
+from solipsis.services.profile.tests import PROFILE_TEST, PSEUDO
 
 TEMPLATE = """<html>
 <head>

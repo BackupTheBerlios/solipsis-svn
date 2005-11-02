@@ -5,9 +5,10 @@ import wx
 import os
 from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxyReceiver
-from solipsis.services.profile.message import display_error, display_warning
-from solipsis.services.profile.facade import get_facade
+
 from solipsis.services.profile import ADD_COMMENT, DEL_BLOG, UPLOAD_BLOG
+from solipsis.services.profile.tools.message import display_error, display_warning
+from solipsis.services.profile.editor.facade import get_facade
 
 # begin wxGlade: dependencies
 # end wxGlade

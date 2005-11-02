@@ -13,13 +13,13 @@ from twisted.internet.protocol import ReconnectingClientFactory
 from twisted.protocols import basic
 
 from solipsis.services.profile import QUESTION_MARK
-from solipsis.services.profile.prefs import set_prefs
-from solipsis.services.profile.data import PeerDescriptor
+from solipsis.services.profile.tools.prefs import set_prefs
+from solipsis.services.profile.tools.peer import PeerDescriptor
 from solipsis.services.profile.tests import write_test_profile, \
      PROFILE_TEST, PROFILE_BRUCE, PROFILE_DIR, TEST_DIR, \
      DATA_DIR, GENERATED_DIR
-from solipsis.services.profile.facade import get_facade, create_facade
-from solipsis.services.profile.network_data import SecurityWarnings
+from solipsis.services.profile.editor.facade import get_facade, create_facade
+from solipsis.services.profile.network.messages import SecurityWarnings
 
 # side class #########################################################
 class AsynchroneMixin:
@@ -56,7 +56,7 @@ class NetworkTest(unittest.TestCase, AsynchroneMixin):
         AsynchroneMixin.__init__(self)
         
     def setUp(self):
-        from solipsis.services.profile.network import NetworkManager
+        from solipsis.services.profile.network.manager import NetworkManager
         self.network = NetworkManager()
         util.wait(self.network.start(), timeout=10)
         
@@ -93,7 +93,7 @@ class ServerTest(unittest.TestCase, AsynchroneMixin):
         
     def setUp(self):
         # import here not to get twisted.internet.reactor imported too soon
-        from solipsis.services.profile.network import NetworkManager
+        from solipsis.services.profile.network.manager import NetworkManager
         self.network = NetworkManager()
         self.network.on_new_peer(FakePeer("boby"))
         self.network.on_service_data("boby", "HELLO 127.0.0.1:1111")
@@ -148,7 +148,7 @@ class ClientTest(unittest.TestCase):
         
     def setUp(self):
         # import here not to get twisted.internet.reactor imported too soon
-        from solipsis.services.profile.network import NetworkManager
+        from solipsis.services.profile.network.manager import NetworkManager
         self.network = NetworkManager()
         util.wait(self.network.start(), timeout=10)
         self.network.on_new_peer(FakePeer("boby"))

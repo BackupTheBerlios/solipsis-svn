@@ -25,13 +25,14 @@ _ = gettext.gettext
 
 from solipsis.services.plugin import ServicePlugin
 from solipsis.services.profile import set_solipsis_dir
-from solipsis.services.profile.message import display_message, display_status
-from solipsis.services.profile.prefs import get_prefs
-from solipsis.services.profile.facade import create_facade, get_facade
-from solipsis.services.profile.filter_facade import \
+from solipsis.services.profile.tools.message import display_message, display_status
+from solipsis.services.profile.tools.prefs import get_prefs
+from solipsis.services.profile.editor.facade import create_facade, get_facade
+from solipsis.services.profile.filter.facade import \
      create_filter_facade, get_filter_facade
-from solipsis.services.profile.network import NetworkManager
-from solipsis.services.profile.view import EditorView, ViewerView, FilterView
+from solipsis.services.profile.network.manager import NetworkManager
+from solipsis.services.profile.editor.view import EditorView, ViewerView
+from solipsis.services.profile.filter.view import FilterView
 
 class ClassAttribute(object):
     """Make a class attribute"""

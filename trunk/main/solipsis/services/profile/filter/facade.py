@@ -23,9 +23,9 @@ __revision__ = "$Id: simple_facade.py 864 2005-09-30 07:27:23Z emb $"
 
 from sys import stderr
 from solipsis.services.profile import FILTER_EXT
-from solipsis.services.profile.facade import AbstractFacade
-from solipsis.services.profile.data import PeerDescriptor
-from solipsis.services.profile.filter_document import FilterDocument
+from solipsis.services.profile.tools.peer import PeerDescriptor
+from solipsis.services.profile.editor.facade import AbstractFacade
+from solipsis.services.profile.filter.document import FilterDocument
 
 def create_filter_facade(node_id):
     """implements pattern singleton on FilterFacade"""

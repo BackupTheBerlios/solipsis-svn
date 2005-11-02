@@ -13,10 +13,10 @@ import unittest
 import os.path
 from os.path import abspath
 from solipsis.services.profile import QUESTION_MARK
-from solipsis.services.profile.prefs import get_prefs, set_prefs
-from solipsis.services.profile.data import PeerDescriptor
-from solipsis.services.profile.file_document import FileDocument
-from solipsis.services.profile.cache_document import CacheDocument
+from solipsis.services.profile.tools.prefs import get_prefs, set_prefs
+from solipsis.services.profile.tools.peer import PeerDescriptor
+from solipsis.services.profile.editor.file_document import FileDocument
+from solipsis.services.profile.editor.cache_document import CacheDocument
 from solipsis.services.profile.tests import TEST_DIR,  \
      PROFILE_DIR, PROFILE_TEST, PROFILE_BRUCE, \
      write_test_profile

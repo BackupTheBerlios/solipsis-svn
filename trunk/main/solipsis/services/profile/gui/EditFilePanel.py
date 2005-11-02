@@ -3,7 +3,8 @@
 
 import wx
 from solipsis.util.wxutils import _
-from solipsis.services.profile.filter_facade import get_filter_facade
+
+from solipsis.services.profile.filter.facade import get_filter_facade
 
 # begin wxGlade: dependencies
 # end wxGlade

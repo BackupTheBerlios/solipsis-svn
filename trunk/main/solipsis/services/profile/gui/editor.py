@@ -4,7 +4,8 @@
 """Application defined for testing purpose"""
 
 from solipsis.util.wxutils import _
-from solipsis.services.profile.view import EditorView
+
+from solipsis.services.profile.editor.view import EditorView
 from solipsis.services.profile.gui.EditorFrame import EditorFrame
 from solipsis.services.profile.gui.base_gui import BaseGUI, get_options
 

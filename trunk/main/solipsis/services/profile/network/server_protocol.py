@@ -15,8 +15,8 @@ from twisted.protocols import basic
 from solipsis.node.discovery import stun
 from solipsis.navigator.main import build_params
 from solipsis.util.network import get_free_port, release_port
-from solipsis.services.profile.message import display_warning, display_status
-from solipsis.services.profile.network_data import Message
+from solipsis.services.profile.tools.message import display_warning, display_status
+from solipsis.services.profile.network.messages import Message
 
 class ProfileServerProtocol(basic.LineOnlyReceiver):
 

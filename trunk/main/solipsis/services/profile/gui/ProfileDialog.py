@@ -4,9 +4,10 @@
 import wx
 from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxyReceiver
-from solipsis.services.profile.facade import get_facade
+
+from solipsis.services.profile.editor.facade import get_facade
+from solipsis.services.profile.editor.view import HtmlView
 from solipsis.services.profile.gui.PreviewPanel import MyHtmlWindow
-from solipsis.services.profile.view import HtmlView
 
 # begin wxGlade: dependencies
 # end wxGlade

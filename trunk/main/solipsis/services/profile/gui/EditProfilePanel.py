@@ -6,10 +6,11 @@ import sys
 import wx.lib.mixins.listctrl  as  listmix
 
 from solipsis.util.wxutils import _
-from solipsis.services.profile.prefs import get_prefs, set_prefs
+
+from solipsis.services.profile.tools.prefs import get_prefs, set_prefs
+from solipsis.services.profile.filter.facade import get_filter_facade
 from solipsis.services.profile.gui import get_all_item_ids, get_new_label, \
      get_selected_item_ids, get_selected_labels
-from solipsis.services.profile.filter_facade import get_filter_facade
 
 # begin wxGlade: dependencies
 # end wxGlade

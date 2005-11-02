@@ -11,7 +11,7 @@ import gettext
 _ = gettext.gettext
 
 from solipsis.util.network import parse_address
-from solipsis.services.profile.message import display_warning, display_status
+from solipsis.services.profile.tools.message import display_warning, display_status
 
 # Alerts #############################################################
 class SecurityAlert(Exception):

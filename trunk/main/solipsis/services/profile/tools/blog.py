@@ -27,10 +27,10 @@ import time
 import gettext
 _ = gettext.gettext
 
-from solipsis.services.profile.message import display_warning, display_error
 from solipsis.services.profile import ENCODING, PROFILE_EXT, \
      BLOG_EXT, BULB_ON_IMG, BULB_OFF_IMG, VERSION
-from solipsis.services.profile.prefs import get_prefs
+from solipsis.services.profile.tools.message import display_warning, display_error
+from solipsis.services.profile.tools.prefs import get_prefs
 
 class Blogs:
     """container for all blogs, responsible for authentification"""
@@ -149,31 +149,22 @@ def load_blogs(path):
     (same model as profile"""
     # loading
     if os.path.exists(path):
-        blog_file = open(path, "rb")
-        blogs = pickle.load(blog_file)
-        blog_file.close()
+        try:
+            blog_file = open(path, "rb")
+            blogs = pickle.load(blog_file)
+            blog_file.close()
+        except:
+            display_warning(_("Could not read blog file. Using a blank one."))
+            return Blogs()
         return retro_compatibility(blogs)
     else:
         return Blogs()
 
 def retro_compatibility(blogs):
     """make sure that downloaded version is the good one"""
-    if not hasattr(blogs, "version"):
-        # v 0.1.0: self.owner & self.blogs only
-        return Blogs(blogs.blogs)
-    elif blogs.version == "0.2.0":
-        # v 0.2.0: + self._id & self._dir added
-        #            self.owner becomes self.pseudo
-        return Blogs(blogs.blogs)
-    elif blogs.version in ["0.2.1", "0.2.2"]:
-        # v 0.2.1: - self._id removed
-        return Blogs(blogs.blogs)
-    elif blogs.version == "0.3.0":
-        # v 0.3.0: - self.pseudo & self._dir removed 
-        return blogs
-    elif blogs.version == "0.4.0":
-        # v 0.4.0: - moved classes in module blog.py
+    if blogs.version == "0.4.0":
         return blogs
     else:
         display_warning(_("Could not read blog file. Using a blank one."))
+        return Blogs()
         

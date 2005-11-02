@@ -13,11 +13,11 @@ from StringIO import StringIO
 from twisted.internet import defer
 
 from solipsis.node import peer as peer_node
-from solipsis.services.profile.peer_network import PeerManager, Peer, \
+from solipsis.services.profile.network.peers import PeerManager, Peer, \
      PeerRegistered, PeerConnected, PeerDisconnected, PeerState
-from solipsis.services.profile.network_data import DownloadMessage, Message, \
+from solipsis.services.profile.network.messages import DownloadMessage, Message, \
      SecurityAlert, SecurityWarnings, MESSAGE_HELLO
-from solipsis.services.profile.network import NetworkManager
+from solipsis.services.profile.network.manager import NetworkManager
 
 class BaseTest(unittest.TestCase):
 

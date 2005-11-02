@@ -25,10 +25,10 @@ import pickle
 
 from StringIO import StringIO
 from solipsis.services.profile import ENCODING, PROFILE_EXT
-from solipsis.services.profile.view import HtmlView
-from solipsis.services.profile.data import PeerDescriptor
-from solipsis.services.profile.blog import Blogs
-from solipsis.services.profile.cache_document import CacheDocument
+from solipsis.services.profile.editor.view import HtmlView
+from solipsis.services.profile.editor.cache_document import CacheDocument
+from solipsis.services.profile.tools.peer import PeerDescriptor
+from solipsis.services.profile.tools.blog import Blogs
 
 def create_facade(node_id):
     """implements pattern singleton on Facade. User may specify

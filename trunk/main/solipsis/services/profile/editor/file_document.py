@@ -31,13 +31,13 @@ import time
 import sys
 from solipsis.services.profile import force_unicode, ENCODING, QUESTION_MARK
 
-from solipsis.services.profile.data import PeerDescriptor
-from solipsis.services.profile.message import log, display_status
-from solipsis.services.profile.document import \
+from solipsis.services.profile.tools.peer import PeerDescriptor
+from solipsis.services.profile.tools.message import log, display_status
+from solipsis.services.profile.tools.files import DEFAULT_TAG, \
+     create_container, DictContainer
+from solipsis.services.profile.editor.document import \
      AbstractPersonalData, FileSharingMixin, ContactsMixin, DocSaverMixin, \
      SECTION_PERSONAL, SECTION_CUSTOM, SECTION_OTHERS, SECTION_FILE
-from solipsis.services.profile.path_containers import DEFAULT_TAG, \
-     create_container, DictContainer
 SHARED_TAG = "shared"
 
 class FilePersonalMixin(AbstractPersonalData):

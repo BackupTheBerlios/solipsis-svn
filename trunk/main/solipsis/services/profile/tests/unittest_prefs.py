@@ -3,7 +3,7 @@ import unittest
 
 from solipsis.services.profile import DOWNLOAD_REPO
 from solipsis.services.profile.tests import GENERATED_DIR
-from solipsis.services.profile.prefs import Preferences
+from solipsis.services.profile.tools.prefs import Preferences
 
 PREF_FILE = os.path.join(GENERATED_DIR, "prefs")
 

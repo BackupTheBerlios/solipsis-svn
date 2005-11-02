@@ -15,7 +15,7 @@ from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxyReceiver
 from solipsis.navigator.wxclient.config import ConfigData
 from solipsis.services.wxcollector import WxServiceCollector
-from solipsis.services.profile.facade import create_facade
+from solipsis.services.profile.editor.facade import create_facade
 
 class BaseGUI(wx.App, UIProxyReceiver):
     """Top-level class of GUI: application"""

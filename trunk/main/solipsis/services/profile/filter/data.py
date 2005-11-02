@@ -25,7 +25,7 @@ __revision__ = "$Id: filter_document.py 894 2005-10-11 18:39:43Z emb $"
 
 import re
 from solipsis.services.profile import ENCODING
-from solipsis.services.profile.message import log
+from solipsis.services.profile.tools.message import log
     
 def create_regex(input_value):
     """'input_input' is a keyword that main contain the joker char '*'.

@@ -5,8 +5,9 @@ import wx
 
 from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxyReceiver
-from solipsis.services.profile.prefs import set_prefs
+
 from solipsis.services.profile import DISPLAY_IMG, force_unicode
+from solipsis.services.profile.tools.prefs import set_prefs
 
 # begin wxGlade: dependencies
 # end wxGlade

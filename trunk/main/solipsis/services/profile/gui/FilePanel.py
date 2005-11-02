@@ -8,11 +8,11 @@ import sys
 from os.path import abspath
 from solipsis.util.wxutils import _
 
-from solipsis.services.profile.message import display_error, display_message
-from solipsis.services.profile.pathutils import formatbytes
-from solipsis.services.profile.facade import get_facade
-from solipsis.services.profile.path_containers import DEFAULT_TAG, \
+from solipsis.services.profile.tools.message import display_error, display_message
+from solipsis.services.profile.tools.pathutils import formatbytes
+from solipsis.services.profile.tools.files import DEFAULT_TAG, \
      DirContainer, ContainerException
+from solipsis.services.profile.editor.facade import get_facade
 from solipsis.services.profile import ADD_REPO, DEL_REPO, \
      force_unicode, ENCODING, \
      SHARE, UNSHARE, EDIT, PREVIEW, \

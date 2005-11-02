@@ -39,11 +39,11 @@ from traceback import format_list
 
 from solipsis.services.profile import DEFAULT_INTERESTS, ENCODING, \
      save_encoding, load_encoding
-from solipsis.services.profile.message import display_status, display_error
-from solipsis.services.profile.path_containers import ContainerMixin,  \
+from solipsis.services.profile.tools.message import display_status, display_error
+from solipsis.services.profile.tools.files import ContainerMixin,  \
      create_container, DictContainer, SharedFiles, ContainerException
-from solipsis.services.profile.blog import  Blogs, retro_compatibility
-from solipsis.services.profile.data import  PeerDescriptor
+from solipsis.services.profile.tools.blog import  Blogs, retro_compatibility
+from solipsis.services.profile.tools.peer import  PeerDescriptor
 
 SECTION_PERSONAL = "Personal"
 SECTION_CUSTOM = "Custom"
@@ -52,7 +52,7 @@ SECTION_FILE = "Files"
 
 def read_document(file_obj):
     """use FileDocument to load document from 'file_obj'"""
-    from solipsis.services.profile.file_document import FileDocument
+    from solipsis.services.profile.editor.file_document import FileDocument
     encoding = load_encoding(file_obj)
     config = CustomConfigParser(encoding)
     config.readfp(file_obj)
@@ -557,14 +557,14 @@ class SaverMixin:
     # MENU
     def save(self, path):
         """fill document with information from .profile file"""
-        from solipsis.services.profile.file_document import FileDocument
+        from solipsis.services.profile.editor.file_document import FileDocument
         doc = FileDocument()
         doc.import_document(self)
         doc.save(path)
         
     def load(self, path):
         """fill document with information from .profile file"""
-        from solipsis.services.profile.file_document import FileDocument
+        from solipsis.services.profile.editor.file_document import FileDocument
         doc = FileDocument()
         result = doc.load(path)
         self.import_document(doc)
@@ -572,7 +572,7 @@ class SaverMixin:
         
     def to_stream(self):
         """fill document with information from .profile file"""
-        from solipsis.services.profile.file_document import FileDocument
+        from solipsis.services.profile.editor.file_document import FileDocument
         doc = FileDocument()
         doc.import_document(self)
         return doc.to_stream()

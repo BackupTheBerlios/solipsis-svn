@@ -11,7 +11,7 @@ from twisted.internet.protocol import ClientFactory
 from twisted.internet import reactor
 from twisted.protocols import basic
 
-from solipsis.services.profile.message import display_status
+from solipsis.services.profile.tools.message import display_status
 
 class ProfileClientProtocol(basic.LineReceiver):
     """Intermediate client checking that a remote server exists."""

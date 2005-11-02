@@ -12,10 +12,10 @@ import unittest
 import os.path
 
 from solipsis.services.profile import FILTER_EXT, QUESTION_MARK
-from solipsis.services.profile.prefs import get_prefs, set_prefs
-from solipsis.services.profile.data import PeerDescriptor
-from solipsis.services.profile.filter_data import create_regex, FilterValue 
-from solipsis.services.profile.filter_document import FilterDocument
+from solipsis.services.profile.tools.prefs import get_prefs, set_prefs
+from solipsis.services.profile.tools.peer import PeerDescriptor
+from solipsis.services.profile.filter.data import create_regex, FilterValue 
+from solipsis.services.profile.filter.document import FilterDocument
 from solipsis.services.profile.tests import PROFILE_DIR, PROFILE_TEST, TEST_DIR
 from solipsis.services.profile.tests import write_test_profile, FILE_TEST
     

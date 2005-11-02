@@ -6,11 +6,12 @@ import sys
 import os.path
 from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxyReceiver
-from solipsis.services.profile.prefs import get_prefs, set_prefs
-from solipsis.services.profile.pathutils import formatbytes
-from solipsis.services.profile.facade import get_facade
+
 from solipsis.services.profile import DOWNLOAD, DOWNLOAD_DIR, \
      force_unicode, ENCODING, NAME_COL, SIZE_COL
+from solipsis.services.profile.tools.prefs import get_prefs, set_prefs
+from solipsis.services.profile.tools.pathutils import formatbytes
+from solipsis.services.profile.editor.facade import get_facade
 
 TAG_COL = 2
 

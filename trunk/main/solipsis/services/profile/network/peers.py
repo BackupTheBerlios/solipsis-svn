@@ -17,13 +17,13 @@ from twisted.protocols import basic
 from twisted.internet import defer
 
 from solipsis.services.profile import VERSION, UNIVERSAL_SEP
-from solipsis.services.profile.prefs import get_prefs
-from solipsis.services.profile.document import read_document
-from solipsis.services.profile.facade import get_facade
-from solipsis.services.profile.filter_facade import get_filter_facade
-from solipsis.services.profile.path_containers import ContainerException
-from solipsis.services.profile.message import display_status, display_error
-from solipsis.services.profile.network_data import SecurityAlert, \
+from solipsis.services.profile.tools.prefs import get_prefs
+from solipsis.services.profile.tools.files import ContainerException
+from solipsis.services.profile.tools.message import display_status, display_error
+from solipsis.services.profile.editor.document import read_document
+from solipsis.services.profile.editor.facade import get_facade
+from solipsis.services.profile.filter.facade import get_filter_facade
+from solipsis.services.profile.network.messages import SecurityAlert, \
      DownloadMessage, Message, MESSAGE_HELLO, MESSAGE_ERROR, \
      MESSAGE_PROFILE, MESSAGE_BLOG, MESSAGE_SHARED, MESSAGE_FILES
           

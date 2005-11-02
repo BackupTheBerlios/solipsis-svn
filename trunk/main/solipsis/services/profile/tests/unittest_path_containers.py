@@ -7,7 +7,7 @@
 import unittest
 import os, os.path
 
-from solipsis.services.profile.path_containers import \
+from solipsis.services.profile.tools.files import \
      DirContainer, FileContainer, ContainerException
 from solipsis.services.profile.tests import TEST_DIR
 

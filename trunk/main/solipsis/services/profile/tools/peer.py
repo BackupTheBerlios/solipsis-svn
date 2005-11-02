@@ -27,11 +27,11 @@ import time
 import gettext
 _ = gettext.gettext
 
-from solipsis.services.profile.message import display_warning, display_error
 from solipsis.services.profile import ENCODING, PROFILE_EXT, \
      BLOG_EXT, BULB_ON_IMG, BULB_OFF_IMG, VERSION
-from solipsis.services.profile.prefs import get_prefs
-from solipsis.services.profile.blog import Blogs, Blog, load_blogs
+from solipsis.services.profile.tools.message import display_warning, display_error
+from solipsis.services.profile.tools.prefs import get_prefs
+from solipsis.services.profile.tools.blog import Blogs, Blog, load_blogs
 
 # PEERS ##############################################################
 class PeerDescriptor:
@@ -51,7 +51,7 @@ class PeerDescriptor:
         self.state = state
         self.connected = connected
         # data
-        from solipsis.services.profile.cache_document import CacheDocument
+        from solipsis.services.profile.editor.cache_document import CacheDocument
         self.document = document or CacheDocument()
         self.blog = blog or Blogs()
 
@@ -86,7 +86,7 @@ class PeerDescriptor:
         
     def html(self):
         """render peer in HTML"""
-        from solipsis.services.profile.facade import get_facade
+        from solipsis.services.profile.editor.facade import get_facade
         return "<img src='%s'/><font color=%s>%s</font>"\
                % (self.connected and BULB_ON_IMG() or BULB_OFF_IMG(),
                   PeerDescriptor.COLORS[self.state],

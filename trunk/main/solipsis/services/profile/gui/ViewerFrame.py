@@ -7,15 +7,15 @@ import os, os.path
 
 from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxy
+
 from solipsis.services.profile import PROFILE_FILE
-from solipsis.services.profile.prefs import get_prefs
-from solipsis.services.profile.data import PeerDescriptor
-from solipsis.services.profile.file_document import FileDocument
-from solipsis.services.profile.facade import get_facade
+from solipsis.services.profile.tools.prefs import get_prefs
+from solipsis.services.profile.tools.peer import PeerDescriptor
+from solipsis.services.profile.editor.file_document import FileDocument
+from solipsis.services.profile.editor.facade import get_facade
 from solipsis.services.profile.gui.PreviewPanel import MyHtmlWindow
 from solipsis.services.profile.gui.BlogPanel import BlogPanel
 from solipsis.services.profile.gui.FilePanel import FilePanel
-
 from solipsis.services.profile.gui.BlogDialog import BlogDialog
 from solipsis.services.profile.gui.FileDialog import FileDialog
 from solipsis.services.profile.gui.ProfileDialog import ProfileDialog

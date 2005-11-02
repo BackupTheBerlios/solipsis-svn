@@ -7,10 +7,10 @@ __revision__ = "$Id$"
 import gettext
 _ = gettext.gettext
 
-from solipsis.services.profile.peer_network import PeerManager
-from solipsis.services.profile.client_protocol import ProfileClientFactory
-from solipsis.services.profile.server_protocol import ProfileServerFactory
-from solipsis.services.profile.network_data import Message, SecurityAlert, \
+from solipsis.services.profile.network.peers import PeerManager
+from solipsis.services.profile.network.client_protocol import ProfileClientFactory
+from solipsis.services.profile.network.server_protocol import ProfileServerFactory
+from solipsis.services.profile.network.messages import Message, SecurityAlert, \
      MESSAGE_HELLO
 
 class NetworkManager:

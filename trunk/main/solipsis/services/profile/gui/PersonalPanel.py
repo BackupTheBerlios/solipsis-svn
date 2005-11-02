@@ -9,8 +9,9 @@ from StringIO import StringIO
 from wx import ImageFromStream, BitmapFromImage
 
 from solipsis.util.wxutils import _
-from solipsis.services.profile.facade import get_facade
+
 from solipsis.services.profile import QUESTION_MARK, ADD_CUSTOM, DEL_CUSTOM
+from solipsis.services.profile.editor.facade import get_facade
 
 # begin wxGlade: dependencies
 # end wxGlade
