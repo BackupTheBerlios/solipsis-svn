@@ -172,44 +172,37 @@ class ServiceCollector(object):
         Called when a peer has changed.
         """
         peer_id = peer.id_
-        new_ids = set([_service.id_ for _service in peer.GetServices()])
         try:
             old_peer = self.peers[peer_id]
+            new_ids = set([_service.id_ for _service in peer.GetServices()])
             old_ids = set([_service.id_ for _service in old_peer.GetServices()])
-            rem_ids = old_ids - new_ids
-            add_ids = new_ids - old_ids
-            up_ids = new_ids & old_ids
+            self.peers[peer_id] = peer
+            # Notify removed services
+            for service_id in  old_ids - new_ids:
+                try:
+                    plugin = self.plugins[service_id]
+                except KeyError:
+                    pass
+                else:
+                    plugin.LostPeer(peer_id)
+            # Notify added services
+            for service_id in new_ids - old_ids:
+                try:
+                    plugin = self.plugins[service_id]
+                except KeyError:
+                    pass
+                else:
+                    plugin.NewPeer(peer, peer.GetService(service_id))
+            # Notify updated services
+            for service_id in new_ids & old_ids:
+                try:
+                    plugin = self.plugins[service_id]
+                except KeyError:
+                    pass
+                else:
+                    plugin.ChangedPeer(peer, peer.GetService(service_id))
         except KeyError, err:
             print "ERR in UpdatePeer:", err
-            rem_ids = []
-            add_ids = new_ids
-            up_ids = []
-        # update peer
-        self.peers[peer_id] = peer
-        # Notify removed services
-        for service_id in rem_ids:
-            try:
-                plugin = self.plugins[service_id]
-            except KeyError:
-                pass
-            else:
-                plugin.LostPeer(peer_id)
-        # Notify added services
-        for service_id in add_ids:
-            try:
-                plugin = self.plugins[service_id]
-            except KeyError:
-                pass
-            else:
-                plugin.NewPeer(peer, peer.GetService(service_id))
-        # Notify updated services
-        for service_id in up_ids:
-            try:
-                plugin = self.plugins[service_id]
-            except KeyError:
-                pass
-            else:
-                plugin.ChangedPeer(peer, peer.GetService(service_id))
 
     def RemovePeer(self, peer_id):
         """
