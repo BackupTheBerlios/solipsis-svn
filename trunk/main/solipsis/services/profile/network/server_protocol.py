@@ -26,6 +26,7 @@ class ProfileServerProtocol(basic.LineOnlyReceiver):
         if line == "ping":
             self.sendLine("pong")
         else:
+            log("lineReceived", line)
             message = Message.create_message(line)
             self.factory.network.peers.add_message(message)
             

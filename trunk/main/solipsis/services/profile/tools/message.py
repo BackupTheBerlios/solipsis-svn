@@ -43,12 +43,12 @@ def _display(msg, msg_type, title="Solipsis Profile", error=None):
             service_api.display_status(msg)
         else:
             print "message type %s not valid"
-#     else:
-#         print "MSG: " + msg
-#         if not error is None:
-#             print "ERR: ", error
-#             import traceback
-#             traceback.print_exc()
+    if get_prefs("log"):
+        print "MSG: " + msg
+        if not error is None:
+            print "ERR: ", error
+            import traceback
+            traceback.print_exc()
     
 def display_error(msg, title="Profile Error", error=None, trace=None):
     _display(msg, "ERR", title, error)
