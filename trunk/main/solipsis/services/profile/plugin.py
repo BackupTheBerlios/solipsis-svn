@@ -300,16 +300,14 @@ class Plugin(ServicePlugin):
                 log(
                     _(u"You have no profile yet for pseudo %s.\n\n "
                       "You may create one clicking on the menu Profile, "
-                      "and selecting 'Modify Profile'"% node.pseudo),
-                    title=_("New profile"))
+                      "and selecting 'Modify Profile'"% node.pseudo))
             if not filter_facade.load():
                 log(
                     _(u"You have no filters defined yet for pseudo %s.\n\n Filters are used "
                       "to match your neighbors' profile and alert you if they "
                       "match with your criteria.\n\n"
                       "You may create your filters by clicking on the menu 'Profile', "
-                      "and selecting 'Filter Profiles'"% node.pseudo),
-                     title=_("New filters"))
+                      "and selecting 'Filter Profiles'"% node.pseudo))
             facade.change_pseudo(node.pseudo)
             # updating views
             if self.editor_frame:

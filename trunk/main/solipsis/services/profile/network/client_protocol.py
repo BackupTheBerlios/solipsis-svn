@@ -53,6 +53,7 @@ class ProfileClientFactory(ClientFactory):
 
     def connect(self, peer):
         """connect to remote server"""
+        log("Connecting", peer.ip,  peer.port)
         connector = reactor.connectTCP(peer.ip,
                                        peer.port,
                                        self)
@@ -61,5 +62,8 @@ class ProfileClientFactory(ClientFactory):
 
     def clientConnectionFailed(self, connector, reason):
         """Called when a connection has failed to connect."""
-        peer = self.transports[id(connector.transport)]
-        peer.client._fail_client(connector.transport, reason)
+        if id(connector.transport) in  self.transports:
+            peer = self.transports[id(connector.transport)]
+            peer.client._fail_client(connector.transport, reason)
+        else:
+            log("Connection failed:", reason)

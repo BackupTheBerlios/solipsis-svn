@@ -35,7 +35,7 @@ from solipsis.navigator.netclient.app import NavigatorApp
 from solipsis.navigator.netclient.tests import LOCAL_PORT
 from solipsis.services.profile import PROFILE_EXT
 from solipsis.services.profile.tests import PROFILE_DIR, FILE_BRUCE, FILE_TEST
-from solipsis.services.profile.facade import get_facade
+from solipsis.services.profile.editor.facade import get_facade
 
 USAGE = "launch.py [pseudo | -B | -T]  [-t] [-p PORT] [-f FILE]"
 

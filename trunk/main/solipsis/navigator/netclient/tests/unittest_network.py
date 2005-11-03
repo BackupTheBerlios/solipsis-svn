@@ -14,7 +14,7 @@ from twisted.protocols.basic import LineReceiver
 from solipsis.navigator.netclient.tests import LOCAL_PORT
 from solipsis.services.profile.tests import PROFILE_DIR, FILE_BRUCE, FILE_TEST, \
      write_test_profile, get_bruce_profile
-from solipsis.services.profile.prefs import get_prefs
+from solipsis.services.profile.tools.prefs import get_prefs
         
 
 ##### WATCH OUT !!! ###################################################################
@@ -173,9 +173,9 @@ class ConnectedTest(NetworkTest):
     
 class ProfileTest(NetworkTest):
     """Test good completion of basic commands"""
-    OTHER_IP = "172.17.1.68"  #sagittarius
+    #OTHER_IP = "172.17.1.68"  #sagittarius
     #OTHER_IP = "10.193.171.41"#portable_win
-    #OTHER_IP = "172.17.1.79"  #octans
+    OTHER_IP = "172.17.1.79"  #octans
     FIRST_NODE = "bots.netofpeers.net:8553"
     OTHER_NODE = "bots.netofpeers.net:8554"
     first_id = None
