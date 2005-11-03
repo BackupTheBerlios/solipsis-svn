@@ -24,8 +24,11 @@ import os.path
 
 import ConfigParser
 
+
 DOWNLOAD_REPO = os.sep.join([os.path.expanduser("~"), ".solipsis", "download"])
 PROFILE_DIR = os.sep.join([os.path.expanduser("~"), ".solipsis", "profiles"])
+ENCODING = "iso-8859-1"
+
 PREFS_FILE = os.path.join(PROFILE_DIR, ".preferences")
 MAIN_SECTION = "General"
 DIALOG_SECTION = "Dialogs"
@@ -97,6 +100,7 @@ class Preferences:
               "filter_width": IntParam("Filter width", DIALOG_SECTION, 460),
               "filter_height": IntParam("Filter height", DIALOG_SECTION, 600),
               "simple_mode": BoolParam("Simple mode", DIALOG_SECTION, True),
+              "encoding": StringParam("Encoding", MAIN_SECTION, ENCODING),
               "log": BoolParam("Enable logging", MAIN_SECTION, False),
               }
 

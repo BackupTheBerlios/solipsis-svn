@@ -64,4 +64,11 @@ def display_status(msg):
     
 def log(*args):
     if get_prefs("log"):
-        print ' '.join([str(arg) for arg in args])
+        formatted = []
+        for arg in args:
+            if isinstance(arg, unicode):
+                formatted.append(arg.encode(get_prefs("encoding")))
+            else:
+                formatted.append(str(arg))
+        # log
+        print ' '.join(formatted)

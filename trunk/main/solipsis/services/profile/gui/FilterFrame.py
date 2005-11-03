@@ -285,7 +285,6 @@ class FilterFrame(wx.Frame):
         """save .prf"""
         self.do_modified(False)
         get_filter_facade().save()
-        event.Skip()
         
     def on_close(self, event=None): # wxGlade: FilterFrame.<event_handler>
         """hide  application"""
