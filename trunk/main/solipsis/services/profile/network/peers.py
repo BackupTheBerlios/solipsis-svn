@@ -51,6 +51,10 @@ class PeerServer(object):
         self.disconnected_state = PeerDisconnected(self)
         self.current_state = self.new_state
 
+    def set_registered(self):
+        if self.current_state == self.new_state:
+            self.current_state = self.registered_state
+
     def connected(self, protocol):
         self.current_state.connected(protocol)
         
@@ -442,7 +446,7 @@ class PeerManager(threading.Thread):
             self.remote_ips[message.ip] = peer
             peer.ip = message.ip
             peer.port = message.port
-            peer.server.current_state =  peer.server.registered_state
+            peer.server.set_registered()
         finally:
             self.lock.release()
 
