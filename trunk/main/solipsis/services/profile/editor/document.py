@@ -37,8 +37,8 @@ _ = gettext.gettext
 from os.path import isfile
 from traceback import format_list
 
-from solipsis.services.profile import DEFAULT_INTERESTS, ENCODING, \
-     save_encoding, load_encoding
+from solipsis.services.profile import DEFAULT_INTERESTS, QUESTION_MARK, \
+     ENCODING, save_encoding, load_encoding
 from solipsis.services.profile.tools.message import display_status, display_error
 from solipsis.services.profile.tools.files import ContainerMixin,  \
      create_container, DictContainer, SharedFiles, ContainerException
@@ -60,6 +60,7 @@ def read_document(file_obj):
     doc = FileDocument()
     doc.encoding = encoding
     doc.config = config
+    doc.load_personals()
     return doc
     
 class CustomConfigParser(ConfigParser.ConfigParser):
@@ -90,7 +91,12 @@ class AbstractPersonalData:
     """define API for all pesonal data"""
 
     def __init__(self):
-        pass
+        self.pseudo = u""
+        self.title = u""
+        self.firstname = u"Name"
+        self.lastname = u"Lastname"
+        self.photo = QUESTION_MARK()
+        self.email = u"email"
         
     def import_document(self, other_document):
         """copy data from another document into self"""
@@ -118,63 +124,72 @@ class AbstractPersonalData:
             if not self.has_custom_attribute(custom_interest):
                 self.add_custom_attributes(custom_interest, u"")
             
-    # PERSONAL TAB    
+    # PERSONAL TAB
     def set_pseudo(self, pseudo):
-        if pseudo == self.get_pseudo():
+        if pseudo == self.pseudo:
             return False
         if not isinstance(pseudo, unicode):
             raise TypeError("pseudo '%s' expected as unicode"% pseudo)
-        
+        self.pseudo = pseudo
+        return self.pseudo
+    
     def get_pseudo(self):
-        raise NotImplementedError
+        return self.pseudo
     
     def set_title(self, title):
-        if title == self.get_title():
+        if title == self.title:
             return False
         if not isinstance(title, unicode):
             raise TypeError("title '%s' expected as unicode"% title)
-        
+        self.title = title
+        return self.title
+    
     def get_title(self):
-        raise NotImplementedError
+        return self.title
         
     def set_firstname(self, firstname):
-        if firstname == self.get_firstname():
+        """sets new value for firstname"""
+        if firstname == self.firstname:
             return False
         if not isinstance(firstname, unicode):
             raise TypeError("firstname '%s' expected as unicode"% firstname)
-        
+        self.firstname = firstname
+        return self.firstname
+    
     def get_firstname(self):
-        raise NotImplementedError
-        
+        return self.firstname
+
     def set_lastname(self, lastname):
-        if lastname == self.get_lastname():
+        if lastname == self.lastname:
             return False
         if not isinstance(lastname, unicode):
             raise TypeError("lastname '%s' expected as unicode"% lastname)
-        
-    def get_lastname(self):
-        raise NotImplementedError
+        self.lastname = lastname
+        return self.lastname
     
+    def get_lastname(self):
+        return self.lastname
+
     def set_photo(self, path):
-        if path == self.get_photo():
+        if path == self.photo:
             return False
-        if not isinstance(path, unicode):
-            raise TypeError("photo '%s' expected as unicode"% path)
-        if not isfile(path):
-            raise TypeError("photo '%s' must exist"% path)
-        
+        self.photo = path
+        return self.photo
+    
     def get_photo(self):
-        raise NotImplementedError
-        
+        return self.photo
+
     def set_email(self, email):
-        if email == self.get_email():
+        if email == self.email:
             return False
         if not isinstance(email, unicode):
             raise TypeError("email '%s' expected as unicode"% email)
-        
+        self.email = email
+        return self.email
+    
     def get_email(self):
-        raise NotImplementedError
-        
+        return self.email
+
     # CUSTOM TAB
     def has_custom_attribute(self, key):
         raise NotImplementedError

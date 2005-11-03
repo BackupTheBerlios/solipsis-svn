@@ -88,27 +88,3 @@ class PeerDescriptor:
                % (self.connected and BULB_ON_IMG() or BULB_OFF_IMG(),
                   PeerDescriptor.COLORS[self.state],
                   get_facade()._desc.document.get_pseudo().encode(ENCODING))
-
-    # extraction #####################################################
-    def custom_as_dict(self):
-        """compile all peer's attributes into a dictionary (used by filters)"""
-        return self.document.get_custom_attributes()
-
-    def peer_as_dict(self):
-        """compile all peer's attributes into a dictionary (used by filters)"""
-        return {"title": self.document.get_title(),
-                "firstname":  self.document.get_firstname(),
-                "lastname":  self.document.get_lastname(),
-                "pseudo":  self.document.get_pseudo(),
-                "photo":  self.document.get_photo(),
-                "email": self.document.get_email()}
-
-    def files_as_dicts(self):
-        """compile all files into a dictionary (used by filters)"""
-        result = []
-        file_containers = self.document.get_shared_files().flatten()
-        for file_container in file_containers:
-            result.append({'name': file_container.name,
-                           'size': file_container.size})
-        return result
-        

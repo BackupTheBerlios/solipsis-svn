@@ -103,28 +103,32 @@ class FilterValue(object):
         self.regex = re.compile(create_key_regex(value), re.IGNORECASE)
         self.activated = activate
         
-    def does_match(self, peer_id, data):
+    def does_match(self, peer_id, matched_object, prop_name):
         """apply regex on data and returns self if there is any match"""
         # no match -> return false
         if not self.activated or len(self.description) == 0:
             return False
-        if self.regex.match(data) is None:
+        if self.regex.match(matched_object.__dict__[prop_name]) is None:
             return False
         # match -> return true
-        return FilterResult(peer_id, self, data)
+        return FilterResult(peer_id, prop_name, self, matched_object)
 
 class FilterResult:
     """Structure to receive a positive result from a match"""
 
-    def __init__(self, peer_id, filter_value, match):
+    def __init__(self, peer_id, match, filter_value, matched_object):
         self.peer_id = peer_id
         self.filter_value = filter_value
         self.match = match
+        self.matched_object = matched_object
 
     def get_name(self):
         """return name of fhe filter (ie: personal detrails, custom
         attributes..."""
         return self.filter_value.name
+
+    def get_match(self):
+        return getattr(self.matched_object, self.match)
 
     def get_description(self):
         """return regex"""
@@ -210,14 +214,15 @@ class AbstractFilter:
         """update other fields than those specified in ALL_FILTERS"""
         raise NotImplementedError
             
-    def match(self, peer_id, **properties):
+    def match(self, peer_id, matched_object):
         matches = []
         # match each properties
         for prop_name in self.ALL_FILTERS:
             filter_value = getattr(self, prop_name)
-            if filter_value.activated and prop_name in properties:
+            if filter_value.activated and prop_name in matched_object.__dict__:
                 matches.append(filter_value.does_match(peer_id,
-                                                       properties[prop_name]))
+                                                       matched_object,
+                                                       prop_name))
         # return only valid matches
         if False in matches and not self.filter_or:
             return []
@@ -228,7 +233,7 @@ class FileFilter(AbstractFilter):
     """Implementation of AbstractFilter for files: two fields might be
     used for matches: name & size"""
 
-    ALL_FILTERS = ["name", "size"]
+    ALL_FILTERS = ["name", "size", "path"]
     PREFIX = "file_"
 
     def __init__(self, filter_name, filter_or=True, **properties):
@@ -238,10 +243,10 @@ class FileFilter(AbstractFilter):
         """update other fields than those specified in ALL_FILTERS"""
         pass
     
-    def match(self, peer_id, file_dicts):
+    def match(self, peer_id, file_containers):
         matches = []
-        for file_dict in file_dicts:
-            matches += AbstractFilter.match(self, peer_id, **file_dict)
+        for file_container in file_containers:
+            matches += AbstractFilter.match(self, peer_id, file_container)
         return matches
 
 class PeerFilter(AbstractFilter):
@@ -279,17 +284,45 @@ class PeerFilter(AbstractFilter):
                 filter_value.activated)
         else:
             self.customs[filter_value.name] = filter_value
+
+    class MergedCustom(object):
+        def __init__(self):
+            self._customs = {}
+        def items(self):
+            return self._customs.items()
+        def get_custom(self, custom_name):
+            return self._customs[custom_name]
+        def set_custom(self, custom_name, value):
+            if custom_name in self._customs:
+                 self._customs.append(value)
+            else:
+                self._customs[custom_name] = [value]
+
+    class Customs:
+        """transforms dictionnary of customs into an object to be
+        usable by filters"""
+        def __init__(self, custom_dict):
+            for key, value in custom_dict.items():
+                setattr(self, key, value)
+        def __iter__(self):
+            return self.__dict__.__iter__()
         
-    def match(self, peer_id, customs, **properties):
-        matches = AbstractFilter. match(self, peer_id, **properties)
-        # match custom attributes
-        merged = {}
-        [merged.setdefault(key, value)
-         for key, value in self.customs.items() if key in customs]
-        for custom_name, filter_value in merged.items():
-            if filter_value.activated:
-                matches.append(
-                    filter_value.does_match(peer_id, customs[custom_name]))
+    def match(self, peer_id, peer_desc):
+        matches = AbstractFilter. match(self, peer_id, peer_desc.document)
+        merged_customs = self.MergedCustom()
+        peer_customs = self.Customs(peer_desc.document.get_custom_attributes())
+        # get custom attributes matching custom filters name
+        for custom_desc, filter_value in self.customs.items():
+            for custom_name in peer_customs:
+                if not re.match(".*" + custom_desc + ".*", custom_name) is None:
+                    merged_customs.set_custom(custom_name, filter_value)
+        # match
+        for custom_name, filter_values in merged_customs.items():
+            for filter_value in filter_values:
+                if filter_value.activated:
+                    matches.append(filter_value.does_match(peer_id,
+                                                           peer_customs,
+                                                           custom_name))
         if False in matches and not self.filter_or:
             return []
         else:

@@ -63,7 +63,7 @@ class FilterTest(unittest.TestCase):
         self.assert_('All' in self.document.results)
         self.assert_('Mr_B' in self.document.results)
         self.assert_('MP3' in self.document.results)
-        results = [(result.get_name(), result.match)
+        results = [(result.get_name(), result.get_match())
                    for result in self.document.results['Mr_B'][PROFILE_TEST]]
         results.sort()
         self.assertEquals([('color', 'blue'),

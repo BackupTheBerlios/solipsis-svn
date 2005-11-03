@@ -28,8 +28,7 @@ __revision__ = "$Id$"
 import ConfigParser
 import os.path
 import time
-from solipsis.services.profile import force_unicode, ENCODING, QUESTION_MARK
-
+from solipsis.services.profile import force_unicode, ENCODING
 from solipsis.services.profile.tools.peer import PeerDescriptor
 from solipsis.services.profile.tools.message import log, display_status
 from solipsis.services.profile.tools.files import DEFAULT_TAG, \
@@ -43,91 +42,40 @@ class FilePersonalMixin(AbstractPersonalData):
     """Implements API for all pesonal data in a File oriented context"""
 
     def __init__(self):
+        AbstractPersonalData.__init__(self)
         self.config.add_section(SECTION_PERSONAL)
         self.config.add_section(SECTION_CUSTOM)
-        AbstractPersonalData.__init__(self)
-        
-    # PERSONAL TAB
-    def set_pseudo(self, pseudo):
-        AbstractPersonalData.set_pseudo(self, pseudo)
+
+    def _set_personals(self):
         self.config.set(SECTION_PERSONAL, "pseudo",
-                        pseudo.encode(self.encoding))
-        return pseudo.encode(self.encoding)
-    
-    def get_pseudo(self):
-        try:
-            return unicode(self.config.get(SECTION_PERSONAL, "pseudo"),
-                           self.encoding)
-        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-            return u""
-        
-    def set_title(self, value):
-        AbstractPersonalData.set_title(self, value)
+                        self.pseudo.encode(self.encoding))
         self.config.set(SECTION_PERSONAL, "title",
-                        value.encode(self.encoding))
-        return value.encode(self.encoding)
-    
-    def get_title(self):
-        try:
-            return unicode(self.config.get(SECTION_PERSONAL, "title"),
-                           self.encoding)
-        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-            return u""
-        
-    def set_firstname(self, value):
-        AbstractPersonalData.set_firstname(self, value)
+                        self.title.encode(self.encoding))
         self.config.set(SECTION_PERSONAL, "firstname",
-                        value.encode(self.encoding))
-        return value.encode(self.encoding)
-    
-    def get_firstname(self):
-        try:
-            return unicode(self.config.get(SECTION_PERSONAL, "firstname",
-                                           "Emmanuel"), self.encoding)
-        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-            return u"Name"
-
-    def set_lastname(self, value):
-        AbstractPersonalData.set_lastname(self, value)
+                        self.firstname.encode(self.encoding))
         self.config.set(SECTION_PERSONAL, "lastname",
-                        value.encode(self.encoding))
-        return value.encode(self.encoding)
-    
-    def get_lastname(self):
-        try:
-            return unicode(self.config.get(SECTION_PERSONAL, "lastname"),
-                           self.encoding)
-        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-            return u"Lastname"
-
-    def set_photo(self, value):
-        AbstractPersonalData.set_photo(self, value)
+                        self.lastname.encode(self.encoding))
         self.config.set(SECTION_PERSONAL, "photo",
-                        value.encode(self.encoding))
-        return value.encode(self.encoding)
-    
-    def get_photo(self):
-        try:
-            photo = unicode(self.config.get(SECTION_PERSONAL, "photo"),
-                            self.encoding)
-            if not os.path.exists(photo):
-                photo = QUESTION_MARK()
-        except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-            photo = QUESTION_MARK()
-        return photo
-
-    def set_email(self, value):
-        AbstractPersonalData.set_email(self, value)
+                        self.photo.encode(self.encoding))
         self.config.set(SECTION_PERSONAL, "email",
-                        value.encode(self.encoding))
-        return value.encode(self.encoding)
-    
-    def get_email(self):
+                        self.email.encode(self.encoding))
+
+    def load_personals(self):
         try:
-            return unicode(self.config.get(SECTION_PERSONAL, "email"),
-                           self.encoding)
+            self.pseudo = unicode(self.config.get(SECTION_PERSONAL, "pseudo"),
+                                  self.encoding)
+            self.title = unicode(self.config.get(SECTION_PERSONAL, "title"),
+                                 self.encoding)
+            self.firstname = unicode(self.config.get(SECTION_PERSONAL, "firstname"),
+                                     self.encoding)
+            self.lastname = unicode(self.config.get(SECTION_PERSONAL, "lastname"),
+                                    self.encoding)
+            self.photo = unicode(self.config.get(SECTION_PERSONAL, "photo"),
+                                 self.encoding)
+            self.email = unicode(self.config.get(SECTION_PERSONAL, "email"),
+                                 self.encoding)
         except (ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-            return u"email"
+            log("could not read details")
 
     # CUSTOM TAB
     def has_custom_attribute(self, key):
@@ -322,6 +270,7 @@ class FileSaverMixin(DocSaverMixin):
     def save(self, path):
         """fill document with information from .profile file"""
         self._set_repositories()
+        self._set_personals()
         self._set_files()
         self._set_peers()
         DocSaverMixin.save(self, path)
@@ -330,12 +279,14 @@ class FileSaverMixin(DocSaverMixin):
         """fill document with information from .profile file"""
         result = DocSaverMixin.load(self, path)
         self.get_files()
+        self.load_personals()
         self.get_peers()
         return result
 
     def to_stream(self):
         """returns a file object containing values"""
         self._set_repositories()
+        self._set_personals()
         self._set_files()
         self._set_peers()
         return DocSaverMixin.to_stream(self)

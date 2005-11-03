@@ -62,7 +62,6 @@ class DocumentTest(unittest.TestCase):
     # PERSONAL TAB
     def test_pseudo(self):
         """pseudo as unicode"""
-        self.assertRaises(NotImplementedError, self.abstract_doc.get_pseudo)
         for document in self.documents:
             self.assertRaises(TypeError, document.set_pseudo, "atao")
             self.assertRaises(TypeError, document.set_pseudo, [u"atao", ])
@@ -70,7 +69,6 @@ class DocumentTest(unittest.TestCase):
             
     def test_title(self):
         """title as unicode"""
-        self.assertRaises(NotImplementedError, self.abstract_doc.get_title)
         for document in self.documents:
             self.assertRaises(TypeError, document.set_title, "Mr")
             self.assertRaises(TypeError, document.set_title, [u"Mr", ])
@@ -78,7 +76,6 @@ class DocumentTest(unittest.TestCase):
         
     def test_firstname(self):
         """firstname as unicode"""
-        self.assertRaises(NotImplementedError, self.abstract_doc.get_firstname)
         for document in self.documents:
             self.assertRaises(TypeError, document.set_firstname, "manu")
             self.assertRaises(TypeError, document.set_firstname, [u"manu", ])
@@ -86,7 +83,6 @@ class DocumentTest(unittest.TestCase):
         
     def test_lastname(self):
         """lastname as unicode"""
-        self.assertRaises(NotImplementedError, self.abstract_doc.get_lastname)
         for document in self.documents:
             self.assertRaises(TypeError, document.set_lastname, "breton")
             self.assertRaises(TypeError, document.set_lastname, [u"breton", ])
@@ -94,14 +90,11 @@ class DocumentTest(unittest.TestCase):
     
     def test_photo(self):
         """photo as unicode"""
-        self.assertRaises(NotImplementedError, self.abstract_doc.get_photo)
         for document in self.documents:
-            self.assertRaises(TypeError, document.set_photo, "./dummy/dummy.jpg")
             document.set_photo(force_unicode(unittest.__file__))
         
     def test_email(self):
         """email as unicode"""
-        self.assertRaises(NotImplementedError, self.abstract_doc.get_email)
         for document in self.documents:
             self.assertRaises(TypeError, document.set_email, "manu@ft.com")
             self.assertRaises(TypeError, document.set_email, [u"manu@ft", ])

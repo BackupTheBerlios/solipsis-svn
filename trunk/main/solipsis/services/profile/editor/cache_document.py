@@ -33,72 +33,10 @@ class CachePersonalMixin(AbstractPersonalData):
     """Implements API for all pesonal data in cache"""
 
     def __init__(self):
-        self.pseudo = u""
-        self.title = u""
-        self.firstname = u"Name"
-        self.lastname = u"Lastname"
-        self.photo = QUESTION_MARK()
-        self.email = u"email"
+        AbstractPersonalData.__init__(self)
         # dictionary of file. {att_name : att_value}
         self.custom_attributes = {}
-        AbstractPersonalData.__init__(self)
         
-    # PERSONAL TAB
-    def set_pseudo(self, pseudo):
-        if AbstractPersonalData.set_pseudo(self, pseudo) is False:
-            return False
-        self.pseudo = pseudo
-        return self.pseudo
-    
-    def get_pseudo(self):
-        return self.pseudo
-    
-    def set_title(self, title):
-        if AbstractPersonalData.set_title(self, title) is False:
-            return False
-        self.title = title
-        return self.title
-    
-    def get_title(self):
-        return self.title
-        
-    def set_firstname(self, firstname):
-        """sets new value for firstname"""
-        if AbstractPersonalData.set_firstname(self, firstname) is False:
-            return False
-        self.firstname = firstname
-        return self.firstname
-    
-    def get_firstname(self):
-        return self.firstname
-
-    def set_lastname(self, lastname):
-        if AbstractPersonalData.set_lastname(self, lastname) is False:
-            return False
-        self.lastname = lastname
-        return self.lastname
-    
-    def get_lastname(self):
-        return self.lastname
-
-    def set_photo(self, path):
-        if AbstractPersonalData.set_photo(self, path) is False:
-            return False
-        self.photo = path
-        return self.photo
-    
-    def get_photo(self):
-        return self.photo
-
-    def set_email(self, email):
-        if AbstractPersonalData.set_email(self, email) is False:
-            return False
-        self.email = email
-        return self.email
-    
-    def get_email(self):
-        return self.email
-
     # CUSTOM TAB
     def has_custom_attribute(self, key):
         return self.custom_attributes.has_key(key)

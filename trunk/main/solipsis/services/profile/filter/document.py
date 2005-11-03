@@ -82,12 +82,11 @@ class FilterMixin:
         for a_filter in filters:
             matches = []
             if isinstance(a_filter, PeerFilter):
-                matches += a_filter.match(peer_desc.node_id,
-                                          peer_desc.custom_as_dict(),
-                                          **peer_desc.peer_as_dict())
+                matches += a_filter.match(peer_desc.node_id, peer_desc)
             else:
-                matches += a_filter.match(peer_desc.node_id,
-                                          peer_desc.files_as_dicts())
+                matches += a_filter.match(
+                    peer_desc.node_id,
+                    peer_desc.document.get_shared_files().flatten())
             # order results
             if a_filter.filter_name in self.results:
                 self.results[a_filter.filter_name][peer_desc.node_id] = matches
