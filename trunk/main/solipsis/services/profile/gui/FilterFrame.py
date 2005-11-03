@@ -14,6 +14,7 @@ from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxy
 
 from solipsis.services.profile import REGEX_HTML, PROFILE_EXT, FILTER_EXT
+from solipsis.services.profile.tools.message import log
 from solipsis.services.profile.tools.peer import PeerDescriptor
 from solipsis.services.profile.tools.prefs import get_prefs, set_prefs
 from solipsis.services.profile.editor.facade import get_facade
@@ -263,8 +264,8 @@ class FilterFrame(wx.Frame):
     # events #########################################################
     def on_activate(self, event): # wxGlade: FilterFrame.<event_handler>
         """activate service"""
-        print self.activate_item.IsChecked() and "Activating..." \
-              or "Disactivated"
+        log(self.activate_item.IsChecked() and "Activating..." \
+              or "Disactivated")
         get_filter_facade()._activated = self.activate_item.IsChecked()
         event.Skip()
 
@@ -338,7 +339,7 @@ class FilterFrame(wx.Frame):
                 self.edit_file_panel.update(selected_filter)
                 self.view_file_panel.update(filter_names[0])
             else:
-                print "unrecognised filter", selected_filter.__class__.__name__
+                log("unrecognised filter", selected_filter.__class__.__name__)
             # get ids to display in notebook
             peer_ids = []
             for filter_name in filter_names:

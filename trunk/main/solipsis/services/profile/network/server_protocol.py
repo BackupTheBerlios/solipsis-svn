@@ -15,7 +15,8 @@ from twisted.protocols import basic
 from solipsis.node.discovery import stun
 from solipsis.navigator.main import build_params
 from solipsis.util.network import get_free_port, release_port
-from solipsis.services.profile.tools.message import display_warning, display_status
+from solipsis.services.profile.tools.message import log, display_warning, \
+     display_status
 from solipsis.services.profile.network.messages import Message
 
 class ProfileServerProtocol(basic.LineOnlyReceiver):
@@ -35,7 +36,7 @@ class ProfileServerProtocol(basic.LineOnlyReceiver):
         if not self.factory.network.peers.assert_ip(remote_ip):
             self.transport.loseConnection()
         else:
-            display_status(_("%s has connected"% remote_ip))
+            log(_("%s has connected"% remote_ip))
             peer = self.factory.network.peers.remote_ips[remote_ip]
             peer.server.connected(self)
         
@@ -43,11 +44,11 @@ class ProfileServerProtocol(basic.LineOnlyReceiver):
         """called when transfer complete"""
         remote_ip = self.transport.getPeer().host
         if self.factory.network.peers.assert_ip(remote_ip):
-            display_status(_("%s disconnected"% remote_ip))
+            log(_("%s disconnected"% remote_ip))
             peer = self.factory.network.peers.remote_ips[remote_ip]
             peer.server.disconnected()
         else:
-            display_status(_("%s already disconnected"% remote_ip))
+            log(_("%s already disconnected"% remote_ip))
 
 class ProfileServerFactory(ServerFactory):
     """server listening on known port. It will spawn a dedicated

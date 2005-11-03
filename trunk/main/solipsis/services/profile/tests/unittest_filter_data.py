@@ -14,8 +14,16 @@ import os.path
 from solipsis.services.profile import FILTER_EXT, QUESTION_MARK
 from solipsis.services.profile.tools.prefs import get_prefs, set_prefs
 from solipsis.services.profile.tools.peer import PeerDescriptor
+from solipsis.services.profile.editor.cache_document import CacheDocument
 from solipsis.services.profile.filter.data import FilterValue, \
      FileFilter, PeerFilter, create_regex, create_key_regex
+
+class ToBeMatch:
+    def __init__(self, expr=None, **kwargs):
+        if not expr is None:
+            self.expr = expr
+        for arg_name, arg_value in kwargs.items():
+            setattr(self, arg_name, arg_value)
 
 class ValuesTest(unittest.TestCase):
 
@@ -37,38 +45,47 @@ class ValuesTest(unittest.TestCase):
         self.title = FilterValue("title", "men", True)
         self.assertEquals(str(self.title), "men, (1)")
         self.assertEquals(self.title.activated, True)
-        self.assertEquals(self.title.does_match("bob", "Good"), False)
-        self.assertEquals(self.title.does_match("bob", "men").match, "men")
-        self.assertEquals(self.title.does_match("bob", "women").match, "women")
+        self.assertEquals(False,
+            self.title.does_match("bob", ToBeMatch("Good"), "expr"))
+        self.assertEquals("men",
+            self.title.does_match("bob", ToBeMatch("men"), "expr").get_match())
+        self.assertEquals("women",
+            self.title.does_match("bob", ToBeMatch("women"), "expr").get_match())
 
     def test_setters(self):
         self.title.set_value("men")
-        self.assert_(self.title.does_match("bob", "Good Omens"))
-        self.assert_(self.title.does_match("bob", "women"))
+        self.assert_(self.title.does_match("bob", ToBeMatch("Good Omens"), "expr"))
+        self.assert_(self.title.does_match("bob", ToBeMatch("women"), "expr"))
         self.title.set_value("women")
-        self.assertEquals(self.title.does_match("bob", "Good Omens"), False)
-        self.assert_(self.title.does_match("bob", "women"))
+        self.assertEquals(False, 
+            self.title.does_match("bob", ToBeMatch("Good Omens"), "expr"))
+        self.assert_(self.title.does_match("bob", ToBeMatch("women"), "expr"))
         self.title.activated = False
-        self.assertEquals(self.title.does_match("bob", "Good Omens"), False)
-        self.assertEquals(self.title.does_match("bob", "women"), False)
+        self.assertEquals(False, 
+            self.title.does_match("bob", ToBeMatch("Good Omens"), "expr"))
+        self.assertEquals(False, 
+            self.title.does_match("bob", ToBeMatch("women"), "expr"))
 
     def test_match(self):
         self.title.set_value("men")
-        match = self.title.does_match("bob", "Good Omens")
+        match = self.title.does_match("bob", ToBeMatch("Good Omens"), "expr")
         self.assertEquals(match.get_name(), "title")
         self.assertEquals(match.get_description(), "men")
-        self.assertEquals(match.match, "Good Omens")
-        match = self.title.does_match("bob", "women")
+        self.assertEquals(match.get_match(), "Good Omens")
+        match = self.title.does_match("bob", ToBeMatch("women"), "expr")
         self.assertEquals(match.get_name(), "title")
         self.assertEquals(match.get_description(), "men")
-        self.assertEquals(match.match, "women")
+        self.assertEquals(match.get_match(), "women")
         
     def test_blank(self):
         self.title.set_value("")
         self.assertEquals(self.title.activated, True)
-        self.assertEquals(self.title.does_match("bob", "Good Omens"), False)
-        self.assertEquals(self.title.does_match("bob", "men"), False)
-        self.assertEquals(self.title.does_match("bob", "women"), False)
+        self.assertEquals(False, 
+            self.title.does_match("bob", ToBeMatch("Good Omens"), "expr"))
+        self.assertEquals(False, 
+            self.title.does_match("bob", ToBeMatch("men"), "expr"))
+        self.assertEquals(False, 
+            self.title.does_match("bob", ToBeMatch("women"), "expr"))
 
 class FiltersTest(unittest.TestCase):
 
@@ -82,20 +99,20 @@ class FiltersTest(unittest.TestCase):
         self.file_filter = FileFilter("test file", **{
             "name": "mp3"})
         # properties
-        self.peer_props = {
-            "title": "Mr",
-            "firstname": "Emmanuel",
-            "lastname": "Breton",
-            "pseudo": "emb",
-            "photo": "none",
-            "email": "emb@logilab.fr"}
-        self.custom_props = {
-            "book": "Harry Potter",
-            "movie": "Leon",
-            "sport": "biking",}
-        self.file_props = {
+        doc = CacheDocument()
+        doc.title = "Mr"
+        doc.firstname = "Emmanuel"
+        doc.lastname = "Breton"
+        doc.pseudo = "emb"
+        doc.photo = "none"
+        doc.email = "emb@logilab.fr"
+        doc.add_custom_attributes(u"book", u"Harry Potter")
+        doc.add_custom_attributes(u"movie", u"Leon")
+        doc.add_custom_attributes(u"sport", u"biking")
+        self.peer_desc = PeerDescriptor("bob", document=doc)
+        self.file_props = ToBeMatch(**{
             "name": "Hero.mp3",
-            "size": "3000"}
+            "size": "3000"})
 
     def test_creation(self):
         name, new_filter = PeerFilter.from_str("peer_bob", [
@@ -121,15 +138,14 @@ class FiltersTest(unittest.TestCase):
         self.assertEquals(1, len(matches))
         self.assertEquals("name", matches[0].get_name())
         self.assertEquals("mp3", matches[0].get_description())
-        self.assertEquals("Hero.mp3", matches[0].match)
+        self.assertEquals("Hero.mp3", matches[0].get_match())
 
     def test_peer_filter(self):
-        matches =  self.peer_filter.match("bob", self.custom_props,
-                                          **self.peer_props)
+        matches =  self.peer_filter.match("bob", self.peer_desc)
         self.assertEquals(3, len(matches))
         self.assertEquals("title", matches[0].get_name())
         self.assertEquals("b", matches[1].get_description())
-        self.assertEquals("emb", matches[2].match)
+        self.assertEquals("emb", matches[2].get_match())
 
     def test_and_filters(self):
         p_filter = PeerFilter("test peer", filter_or=False, **{
@@ -137,27 +153,23 @@ class FiltersTest(unittest.TestCase):
             "firstname": "Bob",
             "lastname": "b",
             "pseudo": "emb"})
-        matches =  p_filter.match("bob", {},
-                                  **self.peer_props)
+        matches =  p_filter.match("bob", self.peer_desc)
         self.assertEquals([], matches)
         # ok
         p_filter = PeerFilter("test peer", filter_or=False, **{
             "title": "Mr",
             "lastname": "b",
             "pseudo": "emb"})
-        matches =  p_filter.match("bob", {},
-                                  **self.peer_props)
+        matches =  p_filter.match("bob", self.peer_desc)
         self.assertEquals(3, len(matches))
 
     def test_update(self):
         self.peer_filter.update_title(FilterValue("title", "Mss", True))
         self.assertEquals(2, len(
-            self.peer_filter.match("bob", self.custom_props,
-                                   **self.peer_props)))
+            self.peer_filter.match("bob", self.peer_desc)))
         self.peer_filter.update_email(FilterValue("email", "fr", True))
         self.assertEquals(3, len(
-            self.peer_filter.match("bob", self.custom_props,
-                                   **self.peer_props)))
+            self.peer_filter.match("bob", self.peer_desc)))
 
     def test_update_properties(self):
         self.assertEquals("Mr", self.peer_filter.title.description)
@@ -171,8 +183,7 @@ class FiltersTest(unittest.TestCase):
     def test_customs(self):
         self.peer_filter.update_dict(FilterValue("book", "potter", True))
         self.peer_filter.update_dict(FilterValue("sport", "bik", True))
-        matches =  self.peer_filter.match("bob", self.custom_props,
-                                          **self.peer_props)
+        matches =  self.peer_filter.match("bob", self.peer_desc)
         self.assertEquals(5, len(matches))
         self.assertEquals("book", matches[3].get_name())
         self.assertEquals("bik", matches[4].get_description())

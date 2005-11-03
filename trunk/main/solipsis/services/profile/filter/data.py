@@ -233,7 +233,7 @@ class FileFilter(AbstractFilter):
     """Implementation of AbstractFilter for files: two fields might be
     used for matches: name & size"""
 
-    ALL_FILTERS = ["name", "size", "path"]
+    ALL_FILTERS = ["name", "size"]
     PREFIX = "file_"
 
     def __init__(self, filter_name, filter_or=True, **properties):
@@ -294,7 +294,7 @@ class PeerFilter(AbstractFilter):
             return self._customs[custom_name]
         def set_custom(self, custom_name, value):
             if custom_name in self._customs:
-                 self._customs.append(value)
+                self._customs.append(value)
             else:
                 self._customs[custom_name] = [value]
 

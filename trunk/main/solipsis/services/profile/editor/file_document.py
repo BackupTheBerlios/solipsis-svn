@@ -66,9 +66,11 @@ class FilePersonalMixin(AbstractPersonalData):
                                   self.encoding)
             self.title = unicode(self.config.get(SECTION_PERSONAL, "title"),
                                  self.encoding)
-            self.firstname = unicode(self.config.get(SECTION_PERSONAL, "firstname"),
+            self.firstname = unicode(self.config.get(SECTION_PERSONAL,
+                                                     "firstname"),
                                      self.encoding)
-            self.lastname = unicode(self.config.get(SECTION_PERSONAL, "lastname"),
+            self.lastname = unicode(self.config.get(SECTION_PERSONAL,
+                                                    "lastname"),
                                     self.encoding)
             self.photo = unicode(self.config.get(SECTION_PERSONAL, "photo"),
                                  self.encoding)

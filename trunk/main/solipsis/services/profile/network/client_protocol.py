@@ -11,7 +11,7 @@ from twisted.internet.protocol import ClientFactory
 from twisted.internet import reactor
 from twisted.protocols import basic
 
-from solipsis.services.profile.tools.message import display_status
+from solipsis.services.profile.tools.message import log
 
 class ProfileClientProtocol(basic.LineReceiver):
     """Intermediate client checking that a remote server exists."""
@@ -20,7 +20,7 @@ class ProfileClientProtocol(basic.LineReceiver):
         self.peer_client = None
 
     def lineReceived(self, line):
-        display_status(_("Unexpected line received: %s"% line))
+        log(_("Unexpected line received: %s"% line))
 
     def rawDataReceived(self, data):
         self.peer_client.rawDataReceived(self.transport, data)

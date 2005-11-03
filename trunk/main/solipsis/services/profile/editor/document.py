@@ -34,7 +34,6 @@ import tempfile
 import gettext
 _ = gettext.gettext
 
-from os.path import isfile
 from traceback import format_list
 
 from solipsis.services.profile import DEFAULT_INTERESTS, QUESTION_MARK, \

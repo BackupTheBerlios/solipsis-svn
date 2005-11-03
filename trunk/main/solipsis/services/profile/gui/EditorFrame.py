@@ -7,8 +7,9 @@ import sys
 from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxy
 
-from solipsis.services.profile.editor.facade import get_facade
+from solipsis.services.profile.tools.message import log
 from solipsis.services.profile.tools.prefs import get_prefs, set_prefs
+from solipsis.services.profile.editor.facade import get_facade
 
 from solipsis.services.profile.gui.FileDialog import FileDialog
 from solipsis.services.profile.gui.ProfileDialog import ProfileDialog
@@ -101,8 +102,8 @@ class EditorFrame(wx.Frame):
         self.profile_dlg.on_change_facade(auto_refresh=True)
 
     def cb_selected(self, file_name):
-            self.share_item.SetText(_("Share '%s'"% file_name))
-            self.unshare_item.SetText(_("UnShare '%s'"% file_name))
+        self.share_item.SetText(_("Share '%s'"% file_name))
+        self.unshare_item.SetText(_("UnShare '%s'"% file_name))
 
     # EVENTS
     
@@ -130,8 +131,8 @@ class EditorFrame(wx.Frame):
     def on_activate(self, evt):
         """activate service"""
         activate = self.activate_item.IsChecked()
-        print activate and "Activating..." \
-              or "Disactivated"
+        log(activate and "Activating..." \
+              or "Disactivated")
         get_facade()._activated = activate
         
     def on_save(self, evt):

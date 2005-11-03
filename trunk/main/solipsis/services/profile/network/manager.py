@@ -8,8 +8,10 @@ import gettext
 _ = gettext.gettext
 
 from solipsis.services.profile.network.peers import PeerManager
-from solipsis.services.profile.network.client_protocol import ProfileClientFactory
-from solipsis.services.profile.network.server_protocol import ProfileServerFactory
+from solipsis.services.profile.network.client_protocol import \
+     ProfileClientFactory
+from solipsis.services.profile.network.server_protocol import \
+     ProfileServerFactory
 from solipsis.services.profile.network.messages import Message, SecurityAlert, \
      MESSAGE_HELLO
 

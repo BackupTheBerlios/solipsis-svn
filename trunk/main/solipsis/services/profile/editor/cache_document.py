@@ -25,7 +25,6 @@ independant from views"""
 
 __revision__ = "$Id$"
 
-from solipsis.services.profile import QUESTION_MARK
 from solipsis.services.profile.editor.document import SaverMixin, \
      AbstractPersonalData, FileSharingMixin, ContactsMixin
 

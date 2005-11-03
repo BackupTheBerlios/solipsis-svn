@@ -9,6 +9,7 @@ from solipsis.util.wxutils import _
 from solipsis.util.uiproxy import UIProxy
 
 from solipsis.services.profile import PROFILE_FILE
+from solipsis.services.profile.tools.message import log
 from solipsis.services.profile.tools.prefs import get_prefs
 from solipsis.services.profile.tools.peer import PeerDescriptor
 from solipsis.services.profile.editor.file_document import FileDocument
@@ -174,7 +175,7 @@ class ViewerFrame(wx.Frame):
             if peer_desc.connected:
                 self.plugin.get_profile(peer_id)
             else:
-                print "not connected"
+                display_status(peer_desc.node_id, "not connected")
                 self.display_profile(peer_desc)
         else:
             "no peer selected"
@@ -187,10 +188,10 @@ class ViewerFrame(wx.Frame):
             if peer_desc.connected:
                 self.plugin.get_blog_file(peer_id)
             else:
-                print "not connected"
+                display_status(peer_desc.node_id, "not connected")
                 self.display_blog(peer_desc)
         else:
-            print "no peer selected"
+            display_warning("no peer selected")
 
     def on_get_files(self, evt):
         """display peer's files"""
@@ -200,7 +201,7 @@ class ViewerFrame(wx.Frame):
             if peer_desc.connected:
                 self.plugin.select_files(peer_id)
             else:
-                print "not connected"
+                display_status(peer_desc.node_id, "not connected")
                 self.display_files(peer_desc)
         else:
             "no peer selected"
@@ -211,7 +212,7 @@ class ViewerFrame(wx.Frame):
         if peer_id:
             get_facade().make_friend(peer_id)
         else:
-            print "no peer selected"
+            display_warning("no peer selected")
 
     def on_blacklist(self, evt):
         """end application"""
@@ -219,7 +220,7 @@ class ViewerFrame(wx.Frame):
         if peer_id:
             get_facade().blacklist_peer(peer_id)
         else:
-            print "no peer selected"
+            display_warning("no peer selected")
 
     def on_anonymous(self, evt):
         """end application"""
@@ -227,7 +228,7 @@ class ViewerFrame(wx.Frame):
         if peer_id:
             get_facade().unmark_peer(peer_id)
         else:
-            print "no peer selected"
+            display_warning("no peer selected")
 
     def on_about(self, evt):
         """display about"""

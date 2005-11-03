@@ -6,6 +6,7 @@ import wx
 import wx.gizmos as gizmos
 from solipsis.util.wxutils import _
 
+from solipsis.services.profile.tools.message import log
 from solipsis.services.profile.filter.facade import get_filter_facade
 
 # begin wxGlade: dependencies
@@ -67,7 +68,7 @@ class ViewFilePanel(wx.Panel):
                     self.matching_list.SetItemText(match_item, matche.match, 1)
             self.matching_list.Expand(self.root)
         except KeyError:
-            print "no match for", filter_name
+            log("no match for", filter_name)
 
     def __set_properties(self):
         # begin wxGlade: ViewFilePanel.__set_properties

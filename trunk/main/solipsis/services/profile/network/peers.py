@@ -19,7 +19,8 @@ from twisted.internet import defer
 from solipsis.services.profile import VERSION, UNIVERSAL_SEP
 from solipsis.services.profile.tools.prefs import get_prefs
 from solipsis.services.profile.tools.files import ContainerException
-from solipsis.services.profile.tools.message import display_status, display_error
+from solipsis.services.profile.tools.message import log, display_status, \
+     display_warning, display_error
 from solipsis.services.profile.editor.document import read_document
 from solipsis.services.profile.editor.facade import get_facade
 from solipsis.services.profile.filter.facade import get_filter_facade
@@ -134,11 +135,14 @@ class PeerConnected(PeerState):
                 if file_desc._shared:
                     display_status("sending %s"% file_name)
                     deferred = basic.FileSender().\
-                               beginFileTransfer(open(file_name, "rb"), transport)
+                               beginFileTransfer(open(file_name, "rb"),
+                                                 transport)
                     deferred.addCallback(lambda x: transport.loseConnection())
                 else:
                     self.peer_server.protocol.factory.send_udp_message(
-                        self.peer_server.peer.peer_id, MESSAGE_ERROR, message.data)
+                        self.peer_server.peer.peer_id,
+                        MESSAGE_ERROR,
+                        message.data)
                     SecurityAlert(self.peer_server.peer.peer_id,
                                   "Trying to download unshare file %s"\
                                   % file_name)
@@ -266,7 +270,7 @@ class PeerClient(dict):
         self.update_download(self[transport].size)
         
     def _fail_client(self, transport, reason):
-        display_warning("Action [%s] failed: %s"\
+        display_status("Action [%s] failed: %s"\
                         % (str(self[transport].message), reason))
         self[transport].close(reason)
 
@@ -404,7 +408,7 @@ class PeerManager(threading.Thread):
                 # Empty exception is expected when no message received
                 # during period defined by CHECKING_FREQUENCY.
                 self._check_peers(datetime.datetime.now())
-        display_status("stopping server")
+        log("stopping server")
 
     def stop(self):
         self.queue.put(None)

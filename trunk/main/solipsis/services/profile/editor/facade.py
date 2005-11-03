@@ -25,10 +25,11 @@ import pickle
 
 from StringIO import StringIO
 from solipsis.services.profile import ENCODING, PROFILE_EXT
-from solipsis.services.profile.editor.view import HtmlView
-from solipsis.services.profile.editor.cache_document import CacheDocument
+from solipsis.services.profile.tools.message import log
 from solipsis.services.profile.tools.peer import PeerDescriptor
 from solipsis.services.profile.tools.blog import Blogs
+from solipsis.services.profile.editor.view import HtmlView
+from solipsis.services.profile.editor.cache_document import CacheDocument
 
 def create_facade(node_id):
     """implements pattern singleton on Facade. User may specify
@@ -81,7 +82,7 @@ class AbstractFacade:
                 getattr(view, updater)()
             return result
         except TypeError, error:
-            print >> stderr, str(error)
+            log(error)
             raise
    
     def get_peers(self):
@@ -104,7 +105,7 @@ class AbstractFacade:
             self._desc.load(directory=directory,
                             doc_extension=doc_extension)
         except ValueError, err:
-            print err, ": Using blank one"
+            log(err, ": Using blank one")
         # update
         for view in self.views.values():
             view.import_desc(self._desc)

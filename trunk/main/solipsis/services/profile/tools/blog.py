@@ -27,10 +27,9 @@ import time
 import gettext
 _ = gettext.gettext
 
-from solipsis.services.profile import ENCODING, PROFILE_EXT, \
-     BLOG_EXT, BULB_ON_IMG, BULB_OFF_IMG, VERSION
-from solipsis.services.profile.tools.message import display_warning, display_error
-from solipsis.services.profile.tools.prefs import get_prefs
+from solipsis.services.profile import ENCODING, VERSION
+from solipsis.services.profile.tools.message import log, display_warning, \
+     display_error, display_status
 
 class Blogs:
     """container for all blogs, responsible for authentification"""
@@ -154,7 +153,7 @@ def load_blogs(path):
             blogs = pickle.load(blog_file)
             blog_file.close()
         except:
-            display_warning(_("Could not read blog file. Using a blank one."))
+            log(_("Could not read blog file. Using a blank one."))
             return Blogs()
         return retro_compatibility(blogs)
     else:
@@ -165,6 +164,6 @@ def retro_compatibility(blogs):
     if blogs.version == "0.4.0":
         return blogs
     else:
-        display_warning(_("Could not read blog file. Using a blank one."))
+        display_status(_("Could not read blog file. Using a blank one."))
         return Blogs()
         

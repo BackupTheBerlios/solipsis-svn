@@ -4,14 +4,13 @@
 
 __revision__ = "$Id: network.py 902 2005-10-14 16:18:06Z emb $"
 
-import sys
 import datetime
 import tempfile
 import gettext
 _ = gettext.gettext
 
 from solipsis.util.network import parse_address
-from solipsis.services.profile.tools.message import display_warning, display_status
+from solipsis.services.profile.tools.message import display_status
 
 # Alerts #############################################################
 class SecurityAlert(Exception):
@@ -53,9 +52,8 @@ class SecurityWarnings(dict):
                 display_status(_("%d retries of potential hacker '%s'"\
                                  % (nb_tries, key)))
             elif nb_tries == 1:
-                display_warning(_("'%s' has not registered properly: %s"\
-                                  % (key, str(self[key][0]))),
-                                title="Security Warning")
+                display_status(_("'%s' has not registered properly: %s"\
+                                  % (key, self[key][0])))
         #else no warning...
 
 # Messages ###########################################################
