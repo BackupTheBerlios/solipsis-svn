@@ -115,21 +115,27 @@ class PeerConnected(PeerState):
 
     def execute(self, message):
         transport = self.peer_server.protocol.transport
+        def on_failure(reason, transfer):
+            log("transfert of %s failed: %s"% (transfert, str(reason)))
+            transport.loseConnection()
         if message.command in [MESSAGE_HELLO, MESSAGE_PROFILE]:
             file_obj = get_facade()._desc.document.to_stream()
             deferred = basic.FileSender().\
                        beginFileTransfer(file_obj, transport)
             deferred.addCallback(lambda x: transport.loseConnection())
+            deferred.addErrback(on_failure, "profile")
         elif message.command == MESSAGE_BLOG:
             blog_stream = get_facade().get_blog_file()
             deferred = basic.FileSender().\
                        beginFileTransfer(blog_stream, transport)
             deferred.addCallback(lambda x: transport.loseConnection())
+            deferred.addErrback(on_failure, "blog")
         elif message.command == MESSAGE_SHARED:
             files_stream = get_facade().get_shared_files()
             deferred = basic.FileSender().beginFileTransfer(files_stream,
                                                             transport)
             deferred.addCallback(lambda x: transport.loseConnection())
+            deferred.addErrback(on_failure, "shared files")
         elif message.command == MESSAGE_FILES:
             split_path, file_size = extract_data_file(message.data)
             file_name = os.sep.join(split_path)
@@ -142,6 +148,7 @@ class PeerConnected(PeerState):
                                beginFileTransfer(open(file_name, "rb"),
                                                  transport)
                     deferred.addCallback(lambda x: transport.loseConnection())
+                    deferred.addErrback(on_failure, file_name)
                 else:
                     self.peer_server.protocol.factory.send_udp_message(
                         self.peer_server.peer.peer_id,
@@ -265,6 +272,8 @@ class PeerClient(dict):
             deferred.addCallback(self._on_complete_pickle)
         elif command == MESSAGE_FILES:
             deferred.addCallback(self._on_complete_file)
+            deferred.addErrback(lambda x : display_status(
+                "Could not get file %s: %s"% (data, str(x))))
         else:
             raise ValueError("ERROR in _connect: %s not valid"% command)
         return deferred

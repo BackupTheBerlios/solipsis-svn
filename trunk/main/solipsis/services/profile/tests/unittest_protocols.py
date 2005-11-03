@@ -66,13 +66,13 @@ class NetworkTest(unittest.TestCase, AsynchroneMixin):
 
     def test_intrusion(self):
         self.assert_(not SecurityWarnings.instance().has_key("boby"))
-        self.network.on_service_data("boby", "HELLO 127.0.0.1:1111")
-        self.assertEquals(1, SecurityWarnings.instance().count("boby"))
         self.network.get_profile("boby")
         self.network.get_blog_file("boby")
         self.network.get_shared_files("boby")
         self.network.get_files("boby", ["whatever"])
-        self.assertEquals(5, SecurityWarnings.instance().count("boby"))
+        self.assertEquals(4, SecurityWarnings.instance().count("boby"))
+        self.network.on_service_data("boby", "HELLO 127.0.0.1:1111")
+        self.assertEquals(4, SecurityWarnings.instance().count("boby"))
 
     def test_bad_init(self):
         self.assert_(not SecurityWarnings.instance().has_key("boby"))

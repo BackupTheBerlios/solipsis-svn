@@ -179,7 +179,8 @@ class NetworkTest(BaseTest):
         self.assert_peer()
         # change peer
         self.network.on_change_peer(peer, "profile")
-        self.assert_new_peer()
+        self.assertEquals(True, self.manager.assert_id("toto"))
+        self.assertEquals(True, self.manager.assert_ip("127.0.0.1"))
         self.network.on_service_data("toto",
                                      "HELLO 127.0.0.1:23501 data youpi")
         self.assert_peer()

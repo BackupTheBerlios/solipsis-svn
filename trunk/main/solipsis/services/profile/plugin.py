@@ -25,7 +25,8 @@ _ = gettext.gettext
 
 from solipsis.services.plugin import ServicePlugin
 from solipsis.services.profile import set_solipsis_dir
-from solipsis.services.profile.tools.message import log, display_message, display_status
+from solipsis.services.profile.tools.message import log, display_message, \
+     display_status, display_error
 from solipsis.services.profile.tools.prefs import get_prefs
 from solipsis.services.profile.editor.facade import create_facade, get_facade
 from solipsis.services.profile.filter.facade import \
@@ -176,6 +177,7 @@ class Plugin(ServicePlugin):
         on_done = self.network.get_profile(peer_id)
         if on_done != None:
             on_done.addCallback(self._on_new_profile, peer_id)
+            on_done.addErrback(lambda x: display_error("Could not get profile: " + str(x)))
             deferred and on_done.chainDeferred(deferred)
 
     def get_blog_file(self, peer_id, deferred=None):
@@ -183,6 +185,7 @@ class Plugin(ServicePlugin):
         on_done = self.network.get_blog_file(peer_id)
         if on_done != None:
             on_done.addCallback(self._on_new_blog, peer_id)
+            on_done.addErrback(lambda x: display_error("Could not get blog: " + str(x)))
             deferred and on_done.chainDeferred(deferred)
 
     def select_files(self, peer_id, deferred=None):
@@ -190,6 +193,7 @@ class Plugin(ServicePlugin):
         on_done = self.network.get_shared_files(peer_id)
         if on_done != None:
             on_done.addCallback(self._on_shared_files, peer_id)
+            on_done.addErrback(lambda x: display_error("Could not get shared files: " + str(x)))
             deferred and on_done.chainDeferred(deferred)
 
     def get_files(self, peer_id, file_descriptors):

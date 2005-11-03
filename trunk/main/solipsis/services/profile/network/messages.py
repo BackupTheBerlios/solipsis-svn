@@ -49,10 +49,10 @@ class SecurityWarnings(dict):
         if key in self:
             nb_tries = self.count(key)
             if nb_tries > 1:
-                display_status(_("%d retries of potential hacker '%s'"\
-                                 % (nb_tries, key)))
+                display_status(_("%d failures on '%s'. Last: %s"\
+                                 % (nb_tries, key, self[key][-1])))
             elif nb_tries == 1:
-                display_status(_("'%s' has not registered properly: %s"\
+                display_status(_("ERR on '%s': %s"\
                                   % (key, self[key][0])))
         #else no warning...
 
