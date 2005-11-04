@@ -2,9 +2,9 @@ import struct, socket, time, logging, random, sys
 import twisted.internet.defer as defer
 import twisted.python.failure as failure
 
-from ntcp.punch.PuncherProtocol import PuncherProtocol
-from ntcp.punch.ConnectionPunching import ConnectionPunching
-from ntcp.connection.Connector import IConnector
+from solipsis.lib.ntcp.punch.PuncherProtocol import PuncherProtocol
+from solipsis.lib.ntcp.punch.ConnectionPunching import ConnectionPunching
+from solipsis.lib.ntcp.connection.Connector import IConnector
 
 # The NAT types: code and decode
 NatTypeCod = {

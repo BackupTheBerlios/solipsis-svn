@@ -35,14 +35,12 @@ class NetworkManager:
     # calls from plugin ##############################################
     def on_new_peer(self, peer):
         """tries to connect to new peer"""
-        log("on_new_peer", peer.id_)
         self.peers.add_peer(peer.id_)
         self.server.send_udp_message(peer.id_, MESSAGE_HELLO)
 
     def on_change_peer(self, peer, service):
         """tries to connect to new peer"""
         if self.peers.remote_ids.has_key(peer.id_):
-            log("on_change_peer", peer.id_)
             self.peers.remote_ids[peer.id_].lose()
         else:
             log("on_change_peer. Unknow", peer.id_)
@@ -51,7 +49,6 @@ class NetworkManager:
     def on_lost_peer(self, peer_id):
         """tries to connect to new peer"""
         if self.peers.remote_ids.has_key(peer_id):
-            log("on_lost_peer", peer_id)
             self.peers.remote_ids[peer_id].lose()
         else:
             log("on_lost_peer. Unknow", peer_id)
@@ -62,7 +59,6 @@ class NetworkManager:
         if not self.peers.remote_ids.has_key(peer_id):
             log("on_service_data. Unknow", peer_id, message)
             self.peers.add_peer(peer_id)
-            self.server.send_udp_message(peer_id, MESSAGE_HELLO)
         else:
             log("on_service_data", peer_id, message)
             try:

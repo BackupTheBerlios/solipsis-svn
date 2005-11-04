@@ -1,7 +1,7 @@
 import struct, socket, time, logging
 
 from twisted.internet import reactor
-from ntcp.punch.PuncherProtocol import PuncherProtocol
+from solipsis.lib.ntcp.punch.PuncherProtocol import PuncherProtocol
 
 class SNConnectionBroker (PuncherProtocol, object):
 
@@ -288,7 +288,7 @@ class SNConnectionBroker (PuncherProtocol, object):
     A request of spoofing is received.
     Create a spoofing object to spoof message
     """
-    from ntcp.punch.Spoofy import Spoofy
+    from solipsis.lib.ntcp.punch.Spoofy import Spoofy
 
     spoofy = Spoofy(self)
     spoofy.rcvForcingTcpRequest()

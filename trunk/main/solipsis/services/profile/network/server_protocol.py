@@ -15,6 +15,8 @@ from twisted.protocols import basic
 from solipsis.node.discovery import stun
 from solipsis.navigator.main import build_params
 from solipsis.util.network import get_free_port, release_port
+from solipsis.lib.ntcp.NatConnectivity import NatConnectivity
+
 from solipsis.services.profile.tools.message import log, display_warning, \
      display_status
 from solipsis.services.profile.network.messages import Message
@@ -57,7 +59,7 @@ class ProfileServerFactory(ServerFactory):
 
     protocol = ProfileServerProtocol
 
-    def __init__(self, network):
+    def __init__(self, network, udp_listener=None):
         self.network = network
         self.local_ip = socket.gethostbyname(socket.gethostname())
         # followings initialised when server started
@@ -104,4 +106,5 @@ class ProfileServerFactory(ServerFactory):
         message.port = self.public_port
         message.data = data
         if Plugin.service_api:
+            log("sending udp", message)
             Plugin.service_api.SendData(peer_id, str(message))

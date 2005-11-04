@@ -10,7 +10,7 @@ import gettext
 _ = gettext.gettext
 
 from solipsis.util.network import parse_address
-from solipsis.services.profile.tools.message import display_status
+from solipsis.services.profile.tools.message import log, display_status
 
 # Alerts #############################################################
 class SecurityAlert(Exception):
@@ -117,6 +117,7 @@ class DownloadMessage(object):
         self.size = 0
 
     def send_message(self):
+        log("sending", self.message)
         self.transport.write(str(self.message)+"\r\n")
 
     # download management ############################################
@@ -129,6 +130,7 @@ class DownloadMessage(object):
         self.file.write(data)
 
     def teardown_download(self):
+        log("download complete. received", self.size)
         self.file.seek(0)
         self.deferred.callback(self)
         

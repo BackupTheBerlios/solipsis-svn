@@ -296,8 +296,8 @@ class ConnectionPunching(Protocol, ClientFactory, object):
     """
     self.method = 'stunt1'
     try:
-      import ntcp.punch.UdpSniffy as udp_sniffer
-      import ntcp.punch.sniffy as sniffer
+      import solipsis.lib.ntcp.punch.UdpSniffy as udp_sniffer
+      import solipsis.lib.ntcp.punch.sniffy as sniffer
     except:
       self.clientConnectionFailed(self.punch, 'NTCP failed: Impacket library required')
       return

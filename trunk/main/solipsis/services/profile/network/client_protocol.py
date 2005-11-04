@@ -11,6 +11,8 @@ from twisted.internet.protocol import ClientFactory
 from twisted.internet import reactor
 from twisted.protocols import basic
 
+from solipsis.lib.ntcp.NatConnectivity import NatConnectivity
+
 from solipsis.services.profile.tools.message import log
 
 class ProfileClientProtocol(basic.LineReceiver):
@@ -32,6 +34,7 @@ class ProfileClientProtocol(basic.LineReceiver):
         if not self.factory.network.peers.assert_ip(remote_ip):
             self.transport.loseConnection()
         else:
+            log("connected to", remote_ip)
             self.setRawMode()
             peer = self.factory.network.peers.remote_ips[remote_ip]
             self.peer_client = peer.client
@@ -47,23 +50,23 @@ class ProfileClientFactory(ClientFactory):
 
     protocol = ProfileClientProtocol
 
-    def __init__(self, network):
+    def __init__(self, network, udp_listener=None):
         self.network = network
         self.transports = {}
 
     def connect(self, peer):
         """connect to remote server"""
-        log("Connecting", peer.ip,  peer.port)
+        log("Connecting", peer.ip, peer.port)
         connector = reactor.connectTCP(peer.ip,
                                        peer.port,
                                        self)
-        self.transports[id(connector.transport)] = peer
+        self.transports[id(connector)] = peer
         return connector
 
     def clientConnectionFailed(self, connector, reason):
         """Called when a connection has failed to connect."""
-        if id(connector.transport) in  self.transports:
-            peer = self.transports[id(connector.transport)]
+        if id(connector) in  self.transports:
+            peer = self.transports[id(connector)]
             peer.client._fail_client(connector.transport, reason)
         else:
-            log("Connection failed:", reason)
+            log("Connection failed. Unknown,:", reason)

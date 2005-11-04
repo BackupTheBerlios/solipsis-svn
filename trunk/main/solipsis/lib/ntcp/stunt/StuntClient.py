@@ -4,7 +4,7 @@ import twisted.internet.defer as defer
 from twisted.internet import threads
 from twisted.internet.protocol import Protocol, Factory
 
-from ntcp.stunt.StuntProtocol import StuntProtocol
+from solipsis.lib.ntcp.stunt.StuntProtocol import StuntProtocol
 
 DefaultServers = [
     ('p-maul.rd.francetelecom.fr', 3478),

@@ -59,6 +59,7 @@ class NetworkTest(unittest.TestCase, AsynchroneMixin):
         from solipsis.services.profile.network.manager import NetworkManager
         self.network = NetworkManager()
         util.wait(self.network.start(), timeout=10)
+    setUp.timeout = 10
         
     def tearDown(self):
         del SecurityWarnings.instance()["boby"]
@@ -115,7 +116,7 @@ class ServerTest(unittest.TestCase, AsynchroneMixin):
             self.network.server.stop_listening()
         deferred.addCallbacks(_on_test, on_error)
         return deferred
-    test_server.timeout = 8
+    test_server.timeout = 10
 
     def test_connection(self):
         util.wait(self.network.server.start_listening(), timeout=10)
@@ -138,7 +139,7 @@ class ServerTest(unittest.TestCase, AsynchroneMixin):
             self.wait(1)
         deferred.addCallbacks(_on_test, on_error)
         return deferred
-    test_connection.timeout = 8
+    test_connection.timeout = 10
 
 class ClientTest(unittest.TestCase):
 

@@ -87,16 +87,19 @@ class PeerRegistered(PeerState):
     """trace messages received for this peer"""
 
     def connected(self, protocol):
+        log("registered -> connected", self.peer_server.peer.peer_id)
         self.peer_server.protocol = protocol
         self.peer_server.current_state = self.peer_server.connected_state
 
     def disconnected(self):
+        log("registered -> disconnected", self.peer_server.peer.peer_id)
         self.peer_server.current_state = self.peer_server.disconnected_state
 
 class PeerDisconnected(PeerState):
     """trace messages received for this peer"""
 
     def connected(self, protocol):
+        log("disconnected -> connected", self.peer_server.peer.peer_id)
         self.peer_server.protocol = protocol
         self.peer_server.current_state = self.peer_server.connected_state
 
@@ -110,31 +113,36 @@ class PeerConnected(PeerState):
         self.peer_server.protocol = protocol
 
     def disconnected(self):
+        log("connected -> disconnected", self.peer_server.peer.peer_id)
         self.peer_server.protocol = None
         self.peer_server.current_state = self.peer_server.disconnected_state
 
     def execute(self, message):
+        log("*exec*: ", message, self.peer_server.peer.peer_id)
         transport = self.peer_server.protocol.transport
-        def on_failure(reason, transfer):
+        def on_failure(reason, transfert):
             log("transfert of %s failed: %s"% (transfert, str(reason)))
+            transport.loseConnection()
+        def on_success(result, transfert):
+            log("transfert of %s complete"% transfert)
             transport.loseConnection()
         if message.command in [MESSAGE_HELLO, MESSAGE_PROFILE]:
             file_obj = get_facade()._desc.document.to_stream()
             deferred = basic.FileSender().\
                        beginFileTransfer(file_obj, transport)
-            deferred.addCallback(lambda x: transport.loseConnection())
+            deferred.addCallback(on_success,  "profile")
             deferred.addErrback(on_failure, "profile")
         elif message.command == MESSAGE_BLOG:
             blog_stream = get_facade().get_blog_file()
             deferred = basic.FileSender().\
                        beginFileTransfer(blog_stream, transport)
-            deferred.addCallback(lambda x: transport.loseConnection())
+            deferred.addCallback(on_success,  "blog")
             deferred.addErrback(on_failure, "blog")
         elif message.command == MESSAGE_SHARED:
             files_stream = get_facade().get_shared_files()
             deferred = basic.FileSender().beginFileTransfer(files_stream,
                                                             transport)
-            deferred.addCallback(lambda x: transport.loseConnection())
+            deferred.addCallback(on_success,  "shared files")
             deferred.addErrback(on_failure, "shared files")
         elif message.command == MESSAGE_FILES:
             split_path, file_size = extract_data_file(message.data)
@@ -147,7 +155,8 @@ class PeerConnected(PeerState):
                     deferred = basic.FileSender().\
                                beginFileTransfer(open(file_name, "rb"),
                                                  transport)
-                    deferred.addCallback(lambda x: transport.loseConnection())
+
+                    deferred.addCallback(on_success, file_name)
                     deferred.addErrback(on_failure, file_name)
                 else:
                     self.peer_server.protocol.factory.send_udp_message(
@@ -162,7 +171,8 @@ class PeerConnected(PeerState):
                               "Trying to download unvalid file %s"\
                               % file_name)
         else:
-            raise ValueError("ERROR in _connect: %s not valid"% message.command)
+            SecurityAlert(self.peer_server.peer.peer_id,
+                          "ERROR in _connect: %s not valid"% message.command)
           
 # client #############################################################
 class PeerClient(dict):
@@ -253,6 +263,7 @@ class PeerClient(dict):
 
     # connection management #
     def _connect(self, command, data=None):
+        log("connect: ", command, self.peer.peer_id)
         # set download information
         message = self.peer.wrap_message(command, data)
         connector =  self.connect(self.peer)
@@ -283,9 +294,13 @@ class PeerClient(dict):
         self.update_download(self[transport].size)
         
     def _fail_client(self, transport, reason):
-        display_status("Action [%s] failed: %s"\
-                        % (str(self[transport].message), reason))
-        self[transport].close(reason)
+        try:
+            display_status("Action [%s] failed: %s"\
+                           % (str(self[transport].message), reason))
+            
+        except SecurityAlert:
+            display_status("Action failed: %s"% reason)
+            
 
     def _on_connected(self, transport):
         self[transport].send_message()
@@ -298,16 +313,19 @@ class PeerClient(dict):
     # callbacks #
     def _on_hello(self, donwload_msg):
         """callback when autoloading of profile successful"""
+        log("_on_hello: ", self.peer.peer_id)
         document = read_document(donwload_msg.file)
         get_facade().set_data(self.peer.peer_id, document, flag_update=False)
         get_filter_facade().fill_data(self.peer.peer_id, document)
         
     def _on_complete_profile(self, donwload_msg):
         """callback when finished downloading profile"""
+        log("_on_complete_profile: ", self.peer.peer_id)
         return read_document(donwload_msg.file)
 
     def _on_complete_pickle(self, donwload_msg):
         """callback when finished downloading blog"""
+        log("_on_complete_pickle: ", self.peer.peer_id)
         try:
             return pickle.load(donwload_msg.file)
         except Exception, err:
@@ -319,6 +337,7 @@ class PeerClient(dict):
 
     def _on_complete_file(self, donwload_msg):
         """callback when finished downloading file"""
+        log("_on_complete_file: ", self.peer.peer_id)
         # write downloaded file
         split_path = extract_data_file(donwload_msg.message.data)[0]
         download_path = os.path.join(get_prefs("download_repo"),
@@ -411,6 +430,7 @@ class PeerManager(threading.Thread):
                     break
                 else:
                     if message.ip in self.remote_ips:
+                        log("new message", message)
                         self.remote_ips[message.ip].server.execute(message)
                     else:
                         SecurityAlert(message.ip,

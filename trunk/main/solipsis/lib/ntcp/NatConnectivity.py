@@ -4,8 +4,8 @@ import twisted.internet.defer as defer
 from twisted.internet import threads
 import twisted.python.failure as failure
 
-from ntcp.punch.Puncher import Puncher
-import ntcp.stunt.StuntDiscovery as stunt
+from solipsis.lib.ntcp.punch.Puncher import Puncher
+import solipsis.lib.ntcp.stunt.StuntDiscovery as stunt
 
 configurationText = ['NAT presence ', \
                      'NAT type     ', \

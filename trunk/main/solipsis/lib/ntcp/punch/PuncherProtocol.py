@@ -59,7 +59,8 @@ class PuncherProtocol(DatagramProtocol):
     self.fromAddr = ('0.0.0.0', 0)
 
     # Load configuration
-    import ntcp, os
+    import solipsis.lib.ntcp as ntcp 
+    import os
     path = os.path.dirname(ntcp.__file__)
     file =  os.path.join(path, "p2pNetwork.conf")
     self.p2pConfig = ConfigParser.ConfigParser()

@@ -5,10 +5,10 @@ from twisted.internet.protocol import Protocol, ClientFactory, DatagramProtocol
 import twisted.internet.defer as defer
 from twisted.internet import reactor
 
-from ntcp.NatConnectivity import NatConnectivity
+from solipsis.lib.ntcp.NatConnectivity import NatConnectivity
 
-from ntcp.test.TcpFactory_test import TcpFactory   
-from ntcp.test.TcpFactory_test import TcpServer
+from solipsis.lib.ntcp.test.TcpFactory_test import TcpFactory   
+from solipsis.lib.ntcp.test.TcpFactory_test import TcpServer
 
 class Simulator(DatagramProtocol, object):
     """

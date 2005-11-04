@@ -5,7 +5,7 @@ import twisted.internet.defer as defer
 from twisted.internet.protocol import Factory
 from twisted.internet import reactor
 
-from ntcp.stunt.StuntProtocol import StuntProtocol
+from solipsis.lib.ntcp.stunt.StuntProtocol import StuntProtocol
 
 # Load configuration
 p2pConfig = ConfigParser.ConfigParser()

@@ -1,7 +1,7 @@
 import logging
 import twisted.internet.defer as defer
 
-import ntcp.stunt.StuntClient as stunt
+import solipsis.lib.ntcp.stunt.StuntClient as stunt
 
 stun_section = {
     'servers': ('stun_servers', str, ""),

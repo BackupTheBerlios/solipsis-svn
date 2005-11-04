@@ -296,6 +296,7 @@ class Plugin(ServicePlugin):
         """need to update node_id"""
         # ChangedNode is call more than one time on change. Thus, be
         # careful not to do the job every time
+        log("ChangedNode", node.pseudo)
         if get_facade() is None or get_facade()._desc.document.get_pseudo() != node.pseudo:
             # creation
             facade = create_facade(node.id_)
