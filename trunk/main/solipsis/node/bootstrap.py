@@ -21,6 +21,7 @@ import os
 import sys
 import logging
 import random
+import gc
 
 import twisted.internet.defer as defer
 # For centralized statistics
@@ -28,12 +29,14 @@ from twisted.web.client import getPage
 
 from solipsis.util.position import Position
 from solipsis.util.address import Address
+from solipsis.util.memdebug import MemSizer
 from node import Node
 from nodeconnector import NodeConnector
 from control import RemoteControl
 from statemachine import StateMachine
+from delayedcaller import DelayedCaller
 
-import controller.xmlrpc
+#import controller.xmlrpc
 
 # Helper (see Python documentation for built-in function __import__)
 def _import(name):
@@ -160,6 +163,8 @@ class Bootstrap(object):
     according to parameters given by the user.
     """
 
+    memdebug_period = 10.0
+
     def __init__(self, reactor, params):
         """
         Initialize the bootstrap object and all necessary objects.
@@ -168,14 +173,28 @@ class Bootstrap(object):
         self.reactor = reactor
         self.params = params
         self.pool = []
+        self.caller = DelayedCaller(self.reactor)
+        if self.params.memdebug:
+            self.memsizer = MemSizer()
+            #~ gc.set_debug(gc.DEBUG_LEAK)
+        else:
+            self.memsizer = None
 
     def Run(self):
         """
         Initiate the network connections and launch the main loop.
         """
+        if self.params.memdebug:
+            dc_memdebug = self.caller.CallPeriodically(self.memdebug_period, self._MemDebug)
+        else:
+            dc_memdebug = None
         # Enter event loop
         self.reactor.callLater(0, self.LaunchPool)
-        self.reactor.run()
+        try:
+            self.reactor.run()
+        finally:
+            if dc_memdebug:
+                dc_memdebug.Cancel()
 
     def LaunchPool(self):
         """
@@ -241,3 +260,12 @@ class Bootstrap(object):
         finally:
             f.close()
         return addresses
+
+    def _MemDebug(self):
+        gc.collect()
+        self.memsizer.sizeall()
+        print "\n... memdump ...\n"
+        items = self.memsizer.get_deltas()
+        print "\n".join(items)
+        #self.future_call(1000.0 * 10, self._MemDebug)
+
