@@ -64,6 +64,7 @@ class StateMachine(object):
 
     # Various delays
     meta_change_delay = 0.5
+    entity_cache_save_period = 3600
 
     # Time during which we request to send detects on a HELLO
     # after having moved
@@ -159,6 +160,9 @@ class StateMachine(object):
         self.state_caller.Reset()
 
         self.topology.Reset(origin=self.node.position.GetXY())
+
+        # Periodically save entity cache
+        self.caller.CallPeriodically(self.entity_cache_save_period, self._SaveEntityCache)
 
     def Init(self, node_connector, event_sender, bootup_addresses):
         """
@@ -299,6 +303,7 @@ class StateMachine(object):
                 self.future_position = None
                 self.best_peer = None
                 self.best_distance = 0.0
+                self.entity_chooser = None
                 self.SetState(states.Idle())
         def _retry():
             # Resend a HELLO message to all future peers

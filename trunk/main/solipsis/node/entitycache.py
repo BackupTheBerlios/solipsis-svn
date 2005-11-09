@@ -210,6 +210,12 @@ class _HistoryStore(object):
 #         print "flushed %d intervals" % len(evict_timestamps)
 
     def EvictEntities(self):
+        # Evict empty entries
+        evict_peers = [peer_id
+            for peer_id, h in self.entries.iteritems()
+            if not h.last_interval and not h.intervals]
+        for peer_id in evict_peers:
+            del self.entries[peer_id]
         # Freshest connection end timestamps, by peer
         end_timestamps = [(max(h.intervals.keys() + [EARLIEST_TIMESTAMP]), peer_id)
             for (peer_id, h) in self.entries.iteritems()]
@@ -300,6 +306,7 @@ class EntityCache(object):
         self.history.Merge(self.current_peers)
         self.history.Evict()
         self.current_peers.FlushHistory()
+        self.current_peers.Evict()
 
     def OnPeerConnected(self, peer):
         """
