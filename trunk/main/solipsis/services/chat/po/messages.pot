@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-10-11 20:32+0200\n"
+"POT-Creation-Date: 2005-11-09 15:46+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,14 +29,14 @@ msgstr ""
 msgid "&Close"
 msgstr ""
 
-#: gui.py:61
-msgid "Nickname"
-msgstr ""
-
 #: plugin.py:38
 msgid "Chat with all peers"
 msgstr ""
 
 #: plugin.py:45
 msgid "Talk with the people that are currently around you"
+msgstr ""
+
+#: gui.py:61
+msgid "Nickname"
 msgstr ""
