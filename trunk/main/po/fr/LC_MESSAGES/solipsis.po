@@ -7,13 +7,18 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Solipsis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-11-09 15:46+0100\n"
-"PO-Revision-Date: 2005-08-30 17:02+0100\n"
+"POT-Creation-Date: 2005-11-09 16:57+0100\n"
+"PO-Revision-Date: 2005-11-09 16:57+0100\n"
 "Last-Translator: Antoine Pitrou <solipsis@pitrou.net>\n"
 "Language-Team: Solipsis translators <solipsis-tech@lists.berlios.de>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+
+#: solipsis/navigator/wxclient/app.py:356
+#, python-format
+msgid "%s - Solipsis"
+msgstr "%s - Solipsis"
 
 msgid "&Actions"
 msgstr "&Actions"
@@ -59,11 +64,11 @@ msgstr ""
 msgid "About"
 msgstr "À propos"
 
-#: solipsis/navigator/wxclient/app.py:551
+#: solipsis/navigator/wxclient/app.py:565
 msgid "About Solipsis"
 msgstr "À propos de Solipsis"
 
-#: solipsis/navigator/app.py:431
+#: solipsis/navigator/app.py:437
 msgid "About..."
 msgstr "À propos..."
 
@@ -73,10 +78,9 @@ msgid "Add bookmark"
 msgstr "Ajouter un signet"
 
 #: solipsis/navigator/wxclient/BookmarksDialog.py:95
-#: solipsis/navigator/app.py:470
-#, fuzzy
+#: solipsis/navigator/app.py:477
 msgid "Address"
-msgstr "Adresse :"
+msgstr "Adresse"
 
 #: solipsis/navigator/wxclient/BookmarkPropsDialog.py:21
 msgid "Address :"
@@ -93,7 +97,7 @@ msgstr "Rotation automatique"
 msgid "Automatic proxy detection"
 msgstr "Détection automatique"
 
-#: solipsis/navigator/wxclient/app.py:533
+#: solipsis/navigator/wxclient/app.py:547
 #, python-format
 msgid "Bookmark peer \"%s\""
 msgstr "Retenir le nœud \"%s\""
@@ -121,7 +125,7 @@ msgstr "Choisir si l'affichage change d'orientation pendant les déplacements"
 msgid "Connect to Solipsis"
 msgstr "Connexion à Solipsis"
 
-#: solipsis/navigator/wxclient/app.py:550
+#: solipsis/navigator/wxclient/app.py:564
 msgid "Connect to node"
 msgstr "Se connecter à un nœud"
 
@@ -133,11 +137,11 @@ msgstr ""
 "Se connecter via un nœud Solipsis existant \n"
 "(éventuellement sur un ordinateur distant) :"
 
-#: solipsis/navigator/app.py:629 solipsis/navigator/app.py:653
+#: solipsis/navigator/app.py:636 solipsis/navigator/app.py:661
 msgid "Connected"
 msgstr "Connecté"
 
-#: solipsis/navigator/wxclient/app.py:577
+#: solipsis/navigator/wxclient/app.py:591
 msgid "Connecting to the node..."
 msgstr "Connexion au nœud..."
 
@@ -145,15 +149,15 @@ msgstr "Connexion au nœud..."
 msgid "Connection"
 msgstr "Connexion"
 
-#: solipsis/navigator/app.py:665
+#: solipsis/navigator/app.py:674
 msgid "Connection error"
 msgstr "Erreur de connexion"
 
-#: solipsis/navigator/wxclient/app.py:576
+#: solipsis/navigator/wxclient/app.py:590
 msgid "Connection progress"
 msgstr "Progression de la connexion"
 
-#: solipsis/navigator/app.py:663
+#: solipsis/navigator/app.py:672
 msgid ""
 "Connection to the node has failed. \n"
 "Please the check the node is running, then retry."
@@ -171,9 +175,13 @@ msgstr "Type de connexion"
 msgid "Copy this address to your clipboard"
 msgstr "Copier cette adresse dans votre presse-papiers"
 
-#: solipsis/navigator/wxclient/app.py:548
+#: solipsis/navigator/wxclient/app.py:562
 msgid "Disconnect"
 msgstr "Se déconnecter"
+
+#: solipsis/navigator/wxclient/app.py:358
+msgid "Disconnected - Solipsis"
+msgstr "Déconnecté - Solipsis"
 
 msgid "Edit bookmarks"
 msgstr "Modifier les signets"
@@ -184,11 +192,11 @@ msgstr "Modifier les signets"
 msgid "Error"
 msgstr "Erreur"
 
-#: solipsis/navigator/app.py:580
+#: solipsis/navigator/app.py:587
 msgid "For information..."
 msgstr "Pour information..."
 
-#: solipsis/navigator/wxclient/app.py:371
+#: solipsis/navigator/wxclient/app.py:385
 msgid "For reminder, here is your address:"
 msgstr "Pour mémoire, voici votre adresse:"
 
@@ -226,7 +234,7 @@ msgstr ""
 msgid "Information"
 msgstr "Informations"
 
-#: solipsis/navigator/wxclient/app.py:406
+#: solipsis/navigator/wxclient/app.py:420
 msgid "Jump near an entity"
 msgstr "Sauter près d'un nœud existant"
 
@@ -247,7 +255,7 @@ msgstr "Sauter à une position"
 msgid "Kill node when exiting"
 msgstr "Tuer le nœud à la sortie du programme"
 
-#: solipsis/navigator/app.py:373 solipsis/navigator/app.py:692
+#: solipsis/navigator/app.py:373 solipsis/navigator/app.py:703
 msgid "Kill refused"
 msgstr "Opération refusée"
 
@@ -259,7 +267,7 @@ msgstr ""
 "Lancer un nœud Solipsis dédié \n"
 "sur cet ordinateur."
 
-#: solipsis/navigator/app.py:430
+#: solipsis/navigator/app.py:436
 msgid "Licensed under the GNU LGPL"
 msgstr "Distribué sous licence GNU LGPL"
 
@@ -305,9 +313,9 @@ msgstr ""
 "La création du nœud a échoué. \n"
 "Veuillez vérifier que vous avez des droits suffisants pour le faire."
 
-#: solipsis/navigator/wxclient/app.py:150 solipsis/navigator/app.py:286
-#: solipsis/navigator/app.py:460 solipsis/navigator/app.py:639
-#: solipsis/navigator/app.py:662 solipsis/navigator/app.py:677
+#: solipsis/navigator/wxclient/app.py:151 solipsis/navigator/app.py:286
+#: solipsis/navigator/app.py:466 solipsis/navigator/app.py:646
+#: solipsis/navigator/app.py:671 solipsis/navigator/app.py:687
 msgid "Not connected"
 msgstr "Déconnecté"
 
@@ -326,7 +334,7 @@ msgstr "Choisissez le nœud à ajouter à vos signets."
 msgid "Please enter a name for this bookmark."
 msgstr "Veuillez entrer un nom pour ce signet."
 
-#: solipsis/navigator/wxclient/app.py:405
+#: solipsis/navigator/wxclient/app.py:419
 msgid "Please enter the address to jump to"
 msgstr "Entrez l'adresse à laquelle sauter"
 
@@ -384,11 +392,11 @@ msgstr "Supprimer"
 msgid "Remove selected bookmark"
 msgstr "Supprimer le signet sélectionné"
 
-#: solipsis/navigator/app.py:634
+#: solipsis/navigator/app.py:641
 msgid "Searching peers"
 msgstr "Recherche des voisins"
 
-#: solipsis/navigator/app.py:428
+#: solipsis/navigator/app.py:434
 msgid "Solipsis Navigator"
 msgstr "Navigateur Solipsis"
 
@@ -405,7 +413,7 @@ msgstr ""
 msgid "The Solipsis address for %s has been copied to the clipboard."
 msgstr "L'adresse Solipsis de %s a été copiée dans le presse-papiers."
 
-#: solipsis/navigator/app.py:585
+#: solipsis/navigator/app.py:592
 msgid ""
 "The peer you asked for seems to have changed identity. \n"
 "It may mean that someone else is running a node \n"
@@ -457,15 +465,15 @@ msgstr "X : "
 msgid "Y: "
 msgstr "Y : "
 
-#: solipsis/navigator/app.py:691
+#: solipsis/navigator/app.py:702
 msgid "You cannot kill this node."
 msgstr "Vous ne pouvez pas tuer ce nœud."
 
-#: solipsis/navigator/wxclient/app.py:375
+#: solipsis/navigator/wxclient/app.py:389
 msgid "Your Solipsis address"
 msgstr "Votre adresse dans Solipsis"
 
-#: solipsis/navigator/wxclient/app.py:368
+#: solipsis/navigator/wxclient/app.py:382
 msgid ""
 "Your address has been copied to the clipboard. \n"
 "If you paste it and send it to your friends, \n"
@@ -476,9 +484,9 @@ msgstr ""
 "ils pourront vous rejoindre dans Solipsis."
 
 #: solipsis/navigator/app.py:348 solipsis/navigator/app.py:352
-#, fuzzy, python-format
+#, python-format
 msgid "connecting to %s:%d"
-msgstr "Se connecter à un nœud"
+msgstr "connexion à %s:%d"
 
 #: solipsis/navigator/wxclient/ConnectDialog.py:188
 msgid "local node"

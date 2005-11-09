@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-11-09 15:46+0100\n"
+"POT-Creation-Date: 2005-11-09 16:57+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -81,57 +81,66 @@ msgstr ""
 msgid "About"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:150 solipsis/navigator/app.py:286
-#: solipsis/navigator/app.py:460 solipsis/navigator/app.py:639
-#: solipsis/navigator/app.py:662 solipsis/navigator/app.py:677
+#: solipsis/navigator/wxclient/app.py:151 solipsis/navigator/app.py:286
+#: solipsis/navigator/app.py:466 solipsis/navigator/app.py:646
+#: solipsis/navigator/app.py:671 solipsis/navigator/app.py:687
 msgid "Not connected"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:368
+#: solipsis/navigator/wxclient/app.py:356
+#, python-format
+msgid "%s - Solipsis"
+msgstr ""
+
+#: solipsis/navigator/wxclient/app.py:358
+msgid "Disconnected - Solipsis"
+msgstr ""
+
+#: solipsis/navigator/wxclient/app.py:382
 msgid ""
 "Your address has been copied to the clipboard. \n"
 "If you paste it and send it to your friends, \n"
 "they will be able to jump near you in the Solipsis world."
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:371
+#: solipsis/navigator/wxclient/app.py:385
 msgid "For reminder, here is your address:"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:375
+#: solipsis/navigator/wxclient/app.py:389
 msgid "Your Solipsis address"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:405
+#: solipsis/navigator/wxclient/app.py:419
 msgid "Please enter the address to jump to"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:406
+#: solipsis/navigator/wxclient/app.py:420
 msgid "Jump near an entity"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:533
+#: solipsis/navigator/wxclient/app.py:547
 #, python-format
 msgid "Bookmark peer \"%s\""
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:548
+#: solipsis/navigator/wxclient/app.py:562
 msgid "Disconnect"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:550
+#: solipsis/navigator/wxclient/app.py:564
 msgid "Connect to node"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:551
+#: solipsis/navigator/wxclient/app.py:565
 msgid "About Solipsis"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:576
+#: solipsis/navigator/wxclient/app.py:590
 msgid "Connection progress"
 msgstr ""
 
-#: solipsis/navigator/wxclient/app.py:577
+#: solipsis/navigator/wxclient/app.py:591
 msgid "Connecting to the node..."
 msgstr ""
 
@@ -171,7 +180,7 @@ msgid "Pseudo"
 msgstr ""
 
 #: solipsis/navigator/wxclient/BookmarksDialog.py:95
-#: solipsis/navigator/app.py:470
+#: solipsis/navigator/app.py:477
 msgid "Address"
 msgstr ""
 
@@ -401,52 +410,52 @@ msgid ""
 "Please check you have sufficient rights."
 msgstr ""
 
-#: solipsis/navigator/app.py:373 solipsis/navigator/app.py:692
+#: solipsis/navigator/app.py:373 solipsis/navigator/app.py:703
 msgid "Kill refused"
 msgstr ""
 
-#: solipsis/navigator/app.py:428
+#: solipsis/navigator/app.py:434
 msgid "Solipsis Navigator"
 msgstr ""
 
-#: solipsis/navigator/app.py:430
+#: solipsis/navigator/app.py:436
 msgid "Licensed under the GNU LGPL"
 msgstr ""
 
-#: solipsis/navigator/app.py:431
+#: solipsis/navigator/app.py:437
 msgid "About..."
 msgstr ""
 
-#: solipsis/navigator/app.py:580
+#: solipsis/navigator/app.py:587
 msgid "For information..."
 msgstr ""
 
-#: solipsis/navigator/app.py:585
+#: solipsis/navigator/app.py:592
 msgid ""
 "The peer you asked for seems to have changed identity. \n"
 "It may mean that someone else is running a node \n"
 "at the same address."
 msgstr ""
 
-#: solipsis/navigator/app.py:629 solipsis/navigator/app.py:653
+#: solipsis/navigator/app.py:636 solipsis/navigator/app.py:661
 msgid "Connected"
 msgstr ""
 
-#: solipsis/navigator/app.py:634
+#: solipsis/navigator/app.py:641
 msgid "Searching peers"
 msgstr ""
 
-#: solipsis/navigator/app.py:663
+#: solipsis/navigator/app.py:672
 msgid ""
 "Connection to the node has failed. \n"
 "Please the check the node is running, then retry."
 msgstr ""
 
-#: solipsis/navigator/app.py:665
+#: solipsis/navigator/app.py:674
 msgid "Connection error"
 msgstr ""
 
-#: solipsis/navigator/app.py:691
+#: solipsis/navigator/app.py:702
 msgid "You cannot kill this node."
 msgstr ""
 
