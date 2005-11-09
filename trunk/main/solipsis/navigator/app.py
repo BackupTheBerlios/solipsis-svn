@@ -416,6 +416,12 @@ class BaseNavigatorApp(UIProxyReceiver):
         except IOError, e:
             print "Failed to saved config:", str(e)
 
+    def _UpdateWindowTitle(self):
+        """
+        Update the main window's title.
+        """
+        raise NotImplementedError
+
     #===-----------------------------------------------------------------===#
     # Event handlers for the main window
     # (in alphabetical order)
@@ -459,6 +465,7 @@ class BaseNavigatorApp(UIProxyReceiver):
             self.Redraw()
             self.display_status(_("Not connected"))
             self.services.RemoveAllPeers()
+            self._UpdateWindowTitle()
             return "Disconnected"
 
     def _OnDisplayAddress(self, evt=None):
@@ -639,6 +646,7 @@ class BaseNavigatorApp(UIProxyReceiver):
             self.display_status(_("Not connected"))
         if self.url_jump:
             self._JumpNearURL(self.url_jump)
+        self._UpdateWindowTitle()
 
     def NodeConnectionSucceeded(self, node_proxy):
         """
@@ -651,6 +659,7 @@ class BaseNavigatorApp(UIProxyReceiver):
         self.node_proxy = TwistedProxy(node_proxy, self.reactor)
         self.node_proxy.SetNodeInfo(self.config_data.GetNode().ToStruct())
         self.display_status(_("Connected"))
+        self._UpdateWindowTitle()
 
     def NodeConnectionFailed(self, error):
         """
@@ -663,6 +672,7 @@ class BaseNavigatorApp(UIProxyReceiver):
         msg = _("Connection to the node has failed. \n"
             "Please the check the node is running, then retry.")
         self.display_error(msg, title=_("Connection error"))
+        self._UpdateWindowTitle()
 
     def NodeKillSucceeded(self):
         """
@@ -675,6 +685,7 @@ class BaseNavigatorApp(UIProxyReceiver):
             self.viewport.Disable()
             self.Redraw()
             self.display_status(_("Not connected"))
+            self._UpdateWindowTitle()
         else:
             # If not alive, then we are in the quit phase
             self._Quit2()

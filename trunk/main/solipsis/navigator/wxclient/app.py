@@ -118,6 +118,7 @@ class NavigatorApp(BaseNavigatorApp, wx.App, XRCLoader):
         wx.EVT_CHAR(self.viewport_panel, self._OnKeyPressViewport)
         # Let's go...
         # 1. Show UI on screen
+        self._UpdateWindowTitle()
         self.main_window.Show()
         self.SetTopWindow(self.main_window)
         # 2. Launch main GUI loop
@@ -344,6 +345,19 @@ class NavigatorApp(BaseNavigatorApp, wx.App, XRCLoader):
             self.statusbar.SetTemp(self.world.GetPeer(id_).pseudo)
         elif changed and not id_:
             self.statusbar.Reset()
+
+    def _UpdateWindowTitle(self):
+        """
+        Update the main window's title.
+        """
+        connected = self._CheckNodeProxy(False)
+        if connected:
+            pseudo = self.config_data.GetNode().pseudo
+            title = _("%s - Solipsis") % pseudo
+        else:
+            title = _("Disconnected - Solipsis")
+        self.main_window.SetTitle(title)
+
 
     #===-----------------------------------------------------------------===#
     # Event handlers for the main window

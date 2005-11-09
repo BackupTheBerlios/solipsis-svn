@@ -36,7 +36,7 @@ class Item(object):
         self.label_id = None
         self.avatar_id = None
 
-class BaseWorld:
+class BaseWorld(object):
     """
     This class represents the navigator's view of the world.
     It receives events from the remote connector and communicates
