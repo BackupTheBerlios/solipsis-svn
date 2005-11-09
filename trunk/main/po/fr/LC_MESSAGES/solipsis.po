@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Solipsis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-10-11 20:32+0200\n"
+"POT-Creation-Date: 2005-11-09 15:46+0100\n"
 "PO-Revision-Date: 2005-08-30 17:02+0100\n"
 "Last-Translator: Antoine Pitrou <solipsis@pitrou.net>\n"
 "Language-Team: Solipsis translators <solipsis-tech@lists.berlios.de>\n"
@@ -72,8 +72,8 @@ msgstr "À propos..."
 msgid "Add bookmark"
 msgstr "Ajouter un signet"
 
-#: solipsis/navigator/app.py:470
 #: solipsis/navigator/wxclient/BookmarksDialog.py:95
+#: solipsis/navigator/app.py:470
 #, fuzzy
 msgid "Address"
 msgstr "Adresse :"
@@ -178,9 +178,9 @@ msgstr "Se déconnecter"
 msgid "Edit bookmarks"
 msgstr "Modifier les signets"
 
-#: solipsis/util/wxutils.py:161
 #: solipsis/navigator/wxclient/ConnectionTypeDialog.py:113
 #: solipsis/navigator/wxclient/BookmarkPropsDialog.py:92
+#: solipsis/util/wxutils.py:161
 msgid "Error"
 msgstr "Erreur"
 
@@ -305,9 +305,9 @@ msgstr ""
 "La création du nœud a échoué. \n"
 "Veuillez vérifier que vous avez des droits suffisants pour le faire."
 
-#: solipsis/navigator/app.py:286 solipsis/navigator/app.py:460
-#: solipsis/navigator/app.py:639 solipsis/navigator/app.py:662
-#: solipsis/navigator/app.py:677 solipsis/navigator/wxclient/app.py:150
+#: solipsis/navigator/wxclient/app.py:150 solipsis/navigator/app.py:286
+#: solipsis/navigator/app.py:460 solipsis/navigator/app.py:639
+#: solipsis/navigator/app.py:662 solipsis/navigator/app.py:677
 msgid "Not connected"
 msgstr "Déconnecté"
 

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Solipsis\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-10-11 20:32+0200\n"
+"POT-Creation-Date: 2005-11-09 15:46+0100\n"
 "PO-Revision-Date: 2005-05-22 12:53+0900\n"
 "Last-Translator: Makoto IGUCHI <info@igucci.org>\n"
 "Language-Team: Solipsis translators <solipsis-tech@lists.berlios.de>\n"
@@ -71,8 +71,8 @@ msgstr "Solipsisについて..."
 msgid "Add bookmark"
 msgstr "ブックマーク追加"
 
-#: solipsis/navigator/app.py:470
 #: solipsis/navigator/wxclient/BookmarksDialog.py:95
+#: solipsis/navigator/app.py:470
 #, fuzzy
 msgid "Address"
 msgstr "マイアドレス"
@@ -176,9 +176,9 @@ msgstr "切断"
 msgid "Edit bookmarks"
 msgstr "ブックマークを編集"
 
-#: solipsis/util/wxutils.py:161
 #: solipsis/navigator/wxclient/ConnectionTypeDialog.py:113
 #: solipsis/navigator/wxclient/BookmarkPropsDialog.py:92
+#: solipsis/util/wxutils.py:161
 msgid "Error"
 msgstr "エラー"
 
@@ -302,9 +302,9 @@ msgstr ""
 "ノード作成に失敗しました。\n"
 "十分な権限を有しているか確認してください。"
 
-#: solipsis/navigator/app.py:286 solipsis/navigator/app.py:460
-#: solipsis/navigator/app.py:639 solipsis/navigator/app.py:662
-#: solipsis/navigator/app.py:677 solipsis/navigator/wxclient/app.py:150
+#: solipsis/navigator/wxclient/app.py:150 solipsis/navigator/app.py:286
+#: solipsis/navigator/app.py:460 solipsis/navigator/app.py:639
+#: solipsis/navigator/app.py:662 solipsis/navigator/app.py:677
 msgid "Not connected"
 msgstr "未接続"
 
