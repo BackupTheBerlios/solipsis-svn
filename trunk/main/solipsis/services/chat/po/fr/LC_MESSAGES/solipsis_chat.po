@@ -1,14 +1,14 @@
 # Français translation of Solipsis chat plugin.
 # Copyright (C) 2005 Free Software Foundation, Inc.
 # Antoine <solipsis@pitrou.net>, 2005.
-# 
-# 
+#
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: Solipsis chat plugin 0.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-08-05 14:23+0200\n"
-"PO-Revision-Date: 2005-02-04 17:25+0100\n"
+"POT-Creation-Date: 2005-11-09 17:09+0100\n"
+"PO-Revision-Date: 2005-11-09 17:09+0100\n"
 "Last-Translator: Antoine Pitrou <solipsis@pitrou.net>\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -16,13 +16,19 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: \n"
 
+#: gui.py:129
+#, python-format
+msgid "%s - Chat"
+msgstr "%s - Discussion"
+
 msgid "&Close"
 msgstr ""
 
 msgid "&Send"
 msgstr "&Envoyer"
 
-#: plugin.py:42 plugin.py:77
+#: plugin.py:42
+#: plugin.py:77
 msgid "Chat"
 msgstr "Discussions"
 
@@ -40,3 +46,4 @@ msgstr ""
 
 msgid "Users"
 msgstr "Participants"
+

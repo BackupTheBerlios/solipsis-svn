@@ -1,17 +1,17 @@
 # <copyright>
 # Solipsis, a peer-to-peer serverless virtual world.
 # Copyright (C) 2002-2005 France Telecom R&D
-# 
+#
 # This software is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
 # License as published by the Free Software Foundation; either
 # version 2.1 of the License, or (at your option) any later version.
-# 
+#
 # This software is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 # Lesser General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU Lesser General Public
 # License along with this software; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -49,7 +49,7 @@ class Plugin(ServicePlugin):
 
     def GetPointToPointActions(self):
         return []
-    
+
     def DescribeService(self, service):
         # HACK: backwarks compatibility with broken chat service
         service.address = "127.0.0.1:9999"
@@ -63,7 +63,7 @@ class Plugin(ServicePlugin):
     def EnableBasic(self):
         """enable navigator-independant part"""
         print "Chat: enable"
-        
+
     def Enable(self):
         # Set up chat GUI
         window = ChatWindow(self, self.service_api.GetDirectory())
@@ -82,20 +82,22 @@ class Plugin(ServicePlugin):
 
     def DoAction(self, it):
         self.ui.Show()
-    
+
     def SendMessage(self, text):
         # This method is called in UI context (i.e. wx Thread)
-        data = text        for peer_id in self.hosts.keys():
+        data = text
+        for peer_id in self.hosts.keys():
             self.service_api.SendData(peer_id, data)
         self.ui.AppendSelfMessage(self.service_api.GetNode().id_, text)
 
     def GotServiceData(self, peer_id, data):
         # This method is called in network context (i.e. Twisted thread)
         self.ui.AppendMessage(peer_id, data)
-    
+
     def NewPeer(self, peer, service):
         try:
-            address = self._ParseAddress(service.address)        except ValueError:
+            address = self._ParseAddress(service.address)
+        except ValueError:
             pass
         else:
             self.ui.AddPeer(peer)
@@ -116,7 +118,7 @@ class Plugin(ServicePlugin):
         if peer_id in self.hosts:
             del self.hosts[peer_id]
             self.ui.RemovePeer(peer_id)
-    
+
     def ChangedNode(self, node):
         # Explicitely testing against None is mandatory, since the ID can be
         # the empty string when we are not connected
@@ -124,6 +126,7 @@ class Plugin(ServicePlugin):
             self.ui.RemovePeer(self.node_id)
         self.node_id = node.id_
         self.ui.AddPeer(node)
+        self.ui.ChangeNode(node)
 
     def _ParseAddress(self, address):
         return address

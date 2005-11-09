@@ -28,7 +28,7 @@ from solipsis.util.wxutils import _
 from solipsis.util.wxutils import *        # '*' doesn't import '_'
 
 class ChatWindow(wx.EvtHandler, XRCLoader, UIProxyReceiver):
-    def __init__(self, plugin, dir):
+    def __init__(self, plugin, dir_):
         self.plugin = plugin
         self.pseudos = {}
 
@@ -39,7 +39,7 @@ class ChatWindow(wx.EvtHandler, XRCLoader, UIProxyReceiver):
         self.windows = ["chat_window"]
         objects = self.windows
 
-        self.LoadResource(os.path.join(dir, "gui.xrc"))
+        self.LoadResource(os.path.join(dir_, "gui.xrc"))
         for obj_name in objects:
             setattr(self, obj_name, self.Resource(obj_name))
 
@@ -125,6 +125,10 @@ class ChatWindow(wx.EvtHandler, XRCLoader, UIProxyReceiver):
         self.RemovePeer(peer.id_)
         self.AddPeer(peer)
 
+    def ChangeNode(self, node):
+        title = _("%s - Chat") % node.pseudo
+        self.chat_window.SetTitle(title)
+
     def Destroy(self):
         """
         Destroy chat interface.
@@ -140,10 +144,10 @@ class ChatWindow(wx.EvtHandler, XRCLoader, UIProxyReceiver):
         self.chat_edit.SetFocus()
 
     def _PeerData(self, peer_id):
-        hash = 0
+        hash_ = 0
         for x in md5.new(peer_id).digest():
-            hash = (hash << 8) + ord(x)
-        return int(hash & sys.maxint)
+            hash_ = (hash_ << 8) + ord(x)
+        return int(hash_ & sys.maxint)
 
     def _Close(self, evt):
         """
