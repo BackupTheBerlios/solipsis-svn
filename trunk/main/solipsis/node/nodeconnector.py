@@ -19,6 +19,7 @@
 
 import sys
 import time
+import traceback
 
 from twisted.internet.protocol import DatagramProtocol
 
@@ -39,8 +40,13 @@ class NodeProtocol(DatagramProtocol):
         self.node_connector.OnMessageReceived(address, data)
 
     def SendData(self, address, data):
-        self.transport.write(data, address)
-
+        try:
+            self.transport.write(data, address)
+            return True
+        except Exception, e:
+            print "failed sending message to %s:" % str(address)
+            print traceback.format_tb(e)
+            return False
 
 class NodeConnector(object):
     # Requests we don't want to log, even in debug mode
@@ -364,10 +370,10 @@ class NodeConnector(object):
             host, port = address.private_host, address.private_port
         else:
             host, port = address.host, address.port
-        self.node_protocol.SendData((host, port), data)
+        r = self.node_protocol.SendData((host, port), data)
         if log:
             self.logger.debug(">>>> sending to %s:%d\n%s" % (host, port, data))
-        return True
+        return r
 
     def _CancelPeerDCs(self, peer_id, dc_tables):
         """
