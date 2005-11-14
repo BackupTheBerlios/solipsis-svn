@@ -107,11 +107,12 @@ class BaseNavigatorApp(UIProxyReceiver):
         """
         Get local address from Stun
         """
-        preferred_method = len(self.discovery_methods) > 0 \
-                           and self.discovery_methods[0] or 'stun'
+        #preferred_method = len(self.discovery_methods) > 0 \
+                           #and self.discovery_methods[0] or 'stun'
+        preferred_method = 'local'
         if preferred_method == 'stun':
             self._InitIpAddressByStun()
-        elif  preferred_method == 'local':
+        elif preferred_method == 'local':
             self._InitIpAddressByLocal()
         else:
             print "discovery_methods should be ['stun', 'local']. Using stun."
