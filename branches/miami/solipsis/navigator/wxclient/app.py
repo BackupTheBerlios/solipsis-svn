@@ -199,17 +199,23 @@ class NavigatorApp(BaseNavigatorApp, wx.App, XRCLoader):
                 "by wxWidgets, trying English instead"
             # Try English as default
             lang_info = wx.Locale.FindLanguageInfo('en')
-            if lang_info is None or not self.locale.Init2(lang_info.Language):
-                print "Error: failed to initialize wx.Locale!"
-                if wx.Platform not in ('__WXMSW__', '__WXMAC__'):
-                    print "Please check the LC_MESSAGES " \
-                        "or LANG environment variable is properly set:"
-                    env_vars = os.environ.items()
-                    env_vars.sort()
-                    for name, value in env_vars:
-                        if name.startswith('LC_') or name.startswith('LANG'):
-                            print "%s = %s" % (name, value)
-                    sys.exit(1)
+            try:
+                err = lang_info is None or not self.locale.Init2(lang_info.Language)
+            except Exception, e:
+                # Catch wx bullshit under Windows w/ py2exe
+                pass
+            else:
+                if err:
+                    print "Error: failed to initialize wx.Locale!"
+                    if wx.Platform not in ('__WXMSW__', '__WXMAC__'):
+                        print "Please check the LC_MESSAGES " \
+                            "or LANG environment variable is properly set:"
+                        env_vars = os.environ.items()
+                        env_vars.sort()
+                        for name, value in env_vars:
+                            if name.startswith('LC_') or name.startswith('LANG'):
+                                print "%s = %s" % (name, value)
+                        sys.exit(1)
         try:
             translation_dir = self.params.translation_dir
         except AttributeError:
