@@ -1,3 +1,7 @@
+Solipsis (0.9.6)
+    - new profile filter ergonomy + NAT traversal
+    - persistent node id
+
 Solipsis (0.9.5)
 
     - new dynamic entity cache: see details at
