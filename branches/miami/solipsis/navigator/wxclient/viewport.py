@@ -669,9 +669,22 @@ class Viewport(BaseViewport):
         cs = math.cos(self.angle)
         sn = math.sin(self.angle)
         p = self._RelativePositions(self.positions, indices)
-        xs = [x * cs - y * sn for (x, y) in p] or [0.0]
-        ys = [y * cs + x * sn for (x, y) in p] or [0.0]
-        r = (min(xs), min(ys)), (max(xs), max(ys))
+        l = []
+        for x, y in p:
+            xs = x * cs - y * sn
+            ys = y * cs + x * sn
+            d = xs**2 + ys**2
+            l.append((d, xs, ys))
+        l.sort()
+        # Ignore the farthest objects
+        if len(l) > 3:
+            l = l[:int(len(l) * 0.9)]
+        if l:
+            lx = [x for d, x, y in l]
+            ly = [y for d, x, y in l]
+        else:
+            lx = ly = [0.0]
+        r = (min(lx), min(ly)), (max(lx), max(ly))
         return r
 
     def _ConvertPositions(self, indices=None, positions=None):
