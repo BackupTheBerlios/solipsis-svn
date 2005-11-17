@@ -1,0 +1,798 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2005-11-09 17:10+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: gui/FilePanel.py:42 gui/BlogPanel.py:72 gui/FileDialog.py:31
+#: gui/BlogDialog.py:66
+msgid "Actions"
+msgstr ""
+
+#: gui/FilePanel.py:43
+msgid "Tag:"
+msgstr ""
+
+#: gui/FilePanel.py:57
+msgid "Add directory"
+msgstr ""
+
+#: gui/FilePanel.py:59
+msgid "Remove directory"
+msgstr ""
+
+#: gui/FilePanel.py:62
+msgid "Share recursively"
+msgstr ""
+
+#: gui/FilePanel.py:64
+msgid "Unshare recursively"
+msgstr ""
+
+#: gui/FilePanel.py:66 gui/FilterFrame.py:138 gui/ViewerFrame.py:60
+msgid "Refresh"
+msgstr ""
+
+#: gui/FilePanel.py:70 gui/FilePanel.py:95 gui/FilePanel.py:341
+msgid "Tag"
+msgstr ""
+
+#: gui/FilePanel.py:72 gui/FilePanel.py:343 gui/EditorFrame.py:58
+msgid "Share"
+msgstr ""
+
+#: gui/FilePanel.py:74 gui/FilePanel.py:345 gui/EditorFrame.py:60
+msgid "Unshare"
+msgstr ""
+
+#: gui/FilePanel.py:92
+msgid "Name"
+msgstr ""
+
+#: gui/FilePanel.py:93
+msgid "Size"
+msgstr ""
+
+#: gui/FilePanel.py:94
+msgid "Shared"
+msgstr ""
+
+#: gui/FilePanel.py:108
+msgid "Explorer"
+msgstr ""
+
+#: gui/FilePanel.py:109
+msgid "#shared"
+msgstr ""
+
+#: gui/FilePanel.py:110
+msgid "full path"
+msgstr ""
+
+#: gui/FilePanel.py:114
+msgid "File System..."
+msgstr ""
+
+#: gui/FilePanel.py:118
+msgid "Your shared files"
+msgstr ""
+
+#: gui/FilePanel.py:149
+msgid "Choose your repository"
+msgstr ""
+
+#: gui/FilePanel.py:159
+#, python-format
+msgid "Could not add directory %s: %s"
+msgstr ""
+
+#: gui/FilePanel.py:160
+msgid "Existing directory"
+msgstr ""
+
+#: gui/FilePanel.py:340
+msgid "Complementary information on file"
+msgstr ""
+
+#: gui/FilePanel.py:350 gui/FilePanel.py:352 gui/EditorFrame.py:105
+#, python-format
+msgid "Share '%s'"
+msgstr ""
+
+#: gui/FilePanel.py:351 gui/FilePanel.py:353
+#, python-format
+msgid "Unshare '%s'"
+msgstr ""
+
+#: gui/FilePanel.py:451
+msgid "Your must select a directory or a file to share"
+msgstr ""
+
+#: gui/FilePanel.py:461
+msgid "Your must select a directory or a file to unshare"
+msgstr ""
+
+#: gui/FilePanel.py:471
+msgid "Your must select a directory or a file to tag"
+msgstr ""
+
+#: gui/PersonalPanel.py:30
+msgid "Specify here a field of interest"
+msgstr ""
+
+#: gui/PersonalPanel.py:31
+msgid "Identity"
+msgstr ""
+
+#: gui/PersonalPanel.py:32 gui/EditProfilePanel.py:34
+msgid "Mr"
+msgstr ""
+
+#: gui/PersonalPanel.py:32 gui/EditProfilePanel.py:34
+msgid "Mrs"
+msgstr ""
+
+#: gui/PersonalPanel.py:32 gui/EditProfilePanel.py:34
+msgid "Ms"
+msgstr ""
+
+#: gui/PersonalPanel.py:33
+msgid "First name"
+msgstr ""
+
+#: gui/PersonalPanel.py:34
+msgid "Last Name"
+msgstr ""
+
+#: gui/PersonalPanel.py:35
+msgid "Pseudo: "
+msgstr ""
+
+#: gui/PersonalPanel.py:37
+msgid "E-mail: "
+msgstr ""
+
+#: gui/PersonalPanel.py:40 __init__.py:117
+msgid "Favourite Book"
+msgstr ""
+
+#: gui/PersonalPanel.py:41
+msgid "Harry Potter"
+msgstr ""
+
+#: gui/PersonalPanel.py:58
+msgid "MetaData"
+msgstr ""
+
+#: gui/PersonalPanel.py:59
+msgid "Custom value"
+msgstr ""
+
+#: gui/PersonalPanel.py:112
+msgid "Choose your picture"
+msgstr ""
+
+#: gui/PersonalPanel.py:115
+msgid ""
+"Image GIF (*.gif)|*.gif|Image JPEG (*.jpg)|*.jpg|Image PNG (*.png)|*.png|All "
+"files (*.*)|*.*"
+msgstr ""
+
+#: gui/PersonalPanel.py:164 gui/EditProfilePanel.py:110
+msgid "How you appear to other peers"
+msgstr ""
+
+#: gui/BlogPanel.py:37 gui/BlogPanel.py:46 gui/BlogDialog.py:34
+#: gui/BlogDialog.py:44
+msgid "none selected"
+msgstr ""
+
+#: gui/BlogPanel.py:54 gui/BlogDialog.py:51
+msgid "Could not get blog."
+msgstr ""
+
+#: gui/BlogPanel.py:76
+msgid "Enter your text here"
+msgstr ""
+
+#: gui/BlogPanel.py:112
+msgid "Post"
+msgstr ""
+
+#: gui/BlogPanel.py:114
+msgid "Delete selected"
+msgstr ""
+
+#: gui/BlogPanel.py:116
+msgid "Comment selected"
+msgstr ""
+
+#: gui/FileDialog.py:32
+msgid "Incoming dir:"
+msgstr ""
+
+#: gui/FileDialog.py:77
+msgid "Choose location to download files into"
+msgstr ""
+
+#: gui/FileDialog.py:154
+msgid "Chose Files"
+msgstr ""
+
+#: gui/FileDialog.py:156
+msgid "Dowload repository"
+msgstr ""
+
+#: gui/FileDialog.py:158
+msgid "Download selected files"
+msgstr ""
+
+#: gui/BlogDialog.py:97 gui/EditorFrame.py:225 gui/ViewerFrame.py:296
+msgid "Blog"
+msgstr ""
+
+#: gui/BlogDialog.py:125
+msgid "Peer's Blog"
+msgstr ""
+
+#: gui/AboutDialog.py:21
+msgid "Disclaimer"
+msgstr ""
+
+#: gui/AboutDialog.py:23
+msgid "Display at startup"
+msgstr ""
+
+#: gui/AboutDialog.py:24 gui/DownloadDialog.py:27
+msgid "Ok"
+msgstr ""
+
+#: gui/AboutDialog.py:48
+msgid "About Profile"
+msgstr ""
+
+#: gui/AboutDialog.py:55
+msgid "Solipsis Profile"
+msgstr ""
+
+#: gui/ProfileDialog.py:43 gui/ProfileDialog.py:58 plugin.py:224
+msgid "Profile"
+msgstr ""
+
+#: gui/ViewFilePanel.py:20
+msgid "Matching files"
+msgstr ""
+
+#: gui/FilterFrame.py:59
+msgid "Filters"
+msgstr ""
+
+#: gui/FilterFrame.py:60
+msgid "Profile details..."
+msgstr ""
+
+#: gui/FilterFrame.py:67
+msgid "&Activate filters\tCtrl+A"
+msgstr ""
+
+#: gui/FilterFrame.py:67
+msgid "Switch filters on/off"
+msgstr ""
+
+#: gui/FilterFrame.py:69
+msgid "New &File filter\tCtrl+F"
+msgstr ""
+
+#: gui/FilterFrame.py:69
+msgid "Create a new file filter"
+msgstr ""
+
+#: gui/FilterFrame.py:71
+msgid "New &Profile filter\tCtrl+P"
+msgstr ""
+
+#: gui/FilterFrame.py:71
+msgid "Create a new profile filter"
+msgstr ""
+
+#: gui/FilterFrame.py:74 gui/EditorFrame.py:47
+msgid "&Save\tCtrl+S"
+msgstr ""
+
+#: gui/FilterFrame.py:74 gui/EditorFrame.py:47
+msgid "Save profile into file"
+msgstr ""
+
+#: gui/FilterFrame.py:76 gui/EditorFrame.py:49 gui/ViewerFrame.py:47
+msgid "&Close\tCtrl+W"
+msgstr ""
+
+#: gui/FilterFrame.py:76 gui/EditorFrame.py:49 gui/ViewerFrame.py:47
+msgid "Close profile management"
+msgstr ""
+
+#: gui/FilterFrame.py:78 gui/EditorFrame.py:51 gui/ViewerFrame.py:49
+msgid "Action"
+msgstr ""
+
+#: gui/FilterFrame.py:80
+msgid "Help...\tCtrl+H"
+msgstr ""
+
+#: gui/FilterFrame.py:80
+msgid "Display information syntax of filters"
+msgstr ""
+
+#: gui/FilterFrame.py:83 gui/EditorFrame.py:69 gui/ViewerFrame.py:70
+msgid "About...\tCtrl+?"
+msgstr ""
+
+#: gui/FilterFrame.py:85 gui/EditorFrame.py:71
+msgid "Info"
+msgstr ""
+
+#: gui/FilterFrame.py:128
+msgid "Syntax of filters"
+msgstr ""
+
+#: gui/FilterFrame.py:132 gui/ViewerFrame.py:88
+msgid "Import...\tCtrl+I"
+msgstr ""
+
+#: gui/FilterFrame.py:132
+msgid "Load & Match a profile and add it in contact list"
+msgstr ""
+
+#: gui/FilterFrame.py:139
+msgid "Delete"
+msgstr ""
+
+#: gui/FilterFrame.py:140 gui/FilterFrame.py:153
+msgid "New File filter"
+msgstr ""
+
+#: gui/FilterFrame.py:141 gui/FilterFrame.py:154
+msgid "New Profile filter"
+msgstr ""
+
+#: gui/FilterFrame.py:434
+msgid "Profile Filters"
+msgstr ""
+
+#: gui/FilterFrame.py:438 gui/EditorFrame.py:205 gui/ViewerFrame.py:266
+msgid "status"
+msgstr ""
+
+#: gui/FilterFrame.py:471
+msgid "File"
+msgstr ""
+
+#: gui/FilterFrame.py:472
+msgid "Peer"
+msgstr ""
+
+#: gui/EditorFrame.py:42
+msgid "&Online\tCtrl+O"
+msgstr ""
+
+#: gui/EditorFrame.py:42
+msgid "Allow users seeing profile"
+msgstr ""
+
+#: gui/EditorFrame.py:45 gui/ViewerFrame.py:45
+msgid "&Export HTML ...\tCtrl+E"
+msgstr ""
+
+#: gui/EditorFrame.py:45 gui/ViewerFrame.py:45
+msgid "Write profile as HTML File"
+msgstr ""
+
+#: gui/EditorFrame.py:53
+msgid "&Add directory...\tCtrl+A"
+msgstr ""
+
+#: gui/EditorFrame.py:55
+msgid "&Remove directory...\tCtrl+R"
+msgstr ""
+
+#: gui/EditorFrame.py:62 gui/EditorFrame.py:226 gui/ViewerFrame.py:297
+msgid "Files"
+msgstr ""
+
+#: gui/EditorFrame.py:64
+msgid "&Profile...\tCtrl+P"
+msgstr ""
+
+#: gui/EditorFrame.py:64
+msgid "Preview your profile"
+msgstr ""
+
+#: gui/EditorFrame.py:66
+msgid "S&hared Files...\tCtrl+H"
+msgstr ""
+
+#: gui/EditorFrame.py:66
+msgid "Preview your shared files"
+msgstr ""
+
+#: gui/EditorFrame.py:106
+#, python-format
+msgid "UnShare '%s'"
+msgstr ""
+
+#: gui/EditorFrame.py:146
+msgid "Export HTML file as ..."
+msgstr ""
+
+#: gui/EditorFrame.py:149
+msgid "HTML File (*.html)|*.html"
+msgstr ""
+
+#: gui/EditorFrame.py:162
+msgid "Your profile has been modified. Do you want to change it?"
+msgstr ""
+
+#: gui/EditorFrame.py:163
+msgid "Saving Dialog"
+msgstr ""
+
+#: gui/EditorFrame.py:201 gui/editor.py:21
+msgid "Profile Editor"
+msgstr ""
+
+#: gui/EditorFrame.py:224
+msgid "Personal"
+msgstr ""
+
+#: gui/EditFilePanel.py:18
+msgid "Searching mode"
+msgstr ""
+
+#: gui/EditFilePanel.py:19 gui/EditProfilePanel.py:31
+msgid "Search :"
+msgstr ""
+
+#: gui/EditFilePanel.py:21
+msgid "File size: "
+msgstr ""
+
+#: gui/EditFilePanel.py:23
+msgid "Simple"
+msgstr ""
+
+#: gui/EditFilePanel.py:24
+msgid "Advanced"
+msgstr ""
+
+#: gui/EditFilePanel.py:25
+msgid "Expert"
+msgstr ""
+
+#: gui/EditFilePanel.py:26 gui/EditProfilePanel.py:48
+msgid "Clear"
+msgstr ""
+
+#: gui/EditFilePanel.py:27 gui/EditProfilePanel.py:49
+msgid "Apply"
+msgstr ""
+
+#: gui/ViewerFrame.py:51
+msgid "Refresh All"
+msgstr ""
+
+#: gui/ViewerFrame.py:54
+msgid "Profile\tCtrl+P"
+msgstr ""
+
+#: gui/ViewerFrame.py:56
+msgid "Blog\tCtrl+B"
+msgstr ""
+
+#: gui/ViewerFrame.py:58
+msgid "List files\tCtrl+L"
+msgstr ""
+
+#: gui/ViewerFrame.py:62
+msgid "&Anonymous\tCtrl+A"
+msgstr ""
+
+#: gui/ViewerFrame.py:64
+msgid "&Friend\tCtrl+F"
+msgstr ""
+
+#: gui/ViewerFrame.py:66
+msgid "&Ignore\tCtrl+I"
+msgstr ""
+
+#: gui/ViewerFrame.py:68
+msgid "Status"
+msgstr ""
+
+#: gui/ViewerFrame.py:72
+msgid "Help"
+msgstr ""
+
+#: gui/ViewerFrame.py:88
+msgid "Load a profile and add it in contact list"
+msgstr ""
+
+#: gui/ViewerFrame.py:262
+msgid "Profile Viewer"
+msgstr ""
+
+#: gui/ViewerFrame.py:295
+msgid "View"
+msgstr ""
+
+#: gui/DownloadDialog.py:24
+msgid "Connecting..."
+msgstr ""
+
+#: gui/DownloadDialog.py:26
+msgid "Always display"
+msgstr ""
+
+#: gui/DownloadDialog.py:39
+msgid "Downloading ..."
+msgstr ""
+
+#: gui/DownloadDialog.py:45
+#, python-format
+msgid "Downloading %s"
+msgstr ""
+
+#: gui/DownloadDialog.py:56
+#, python-format
+msgid "Downloaded %d files"
+msgstr ""
+
+#: gui/DownloadDialog.py:57
+msgid "Download Complete"
+msgstr ""
+
+#: gui/DownloadDialog.py:76
+msgid "Downloading"
+msgstr ""
+
+#: gui/ViewProfilePanel.py:20
+msgid "Matching profiles"
+msgstr ""
+
+#: gui/EditProfilePanel.py:33
+msgid "Title :"
+msgstr ""
+
+#: gui/EditProfilePanel.py:35
+msgid "First name :"
+msgstr ""
+
+#: gui/EditProfilePanel.py:37
+msgid "Last name :"
+msgstr ""
+
+#: gui/EditProfilePanel.py:39
+msgid "Pseudo :"
+msgstr ""
+
+#: gui/EditProfilePanel.py:41
+msgid "Email :"
+msgstr ""
+
+#: gui/EditProfilePanel.py:43
+msgid "Customs :"
+msgstr ""
+
+#: gui/EditProfilePanel.py:45
+msgid "AND search (default: OR)"
+msgstr ""
+
+#: gui/EditProfilePanel.py:47
+msgid "Advanced mode"
+msgstr ""
+
+#: gui/EditProfilePanel.py:69
+msgid "New"
+msgstr ""
+
+#: gui/EditProfilePanel.py:70
+msgid "Delete selected(s)"
+msgstr ""
+
+#: gui/EditProfilePanel.py:208
+msgid "Simple Mode"
+msgstr ""
+
+#: gui/EditProfilePanel.py:228
+msgid "Advanced Mode"
+msgstr ""
+
+#: tools/blog.py:78
+msgid "Could not add comment: blog not valid"
+msgstr ""
+
+#: tools/blog.py:86
+msgid "Blog already deleted."
+msgstr ""
+
+#: tools/blog.py:156 tools/blog.py:167
+msgid "Could not read blog file. Using a blank one."
+msgstr ""
+
+#: editor/document.py:115
+msgid "Could not import Profile: using default values for personal data"
+msgstr ""
+
+#: editor/document.py:117 editor/document.py:439
+msgid "Profile Corrupted"
+msgstr ""
+
+#: editor/document.py:437
+msgid "Could not import Profile: no contacts impmorted"
+msgstr ""
+
+#: editor/document.py:544
+#, python-format
+msgid "Could not import directory %s"
+msgstr ""
+
+#: editor/document.py:545
+msgid "Partial import"
+msgstr ""
+
+#: editor/document.py:616
+#, python-format
+msgid "profile %s does not exists"
+msgstr ""
+
+#: network/peers.py:198
+msgid "Corrupted client"
+msgstr ""
+
+#: network/peers.py:261
+msgid "Empty List"
+msgstr ""
+
+#: network/peers.py:262
+msgid "No file selected to download"
+msgstr ""
+
+#: network/peers.py:332
+#, python-format
+msgid ""
+"Your version of Solipsis is not compatible with the peer'sone you wish to "
+"download from Make sure you both use the latest (%s)"
+msgstr ""
+
+#: network/peers.py:437
+#, python-format
+msgid "Message '%s' out of date."
+msgstr ""
+
+#: network/peers.py:490
+#, python-format
+msgid "Incomming '%s' from unknown host"
+msgstr ""
+
+#: network/messages.py:52
+#, python-format
+msgid "%d failures on '%s'. Last: %s"
+msgstr ""
+
+#: network/messages.py:55
+#, python-format
+msgid "ERR on '%s': %s"
+msgstr ""
+
+#: network/client_protocol.py:25
+#, python-format
+msgid "Unexpected line received: %s"
+msgstr ""
+
+#: network/server_protocol.py:42
+#, python-format
+msgid "%s has connected"
+msgstr ""
+
+#: network/server_protocol.py:50
+#, python-format
+msgid "%s disconnected"
+msgstr ""
+
+#: network/server_protocol.py:54
+#, python-format
+msgid "%s already disconnected"
+msgstr ""
+
+#: network/server_protocol.py:79
+#, python-format
+msgid "STUN discovery found address %s:%d"
+msgstr ""
+
+#: network/server_protocol.py:85
+msgid "STUN failed:"
+msgstr ""
+
+#: network/server_protocol.py:86
+msgid "File server Error"
+msgstr ""
+
+#: plugin.py:70
+msgid "Edit Profile..."
+msgstr ""
+
+#: plugin.py:71
+msgid "Filter Profiles..."
+msgstr ""
+
+#: plugin.py:74
+msgid "View profile..."
+msgstr ""
+
+#: plugin.py:75
+msgid "View blog..."
+msgstr ""
+
+#: plugin.py:76
+msgid "Get files..."
+msgstr ""
+
+#: plugin.py:228
+msgid "Manage personal information and share it with people"
+msgstr ""
+
+#: plugin.py:306
+#, python-format
+msgid "You have no profile yet for pseudo %s."
+msgstr ""
+
+#: plugin.py:309
+#, python-format
+msgid "You have no filters defined yet for pseudo %s."
+msgstr ""
+
+#: plugin.py:323
+#, python-format
+msgid "Loaded data for %s"
+msgstr ""
+
+#: __init__.py:76
+#, python-format
+msgid "could not read encoding from profile file. Using %s"
+msgstr ""
+
+#: __init__.py:81
+#, python-format
+msgid "Profile read with encoding %s"
+msgstr ""
+
+#: __init__.py:115
+msgid "City"
+msgstr ""
+
+#: __init__.py:115
+msgid "Country"
+msgstr ""
+
+#: __init__.py:116
+msgid "Sport"
+msgstr ""
+
+#: __init__.py:116
+msgid "Studies"
+msgstr ""
+
+#: __init__.py:117
+msgid "Favourite Movie"
+msgstr ""
