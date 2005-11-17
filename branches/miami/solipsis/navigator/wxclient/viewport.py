@@ -48,7 +48,7 @@ class Viewport(BaseViewport):
     drawable objects in a wx.Window.
     """
 
-    overview_ratio = 1.15
+    overview_ratio = 1.2
     glide_duration = 0.8
     destination_radius = 20.0
 

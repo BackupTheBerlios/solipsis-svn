@@ -106,7 +106,7 @@ class World(BaseWorld, UIProxyReceiver):
         """
         peer = item.peer
         d = drawable.Text(peer.pseudo)
-        item.label_id = self.viewport.AddDrawable(peer.id_, d, (0, 20), 1)
+        item.label_id = self.viewport.AddDrawable(peer.id_, d, (0, 30), 1)
 
     def _CreatePeerAvatar(self, item):
         """

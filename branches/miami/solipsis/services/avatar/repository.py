@@ -29,6 +29,20 @@ from PIL import Image, ImageDraw
 from solipsis.util.singleton import Singleton
 
 
+extensions = ['png', 'gif', 'jpg', 'jpeg']
+ext_pattern = re.compile(".*\.(%s)$" % '|'.join(extensions))
+
+def AcceptFilename(filename):
+    """
+    Returns true if filename is ok as an avatar filename.
+    """
+    if filename.startswith('.') or filename.startswith('_'):
+        return False
+    if not ext_pattern.match(filename, re.IGNORECASE):
+        return False
+    return True
+
+
 class _AvatarRepository(object):
     """
     This class stores avatars, binds them to an arbitrary number of peer IDs,
@@ -285,14 +299,10 @@ class _AvatarRepository(object):
             return
         self.builtin_avatars = []
         avatar_dir = 'avatars'
-        extensions = ['png', 'gif', 'jpg', 'jpeg']
-        ext_pattern = re.compile(".*\.(%s)$" % '|'.join(extensions))
         for dirpath, dirnames, filenames in os.walk(avatar_dir):
             print "preloading images from", dirpath
             for filename in filenames:
-                if filename.startswith('.') or filename.startswith('_'):
-                    continue
-                if not ext_pattern.match(filename, re.IGNORECASE):
+                if not AcceptFilename(filename):
                     continue
                 path = os.path.join(dirpath, filename)
                 if not os.path.isfile(path):

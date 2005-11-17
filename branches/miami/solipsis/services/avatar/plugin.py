@@ -17,6 +17,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
 
+import os
 import socket
 import wx
 import random
@@ -28,7 +29,8 @@ from solipsis.services.plugin import ServicePlugin
 
 from gui import ConfigDialog
 from network import NetworkLauncher
-from repository import AvatarRepository
+from repository import AvatarRepository, AcceptFilename
+from cycling import CyclingAvatar
 
 
 class Plugin(ServicePlugin):
@@ -48,6 +50,8 @@ class Plugin(ServicePlugin):
         # Peers for which we have received an avatar hash but whose
         # address we don't know yet
         self.pending_peers = set()
+
+        self.cycling_avatar = CyclingAvatar(self)
 
     def GetTitle(self):
         return _("Avatars")
@@ -91,14 +95,12 @@ class Plugin(ServicePlugin):
         menu = wx.Menu()
         item_id = wx.NewId()
         menu.Append(item_id, _("&Configure"))
-        wx.EVT_MENU(main_window, item_id, self.Configure)
+        wx.EVT_MENU(main_window, item_id, self.DisplayDialog)
         item_id = wx.NewId()
         menu.Append(item_id, "%s\tCtrl++" % _("Stretch avatars"))
-        #~ menu.Append(item_id, "%s" % _("Stretch avatars"))
         wx.EVT_MENU(main_window, item_id, self.StretchAvatars)
         item_id = wx.NewId()
         menu.Append(item_id, "%s\tCtrl+-" % _("Shrink avatars"))
-        #~ menu.Append(item_id, "%s" % _("Shrink avatars"))
         wx.EVT_MENU(main_window, item_id, self.ShrinkAvatars)
         self.service_api.SetMenu(_("Avatar"), menu)
         # Set up network handler
@@ -168,7 +170,7 @@ class Plugin(ServicePlugin):
         if self.node_avatar_hash is not None:
             self.avatars.BindHashToPeer(self.node_avatar_hash, self.node_id)
 
-    def Configure(self, evt=None):
+    def DisplayDialog(self, evt=None):
         """
         Called when the "Configure" action is selected.
         """
@@ -176,8 +178,8 @@ class Plugin(ServicePlugin):
         # to the callback, if successful.
         # This is because self.ui goes through an asynchronous proxy.
         def _configured(filename):
-            self._SetNodeAvatar(filename)
             self.service_api.SetConfig(filename)
+            self._ApplyConfig()
         self.ui.Configure(callback=_configured)
 
     def StretchAvatars(self, evt=None):
@@ -205,21 +207,13 @@ class Plugin(ServicePlugin):
             else:
                 self.pending_peers.add(peer_id)
 
-    #
-    # Private methods
-    #
-    def _ApplyConfig(self):
-        """
-        Apply configuration.
-        """
-        filename = self.service_api.GetConfig()
-        if filename is not None:
-            self._SetNodeAvatar(filename)
-
-    def _SetNodeAvatar(self, filename):
+    def SetNodeAvatar(self, filename):
         """
         Set our avatar to the given filename.
         """
+        if filename is None:
+            self.node_avatar_hash = None
+            return
         try:
             data = file(filename, "rb").read()
         except (IOError, EOFError), e:
@@ -231,6 +225,37 @@ class Plugin(ServicePlugin):
         self.node_avatar_hash = self.avatars.BindAvatarToPeer(data, self.node_id)
         for peer_id in self.hosts.keys():
             self.service_api.SendData(peer_id, self.node_avatar_hash)
+
+    #
+    # Private methods
+    #
+    def _ApplyConfig(self):
+        """
+        Apply configuration.
+        """
+        self.cycling_avatar.Stop()
+        path = self.service_api.GetConfig()
+        if path is not None:
+            if os.path.isdir(path):
+                #print "avatar is a directory..."
+                avatars = []
+                for filename in os.listdir(path):
+                    if not AcceptFilename(filename):
+                        continue
+                    filepath = os.path.join(path, filename)
+                    if not os.path.isfile(filepath):
+                        continue
+                    #print "-", filepath
+                    avatars.append(filepath)
+                if not avatars:
+                    self.SetNodeAvatar(None)
+                else:
+                    self.cycling_avatar.SetAvatars(avatars)
+                    self.cycling_avatar.Start()
+            else:
+                self.SetNodeAvatar(path)
+        else:
+            self.SetNodeAvatar(None)
 
     def _LoadPeerAvatar(self, peer_id):
         """
