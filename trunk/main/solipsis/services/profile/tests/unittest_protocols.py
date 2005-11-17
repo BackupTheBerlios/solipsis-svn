@@ -215,21 +215,16 @@ class ClientTest(unittest.TestCase):
             file_name = os.path.join(GENERATED_DIR, "pywin32-203.win32-py2.3.exe")
             self.assert_(os.path.exists(file_name))
             self.assertEquals(3718120, os.stat(file_name)[6])
-            file_name = os.path.join(GENERATED_DIR, "Python-2.3.5.zip")
-            self.assert_(os.path.exists(file_name))
-            self.assertEquals(9769010, os.stat(file_name)[6])
         get_facade().share_files(DATA_DIR,
                                  ["arc en ciel 6.gif",
                                   "02_b_1280x1024.jpg",
-                                  "pywin32-203.win32-py2.3.exe",
-                                  "Python-2.3.5.zip"],
+                                  "pywin32-203.win32-py2.3.exe"],
                                  share=True)
         set_prefs("download_repo", GENERATED_DIR)
         deferred = self.network.get_files("boby", [
             (DATA_DIR.split(os.sep) + ["arc en ciel 6.gif"], 163564),
             (DATA_DIR.split(os.sep) + ["02_b_1280x1024.jpg"], 629622),
-            (DATA_DIR.split(os.sep) + ["pywin32-203.win32-py2.3.exe"], 3718120),
-            (DATA_DIR.split(os.sep) + ["Python-2.3.5.zip"], 9769010)])
+            (DATA_DIR.split(os.sep) + ["pywin32-203.win32-py2.3.exe"], 3718120)])
         return deferred.addCallbacks(_on_test_files, on_error)
     test_downloads.timeout = 15
     
