@@ -48,7 +48,7 @@ class Viewport(BaseViewport):
     drawable objects in a wx.Window.
     """
 
-    overview_ratio = 1.2
+    overview_ratio = 1.25
     glide_duration = 0.8
     destination_radius = 20.0
 
@@ -678,7 +678,7 @@ class Viewport(BaseViewport):
         l.sort()
         # Ignore the farthest objects
         if len(l) > 3:
-            l = l[:int(len(l) * 0.9)]
+            l = l[:int(len(l) * 0.85)]
         if l:
             lx = [x for d, x, y in l]
             ly = [y for d, x, y in l]

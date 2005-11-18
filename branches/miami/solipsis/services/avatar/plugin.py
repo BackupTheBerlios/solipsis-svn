@@ -93,15 +93,25 @@ class Plugin(ServicePlugin):
         # Set up main GUI hooks
         main_window = self.service_api.GetMainWindow()
         menu = wx.Menu()
+
         item_id = wx.NewId()
-        menu.Append(item_id, _("&Configure"))
-        wx.EVT_MENU(main_window, item_id, self.DisplayDialog)
+        menu.Append(item_id, _("&Choose an avatar"))
+        wx.EVT_MENU(main_window, item_id, self.DisplayFileDialog)
+        menu.AppendSeparator()
+
+        item_id = wx.NewId()
+        item = wx.MenuItem(menu, item_id, _("Cycle through directory"))
+        menu.AppendItem(item)
+        wx.EVT_MENU(main_window, item_id, self.DisplayDirDialog)
+
         item_id = wx.NewId()
         menu.Append(item_id, "%s\tCtrl++" % _("Stretch avatars"))
         wx.EVT_MENU(main_window, item_id, self.StretchAvatars)
+
         item_id = wx.NewId()
         menu.Append(item_id, "%s\tCtrl+-" % _("Shrink avatars"))
         wx.EVT_MENU(main_window, item_id, self.ShrinkAvatars)
+
         self.service_api.SetMenu(_("Avatar"), menu)
         # Set up network handler
         network = NetworkLauncher(self.reactor, self, self.port)
@@ -170,9 +180,9 @@ class Plugin(ServicePlugin):
         if self.node_avatar_hash is not None:
             self.avatars.BindHashToPeer(self.node_avatar_hash, self.node_id)
 
-    def DisplayDialog(self, evt=None):
+    def DisplayFileDialog(self, evt=None):
         """
-        Called when the "Configure" action is selected.
+        Called to choose a single file avatar.
         """
         # The result of the Configure() method will be passed
         # to the callback, if successful.
@@ -180,7 +190,19 @@ class Plugin(ServicePlugin):
         def _configured(filename):
             self.service_api.SetConfig(filename)
             self._ApplyConfig()
-        self.ui.Configure(callback=_configured)
+        self.ui.ConfigureSingleFile(callback=_configured)
+
+    def DisplayDirDialog(self, evt=None):
+        """
+        Called to choose a cycling avatar.
+        """
+        # The result of the Configure() method will be passed
+        # to the callback, if successful.
+        # This is because self.ui goes through an asynchronous proxy.
+        def _configured(filename):
+            self.service_api.SetConfig(filename)
+            self._ApplyConfig()
+        self.ui.ConfigureDirectory(callback=_configured)
 
     def StretchAvatars(self, evt=None):
         """

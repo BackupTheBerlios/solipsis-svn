@@ -23,10 +23,12 @@ from wx.xrc import XRCCTRL, XRCID
 
 from PIL import Image
 
-from solipsis.util.compat import abspath
+from solipsis.util.compat import abspath, safe_unicode
 from solipsis.util.uiproxy import UIProxyReceiver
 from solipsis.util.wxutils import _
 from solipsis.util.wxutils import *        # '*' doesn't import '_'
+
+from repository import AcceptFilename
 
 
 class ConfigDialog(wx.EvtHandler, XRCLoader, UIProxyReceiver):
@@ -44,9 +46,9 @@ class ConfigDialog(wx.EvtHandler, XRCLoader, UIProxyReceiver):
         wx.EvtHandler.__init__(self)
         UIProxyReceiver.__init__(self)
 
-    def Configure(self, callback=None):
+    def ConfigureSingleFile(self, callback=None):
         """
-        Launches the configuration GUI.
+        Launches the dialog to configure a single file.
         When done, returns the chosen file path, or None.
         (optionally invokes a callback if successful)
         """
@@ -56,18 +58,14 @@ class ConfigDialog(wx.EvtHandler, XRCLoader, UIProxyReceiver):
         # charset (e.g. "windows-1252") but wxWidgets tries to decode it using
         # the 'ascii' codec...
         charset = GetCharset()
-        defaultDir = abspath(self.avatar_dir)
-        if not isinstance(defaultDir, unicode):
-            defaultDir = defaultDir.decode(charset)
-        defaultFile = os.path.basename(self.filename)
-        if not isinstance(defaultFile, unicode):
-            defaultFile = defaultFile.decode(charset)
+        default_dir = safe_unicode(abspath(self.avatar_dir), charset)
+        default_file = safe_unicode(os.path.basename(self.filename), charset)
         dialog = wx.FileDialog(None, _("Choose your avatar"),
-            defaultDir=defaultDir,
-            defaultFile=defaultFile,
+            defaultDir=default_dir,
+            defaultFile=default_file,
             wildcard=file_spec,
-            style=wx.OPEN | wx.FILE_MUST_EXIST
-            )
+            style=wx.OPEN | wx.FILE_MUST_EXIST,
+        )
         # Loop while the user tries to choose a file and the file is not acceptable
         while dialog.ShowModal() == wx.ID_OK:
             filename = dialog.GetPath()
@@ -77,7 +75,6 @@ class ConfigDialog(wx.EvtHandler, XRCLoader, UIProxyReceiver):
             except IOError, e:
                 print str(e)
                 msg = _("The file you chose could not be opened.")
-                pass
             else:
                 try:
                     im = Image.open(f)
@@ -102,6 +99,72 @@ class ConfigDialog(wx.EvtHandler, XRCLoader, UIProxyReceiver):
                     % ", ".join(self.allowed_formats)
             # Display error dialog
             msg += "\n" + _("Please choose another file.")
+            err_dialog = wx.MessageDialog(None, msg, _("Error"),
+                style=wx.OK | wx.ICON_ERROR)
+            err_dialog.ShowModal()
+
+        # We come here if the user pressed Cancel in the file dialog
+        dialog.Destroy()
+        return None
+
+    def ConfigureDirectory(self, callback=None):
+        """
+        Launches the dialog to configure a whole directory.
+        When done, returns the chosen directory path, or None.
+        (optionally invokes a callback if successful)
+        """
+        # Bug workaround for Windows, where os.path gives paths in the local
+        # charset (e.g. "windows-1252") but wxWidgets tries to decode it using
+        # the 'ascii' codec...
+        charset = GetCharset()
+        default_dir = safe_unicode(abspath(self.avatar_dir), charset)
+        dialog = wx.DirDialog(None, _("Choose a directory to load avatars from"),
+            defaultPath=default_dir,
+            style=wx.DEFAULT_DIALOG_STYLE | wx.RESIZE_BORDER,
+        )
+        # Loop while the user tries to choose a file and the file is not acceptable
+        while dialog.ShowModal() == wx.ID_OK:
+            dirpath = dialog.GetPath()
+            try:
+                l = os.listdir(dirpath)
+            except (IOError, OSError), e:
+                print str(e)
+                msg = _("The directory you chose could not be opened.")
+            else:
+                found_images = 0
+                for filename in l:
+                    if not AcceptFilename(filename):
+                        continue
+                    path = os.path.join(dirpath, filename)
+                    if not os.path.isfile(path):
+                        continue
+                    try:
+                        f = file(path, "rb")
+                        im = Image.open(f)
+                    except IOError, e:
+                        print str(e)
+                        continue
+                    else:
+                        # Ensure the file format is one of the supported formats
+                        format = im.format
+                        # Explicitely delete the Image object (freeing some resources)
+                        del im
+                        if format in self.allowed_formats:
+                            found_images += 1
+                if found_images:
+                    dialog.Destroy()
+                    if callback is not None:
+                        callback(dirpath)
+                    ok_dialog = wx.MessageDialog(None,
+                        _("%d avatars have been loaded.") % found_images,
+                        _("Avatars updated"),
+                        style=wx.OK | wx.ICON_INFORMATION)
+                    ok_dialog.ShowModal()
+                    return dirpath
+                msg = _("The directory you chose does not contain any of the \nsupported image types (%s).") \
+                    % ", ".join(self.allowed_formats)
+            # Display error dialog
+            msg += "\n" + _("Please choose another directory.")
             err_dialog = wx.MessageDialog(None, msg, _("Error"),
                 style=wx.OK | wx.ICON_ERROR)
             err_dialog.ShowModal()
