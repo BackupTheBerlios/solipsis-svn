@@ -27,7 +27,7 @@ description = "Solipsis, a peer-to-peer system for a massively multi-participant
 author = "France Telecom R&D"
 author_email = "solipsis-tech@lists.berlios.de"
 url = "http://solipsis.netofpeers.net/"
-license = "COPYRIGHT"
+license = "COPYRIGHT.txt"
 
 #
 # Invoke common setup routines
@@ -39,6 +39,7 @@ data_files = get_data_files()
 # Create dynamic setup info
 #
 create_dyn_file("__init__.tmpl.py")
+create_dyn_file("frozen.tmpl.py")
 create_dyn_file("py2app.tmpl.py", 
     {'executable': '../MacOS/' + application_name})
 
