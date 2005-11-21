@@ -1,6 +1,36 @@
 
 import os
 import glob
+import sys
+import re
+
+
+def create_dyn_file(template, var_replace=None):
+    """
+    Dynamically creates file from template.
+    (in 'dyn' directory).
+    """
+    dyndir = "dyn"
+    template = os.path.join(dyndir, template)
+    dynfile = template.replace('.tmpl.py', '.py')
+    print "generating %s" % dynfile
+
+    if var_replace is None:
+        var_replace = {}
+
+    f = file(template, 'r')
+    s = f.read()
+    f.close()
+    for k, v in var_replace.items():
+        s, n = re.subn(r'[^\r\n]+#\s*<%s>([\r\n])' % k, "%s = %s\n\\1" % (k, repr(v)), s)
+        if n == 0:
+            print "Couldn't find var '%s' in template '%s'. Bailing out." % (k, template)
+            sys.exit(1)
+
+    f = file(dynfile, 'w')
+    f.write(s)
+    f.close()
+
 
 def get_dynamic_modules():
     """
