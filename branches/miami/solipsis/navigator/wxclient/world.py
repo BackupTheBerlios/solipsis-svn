@@ -20,9 +20,13 @@
 
 from solipsis.util.wxutils import GetCharset
 from solipsis.util.uiproxy import UIProxy, UIProxyReceiver
+from solipsis.util.compat import set
+
 from solipsis.navigator.world import BaseWorld
 import solipsis.navigator.wxclient.drawable as drawable
 import solipsis.navigator.wxclient.images as images
+import solipsis.navigator.wxclient.sounds as sounds
+
 # This is ugly, but hey, we need it :(
 from solipsis.services.avatar.repository import AvatarRepository
 
@@ -44,6 +48,9 @@ class World(BaseWorld, UIProxyReceiver):
         self.repository = images.ImageRepository()
         self.avatars = AvatarRepository()
         self.avatars.AskNotify(UIProxy(self).UpdateAvatars)
+
+        self.sounds = sounds.SoundRepository()
+        self.human_peers = set()
 
     def AddPeer(self, peer):
         """
@@ -77,7 +84,20 @@ class World(BaseWorld, UIProxyReceiver):
         if peer.pseudo != old.pseudo:
             self.viewport.RemoveDrawable(peer.id_, item.label_id)
             self._CreatePeerLabel(item)
+        if peer.id_ not in self.human_peers and peer.services:
+            self.human_peers.add(peer.id_)
+            sound = self.sounds.GetSound(sounds.SND_NEW_PEER)
+            sound.Play()
 
+    def RemovePeer(self, peer_id):
+        """
+        Called when a peer disappears.
+        """
+        if peer_id in self.human_peers:
+            self.human_peers.remove(peer_id)
+            #sound = self.sounds.GetSound(sounds.SND_LOST_PEER)
+            #sound.Play()
+        BaseWorld.RemovePeer(self, peer_id)
 
     def UpdateAvatars(self, peer_list):
         """
