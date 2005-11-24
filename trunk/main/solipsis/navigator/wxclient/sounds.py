@@ -26,6 +26,10 @@ SND_NEW_PEER = 'laser.wav'
 SND_LOST_PEER = 'laser.wav'
 
 
+class NullSound(object):
+    def Play(self):
+        pass
+
 class _SoundRepository(object):
     # Directory where images are stored
     sound_dir = "snd" + os.sep
@@ -34,9 +38,21 @@ class _SoundRepository(object):
         self.sounds = {}
 
     def GetSound(self, sound_id):
-        if sound_id not in self.sounds:
-            self.sounds[sound_id] = wx.Sound(self.sound_dir + sound_id)
-        return self.sounds[sound_id]
+        try:
+            sound = self.sounds[sound_id]
+        except KeyError:
+            path = self.sound_dir + sound_id
+            # Unfortunately wx.Sound displays an annoying error window when
+            # the file is not found, instead of throwing an exception
+            if os.path.isfile(path):
+                sound = wx.Sound(path)
+            else:
+            #except (IOError, OSError), e:
+                #print "Failed to load sound '%s': %s" % (path, str(e))
+                print "Failed to load sound '%s': file does not exist" % path
+                sound = NullSound()
+            self.sounds[sound_id] = sound
+        return sound
 
 SoundRepository = Singleton(_SoundRepository)
 
