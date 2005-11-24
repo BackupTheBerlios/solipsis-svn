@@ -52,7 +52,7 @@ class BaseNavigatorApp(UIProxyReceiver):
     """
     Main application class
     """
-    version = "Miami edition - based on %s" % str(VERSION)
+    version = str(VERSION)
     config_file = os.sep.join(["state", "config.bin"])
     world_size = 2**128
 
@@ -107,8 +107,9 @@ class BaseNavigatorApp(UIProxyReceiver):
         """
         Get local address from Stun
         """
-        preferred_method = len(self.discovery_methods) > 0 \
-                           and self.discovery_methods[0] or 'stun'
+        #preferred_method = len(self.discovery_methods) > 0 \
+                           #and self.discovery_methods[0] or 'stun'
+        preferred_method = 'local'
         if preferred_method == 'stun':
             self._InitIpAddressByStun()
         elif  preferred_method == 'local':

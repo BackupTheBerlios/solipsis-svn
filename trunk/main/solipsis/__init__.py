@@ -17,4 +17,4 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # </copyright>
 
-VERSION = "0.9.6svn"
+VERSION = "0.10svn"
