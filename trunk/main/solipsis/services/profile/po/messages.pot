@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-11-09 17:10+0100\n"
+"POT-Creation-Date: 2005-11-24 15:46+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,7 +16,47 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: gui/FilePanel.py:42 gui/BlogPanel.py:72 gui/FileDialog.py:31
+#: tools/blog.py:78
+msgid "Could not add comment: blog not valid"
+msgstr ""
+
+#: tools/blog.py:86
+msgid "Blog already deleted."
+msgstr ""
+
+#: tools/blog.py:156 tools/blog.py:167
+msgid "Could not read blog file. Using a blank one."
+msgstr ""
+
+#: gui/ViewFilePanel.py:20
+msgid "Matching files"
+msgstr ""
+
+#: gui/ViewProfilePanel.py:20
+msgid "Matching profiles"
+msgstr ""
+
+#: gui/AboutDialog.py:21
+msgid "Disclaimer"
+msgstr ""
+
+#: gui/AboutDialog.py:23
+msgid "Display at startup"
+msgstr ""
+
+#: gui/AboutDialog.py:24 gui/DownloadDialog.py:27
+msgid "Ok"
+msgstr ""
+
+#: gui/AboutDialog.py:48
+msgid "About Profile"
+msgstr ""
+
+#: gui/AboutDialog.py:55
+msgid "Solipsis Profile"
+msgstr ""
+
+#: gui/FilePanel.py:42 gui/FileDialog.py:31 gui/BlogPanel.py:72
 #: gui/BlogDialog.py:66
 msgid "Actions"
 msgstr ""
@@ -128,97 +168,6 @@ msgstr ""
 msgid "Your must select a directory or a file to tag"
 msgstr ""
 
-#: gui/PersonalPanel.py:30
-msgid "Specify here a field of interest"
-msgstr ""
-
-#: gui/PersonalPanel.py:31
-msgid "Identity"
-msgstr ""
-
-#: gui/PersonalPanel.py:32 gui/EditProfilePanel.py:34
-msgid "Mr"
-msgstr ""
-
-#: gui/PersonalPanel.py:32 gui/EditProfilePanel.py:34
-msgid "Mrs"
-msgstr ""
-
-#: gui/PersonalPanel.py:32 gui/EditProfilePanel.py:34
-msgid "Ms"
-msgstr ""
-
-#: gui/PersonalPanel.py:33
-msgid "First name"
-msgstr ""
-
-#: gui/PersonalPanel.py:34
-msgid "Last Name"
-msgstr ""
-
-#: gui/PersonalPanel.py:35
-msgid "Pseudo: "
-msgstr ""
-
-#: gui/PersonalPanel.py:37
-msgid "E-mail: "
-msgstr ""
-
-#: gui/PersonalPanel.py:40 __init__.py:117
-msgid "Favourite Book"
-msgstr ""
-
-#: gui/PersonalPanel.py:41
-msgid "Harry Potter"
-msgstr ""
-
-#: gui/PersonalPanel.py:58
-msgid "MetaData"
-msgstr ""
-
-#: gui/PersonalPanel.py:59
-msgid "Custom value"
-msgstr ""
-
-#: gui/PersonalPanel.py:112
-msgid "Choose your picture"
-msgstr ""
-
-#: gui/PersonalPanel.py:115
-msgid ""
-"Image GIF (*.gif)|*.gif|Image JPEG (*.jpg)|*.jpg|Image PNG (*.png)|*.png|All "
-"files (*.*)|*.*"
-msgstr ""
-
-#: gui/PersonalPanel.py:164 gui/EditProfilePanel.py:110
-msgid "How you appear to other peers"
-msgstr ""
-
-#: gui/BlogPanel.py:37 gui/BlogPanel.py:46 gui/BlogDialog.py:34
-#: gui/BlogDialog.py:44
-msgid "none selected"
-msgstr ""
-
-#: gui/BlogPanel.py:54 gui/BlogDialog.py:51
-msgid "Could not get blog."
-msgstr ""
-
-#: gui/BlogPanel.py:76
-msgid "Enter your text here"
-msgstr ""
-
-#: gui/BlogPanel.py:112
-msgid "Post"
-msgstr ""
-
-#: gui/BlogPanel.py:114
-msgid "Delete selected"
-msgstr ""
-
-#: gui/BlogPanel.py:116
-msgid "Comment selected"
-msgstr ""
-
 #: gui/FileDialog.py:32
 msgid "Incoming dir:"
 msgstr ""
@@ -237,42 +186,6 @@ msgstr ""
 
 #: gui/FileDialog.py:158
 msgid "Download selected files"
-msgstr ""
-
-#: gui/BlogDialog.py:97 gui/EditorFrame.py:225 gui/ViewerFrame.py:296
-msgid "Blog"
-msgstr ""
-
-#: gui/BlogDialog.py:125
-msgid "Peer's Blog"
-msgstr ""
-
-#: gui/AboutDialog.py:21
-msgid "Disclaimer"
-msgstr ""
-
-#: gui/AboutDialog.py:23
-msgid "Display at startup"
-msgstr ""
-
-#: gui/AboutDialog.py:24 gui/DownloadDialog.py:27
-msgid "Ok"
-msgstr ""
-
-#: gui/AboutDialog.py:48
-msgid "About Profile"
-msgstr ""
-
-#: gui/AboutDialog.py:55
-msgid "Solipsis Profile"
-msgstr ""
-
-#: gui/ProfileDialog.py:43 gui/ProfileDialog.py:58 plugin.py:224
-msgid "Profile"
-msgstr ""
-
-#: gui/ViewFilePanel.py:20
-msgid "Matching files"
 msgstr ""
 
 #: gui/FilterFrame.py:59
@@ -456,6 +369,105 @@ msgstr ""
 msgid "Personal"
 msgstr ""
 
+#: gui/EditorFrame.py:225 gui/BlogDialog.py:97 gui/ViewerFrame.py:296
+msgid "Blog"
+msgstr ""
+
+#: gui/PersonalPanel.py:30
+msgid "Specify here a field of interest"
+msgstr ""
+
+#: gui/PersonalPanel.py:31
+msgid "Identity"
+msgstr ""
+
+#: gui/PersonalPanel.py:32 gui/EditProfilePanel.py:34
+msgid "Mr"
+msgstr ""
+
+#: gui/PersonalPanel.py:32 gui/EditProfilePanel.py:34
+msgid "Mrs"
+msgstr ""
+
+#: gui/PersonalPanel.py:32 gui/EditProfilePanel.py:34
+msgid "Ms"
+msgstr ""
+
+#: gui/PersonalPanel.py:33
+msgid "First name"
+msgstr ""
+
+#: gui/PersonalPanel.py:34
+msgid "Last Name"
+msgstr ""
+
+#: gui/PersonalPanel.py:35
+msgid "Pseudo: "
+msgstr ""
+
+#: gui/PersonalPanel.py:37
+msgid "E-mail: "
+msgstr ""
+
+#: gui/PersonalPanel.py:40 __init__.py:117
+msgid "Favourite Book"
+msgstr ""
+
+#: gui/PersonalPanel.py:41
+msgid "Harry Potter"
+msgstr ""
+
+#: gui/PersonalPanel.py:58
+msgid "MetaData"
+msgstr ""
+
+#: gui/PersonalPanel.py:59
+msgid "Custom value"
+msgstr ""
+
+#: gui/PersonalPanel.py:112
+msgid "Choose your picture"
+msgstr ""
+
+#: gui/PersonalPanel.py:115
+msgid ""
+"Image GIF (*.gif)|*.gif|Image JPEG (*.jpg)|*.jpg|Image PNG (*.png)|*.png|All "
+"files (*.*)|*.*"
+msgstr ""
+
+#: gui/PersonalPanel.py:164 gui/EditProfilePanel.py:110
+msgid "How you appear to other peers"
+msgstr ""
+
+#: gui/BlogPanel.py:37 gui/BlogPanel.py:46 gui/BlogDialog.py:34
+#: gui/BlogDialog.py:44
+msgid "none selected"
+msgstr ""
+
+#: gui/BlogPanel.py:54 gui/BlogDialog.py:51
+msgid "Could not get blog."
+msgstr ""
+
+#: gui/BlogPanel.py:76
+msgid "Enter your text here"
+msgstr ""
+
+#: gui/BlogPanel.py:112
+msgid "Post"
+msgstr ""
+
+#: gui/BlogPanel.py:114
+msgid "Delete selected"
+msgstr ""
+
+#: gui/BlogPanel.py:116
+msgid "Comment selected"
+msgstr ""
+
+#: gui/BlogDialog.py:125
+msgid "Peer's Blog"
+msgstr ""
+
 #: gui/EditFilePanel.py:18
 msgid "Searching mode"
 msgstr ""
@@ -486,88 +498,6 @@ msgstr ""
 
 #: gui/EditFilePanel.py:27 gui/EditProfilePanel.py:49
 msgid "Apply"
-msgstr ""
-
-#: gui/ViewerFrame.py:51
-msgid "Refresh All"
-msgstr ""
-
-#: gui/ViewerFrame.py:54
-msgid "Profile\tCtrl+P"
-msgstr ""
-
-#: gui/ViewerFrame.py:56
-msgid "Blog\tCtrl+B"
-msgstr ""
-
-#: gui/ViewerFrame.py:58
-msgid "List files\tCtrl+L"
-msgstr ""
-
-#: gui/ViewerFrame.py:62
-msgid "&Anonymous\tCtrl+A"
-msgstr ""
-
-#: gui/ViewerFrame.py:64
-msgid "&Friend\tCtrl+F"
-msgstr ""
-
-#: gui/ViewerFrame.py:66
-msgid "&Ignore\tCtrl+I"
-msgstr ""
-
-#: gui/ViewerFrame.py:68
-msgid "Status"
-msgstr ""
-
-#: gui/ViewerFrame.py:72
-msgid "Help"
-msgstr ""
-
-#: gui/ViewerFrame.py:88
-msgid "Load a profile and add it in contact list"
-msgstr ""
-
-#: gui/ViewerFrame.py:262
-msgid "Profile Viewer"
-msgstr ""
-
-#: gui/ViewerFrame.py:295
-msgid "View"
-msgstr ""
-
-#: gui/DownloadDialog.py:24
-msgid "Connecting..."
-msgstr ""
-
-#: gui/DownloadDialog.py:26
-msgid "Always display"
-msgstr ""
-
-#: gui/DownloadDialog.py:39
-msgid "Downloading ..."
-msgstr ""
-
-#: gui/DownloadDialog.py:45
-#, python-format
-msgid "Downloading %s"
-msgstr ""
-
-#: gui/DownloadDialog.py:56
-#, python-format
-msgid "Downloaded %d files"
-msgstr ""
-
-#: gui/DownloadDialog.py:57
-msgid "Download Complete"
-msgstr ""
-
-#: gui/DownloadDialog.py:76
-msgid "Downloading"
-msgstr ""
-
-#: gui/ViewProfilePanel.py:20
-msgid "Matching profiles"
 msgstr ""
 
 #: gui/EditProfilePanel.py:33
@@ -618,16 +548,86 @@ msgstr ""
 msgid "Advanced Mode"
 msgstr ""
 
-#: tools/blog.py:78
-msgid "Could not add comment: blog not valid"
+#: gui/ViewerFrame.py:51
+msgid "Refresh All"
 msgstr ""
 
-#: tools/blog.py:86
-msgid "Blog already deleted."
+#: gui/ViewerFrame.py:54
+msgid "Profile\tCtrl+P"
 msgstr ""
 
-#: tools/blog.py:156 tools/blog.py:167
-msgid "Could not read blog file. Using a blank one."
+#: gui/ViewerFrame.py:56
+msgid "Blog\tCtrl+B"
+msgstr ""
+
+#: gui/ViewerFrame.py:58
+msgid "List files\tCtrl+L"
+msgstr ""
+
+#: gui/ViewerFrame.py:62
+msgid "&Anonymous\tCtrl+A"
+msgstr ""
+
+#: gui/ViewerFrame.py:64
+msgid "&Friend\tCtrl+F"
+msgstr ""
+
+#: gui/ViewerFrame.py:66
+msgid "&Ignore\tCtrl+I"
+msgstr ""
+
+#: gui/ViewerFrame.py:68
+msgid "Status"
+msgstr ""
+
+#: gui/ViewerFrame.py:72
+msgid "Help"
+msgstr ""
+
+#: gui/ViewerFrame.py:88
+msgid "Load a profile and add it in contact list"
+msgstr ""
+
+#: gui/ViewerFrame.py:262
+msgid "Profile Viewer"
+msgstr ""
+
+#: gui/ViewerFrame.py:295
+msgid "View"
+msgstr ""
+
+#: gui/ProfileDialog.py:43 gui/ProfileDialog.py:58 plugin.py:224
+msgid "Profile"
+msgstr ""
+
+#: gui/DownloadDialog.py:24
+msgid "Connecting..."
+msgstr ""
+
+#: gui/DownloadDialog.py:26
+msgid "Always display"
+msgstr ""
+
+#: gui/DownloadDialog.py:39
+msgid "Downloading ..."
+msgstr ""
+
+#: gui/DownloadDialog.py:45
+#, python-format
+msgid "Downloading %s"
+msgstr ""
+
+#: gui/DownloadDialog.py:56
+#, python-format
+msgid "Downloaded %d files"
+msgstr ""
+
+#: gui/DownloadDialog.py:57
+msgid "Download Complete"
+msgstr ""
+
+#: gui/DownloadDialog.py:76
+msgid "Downloading"
 msgstr ""
 
 #: editor/document.py:115

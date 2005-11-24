@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-11-09 17:10+0100\n"
+"POT-Creation-Date: 2005-11-24 15:46+0100\n"
 "PO-Revision-Date: 2005-09-27 18:54+0100\n"
 "Last-Translator: Manu <manu@nomail.com>\n"
 "Language-Team: \n"
@@ -95,7 +95,7 @@ msgstr "A propos...\tCtrl+?"
 msgid "Action"
 msgstr "Action"
 
-#: gui/FilePanel.py:42 gui/BlogPanel.py:72 gui/FileDialog.py:31
+#: gui/FilePanel.py:42 gui/FileDialog.py:31 gui/BlogPanel.py:72
 #: gui/BlogDialog.py:66
 msgid "Actions"
 msgstr "Actions"
@@ -128,7 +128,7 @@ msgstr "Toujours afficher"
 msgid "Apply"
 msgstr ""
 
-#: gui/BlogDialog.py:97 gui/EditorFrame.py:225 gui/ViewerFrame.py:296
+#: gui/EditorFrame.py:225 gui/BlogDialog.py:97 gui/ViewerFrame.py:296
 msgid "Blog"
 msgstr "Blog"
 
