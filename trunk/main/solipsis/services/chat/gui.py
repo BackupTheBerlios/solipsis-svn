@@ -27,10 +27,13 @@ from solipsis.util.uiproxy import UIProxyReceiver
 from solipsis.util.wxutils import _
 from solipsis.util.wxutils import *        # '*' doesn't import '_'
 
+import solipsis.navigator.wxclient.sounds as sounds
+
 class ChatWindow(wx.EvtHandler, XRCLoader, UIProxyReceiver):
     def __init__(self, plugin, dir_):
         self.plugin = plugin
         self.pseudos = {}
+        self.sounds = sounds.SoundRepository()
 
         wx.EvtHandler.__init__(self)
         UIProxyReceiver.__init__(self)
@@ -98,6 +101,9 @@ class ChatWindow(wx.EvtHandler, XRCLoader, UIProxyReceiver):
             # Restore default style
             style.SetTextColour(wx.NullColour)
             self.chat_view.SetDefaultStyle(style)
+            # Play funny sound
+            sound = self.sounds.GetSound(sounds.SND_NEW_CHAT)
+            sound.Play()
 
     def AppendSelfMessage(self, peer_id, message):
         """

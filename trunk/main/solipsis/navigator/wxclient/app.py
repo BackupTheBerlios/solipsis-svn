@@ -195,16 +195,16 @@ class NavigatorApp(BaseNavigatorApp, wx.App, XRCLoader):
         wx.InitAllImageHandlers()
         self.locale = wx.Locale()
         if not self.locale.Init2():
-            print "Warning: your system language is not supported " \
-                "by wxWidgets, trying English instead"
-            # Try English as default
-            lang_info = wx.Locale.FindLanguageInfo('en')
             try:
+                # wx.Locale.Init2() always returns False on frozen builds,
+                # but you mustn't call it a second time
+                import dyn.frozen
+            except ImportError:
+                print "Warning: your system language is not supported " \
+                    "by wxWidgets, trying English instead"
+                # Try English as default
+                lang_info = wx.Locale.FindLanguageInfo('en')
                 err = lang_info is None or not self.locale.Init2(lang_info.Language)
-            except Exception, e:
-                # Catch wx bullshit under Windows w/ py2exe
-                pass
-            else:
                 if err:
                     print "Error: failed to initialize wx.Locale!"
                     if wx.Platform not in ('__WXMSW__', '__WXMAC__'):

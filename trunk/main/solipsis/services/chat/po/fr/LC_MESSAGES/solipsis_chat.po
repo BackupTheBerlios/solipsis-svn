@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Solipsis chat plugin 0.1\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2005-11-09 17:09+0100\n"
-"PO-Revision-Date: 2005-11-09 17:09+0100\n"
+"PO-Revision-Date: 2005-11-18 16:31+0100\n"
 "Last-Translator: Antoine Pitrou <solipsis@pitrou.net>\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -42,7 +42,7 @@ msgstr "Pseudonyme"
 
 #: plugin.py:45
 msgid "Talk with the people that are currently around you"
-msgstr ""
+msgstr "Discuter avec les gens qui sont actuellement autour de vous"
 
 msgid "Users"
 msgstr "Participants"

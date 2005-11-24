@@ -19,12 +19,12 @@ import glob
 from solipsis import VERSION
 from commonsetup import *
 
-name="Solipsis"
+name = "Solipsis"
 version = VERSION
-description="Solipsis, A peer-to-peer system for a massively multi-participant virtual world"
-author="France Telecom R&D"
-author_email="solipsis-tech@lists.berlios.de"
-url="http://solipsis.netofpeers.net"
+description = "Solipsis, A peer-to-peer system for a massively multi-participant virtual world"
+author = "France Telecom R&D"
+author_email = "solipsis-tech@lists.berlios.de"
+url = "http://solipsis.netofpeers.net"
 
 class Target:
     def __init__(self, **kw):
@@ -37,58 +37,23 @@ class Target:
 sys.path.append("solipsis/node")
 sys.path.append("solipsis/navigator")
 
+#
+# Invoke common setup routines
+#
 data_files = [
      ("",["msvcr71.dll"]),
 ]
 data_files = get_data_files(data_files)
 
-# data_files=[
-#     ("",["LICENSE", "README.txt"]),
-#     ("img", glob.glob("img/*.*")),
-#     ("",["msvcr71.dll"]),
-#     ("conf", glob.glob("conf/*.conf") + glob.glob("conf/*.default")),
-# # Insert services files here
-#     ("solipsis/services", glob.glob("solipsis/services/*.*")),
-# #CHAT
-#     ("solipsis/services/chat", glob.glob("solipsis/services/chat/*.*")),
-#     ("solipsis/services/chat/po", glob.glob("solipsis/services/chat/po/*.*")),
-#     ("solipsis/services/chat/po/de/LC_MESSAGES",
-#         glob.glob("solipsis/services/chat/po/de/LC_MESSAGES/*.*")),
-#     ("solipsis/services/chat/po/fr/LC_MESSAGES",
-#         glob.glob("solipsis/services/chat/po/fr/LC_MESSAGES/*.*")),
-# #AVATARS
-#     ("avatars", glob.glob("avatars/*.*")),
-#     ("solipsis/services/avatar", glob.glob("solipsis/services/avatar/*.*")),
-#     ("solipsis/services/avatar/po", glob.glob("solipsis/services/avatar/po/*.*")),
-#     ("solipsis/services/avatar/po/de/LC_MESSAGES",
-#         glob.glob("solipsis/services/avatar/po/de/LC_MESSAGES/*.*")),
-#     ("solipsis/services/avatar/po/fr/LC_MESSAGES",
-#         glob.glob("solipsis/services/avatar/po/fr/LC_MESSAGES/*.*")),
-# #PROFILE
-#     ("solipsis/services/profile", glob.glob("solipsis/services/profile/*.*")),
-#     ("solipsis/services/profile/tests", glob.glob("solipsis/services/profile/tests/*.*")),
-#     ("solipsis/services/profile/tests/data", glob.glob("solipsis/services/profile/tests/data/*.*")),
-#     ("solipsis/services/profile/tests/data/profiles", glob.glob("solipsis/services/profile/tests/data/profiles/*.*")),
-#     ("solipsis/services/profile/tests/data/subdir1", glob.glob("solipsis/services/profile/tests/data/subdir1/*.*")),
-#     ("solipsis/services/profile/tests/data/subdir1/subsubdir", glob.glob("solipsis/services/profile/tests/data/subdir1/subsubdir/*.*")),
-#     ("solipsis/services/profile/tests/data/emptydir", glob.glob("solipsis/services/profile/tests/data/emptydir/*.*")),
-#     ("solipsis/services/profile/tests/generated", glob.glob("solipsis/services/profile/tests/generated/*.*")),
-#     ("solipsis/services/profile/gui", glob.glob("solipsis/services/profile/gui/*.*")),
-#     ("solipsis/services/profile/images", glob.glob("solipsis/services/profile/images/*.*")),
-#     ("solipsis/services/profile/po", glob.glob("solipsis/services/profile/po/*.*")),
-#     ("solipsis/services/profile/po/fr", glob.glob("solipsis/services/profile/po/fr/*.*")),
-#     ("solipsis/services/profile/po/fr/LC_MESSAGES", glob.glob("solipsis/services/profile/po/fr/LC_MESSAGES/*.*")),
-# # End services files
-#     ("log", []),
-#     ("state", []),
-#     ("resources", ["resources/navigator.xrc"]),
-#     ("po", ["po/messages.pot"]),
-#     ("po/de/LC_MESSAGES",
-#         ["po/de/LC_MESSAGES/solipsis.mo",
-#         "po/de/LC_MESSAGES/solipsis.po"]),
-#     ("po/fr/LC_MESSAGES",
-#         ["po/fr/LC_MESSAGES/solipsis.mo",
-#         "po/fr/LC_MESSAGES/solipsis.po"])]
+#
+# Create dynamic setup info
+#
+create_dyn_file("__init__.tmpl.py")
+create_dyn_file("frozen.tmpl.py")
+
+#
+# Launch the distutils machinery with options computed above
+#
 
 import py2exe
 

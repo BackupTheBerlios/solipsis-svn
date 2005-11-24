@@ -13,7 +13,6 @@ it in a compressed archive:
 import os
 import sys
 import glob
-import re
 
 from distutils.core import setup
 #import bdist_mpkg
@@ -28,7 +27,7 @@ description = "Solipsis, a peer-to-peer system for a massively multi-participant
 author = "France Telecom R&D"
 author_email = "solipsis-tech@lists.berlios.de"
 url = "http://solipsis.netofpeers.net/"
-license = "COPYRIGHT"
+license = "COPYRIGHT.txt"
 
 #
 # Invoke common setup routines
@@ -39,26 +38,10 @@ data_files = get_data_files()
 #
 # Create dynamic setup info
 #
-template = "dyn/py2app.tmpl.py"
-dynfile = template.replace('.tmpl.py', '.py')
-print "generating %s" % dynfile
-
-var_replace = {}
-var_replace['executable'] = '../MacOS/' + application_name
-
-f = file(template, 'r')
-s = f.read()
-f.close()
-for k, v in var_replace.items():
-    s, n = re.subn(r'[^\r\n]+#\s*<%s>([\r\n])' % k, "%s = %s\n\\1" % (k, repr(v)), s)
-    if n == 0:
-        print "Couldn't find var '%s' in template '%s'. Bailing out." % (k, template)
-        sys.exit(1)
-
-f = file(dynfile, 'w')
-f.write(s)
-f.close()
-
+create_dyn_file("__init__.tmpl.py")
+create_dyn_file("frozen.tmpl.py")
+create_dyn_file("py2app.tmpl.py", 
+    {'executable': '../MacOS/' + application_name})
 
 #
 # Launch the distutils machinery with options computed above
