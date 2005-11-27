@@ -298,6 +298,21 @@ class EntityCache(object):
         self.history = _HistoryStore()
         self.current_peers = _HistoryStore()
         self.default_entities = []
+        self.frozen = False
+
+    def Freeze(self):
+        """
+        Freeze entity cache, that is do not perform any
+        changes on future events.
+        """
+        self.Fortify()
+        self.frozen = True
+
+    def Unfreeze(self):
+        """
+        Unfreeze entity cache.
+        """
+        self.frozen = False
 
     def Fortify(self):
         """
@@ -312,13 +327,15 @@ class EntityCache(object):
         """
         Call this method when a peer is connected.
         """
-        self.current_peers.OnPeerConnected(peer)
+        if not self.frozen:
+            self.current_peers.OnPeerConnected(peer)
 
     def OnPeerDisconnected(self, peer_id):
         """
         Call this method when a peer is disconnected.
         """
-        self.current_peers.OnPeerDisconnected(peer_id)
+        if not self.frozen:
+            self.current_peers.OnPeerDisconnected(peer_id)
 
     def Write(self, outfile):
         """
@@ -420,23 +437,6 @@ class EntityCache(object):
             current_list.pop(i)
             yield e
 
-
-#         # Huffman algorithm to optimize average tree traversing length
-#         while len(l) > 1:
-#             left = l.pop()
-#             right = l.pop()
-#             bisect.insort(l, (left[0] + right[0], (left, right)))
-#         print l[0][0]
-#         # Build decision tree
-#         def _build_dec(item):
-#             w, e = item
-#             if not isinstance(e, tuple):
-#                 return [w, 1, e]
-#             left, right = e
-#             left = _build_dec(left)
-#             right = _build_dec(right)
-#             return [left[0], left[1] + right[1], left, right]
-#         decision_tree = _build_dec(l[0])
 
     def SaveAtomic(self, path):
         """

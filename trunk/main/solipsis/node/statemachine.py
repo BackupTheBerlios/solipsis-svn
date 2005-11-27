@@ -935,6 +935,10 @@ class StateMachine(object):
     def _LoadEntityCache(self):
         if not self.params.as_seed:
             self.entity_cache.Load(self.entity_cache_file)
+        else:
+            # When run as seeds, we only want self-hosted entities to
+            # be stored and contacted
+            self.entity_cache.Freeze()
 
     #
     # Teleportation algorithm
