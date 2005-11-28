@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2005-11-24 15:46+0100\n"
+"POT-Creation-Date: 2005-11-28 22:29+0100\n"
 "PO-Revision-Date: 2005-11-28 10:34+0100\n"
 "Last-Translator: Bastian Flinspach <gawes@web.de>\n"
 "Language-Team: \n"
@@ -52,8 +52,7 @@ msgstr "Wählen sie ihren Avatar"
 msgid "Cycle through directory"
 msgstr "Avatare wechseln"
 
-#: gui.py:102
-#: gui.py:168
+#: gui.py:102 gui.py:168
 msgid "Error"
 msgstr "Fehler"
 
@@ -113,4 +112,3 @@ msgstr "Ihr Avatar wurde aktualisiert"
 
 #~ msgid "&Configure"
 #~ msgstr "&Konfigurieren"
-
