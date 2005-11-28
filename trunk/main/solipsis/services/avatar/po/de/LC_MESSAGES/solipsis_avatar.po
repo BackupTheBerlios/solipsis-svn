@@ -4,7 +4,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2005-11-24 15:46+0100\n"
-"PO-Revision-Date: 2005-05-11 14:13+0100\n"
+"PO-Revision-Date: 2005-11-28 10:34+0100\n"
 "Last-Translator: Bastian Flinspach <gawes@web.de>\n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -12,14 +12,13 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: gui.py:159
-#, fuzzy, python-format
+#, python-format
 msgid "%d avatars have been loaded."
-msgstr "Ihr Avatar wurde aktualisiert"
+msgstr "%d Avatare wurden geladen."
 
 #: plugin.py:98
-#, fuzzy
 msgid "&Choose an avatar"
-msgstr "Wählen sie ihren Avatar"
+msgstr "&Wählen sie ihren Avatar"
 
 #: gui.py:56
 msgid "All files"
@@ -38,13 +37,12 @@ msgid "Avatars"
 msgstr "Avatare"
 
 #: gui.py:160
-#, fuzzy
 msgid "Avatars updated"
 msgstr "Avatar aktualisiert"
 
 #: gui.py:121
 msgid "Choose a directory to load avatars from"
-msgstr ""
+msgstr "Wählen sie ein Verzeichnis aus, aus dem Avatare geladen werden sollen"
 
 #: gui.py:63
 msgid "Choose your avatar"
@@ -52,9 +50,10 @@ msgstr "Wählen sie ihren Avatar"
 
 #: plugin.py:103
 msgid "Cycle through directory"
-msgstr ""
+msgstr "Avatare wechseln"
 
-#: gui.py:102 gui.py:168
+#: gui.py:102
+#: gui.py:168
 msgid "Error"
 msgstr "Fehler"
 
@@ -67,9 +66,8 @@ msgid "Images"
 msgstr "Bilder"
 
 #: gui.py:167
-#, fuzzy
 msgid "Please choose another directory."
-msgstr "Bitte wählen sie eine andere Datei."
+msgstr "Bitte wählen sie ein anderes Verzeichnis."
 
 #: gui.py:101
 msgid "Please choose another file."
@@ -84,18 +82,17 @@ msgid "Stretch avatars"
 msgstr "Avatare vergrößern"
 
 #: gui.py:132
-#, fuzzy
 msgid "The directory you chose could not be opened."
-msgstr "Die Datei die sie gewählt haben konnte nicht geöffnet werden."
+msgstr "Das Verzeichnis, dass sie gewählt haben konnte nicht geöffnet werden."
 
 #: gui.py:164
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "The directory you chose does not contain any of the \n"
 "supported image types (%s)."
 msgstr ""
-"Die Datei die sie gewählt haben gehört nicht zu den \n"
-"unterstützten Formaten (%s)."
+"Das Verzeichnis, dass sie gewählt haben enthält keines \n"
+"der unterstützten Formate (%s)."
 
 #: gui.py:77
 msgid "The file you chose could not be opened."
@@ -116,3 +113,4 @@ msgstr "Ihr Avatar wurde aktualisiert"
 
 #~ msgid "&Configure"
 #~ msgstr "&Konfigurieren"
+

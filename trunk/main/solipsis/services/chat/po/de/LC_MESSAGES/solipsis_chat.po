@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Solipsis chat plugin 0.1\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2005-11-24 15:46+0100\n"
-"PO-Revision-Date: 2005-08-16 10:40+0100\n"
+"PO-Revision-Date: 2005-11-28 10:28+0100\n"
 "Last-Translator: Bastian Flinspach <gawes@web.de>\n"
 "Language-Team: French\n"
 "MIME-Version: 1.0\n"
@@ -17,9 +17,9 @@ msgstr ""
 "Plural-Forms: \n"
 
 #: gui.py:135
-#, fuzzy, python-format
+#, python-format
 msgid "%s - Chat"
-msgstr "Chat"
+msgstr "%s - Chat"
 
 msgid "&Close"
 msgstr "&Schließen"
@@ -27,7 +27,8 @@ msgstr "&Schließen"
 msgid "&Send"
 msgstr "&Senden"
 
-#: plugin.py:42 plugin.py:77
+#: plugin.py:42
+#: plugin.py:77
 msgid "Chat"
 msgstr "Chat"
 
@@ -45,3 +46,4 @@ msgstr "Sprechen sie mit den Menschen die sich in ihrer Nähe befinden"
 
 msgid "Users"
 msgstr "User"
+
