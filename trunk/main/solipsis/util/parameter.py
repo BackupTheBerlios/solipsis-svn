@@ -29,7 +29,11 @@ from solipsis.util.compat import safe_str, safe_unicode, abspath
 # The parameters come from an external source (config file or
 # command-line options), so we have to take into account the
 # system-wide charset (not always utf-8).
-CHARSET = locale.getpreferredencoding()
+try:
+    CHARSET = locale.getpreferredencoding()
+# Strange bug on Debian
+except locale.Error:
+    CHARSET = 'utf-8'
 
 class Parameters(object):
     """
