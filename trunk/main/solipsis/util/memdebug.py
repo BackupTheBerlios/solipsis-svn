@@ -19,7 +19,8 @@
 
 import sys, types
 import weakref
-from collections import deque
+
+from solipsis.util.compat import set
 
 class MemSizer(object):
     """
@@ -50,10 +51,9 @@ class MemSizer(object):
             list: self.rlen_seq,
             tuple: self.rlen_seq,
             set: self.rlen_seq,
-            frozenset: self.rlen_seq,
-            deque: self.rlen_seq,
-            #str: self.rlen_str,
-            #unicode: self.rlen_str,
+            # frozenset and deque do not exist in Python 2.3
+            #frozenset: self.rlen_seq,
+            #deque: self.rlen_seq,
         }
         self.ignores = set()
         self.ignores.add(weakref.ProxyType)
