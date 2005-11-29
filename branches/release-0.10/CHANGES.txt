@@ -1,0 +1,69 @@
+Solipsis (0.9.6)
+    - new profile filter ergonomy + NAT traversal
+    - persistent node id
+
+Solipsis (0.9.5)
+
+    - new dynamic entity cache: see details at
+    http://lists.berlios.de/pipermail/solipsis-tech/2005-September/000168.html
+    - differents avatars for nodes which have the avatar plugin
+    but do not have a configured avatar (to distinguish them from robots)
+    - additional column in bookmark view to display URL
+    - bug: we used the public address in some cases when contacting a node
+    behind the same NAT as us
+    - trial bug fix for timing problems in STUN sequence
+    - trial bug fix for unicode path problems
+    - trial bug fix for wxPython 2.5 compatibility
+
+Solipsis (0.9.4)
+
+    - new protocol version (1.1): see details at
+    http://lists.berlios.de/pipermail/solipsis-tech/2005-September/000156.html
+    - German translation update and new Spanish translation
+    - several bug fixes
+
+Solipsis (0.9.3)
+
+    - much better IP address discovery (thanks to the Shtoom project)
+    - try to keep persistent node IDs when launched from the navigator
+    - fix behaviour of "jump to position": only jump near the position
+    when another peer is already at that exact position
+    - improve detection and resolution of position conflicts in the
+    state machine
+    - various bug fixes and improvements
+
+Solipsis (0.9.1)
+
+    * Changes in Profile (v 0.2.1)
+    ==============================
+
+    + Reviewed ergonomy of GUI:
+    ---------------------------
+
+    Merge of the Personal and Custom tabs which result in a clearer
+    and more concise set of data
+
+    The Contact tab has been removed for now but will reappear soon in
+    one form or another
+
+    The menu has been clarified (purified) too.
+
+    + Reviewed saving & loading system:
+    -----------------------------------
+
+    Profiles are now loaded according to the identity used when
+    connecting to solipsis. This identity defines the pseudo of the
+    profile and the name of the file where to save data.
+
+    A popup prompts the user to save its modification if any.
+
+    + Bug fixes
+    -----------
+
+    Ip addresses were not set up correctly which resulted in problems
+    of file transfer.
+
+    Paths from windows read on Linux were not rightly interpreted,
+    wich also resulted on impossibility of file transfer.
+
+-- emb <emb@logilab.fr>  01/06/2005

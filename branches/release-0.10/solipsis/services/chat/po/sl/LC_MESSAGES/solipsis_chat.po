@@ -1,0 +1,46 @@
+# Copyright (C) 2005 Free Software Foundation, Inc.
+# Antoine <solipsis@pitrou.net>, 2005.
+# 
+# 
+msgid ""
+msgstr ""
+"Project-Id-Version: Solipsis chat plugin 0.1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2005-11-24 15:46+0100\n"
+"PO-Revision-Date: 2005-05-19 14:25+0100\n"
+"Last-Translator: Antoine Pitrou <solipsis@pitrou.net>\n"
+"Language-Team: French\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: \n"
+
+#: gui.py:135
+#, fuzzy, python-format
+msgid "%s - Chat"
+msgstr "Pogovor"
+
+msgid "&Close"
+msgstr "&Zapri"
+
+msgid "&Send"
+msgstr "&Pošlji"
+
+#: plugin.py:42 plugin.py:77
+msgid "Chat"
+msgstr "Pogovor"
+
+#: plugin.py:38
+msgid "Chat with all peers"
+msgstr "Pogovarjaj se z vsemi peer-i"
+
+#: gui.py:64
+msgid "Nickname"
+msgstr "Psevdonim"
+
+#: plugin.py:45
+msgid "Talk with the people that are currently around you"
+msgstr "Pogovarjaj se z ljudmi ki so okoli tebe"
+
+msgid "Users"
+msgstr "Uporabnik"

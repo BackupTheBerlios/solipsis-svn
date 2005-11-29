@@ -1,0 +1,118 @@
+# 
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2005-11-28 22:29+0100\n"
+"PO-Revision-Date: 2005-05-11 14:13+0100\n"
+"Last-Translator: Bastian Flinspach <gawes@web.de>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=iso-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: gui.py:159
+#, fuzzy, python-format
+msgid "%d avatars have been loaded."
+msgstr "Vaš avatar je zamenjan."
+
+#: plugin.py:98
+#, fuzzy
+msgid "&Choose an avatar"
+msgstr "Izberi svojega avatar-ja"
+
+#: gui.py:56
+msgid "All files"
+msgstr "Vse datoteke"
+
+#: plugin.py:115
+msgid "Avatar"
+msgstr "Avatar"
+
+#: gui.py:94
+msgid "Avatar updated"
+msgstr "Zamenjava avatarja"
+
+#: plugin.py:57
+msgid "Avatars"
+msgstr "Avatar-ji"
+
+#: gui.py:160
+#, fuzzy
+msgid "Avatars updated"
+msgstr "Zamenjava avatarja"
+
+#: gui.py:121
+msgid "Choose a directory to load avatars from"
+msgstr ""
+
+#: gui.py:63
+msgid "Choose your avatar"
+msgstr "Izberi svojega avatar-ja"
+
+#: plugin.py:103
+msgid "Cycle through directory"
+msgstr ""
+
+#: gui.py:102 gui.py:168
+msgid "Error"
+msgstr "Napaka"
+
+#: plugin.py:60
+msgid "Exchange avatars to customize your appearance"
+msgstr "Zamenjajte avatarje, da si spremenite izgled"
+
+#: gui.py:56
+msgid "Images"
+msgstr "Slike"
+
+#: gui.py:167
+#, fuzzy
+msgid "Please choose another directory."
+msgstr "Prosimo izberite drugo datoteko."
+
+#: gui.py:101
+msgid "Please choose another file."
+msgstr "Prosimo izberite drugo datoteko."
+
+#: plugin.py:112
+msgid "Shrink avatars"
+msgstr "Pomanšaj avatarje"
+
+#: plugin.py:108
+msgid "Stretch avatars"
+msgstr "Poveèaj avatarje"
+
+#: gui.py:132
+#, fuzzy
+msgid "The directory you chose could not be opened."
+msgstr "Datoteke ni bilo mogoèe odpreti."
+
+#: gui.py:164
+#, fuzzy, python-format
+msgid ""
+"The directory you chose does not contain any of the \n"
+"supported image types (%s)."
+msgstr ""
+"Datoteka, ki ste jo izbrali ne \n"
+"podpira slikovnega formata (%s)."
+
+#: gui.py:77
+msgid "The file you chose could not be opened."
+msgstr "Datoteke ni bilo mogoèe odpreti."
+
+#: gui.py:98
+#, python-format
+msgid ""
+"The file you chose does not belong to the \n"
+"supported image types (%s)."
+msgstr ""
+"Datoteka, ki ste jo izbrali ne \n"
+"podpira slikovnega formata (%s)."
+
+#: gui.py:93
+msgid "Your avatar has been updated."
+msgstr "Vaš avatar je zamenjan."
+
+#~ msgid "&Configure"
+#~ msgstr "&Nastavitve"
