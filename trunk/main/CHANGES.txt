@@ -1,9 +1,21 @@
+
+Solipsis (0.10)
+    - profile plugin moved into separate "contrib" directory (not in main
+    distrib)
+    - recursive preloading of avatars from the "avatar" directory
+    - play some sounds on a few events (when a peer appears, or when a chat
+    message is received)
+    - an option to cycle our avatar through all files of a directory,
+    on a periodic basis (a few seconds)
+    - some memory consumption fixes in the node (long-running processes
+    hosting tens of bots each were quite leaky - I don't know if the problem
+    is fully solved yet, but there is quite an improvement)
+
 Solipsis (0.9.6)
     - new profile filter ergonomy + NAT traversal
     - persistent node id
 
 Solipsis (0.9.5)
-
     - new dynamic entity cache: see details at
     http://lists.berlios.de/pipermail/solipsis-tech/2005-September/000168.html
     - differents avatars for nodes which have the avatar plugin
@@ -16,14 +28,12 @@ Solipsis (0.9.5)
     - trial bug fix for wxPython 2.5 compatibility
 
 Solipsis (0.9.4)
-
     - new protocol version (1.1): see details at
     http://lists.berlios.de/pipermail/solipsis-tech/2005-September/000156.html
     - German translation update and new Spanish translation
     - several bug fixes
 
 Solipsis (0.9.3)
-
     - much better IP address discovery (thanks to the Shtoom project)
     - try to keep persistent node IDs when launched from the navigator
     - fix behaviour of "jump to position": only jump near the position
@@ -33,7 +43,6 @@ Solipsis (0.9.3)
     - various bug fixes and improvements
 
 Solipsis (0.9.1)
-
     * Changes in Profile (v 0.2.1)
     ==============================
 
@@ -66,4 +75,3 @@ Solipsis (0.9.1)
     Paths from windows read on Linux were not rightly interpreted,
     wich also resulted on impossibility of file transfer.
 
--- emb <emb@logilab.fr>  01/06/2005

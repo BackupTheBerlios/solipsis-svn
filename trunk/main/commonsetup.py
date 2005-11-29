@@ -86,6 +86,7 @@ def get_data_files(other_data_files=None):
         'mo',
         'png', 'gif', 'jpg', 'jpeg',
         'txt', 'html',
+        'wav', 'ogg', 'mp3',
         'conf', 'default',
     ]
     for dirpath, dirnames, filenames in os.walk('.'):
